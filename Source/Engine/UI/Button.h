@@ -31,7 +31,7 @@ namespace Urho3D
 class URHO3D_API Button : public BorderImage
 {
     OBJECT(Button);
-    
+
 public:
     /// Construct.
     Button(Context* context);
@@ -39,7 +39,7 @@ public:
     virtual ~Button();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Perform UI element update.
     virtual void Update(float timeStep);
     /// Return UI rendering batches.
@@ -49,7 +49,7 @@ public:
     /// React to mouse click end.
     virtual void OnClickEnd(const IntVector2& position, const IntVector2& screenPosition, int button, int buttons, int qualifiers, Cursor* cursor, UIElement* beginElement);
     /// React to mouse drag motion.
-    virtual void OnDragMove(const IntVector2& position, const IntVector2& screenPosition, int buttons, int qualifiers, Cursor* cursor);
+    virtual void OnDragMove(const IntVector2& position, const IntVector2& screenPosition,const IntVector2& deltaPos, int buttons, int qualifiers, Cursor* cursor);
     /// React to a key press.
     virtual void OnKey(int key, int buttons, int qualifiers);
 
@@ -67,7 +67,7 @@ public:
     void SetRepeatDelay(float delay);
     /// Set repeat rate.
     void SetRepeatRate(float rate);
-    
+
     /// Return pressed image offset.
     const IntVector2& GetPressedOffset() const { return pressedOffset_; }
     /// Return offset of child elements when pressed.
@@ -82,7 +82,7 @@ public:
 protected:
     /// Set new pressed state.
     void SetPressed(bool enable);
-    
+
     /// Pressed image offset.
     IntVector2 pressedOffset_;
     /// Pressed label offset.
