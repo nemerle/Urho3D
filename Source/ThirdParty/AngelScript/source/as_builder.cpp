@@ -233,11 +233,14 @@ int asCBuilder::Build()
 
 	ParseScripts();
 
-	// Compile the global variables first, so the auto types can be
-	// resolved before the variables is used else where in the code
-	CompileGlobalVariables();
+	// Compile the types first
 	CompileInterfaces();
 	CompileClasses();
+	// Then the global variables. Here the variables declared with auto
+	// will be resolved, so they can be accessed properly in the functions
+	CompileGlobalVariables();
+
+	// Finally the global functions and class methods
 	CompileFunctions();
 
 	// TODO: Attempt to reorder the initialization of global variables so that
@@ -334,6 +337,63 @@ int asCBuilder::ValidateDefaultArgs(asCScriptCode *script, asCScriptNode *node, 
 }
 
 #ifndef AS_NO_COMPILER
+// This function will verify if the newly created function will conflict another overload due to having  
+// identical function arguments that are not default args, e.g: foo(int) and foo(int, int=0)
+int asCBuilder::CheckForConflictsDueToDefaultArgs(asCScriptCode *script, asCScriptNode *node, asCScriptFunction *func, asCObjectType *objType)
+{
+	// TODO: Implement for global functions too
+	if( func->objectType == 0 || objType == 0 ) return 0;
+
+	asCArray<int> funcs;
+	GetObjectMethodDescriptions(func->name.AddressOf(), objType, funcs, false);
+	for( asUINT n = 0; n < funcs.GetLength(); n++ )
+	{
+		asCScriptFunction *func2 = engine->scriptFunctions[funcs[n]];
+		if( func == func2 )
+			continue;
+
+		if( func->IsReadOnly() != func2->IsReadOnly() )
+			continue;
+
+		bool match = true;
+		asUINT p = 0;
+		for( ; p < func->parameterTypes.GetLength() && p < func2->parameterTypes.GetLength(); p++ )
+		{
+			// Only verify until the first argument with default args
+			if( (func->defaultArgs.GetLength() > p && func->defaultArgs[p]) ||
+				(func2->defaultArgs.GetLength() > p && func2->defaultArgs[p]) )
+				break;
+
+			if( func->parameterTypes[p] != func2->parameterTypes[p] ||
+				func->inOutFlags[p] != func2->inOutFlags[p] )
+			{
+				match = false;
+				break;
+			}
+		}
+
+		if( match )
+		{
+			if( !((p >= func->parameterTypes.GetLength() && p < func2->defaultArgs.GetLength() && func2->defaultArgs[p]) ||
+				  (p >= func2->parameterTypes.GetLength() && p < func->defaultArgs.GetLength() && func->defaultArgs[p])) )
+			{
+				// The argument lists match for the full length of the shorter, but the next
+				// argument on the longer does not have a default arg so there is no conflict
+				match = false;
+			}
+		}
+
+		if( match )
+		{
+			WriteWarning(TXT_OVERLOAD_CONFLICTS_DUE_TO_DEFAULT_ARGS, script, node);
+			WriteInfo(func->GetDeclaration(), script, node);
+			WriteInfo(func2->GetDeclaration(), script, node);
+			break;
+		}
+	}
+
+	return 0;
+}
 int asCBuilder::CompileFunction(const char *sectionName, const char *code, int lineOffset, asDWORD compileFlags, asCScriptFunction **outFunc)
 {
 	asASSERT(outFunc != 0);
@@ -1080,7 +1140,8 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 
 		// Move to next parameter
 		n = n->next->next;
-		if( n && n->nodeType == snIdentifier ) {
+		if( n && n->nodeType == snIdentifier ) 
+		{
 			func->parameterNames[index] = asCString(&source.code[n->tokenPos], n->tokenLength);
 			n = n->next;
 		}
@@ -1631,9 +1692,9 @@ int asCBuilder::RegisterClass(asCScriptNode *node, asCScriptCode *file, asSNameS
 	// creating a new one.
 	if( isShared )
 	{
-		for( asUINT n = 0; n < engine->classTypes.GetLength(); n++ )
+		for( asUINT n = 0; n < engine->scriptTypes.GetLength(); n++ )
 		{
-			asCObjectType *st = engine->classTypes[n];
+			asCObjectType *st = engine->scriptTypes[n];
 			if( st &&
 				st->IsShared() &&
 				st->name == name &&
@@ -1681,7 +1742,7 @@ int asCBuilder::RegisterClass(asCScriptNode *node, asCScriptCode *file, asSNameS
 	st->nameSpace = ns;
 	st->module    = module;
 	module->classTypes.PushLast(st);
-	engine->classTypes.PushLast(st);
+	engine->scriptTypes.PushLast(st);
 	st->AddRef();
 	decl->objType = st;
 
@@ -1743,9 +1804,9 @@ int asCBuilder::RegisterInterface(asCScriptNode *node, asCScriptCode *file, asSN
 	// creating a new one.
 	if( isShared )
 	{
-		for( asUINT n = 0; n < engine->classTypes.GetLength(); n++ )
+		for( asUINT n = 0; n < engine->scriptTypes.GetLength(); n++ )
 		{
-			asCObjectType *st = engine->classTypes[n];
+			asCObjectType *st = engine->scriptTypes[n];
 			if( st &&
 				st->IsShared() &&
 				st->name == name &&
@@ -1775,8 +1836,9 @@ int asCBuilder::RegisterInterface(asCScriptNode *node, asCScriptCode *file, asSN
 	st->size = 0; // Cannot be instantiated
 	st->name = name;
 	st->nameSpace = ns;
+	st->module = module;
 	module->classTypes.PushLast(st);
-	engine->classTypes.PushLast(st);
+	engine->scriptTypes.PushLast(st);
 	st->AddRef();
 	decl->objType = st;
 
@@ -2445,7 +2507,7 @@ void asCBuilder::CompileClasses()
 				AddInterfaceFromMixinToClass(decl, node, mixin);
 			}
 			else if( !(objType->flags & asOBJ_SCRIPT_OBJECT) ||
-					 objType->flags & asOBJ_NOINHERIT )
+					 (objType->flags & asOBJ_NOINHERIT) )
 			{
 				// Either the class is not a script class or interface
 				// or the class has been declared as 'final'
@@ -2604,6 +2666,28 @@ void asCBuilder::CompileClasses()
 				for( asUINT d = 0; d < decl->objType->methods.GetLength(); d++ )
 				{
 					derivedFunc = GetFunctionDescription(decl->objType->methods[d]);
+					if( baseFunc->name == "opConv" || baseFunc->name == "opImplConv" )
+					{
+						// For the opConv and opImplConv methods, the return type can differ if they are different methods
+						if( derivedFunc->name == baseFunc->name &&
+							derivedFunc->IsSignatureExceptNameEqual(baseFunc) )
+						{
+							if( baseFunc->IsFinal() )
+							{
+								asCString msg;
+								msg.Format(TXT_METHOD_CANNOT_OVERRIDE_s, baseFunc->GetDeclaration());
+								WriteError(msg, decl->script, decl->node);
+							}
+
+							// Move the function from the methods array to the virtualFunctionTable
+							decl->objType->methods.RemoveIndex(d);
+							decl->objType->virtualFunctionTable.PushLast(derivedFunc);
+							found = true;
+							break;
+						}
+					}
+					else
+					{
 					if( derivedFunc->name == baseFunc->name &&
 						derivedFunc->IsSignatureExceptNameAndReturnTypeEqual(baseFunc) )
 					{
@@ -2628,12 +2712,14 @@ void asCBuilder::CompileClasses()
 						break;
 					}
 				}
+				}
 
 				if( !found )
 				{
 					// Push the base class function on the virtual function table
 					decl->objType->virtualFunctionTable.PushLast(baseType->virtualFunctionTable[m]);
 					baseType->virtualFunctionTable[m]->AddRef();
+					CheckForConflictsDueToDefaultArgs(decl->script, decl->node, baseType->virtualFunctionTable[m], decl->objType);
 				}
 
 				decl->objType->methods.PushLast(baseType->methods[m]);
@@ -3427,9 +3513,9 @@ int asCBuilder::RegisterEnum(asCScriptNode *node, asCScriptCode *file, asSNameSp
 	if( isShared )
 	{
 		// Look for a pre-existing shared enum with the same signature
-		for( asUINT n = 0; n < engine->classTypes.GetLength(); n++ )
+		for( asUINT n = 0; n < engine->scriptTypes.GetLength(); n++ )
 		{
-			asCObjectType *o = engine->classTypes[n];
+			asCObjectType *o = engine->scriptTypes[n];
 			if( o &&
 				o->IsShared() &&
 				(o->flags & asOBJ_ENUM) &&
@@ -3462,6 +3548,7 @@ int asCBuilder::RegisterEnum(asCScriptNode *node, asCScriptCode *file, asSNameSp
 			st->size      = 4;
 			st->name      = name;
 			st->nameSpace = ns;
+			st->module    = module;
 		}
 		module->enumTypes.PushLast(st);
 		st->AddRef();
@@ -3469,7 +3556,7 @@ int asCBuilder::RegisterEnum(asCScriptNode *node, asCScriptCode *file, asSNameSp
 		// TODO: cleanup: Should the enum type really be stored in the engine->classTypes?
 		//                http://www.gamedev.net/topic/616912-c-header-file-shared-with-scripts/page__gopid__4895940
 		if( !existingSharedType )
-			engine->classTypes.PushLast(st);
+			engine->scriptTypes.PushLast(st);
 
 		// Store the location of this declaration for reference in name collisions
 		sClassDeclaration *decl = asNEW(sClassDeclaration);
@@ -3615,11 +3702,12 @@ int asCBuilder::RegisterTypedef(asCScriptNode *node, asCScriptCode *file, asSNam
 		st->name            = name;
 		st->nameSpace       = ns;
 		st->templateSubTypes.PushLast(dataType);
+		st->module          = module;
 
 		st->AddRef();
 
 		module->typeDefs.PushLast(st);
-		engine->classTypes.PushLast(st);
+		engine->scriptTypes.PushLast(st);
 
 		// Store the location of this declaration for reference in name collisions
 		sClassDeclaration *decl = asNEW(sClassDeclaration);
@@ -4020,6 +4108,38 @@ int asCBuilder::RegisterScriptFunction(asCScriptNode *node, asCScriptCode *file,
 		GetObjectMethodDescriptions(name.AddressOf(), objType, funcs, false);
 	else
 		GetFunctionDescriptions(name.AddressOf(), funcs, ns);
+	if( objType && (name == "opConv" || name == "opImplConv") && parameterTypes.GetLength() == 0 )
+	{
+		// opConv and opImplConv are special methods used for type casts
+		for( asUINT n = 0; n < funcs.GetLength(); ++n )
+		{
+			asCScriptFunction *func = GetFunctionDescription(funcs[n]);
+			if( func->IsSignatureExceptNameEqual(returnType, parameterTypes, inOutFlags, objType, isConstMethod) )
+			{
+				// TODO: clean up: Reuse the same error handling for both opConv and normal methods
+				if( isMixin )
+				{
+					// Clean up the memory, as the function will not be registered
+					if( node )
+						node->Destroy(engine);
+					sFunctionDescription *func = functions.PopLast();
+					asDELETE(func, sFunctionDescription);
+
+					// Free the default args
+					for( asUINT n = 0; n < defaultArgs.GetLength(); n++ )
+						if( defaultArgs[n] )
+							asDELETE(defaultArgs[n], asCString);
+
+					return 0;
+				}
+
+				WriteError(TXT_FUNCTION_ALREADY_EXIST, file, node);
+				break;
+			}
+		}
+	}
+	else
+	{
 	for( asUINT n = 0; n < funcs.GetLength(); ++n )
 	{
 		asCScriptFunction *func = GetFunctionDescription(funcs[n]);
@@ -4044,6 +4164,7 @@ int asCBuilder::RegisterScriptFunction(asCScriptNode *node, asCScriptCode *file,
 			WriteError(TXT_FUNCTION_ALREADY_EXIST, file, node);
 			break;
 		}
+	}
 	}
 
 	// Register the function
@@ -4071,6 +4192,7 @@ int asCBuilder::RegisterScriptFunction(asCScriptNode *node, asCScriptCode *file,
 
 	// Make sure the default args are declared correctly
 	ValidateDefaultArgs(file, node, engine->scriptFunctions[funcId]);
+	CheckForConflictsDueToDefaultArgs(file, node, engine->scriptFunctions[funcId], objType);
 
 	if( objType )
 	{
@@ -4681,7 +4803,10 @@ asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCod
 							{
 								n = n->next;
 
-								asCDataType subType = CreateDataTypeFromNode(n, file, implicitNamespace, false, module ? 0 : ot);
+								// When parsing function definitions for template registrations (currentType != 0) it is necessary 
+								// to pass in the current template type to the recursive call since it is this ones sub-template types
+								// that should be allowed.
+								asCDataType subType = CreateDataTypeFromNode(n, file, implicitNamespace, false, module ? 0 : (currentType ? currentType : ot));
 								subTypes.PushLast(subType);
 
 								if( subType.IsReadOnly() )

@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2013 Andreas Jonsson
+   Copyright (c) 2003-2014 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -174,7 +174,7 @@ void asCConfigGroup::RemoveConfiguration(asCScriptEngine *engine, bool notUsed)
 				else
 					engine->registeredObjTypes.RemoveValue(t);
 
-				asDELETE(t, asCObjectType);
+				t->DropFromEngine();
 			}
 			else
 			{
@@ -186,9 +186,7 @@ void asCConfigGroup::RemoveConfiguration(asCScriptEngine *engine, bool notUsed)
 #endif
 
 					engine->templateInstanceTypes.RemoveIndexUnordered(idx);
-					t->templateSubTypes.SetLength(0);
-
-					asDELETE(t, asCObjectType);
+					t->DropFromEngine();
 				}
 			}
 		}
