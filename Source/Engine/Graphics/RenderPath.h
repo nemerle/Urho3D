@@ -73,10 +73,10 @@ struct RenderTargetInfo
         persistent_(false)
     {
     }
-    
+    RenderTargetInfo &operator=(const RenderTargetInfo &o) = default;
     /// Read from an XML element.
     void Load(const XMLElement& element);
-    
+
     /// Name.
     String name_;
     /// Tag name.
@@ -110,7 +110,7 @@ struct RenderPathCommand
         vertexLights_(false)
     {
     }
-    
+
     /// Read from an XML element.
     void Load(const XMLElement& element);
     /// Set a texture resource name. Can also refer to a rendertarget defined in the rendering path.
@@ -123,7 +123,7 @@ struct RenderPathCommand
     void SetNumOutputs(unsigned num);
     /// Set output rendertarget name.
     void SetOutputName(unsigned index, const String& name);
-    
+
     /// Return texture resource name.
     const String& GetTextureName(TextureUnit unit) const;
     /// Return shader parameter.
@@ -132,7 +132,9 @@ struct RenderPathCommand
     unsigned GetNumOutputs() const { return outputNames_.Size(); }
     /// Return output rendertarget name.
     const String& GetOutputName(unsigned index) const;
-    
+
+    RenderPathCommand& operator=(const RenderPathCommand& rhs) = default;
+
     /// Tag name.
     String tag_;
     /// Command type.
@@ -185,7 +187,7 @@ public:
     RenderPath();
     /// Destruct.
     ~RenderPath();
-    
+
     /// Clone the rendering path.
     SharedPtr<RenderPath> Clone();
     /// Clear existing data and load from an XML file. Return true if successful.
@@ -218,14 +220,14 @@ public:
     void RemoveCommands(const String& tag);
     /// Set a shader parameter in all commands that define it.
     void SetShaderParameter(const String& name, const Variant& value);
-    
+
     /// Return number of rendertargets.
     unsigned GetNumRenderTargets() const { return renderTargets_.Size(); }
     /// Return number of commands.
     unsigned GetNumCommands() const { return commands_.Size(); }
     /// Return a shader parameter (first appearance in any command.)
     const Variant& GetShaderParameter(const String& name) const;
-    
+
     /// Rendertargets.
     Vector<RenderTargetInfo> renderTargets_;
     /// Rendering commands.

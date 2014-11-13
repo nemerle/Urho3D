@@ -157,7 +157,7 @@ struct URHO3D_API ResourceRefList
     StringHash type_;
     /// List of object names.
     Vector<String> names_;
-
+    ResourceRefList &operator=(const ResourceRefList &rhs) = default;
     /// Test for equality with another reference list.
     bool operator == (const ResourceRefList& rhs) const { return type_ == rhs.type_ && names_ == rhs.names_; }
     /// Test for inequality with another reference list.
@@ -321,7 +321,7 @@ public:
     {
         *this = value;
     }
-    
+
     /// Construct from a RefCounted pointer. The object will be stored internally in a WeakPtr so that its expiration can be detected safely.
     Variant(RefCounted* value) :
         type_(VAR_NONE)
@@ -349,7 +349,7 @@ public:
     {
         *this = value;
     }
-    
+
     /// Construct from type and value.
     Variant(const String& type, const String& value) :
         type_(VAR_NONE)
@@ -559,7 +559,7 @@ public:
         *(reinterpret_cast<IntVector2*>(&value_)) = rhs;
         return *this;
     }
-    
+
     /// Assign from a RefCounted pointer. The object will be stored internally in a WeakPtr so that its expiration can be detected safely.
     Variant& operator = (RefCounted* rhs)
     {
@@ -567,7 +567,7 @@ public:
         *(reinterpret_cast<WeakPtr<RefCounted>*>(&value_)) = rhs;
         return *this;
     }
-    
+
     /// Assign from a Matrix3.
     Variant& operator = (const Matrix3& rhs)
     {
@@ -575,7 +575,7 @@ public:
         *(reinterpret_cast<Matrix3*>(value_.ptr_)) = rhs;
         return *this;
     }
-    
+
     /// Assign from a Matrix3x4.
     Variant& operator = (const Matrix3x4& rhs)
     {
@@ -583,7 +583,7 @@ public:
         *(reinterpret_cast<Matrix3x4*>(value_.ptr_)) = rhs;
         return *this;
     }
-    
+
     /// Assign from a Matrix4.
     Variant& operator = (const Matrix4& rhs)
     {
@@ -591,7 +591,7 @@ public:
         *(reinterpret_cast<Matrix4*>(value_.ptr_)) = rhs;
         return *this;
     }
-    
+
     /// Test for equality with another variant.
     bool operator == (const Variant& rhs) const;
     /// Test for equality with an integer. To return true, both the type and value must match.
@@ -616,7 +616,7 @@ public:
     bool operator == (const String& rhs) const { return type_ == VAR_STRING ? *(reinterpret_cast<const String*>(&value_)) == rhs : false; }
     /// Test for equality with a buffer. To return true, both the type and value must match.
     bool operator == (const PODVector<unsigned char>& rhs) const { return type_ == VAR_BUFFER ? *(reinterpret_cast<const PODVector<unsigned char>*>(&value_)) == rhs : false; }
-    
+
     /// Test for equality with a void pointer. To return true, both the type and value must match, with the exception that a RefCounted pointer is also allowed.
     bool operator == (void* rhs) const
     {
@@ -627,7 +627,7 @@ public:
         else
             return false;
     }
-    
+
     /// Test for equality with a resource reference. To return true, both the type and value must match.
     bool operator == (const ResourceRef& rhs) const { return type_ == VAR_RESOURCEREF ? *(reinterpret_cast<const ResourceRef*>(&value_)) == rhs : false; }
     /// Test for equality with a resource reference list. To return true, both the type and value must match.
@@ -642,7 +642,7 @@ public:
     bool operator == (const IntVector2& rhs) const { return type_ == VAR_INTVECTOR2 ? *(reinterpret_cast<const IntVector2*>(&value_)) == rhs : false; }
     /// Test for equality with a StringHash. To return true, both the type and value must match.
     bool operator == (const StringHash& rhs) const { return type_ == VAR_INT ? (unsigned)value_.int_ == rhs.Value() : false; }
-    
+
     /// Test for equality with a RefCounted pointer. To return true, both the type and value must match, with the exception that void pointer is also allowed.
     bool operator == (RefCounted* rhs) const
     {
@@ -653,14 +653,14 @@ public:
         else
             return false;
     }
-    
+
     /// Test for equality with a Matrix3. To return true, both the type and value must match.
     bool operator == (const Matrix3& rhs) const { return type_ == VAR_MATRIX3 ? *(reinterpret_cast<const Matrix3*>(value_.ptr_)) == rhs : false; }
     /// Test for equality with a Matrix3x4. To return true, both the type and value must match.
     bool operator == (const Matrix3x4& rhs) const { return type_ == VAR_MATRIX3X4 ? *(reinterpret_cast<const Matrix3x4*>(value_.ptr_)) == rhs : false; }
     /// Test for equality with a Matrix4. To return true, both the type and value must match.
     bool operator == (const Matrix4& rhs) const { return type_ == VAR_MATRIX4 ? *(reinterpret_cast<const Matrix4*>(value_.ptr_)) == rhs : false; }
-    
+
     /// Test for inequality with another variant.
     bool operator != (const Variant& rhs) const { return !(*this == rhs); }
     /// Test for inequality with an integer.
@@ -707,7 +707,7 @@ public:
     bool operator != (const Matrix3x4& rhs) const { return !(*this == rhs); }
     /// Test for inequality with a Matrix4.
     bool operator != (const Matrix4& rhs) const { return !(*this == rhs); }
-    
+
     /// Set from typename and value strings. Pointers will be set to null, and VariantBuffer or VariantMap types are not supported.
     void FromString(const String& type, const String& value);
     /// Set from typename and value strings. Pointers will be set to null, and VariantBuffer or VariantMap types are not supported.
@@ -743,7 +743,7 @@ public:
     const String& GetString() const { return type_ == VAR_STRING ? *reinterpret_cast<const String*>(&value_) : String::EMPTY; }
     /// Return buffer or empty on type mismatch.
     const PODVector<unsigned char>& GetBuffer() const { return type_ == VAR_BUFFER ? *reinterpret_cast<const PODVector<unsigned char>*>(&value_) : emptyBuffer; }
-    
+
     /// Return void pointer or null on type mismatch. RefCounted pointer will be converted.
     void* GetVoidPtr() const
     {
@@ -754,7 +754,7 @@ public:
         else
             return 0;
     }
-    
+
     /// Return a resource reference or empty on type mismatch.
     const ResourceRef& GetResourceRef() const { return type_ == VAR_RESOURCEREF ? *reinterpret_cast<const ResourceRef*>(&value_) : emptyResourceRef; }
     /// Return a resource reference list or empty on type mismatch.
@@ -787,7 +787,7 @@ public:
     bool IsEmpty() const { return type_ == VAR_NONE; }
     /// Return the value, template version.
     template <class T> T Get() const;
-    
+
     /// Return a pointer to a modifiable buffer or null on type mismatch.
     PODVector<unsigned char>* GetBufferPtr() { return type_ == VAR_BUFFER ? reinterpret_cast<PODVector<unsigned char>*>(&value_) : 0; }
     /// Return a pointer to a modifiable variant vector or null on type mismatch.
