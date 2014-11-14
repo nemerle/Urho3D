@@ -239,8 +239,8 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
                         unsigned rightIndex = deserializer.ReadUShort();
                         short amount = (short)(deserializer.ReadShort() >> 6);
 
-                        HashMap<unsigned, unsigned>::ConstIterator leftIter = indexToCharMapping.Find(leftIndex);
-                        HashMap<unsigned, unsigned>::ConstIterator rightIter = indexToCharMapping.Find(rightIndex);
+                        HashMap<unsigned, unsigned>::ConstIterator leftIter = indexToCharMapping.find(leftIndex);
+                        HashMap<unsigned, unsigned>::ConstIterator rightIter = indexToCharMapping.find(rightIndex);
                         if (leftIter != indexToCharMapping.end() && rightIter != indexToCharMapping.end())
                         {
                             unsigned value = (leftIter->second_ << 16) + rightIter->second_;
@@ -275,7 +275,7 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
 
 const FontGlyph* FontFaceFreeType::GetGlyph(unsigned c)
 {
-    HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.Find(c);
+    HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
     if (i != glyphMapping_.end())
     {
         FontGlyph& glyph = i->second_;
@@ -285,7 +285,7 @@ const FontGlyph* FontFaceFreeType::GetGlyph(unsigned c)
 
     if (LoadCharGlyph(c))
     {
-        HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.Find(c);
+        HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
         if (i != glyphMapping_.end())
         {
             FontGlyph& glyph = i->second_;
@@ -388,7 +388,7 @@ bool FontFaceFreeType::LoadCharGlyph(unsigned charCode, Image* image)
             }
             else
             {
-                fontGlyph.page_ = textures_.Size() - 1;
+                fontGlyph.page_ = textures_.size() - 1;
                 dest = new unsigned char[fontGlyph.width_ * fontGlyph.height_];
                 pitch = fontGlyph.width_;
             }

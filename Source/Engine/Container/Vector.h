@@ -359,11 +359,11 @@ public:
     /// Return const last element.
     const T& Back() const { assert(size_); return Buffer()[size_ - 1]; }
     /// Return size of vector.
-    unsigned Size() const { return size_; }
+    unsigned size() const { return size_; }
     /// Return capacity of vector.
     unsigned Capacity() const { return capacity_; }
     /// Return whether vector is empty.
-    bool Empty() const { return size_ == 0; }
+    bool empty() const { return size_ == 0; }
 
 private:
     /// Return the buffer with right type.

@@ -388,7 +388,7 @@ bool XMLElement::SetResourceRefList(const ResourceRefList& value)
     Context* context = file_->GetContext();
 
     String str(context->GetTypeName(value.type_));
-    for (unsigned i = 0; i < value.names_.Size(); ++i)
+    for (unsigned i = 0; i < value.names_.size(); ++i)
     {
         str += ";";
         str += value.names_[i];
@@ -419,13 +419,13 @@ bool XMLElement::SetVariantMap(const VariantMap& value)
     if (!RemoveChildren("variant"))
         return false;
 
-    for (const auto & elem : value)
+    for (VariantMap::const_iterator iter=value.begin(),fin=value.end(); iter!=fin; ++iter)
     {
         XMLElement variantElem = CreateChild("variant");
         if (!variantElem)
             return false;
-        variantElem.SetInt("hash", elem.first_.Value());
-        variantElem.SetVariant(elem.second_);
+        variantElem.SetInt("hash", iter.key().Value());
+        variantElem.SetVariant(iter.value());
     }
 
     return true;
@@ -689,10 +689,10 @@ bool XMLElement::GetBuffer(const String& name, void* dest, unsigned size) const
     PODVector<unsigned char> ret;
     Vector<String> bytes = GetAttribute(name).Split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
-    if (size < bytes.Size())
+    if (size < bytes.size())
         return false;
 
-    for (unsigned i = 0; i < bytes.Size(); ++i)
+    for (unsigned i = 0; i < bytes.size(); ++i)
         destBytes[i] = ToInt(bytes[i]);
     return true;
 }
@@ -766,7 +766,7 @@ ResourceRef XMLElement::GetResourceRef() const
     ResourceRef ret;
 
     Vector<String> values = GetAttribute("value").Split(';');
-    if (values.Size() == 2)
+    if (values.size() == 2)
     {
         ret.type_ = values[0];
         ret.name_ = values[1];
@@ -780,11 +780,11 @@ ResourceRefList XMLElement::GetResourceRefList() const
     ResourceRefList ret;
 
     Vector<String> values = GetAttribute("value").Split(';');
-    if (values.Size() >= 1)
+    if (values.size() >= 1)
     {
         ret.type_ = values[0];
-        ret.names_.Resize(values.Size() - 1);
-        for (unsigned i = 1; i < values.Size(); ++i)
+        ret.names_.Resize(values.size() - 1);
+        for (unsigned i = 1; i < values.size(); ++i)
             ret.names_[i - 1] = values[i];
     }
 
@@ -987,11 +987,11 @@ bool XPathQuery::SetVariable(const String& name, const XPathResultSet& value)
 {
     if (!variables_)
         variables_ = new pugi::xpath_variable_set();
-    
+
     pugi::xpath_node_set* nodeSet = value.GetXPathNodeSet();
     if (!nodeSet)
         return false;
-    
+
     return variables_->set(name.CString(), *nodeSet);
 }
 
@@ -1007,7 +1007,7 @@ bool XPathQuery::SetQuery(const String& queryString, const String& variableStrin
         for (Vector<String>::ConstIterator i = vars.begin(); i != vars.end(); ++i)
         {
             Vector<String> tokens = i->Trimmed().Split(':');
-            if (tokens.Size() != 2)
+            if (tokens.size() != 2)
                 continue;
 
             pugi::xpath_value_type type;

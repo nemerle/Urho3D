@@ -61,7 +61,7 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
 {
     String propertyName = functionName.Substring(4);
     PropertyInfo* info = nullptr;
-    for (unsigned k = 0; k < propertyInfos.Size(); ++k)
+    for (unsigned k = 0; k < propertyInfos.size(); ++k)
     {
         if (propertyInfos[k].name_ == propertyName)
         {
@@ -71,7 +71,7 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
     }
     if (!info)
     {
-        propertyInfos.Resize(propertyInfos.Size() + 1);
+        propertyInfos.Resize(propertyInfos.size() + 1);
         info = &propertyInfos.Back();
         info->name_ = propertyName;
     }
@@ -80,11 +80,11 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
         info->read_ = true;
         // Extract type from the return value
         Vector<String> parts = declaration.Split(' ');
-        if (parts.Size())
+        if (parts.size())
         {
             if (parts[0] != "const")
                 info->type_ = parts[0];
-            else if (parts.Size() > 1)
+            else if (parts.size() > 1)
                 info->type_ = parts[1];
         }
         // If get method has parameters, it is indexed
@@ -198,12 +198,12 @@ void Script::DumpAPI(DumpMode mode)
         path.Replace("/Bin", "/Source/Engine");
         
         fileSystem->ScanDir(headerFiles, path, "*.h", SCAN_FILES, true);
-        if (!headerFiles.Empty())
+        if (!headerFiles.empty())
         {
             Log::WriteRaw("\n\\page EventList Event list\n");
             Sort(headerFiles.begin(), headerFiles.end());
 
-            for (unsigned i = 0; i < headerFiles.Size(); ++i)
+            for (unsigned i = 0; i < headerFiles.size(); ++i)
             {
                 if (headerFiles[i].EndsWith("Events.h"))
                 {
@@ -221,13 +221,13 @@ void Script::DumpAPI(DumpMode mode)
                         if (line.StartsWith("EVENT"))
                         {
                             Vector<String> parts = line.Split(',');
-                            if (parts.Size() == 2)
+                            if (parts.size() == 2)
                                 Log::WriteRaw("\n### " + parts[1].Substring(0, parts[1].Length() - 1).Trimmed() + "\n");
                         }
                         if (line.Contains("PARAM"))
                         {
                             Vector<String> parts = line.Split(',');
-                            if (parts.Size() == 2)
+                            if (parts.size() == 2)
                             {
                                 String paramName = parts[1].Substring(0, parts[1].Find(')')).Trimmed();
                                 String paramType = parts[1].Substring(parts[1].Find("// ") + 3);
@@ -252,11 +252,11 @@ void Script::DumpAPI(DumpMode mode)
         
         Sort(objectTypes.begin(), objectTypes.end());
         
-        for (unsigned i = 0; i < objectTypes.Size(); ++i)
+        for (unsigned i = 0; i < objectTypes.size(); ++i)
         {
-            const Vector<AttributeInfo>& attrs = attributes.Find(objectTypes[i])->second_;
+            const Vector<AttributeInfo>& attrs = attributes.find(objectTypes[i])->second_;
             unsigned usableAttrs = 0;
-            for (unsigned j = 0; j < attrs.Size(); ++j)
+            for (unsigned j = 0; j < attrs.size(); ++j)
             {
                 // Attributes that are not shown in the editor are typically internal and not usable for eg. attribute
                 // animation
@@ -270,13 +270,13 @@ void Script::DumpAPI(DumpMode mode)
             
             Log::WriteRaw("\n### " + objectTypes[i] + "\n");
             
-            for (unsigned j = 0; j < attrs.Size(); ++j)
+            for (unsigned j = 0; j < attrs.size(); ++j)
             {
                 if (attrs[j].mode_ & AM_NOEDIT)
                     continue;
                 // Prepend each word in the attribute name with % to prevent unintended links
                 Vector<String> nameParts = attrs[j].name_.Split(' ');
-                for (unsigned k = 0; k < nameParts.Size(); ++k)
+                for (unsigned k = 0; k < nameParts.size(); ++k)
                 {
                     if (nameParts[k].Length() > 1 && IsAlpha(nameParts[k][0]))
                         nameParts[k] = "%" + nameParts[k];
@@ -332,7 +332,7 @@ void Script::DumpAPI(DumpMode mode)
 
         Log::WriteRaw("\\section ScriptAPI_ClassList Class list\n\n");
         
-        for (unsigned i = 0; i < sortedTypes.Size(); ++i)
+        for (unsigned i = 0; i < sortedTypes.size(); ++i)
         {
             asIObjectType* type = scriptEngine_->GetObjectTypeByIndex(sortedTypes[i].second_);
             if (type)
@@ -347,7 +347,7 @@ void Script::DumpAPI(DumpMode mode)
     else if (mode == C_HEADER)
         Log::WriteRaw("\n// Classes\n");
 
-    for (unsigned i = 0; i < sortedTypes.Size(); ++i)
+    for (unsigned i = 0; i < sortedTypes.size(); ++i)
     {
         asIObjectType* type = scriptEngine_->GetObjectTypeByIndex(sortedTypes[i].second_);
         if (type)
@@ -429,23 +429,23 @@ void Script::DumpAPI(DumpMode mode)
             Sort(methodDeclarations.begin(), methodDeclarations.end(), ComparePropertyStrings);
             Sort(propertyInfos.begin(), propertyInfos.end(), ComparePropertyInfos);
             
-            if (!methodDeclarations.Empty())
+            if (!methodDeclarations.empty())
             {
                 if (mode == DOXYGEN)
                     Log::WriteRaw("\nMethods:\n\n");
                 else if (mode == C_HEADER)
                     Log::WriteRaw("// Methods:\n");
-                for (unsigned j = 0; j < methodDeclarations.Size(); ++j)
+                for (unsigned j = 0; j < methodDeclarations.size(); ++j)
                     OutputAPIRow(mode, methodDeclarations[j]);
             }
 
-            if (!propertyInfos.Empty())
+            if (!propertyInfos.empty())
             {
                 if (mode == DOXYGEN)
                     Log::WriteRaw("\nProperties:\n\n");
                 else if (mode == C_HEADER)
                     Log::WriteRaw("\n// Properties:\n");
-                for (unsigned j = 0; j < propertyInfos.Size(); ++j)
+                for (unsigned j = 0; j < propertyInfos.size(); ++j)
                 {
                     String remark;
                     String cppdoc;
@@ -510,7 +510,7 @@ void Script::DumpAPI(DumpMode mode)
     }
     Sort(sortedEnums.begin(), sortedEnums.end());
     
-    for (unsigned i = 0; i < sortedEnums.Size(); ++i)
+    for (unsigned i = 0; i < sortedEnums.size(); ++i)
     {
         int typeId = 0;
         if (mode == DOXYGEN)
@@ -536,7 +536,7 @@ void Script::DumpAPI(DumpMode mode)
     else if (mode == C_HEADER)
         Log::WriteRaw("\n// Global functions\n");
 
-    for (unsigned i = 0; i < globalFunctions.Size(); ++i)
+    for (unsigned i = 0; i < globalFunctions.size(); ++i)
         OutputAPIRow(mode, globalFunctions[i]);
 
     if (mode == DOXYGEN)
@@ -544,7 +544,7 @@ void Script::DumpAPI(DumpMode mode)
     else if (mode == C_HEADER)
         Log::WriteRaw("\n// Global properties\n");
 
-    for (unsigned i = 0; i < globalPropertyInfos.Size(); ++i)
+    for (unsigned i = 0; i < globalPropertyInfos.size(); ++i)
         OutputAPIRow(mode, globalPropertyInfos[i].type_ + " " + globalPropertyInfos[i].name_, true);
 
     if (mode == DOXYGEN)
@@ -568,7 +568,7 @@ void Script::DumpAPI(DumpMode mode)
     
     Sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);
     
-    for (unsigned i = 0; i < globalConstants.Size(); ++i)
+    for (unsigned i = 0; i < globalConstants.size(); ++i)
         OutputAPIRow(mode, globalConstants[i], true);
         
     if (mode == DOXYGEN)

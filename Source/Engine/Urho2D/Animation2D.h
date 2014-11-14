@@ -165,7 +165,7 @@ public:
     /// Return all mainline keys.
     const Vector<MainlineKey2D>& GetMainlineKeys() const { return mainlineKeys_; }
     /// Return number of timelines.
-    unsigned GetNumTimelines() const { return timelines_.Size();}
+    unsigned GetNumTimelines() const { return timelines_.size();}
     /// Return timeline by index.
     const Timeline2D& GetTimeline(unsigned index) const { return timelines_[index]; }
 

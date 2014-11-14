@@ -59,19 +59,19 @@ void RenderTargetInfo::Load(const XMLElement& element)
     tag_ = element.GetAttribute("tag");
     if (element.HasAttribute("enabled"))
         enabled_ = element.GetBool("enabled");
-    
+
     String formatName = element.GetAttribute("format");
     format_ = Graphics::GetFormat(formatName);
-    
+
     if (element.HasAttribute("filter"))
         filtered_ = element.GetBool("filter");
-    
+
     if (element.HasAttribute("srgb"))
         sRGB_ = element.GetBool("srgb");
-    
+
     if (element.HasAttribute("persistent"))
         persistent_ = element.GetBool("persistent");
-    
+
     if (element.HasAttribute("size"))
         size_ = element.GetVector2("size");
     if (element.HasAttribute("sizedivisor"))
@@ -91,7 +91,7 @@ void RenderTargetInfo::Load(const XMLElement& element)
         size_ = element.GetVector2("sizemultiplier");
         sizeMode_ = SIZE_VIEWPORTMULTIPLIER;
     }
-    
+
     if (element.HasAttribute("width"))
         size_.x_ = element.GetFloat("width");
     if (element.HasAttribute("height"))
@@ -106,7 +106,7 @@ void RenderPathCommand::Load(const XMLElement& element)
         enabled_ = element.GetBool("enabled");
     if (element.HasAttribute("metadata"))
         metadata_ = element.GetAttribute("metadata");
-    
+
     switch (type_)
     {
     case CMD_CLEAR:
@@ -129,7 +129,7 @@ void RenderPathCommand::Load(const XMLElement& element)
             clearStencil_ = element.GetInt("stencil");
         }
         break;
-        
+
     case CMD_SCENEPASS:
         pass_ = element.GetAttribute("pass");
         sortMode_ = (RenderCommandSortMode)GetStringListIndex(element.GetAttributeLower("sort").CString(), sortModeNames, SORT_FRONTTOBACK);
@@ -138,20 +138,20 @@ void RenderPathCommand::Load(const XMLElement& element)
         if (element.HasAttribute("vertexlights"))
             vertexLights_ = element.GetBool("vertexlights");
         break;
-        
+
     case CMD_FORWARDLIGHTS:
         pass_ = element.GetAttribute("pass");
         if (element.HasAttribute("uselitbase"))
             useLitBase_ = element.GetBool("uselitbase");
         break;
-        
+
     case CMD_LIGHTVOLUMES:
     case CMD_QUAD:
         vertexShaderName_ = element.GetAttribute("vs");
         pixelShaderName_ = element.GetAttribute("ps");
         vertexShaderDefines_ = element.GetAttribute("vsdefines");
         pixelShaderDefines_ = element.GetAttribute("psdefines");
-        
+
         if (type_ == CMD_QUAD)
         {
             XMLElement parameterElem = element.GetChild("parameter");
@@ -163,11 +163,11 @@ void RenderPathCommand::Load(const XMLElement& element)
             }
         }
         break;
-    
+
     default:
         break;
     }
-    
+
     // By default use 1 output, which is the viewport
     outputNames_.Push("viewport");
     if (element.HasAttribute("output"))
@@ -179,13 +179,13 @@ void RenderPathCommand::Load(const XMLElement& element)
         unsigned index = outputElem.GetInt("index");
         if (index < MAX_RENDERTARGETS)
         {
-            if (index >= outputNames_.Size())
+            if (index >= outputNames_.size())
                 outputNames_.Resize(index + 1);
             outputNames_[index] = outputElem.GetAttribute("name");
         }
         outputElem = outputElem.GetNext("output");
     }
-    
+
     XMLElement textureElem = element.GetChild("texture");
     while (textureElem)
     {
@@ -197,7 +197,7 @@ void RenderPathCommand::Load(const XMLElement& element)
             String name = textureElem.GetAttribute("name");
             textureNames_[unit] = name;
         }
-        
+
         textureElem = textureElem.GetNext("texture");
     }
 }
@@ -215,7 +215,7 @@ void RenderPathCommand::SetShaderParameter(const String& name, const Variant& va
 
 void RenderPathCommand::RemoveShaderParameter(const String& name)
 {
-    shaderParameters_.Erase(name);
+    shaderParameters_.remove(name);
 }
 
 void RenderPathCommand::SetNumOutputs(unsigned num)
@@ -226,9 +226,9 @@ void RenderPathCommand::SetNumOutputs(unsigned num)
 
 void RenderPathCommand::SetOutputName(unsigned index, const String& name)
 {
-    if (index < outputNames_.Size())
+    if (index < outputNames_.size())
         outputNames_[index] = name;
-    else if (index == outputNames_.Size() && index < MAX_RENDERTARGETS)
+    else if (index == outputNames_.size() && index < MAX_RENDERTARGETS)
         outputNames_.Push(name);
 }
 
@@ -239,13 +239,13 @@ const String& RenderPathCommand::GetTextureName(TextureUnit unit) const
 
 const Variant& RenderPathCommand::GetShaderParameter(const String& name) const
 {
-    HashMap<StringHash, Variant>::ConstIterator i = shaderParameters_.Find(name);
-    return i != shaderParameters_.end() ? i->second_ : Variant::EMPTY;
+    VariantMap::ConstIterator i = shaderParameters_.find(name);
+    return i != shaderParameters_.end() ? *i : Variant::EMPTY;
 }
 
 const String& RenderPathCommand::GetOutputName(unsigned index) const
 {
-    return index < outputNames_.Size() ? outputNames_[index] : String::EMPTY;
+    return index < outputNames_.size() ? outputNames_[index] : String::EMPTY;
 }
 
 RenderPath::RenderPath()
@@ -268,7 +268,7 @@ bool RenderPath::Load(XMLFile* file)
 {
     renderTargets_.Clear();
     commands_.Clear();
-    
+
     return Append(file);
 }
 
@@ -276,11 +276,11 @@ bool RenderPath::Append(XMLFile* file)
 {
     if (!file)
         return false;
-    
+
     XMLElement rootElem = file->GetRoot();
     if (!rootElem)
         return false;
-    
+
     XMLElement rtElem = rootElem.GetChild("rendertarget");
     while (rtElem)
     {
@@ -288,10 +288,10 @@ bool RenderPath::Append(XMLFile* file)
         info.Load(rtElem);
         if (!info.name_.Trimmed().Empty())
             renderTargets_.Push(info);
-        
+
         rtElem = rtElem.GetNext("rendertarget");
     }
-    
+
     XMLElement cmdElem = rootElem.GetChild("command");
     while (cmdElem)
     {
@@ -299,22 +299,22 @@ bool RenderPath::Append(XMLFile* file)
         cmd.Load(cmdElem);
         if (cmd.type_ != CMD_NONE)
             commands_.Push(cmd);
-        
+
         cmdElem = cmdElem.GetNext("command");
     }
-    
+
     return true;
 }
 
 void RenderPath::SetEnabled(const String& tag, bool active)
 {
-    for (unsigned i = 0; i < renderTargets_.Size(); ++i)
+    for (unsigned i = 0; i < renderTargets_.size(); ++i)
     {
         if (!renderTargets_[i].tag_.Compare(tag, false))
             renderTargets_[i].enabled_ = active;
     }
-    
-    for (unsigned i = 0; i < commands_.Size(); ++i)
+
+    for (unsigned i = 0; i < commands_.size(); ++i)
     {
         if (!commands_[i].tag_.Compare(tag, false))
             commands_[i].enabled_ = active;
@@ -323,13 +323,13 @@ void RenderPath::SetEnabled(const String& tag, bool active)
 
 void RenderPath::ToggleEnabled(const String& tag)
 {
-    for (unsigned i = 0; i < renderTargets_.Size(); ++i)
+    for (unsigned i = 0; i < renderTargets_.size(); ++i)
     {
         if (!renderTargets_[i].tag_.Compare(tag, false))
             renderTargets_[i].enabled_ = !renderTargets_[i].enabled_;
     }
-    
-    for (unsigned i = 0; i < commands_.Size(); ++i)
+
+    for (unsigned i = 0; i < commands_.size(); ++i)
     {
         if (!commands_[i].tag_.Compare(tag, false))
             commands_[i].enabled_ = !commands_[i].enabled_;
@@ -338,9 +338,9 @@ void RenderPath::ToggleEnabled(const String& tag)
 
 void RenderPath::SetRenderTarget(unsigned index, const RenderTargetInfo& info)
 {
-    if (index < renderTargets_.Size())
+    if (index < renderTargets_.size())
         renderTargets_[index] = info;
-    else if (index == renderTargets_.Size())
+    else if (index == renderTargets_.size())
         AddRenderTarget(info);
 }
 
@@ -356,7 +356,7 @@ void RenderPath::RemoveRenderTarget(unsigned index)
 
 void RenderPath::RemoveRenderTarget(const String& name)
 {
-    for (unsigned i = 0; i < renderTargets_.Size(); ++i)
+    for (unsigned i = 0; i < renderTargets_.size(); ++i)
     {
         if (!renderTargets_[i].name_.Compare(name, false))
         {
@@ -368,7 +368,7 @@ void RenderPath::RemoveRenderTarget(const String& name)
 
 void RenderPath::RemoveRenderTargets(const String& tag)
 {
-    for (unsigned i = renderTargets_.Size() - 1; i < renderTargets_.Size(); --i)
+    for (unsigned i = renderTargets_.size() - 1; i < renderTargets_.size(); --i)
     {
         if (!renderTargets_[i].tag_.Compare(tag, false))
             renderTargets_.Erase(i);
@@ -377,9 +377,9 @@ void RenderPath::RemoveRenderTargets(const String& tag)
 
 void RenderPath::SetCommand(unsigned index, const RenderPathCommand& command)
 {
-    if (index < commands_.Size())
+    if (index < commands_.size())
         commands_[index] = command;
-    else if (index == commands_.Size())
+    else if (index == commands_.size())
         AddCommand(command);
 }
 
@@ -400,7 +400,7 @@ void RenderPath::RemoveCommand(unsigned index)
 
 void RenderPath::RemoveCommands(const String& tag)
 {
-    for (unsigned i = commands_.Size() - 1; i < commands_.Size(); --i)
+    for (unsigned i = commands_.size() - 1; i < commands_.size(); --i)
     {
         if (!commands_[i].tag_.Compare(tag, false))
             commands_.Erase(i);
@@ -410,26 +410,26 @@ void RenderPath::RemoveCommands(const String& tag)
 void RenderPath::SetShaderParameter(const String& name, const Variant& value)
 {
     StringHash nameHash(name);
-    
-    for (unsigned i = 0; i < commands_.Size(); ++i)
+
+    for (unsigned i = 0; i < commands_.size(); ++i)
     {
-        HashMap<StringHash, Variant>::Iterator j = commands_[i].shaderParameters_.Find(nameHash);
+        VariantMap::Iterator j = commands_[i].shaderParameters_.find(nameHash);
         if (j != commands_[i].shaderParameters_.end())
-            j->second_ = value;
+            *j = value;
     }
 }
 
 const Variant& RenderPath::GetShaderParameter(const String& name) const
 {
     StringHash nameHash(name);
-    
-    for (unsigned i = 0; i < commands_.Size(); ++i)
+
+    for (unsigned i = 0; i < commands_.size(); ++i)
     {
-        HashMap<StringHash, Variant>::ConstIterator j = commands_[i].shaderParameters_.Find(nameHash);
+        VariantMap::ConstIterator j = commands_[i].shaderParameters_.find(nameHash);
         if (j != commands_[i].shaderParameters_.end())
-            return j->second_;
+            return *j;
     }
-    
+
     return Variant::EMPTY;
 }
 

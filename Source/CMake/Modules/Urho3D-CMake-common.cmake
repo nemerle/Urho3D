@@ -503,6 +503,7 @@ endmacro ()
 macro (setup_library)
     check_source_files ()
     add_library (${TARGET_NAME} ${ARGN} ${SOURCE_FILES})
+    qt5_use_modules(${TARGET_NAME} Core)
     setup_target ()
 
     if (CMAKE_PROJECT_NAME STREQUAL Urho3D)
@@ -528,13 +529,15 @@ macro (setup_executable)
 
     check_source_files ()
     add_executable (${TARGET_NAME} ${ARG_UNPARSED_ARGUMENTS} ${SOURCE_FILES})
+    qt5_use_modules(${TARGET_NAME} Core)
+
     if (ARG_NODEPS)
         define_dependency_libs (Urho3D-nodeps)
     else ()
         define_dependency_libs (Urho3D)
     endif ()
     setup_target ()
-    
+
     if (IOS)
         set_target_properties (${TARGET_NAME} PROPERTIES XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
     elseif (CMAKE_CROSSCOMPILING AND NOT ANDROID AND URHO3D_SCP_TO_TARGET)
@@ -587,7 +590,7 @@ macro (setup_main_executable)
     endif ()
 
     if (ANDROID)
-        # Add SDL native init function, SDL_Main() entry point must be defined by one of the source files in ${SOURCE_FILES} 
+        # Add SDL native init function, SDL_Main() entry point must be defined by one of the source files in ${SOURCE_FILES}
         add_android_native_init ()
         # Setup shared library output path
         set_output_directories (${ANDROID_LIBRARY_OUTPUT_PATH} LIBRARY)
@@ -628,7 +631,7 @@ macro (setup_main_executable)
             set_target_properties (${TARGET_NAME} PROPERTIES DEBUG_POSTFIX _d)
         endif ()
     endif ()
-    
+
     if (IOS)
         get_target_property (TARGET_LOC ${TARGET_NAME} LOCATION)
         # Define a custom target to check for resource modification
@@ -778,12 +781,12 @@ macro (define_source_files)
     list (APPEND CPP_FILES ${ARG_EXTRA_CPP_FILES})
     list (APPEND H_FILES ${ARG_EXTRA_H_FILES})
     set (SOURCE_FILES ${CPP_FILES} ${H_FILES})
-    
+
     # Optionally enable PCH
     if (ARG_PCH)
         enable_pch ()
     endif ()
-    
+
     # Optionally accumulate source files at parent scope
     if (ARG_PARENT_SCOPE)
         get_filename_component (DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

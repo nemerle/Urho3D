@@ -387,7 +387,7 @@ public:
     /// Return child scene node by name hash.
     Node* GetChild(StringHash nameHash, bool recursive = false) const;
     /// Return number of components.
-    unsigned GetNumComponents() const { return components_.Size(); }
+    unsigned GetNumComponents() const { return components_.size(); }
     /// Return number of non-local components.
     unsigned GetNumNetworkComponents() const;
     /// Return all components.

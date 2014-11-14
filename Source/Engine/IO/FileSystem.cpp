@@ -159,7 +159,7 @@ int DoSystemRun(const String& fileName, const Vector<String>& arguments)
     {
         PODVector<const char*> argPtrs;
         argPtrs.Push(fixedFileName.CString());
-        for (unsigned i = 0; i < arguments.Size(); ++i)
+        for (unsigned i = 0; i < arguments.size(); ++i)
             argPtrs.Push(arguments[i].CString());
         argPtrs.Push(nullptr);
 

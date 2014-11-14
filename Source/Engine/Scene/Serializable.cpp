@@ -247,7 +247,7 @@ bool Serializable::Load(Deserializer& source, bool setInstanceDefault)
     if (!attributes)
         return true;
 
-    for (unsigned i = 0; i < attributes->Size(); ++i)
+    for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->At(i);
         if (!(attr.mode_ & AM_FILE))
@@ -277,7 +277,7 @@ bool Serializable::Save(Serializer& dest) const
 
     Variant value;
 
-    for (unsigned i = 0; i < attributes->Size(); ++i)
+    for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->At(i);
         if (!(attr.mode_ & AM_FILE))
@@ -314,7 +314,7 @@ bool Serializable::LoadXML(const XMLElement& source, bool setInstanceDefault)
     {
         String name = attrElem.GetAttribute("name");
         unsigned i = startIndex;
-        unsigned attempts = attributes->Size();
+        unsigned attempts = attributes->size();
 
         while (attempts)
         {
@@ -356,12 +356,12 @@ bool Serializable::LoadXML(const XMLElement& source, bool setInstanceDefault)
                         SetInstanceDefault(attr.name_, varValue);
                 }
 
-                startIndex = (i + 1) % attributes->Size();
+                startIndex = (i + 1) % attributes->size();
                 break;
             }
             else
             {
-                i = (i + 1) % attributes->Size();
+                i = (i + 1) % attributes->size();
                 --attempts;
             }
         }
@@ -389,7 +389,7 @@ bool Serializable::SaveXML(XMLElement& dest) const
 
     Variant value;
 
-    for (unsigned i = 0; i < attributes->Size(); ++i)
+    for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->At(i);
         if (!(attr.mode_ & AM_FILE))
@@ -425,7 +425,7 @@ bool Serializable::SetAttribute(unsigned index, const Variant& value)
         LOGERROR(GetTypeName() + " has no attributes");
         return false;
     }
-    if (index >= attributes->Size())
+    if (index >= attributes->size())
     {
         LOGERROR("Attribute index out of bounds");
         return false;
@@ -485,7 +485,7 @@ void Serializable::ResetToDefault()
     if (!attributes)
         return;
 
-    for (unsigned i = 0; i < attributes->Size(); ++i)
+    for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->At(i);
         if (attr.mode_ & (AM_NOEDIT | AM_NODEID | AM_COMPONENTID | AM_NODEIDVECTOR))
@@ -542,7 +542,7 @@ void Serializable::WriteInitialDeltaUpdate(Serializer& dest)
     if (!attributes)
         return;
 
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
     DirtyBits attributeBits;
 
     // Compare against defaults
@@ -575,7 +575,7 @@ void Serializable::WriteDeltaUpdate(Serializer& dest, const DirtyBits& attribute
     if (!attributes)
         return;
 
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
 
     // First write the change bitfield, then attribute data for changed attributes
     // Note: the attribute bits should not contain LATESTDATA attributes
@@ -600,7 +600,7 @@ void Serializable::WriteLatestDataUpdate(Serializer& dest)
     if (!attributes)
         return;
 
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
 
     for (unsigned i = 0; i < numAttributes; ++i)
     {
@@ -615,7 +615,7 @@ void Serializable::ReadDeltaUpdate(Deserializer& source)
     if (!attributes)
         return;
 
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
     DirtyBits attributeBits;
 
     source.Read(attributeBits.data_, (numAttributes + 7) >> 3);
@@ -636,7 +636,7 @@ void Serializable::ReadLatestDataUpdate(Deserializer& source)
     if (!attributes)
         return;
 
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
 
     for (unsigned i = 0; i < numAttributes && !source.IsEof(); ++i)
     {
@@ -656,7 +656,7 @@ Variant Serializable::GetAttribute(unsigned index) const
         LOGERROR(GetTypeName() + " has no attributes");
         return ret;
     }
-    if (index >= attributes->Size())
+    if (index >= attributes->size())
     {
         LOGERROR("Attribute index out of bounds");
         return ret;
@@ -698,7 +698,7 @@ Variant Serializable::GetAttributeDefault(unsigned index) const
         LOGERROR(GetTypeName() + " has no attributes");
         return Variant::EMPTY;
     }
-    if (index >= attributes->Size())
+    if (index >= attributes->size())
     {
         LOGERROR("Attribute index out of bounds");
         return Variant::EMPTY;
@@ -735,14 +735,14 @@ Variant Serializable::GetAttributeDefault(const String& name) const
 unsigned Serializable::GetNumAttributes() const
 {
     const Vector<AttributeInfo>* attributes = GetAttributes();
-    return attributes ? attributes->Size() : 0;
+    return attributes ? attributes->size() : 0;
 }
 
 unsigned Serializable::GetNumNetworkAttributes() const
 {
     const Vector<AttributeInfo>* attributes = networkState_ ? networkState_->attributes_ :
         context_->GetNetworkAttributes(GetType());
-    return attributes ? attributes->Size() : 0;
+    return attributes ? attributes->size() : 0;
 }
 
 void Serializable::SetInstanceDefault(const String& name, const Variant& defaultValue)
@@ -757,9 +757,9 @@ Variant Serializable::GetInstanceDefault(const String& name) const
 {
     if (instanceDefaultValues_)
     {
-        VariantMap::ConstIterator i = instanceDefaultValues_->Find(name);
+        VariantMap::const_iterator i = instanceDefaultValues_->find(name);
         if (i != instanceDefaultValues_->end())
-            return i->second_;
+            return *i;
     }
 
     return Variant::EMPTY;

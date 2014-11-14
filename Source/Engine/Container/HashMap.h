@@ -186,7 +186,7 @@ public:
     /// Destruct.
     ~HashMap()
     {
-        Clear();
+        clear();
         FreeNode(Tail());
         AllocatorUninitialize(allocator_);
         delete[] ptrs_;
@@ -195,22 +195,22 @@ public:
     /// Assign a hash map.
     HashMap& operator = (const HashMap<T, U>& rhs)
     {
-        Clear();
-        Insert(rhs);
+        clear();
+        insert(rhs);
         return *this;
     }
 
     /// Add-assign a pair.
     HashMap& operator += (const Pair<T, U>& rhs)
     {
-        Insert(rhs);
+        insert(rhs);
         return *this;
     }
 
     /// Add-assign a hash map.
     HashMap& operator += (const HashMap<T, U>& rhs)
     {
-        Insert(rhs);
+        insert(rhs);
         return *this;
     }
 
@@ -223,7 +223,7 @@ public:
         ConstIterator i = begin();
         while (i != end())
         {
-            ConstIterator j = rhs.Find(i->first_);
+            ConstIterator j = rhs.find(i->first_);
             if (j == rhs.end() || j->second_ != i->second_)
                 return false;
             ++i;
@@ -241,7 +241,7 @@ public:
         ConstIterator i = begin();
         while (i != end())
         {
-            ConstIterator j = rhs.Find(i->first_);
+            ConstIterator j = rhs.find(i->first_);
             if (j == rhs.end() || j->second_ != i->second_)
                 return true;
             ++i;
@@ -266,13 +266,13 @@ public:
     }
 
     /// Insert a pair. Return an iterator to it.
-    Iterator Insert(const Pair<T, U>& pair)
+    Iterator insert(const Pair<T, U>& pair)
     {
         return Iterator(InsertNode(pair.first_, pair.second_));
     }
 
     /// Insert a map.
-    void Insert(const HashMap<T, U>& map)
+    void insert(const HashMap<T, U>& map)
     {
         ConstIterator it = map.begin();
         ConstIterator end = map.end();
@@ -284,10 +284,10 @@ public:
     }
 
     /// Insert a pair by iterator. Return iterator to the value.
-    Iterator Insert(const ConstIterator& it) { return Iterator(InsertNode(it->first_, it->second_)); }
+    Iterator insert(const ConstIterator& it) { return Iterator(InsertNode(it->first_, it->second_)); }
 
     /// Insert a range by iterators.
-    void Insert(const ConstIterator& start, const ConstIterator& end)
+    void insert(const ConstIterator& start, const ConstIterator& end)
     {
         ConstIterator it = start;
         while (it != end)
@@ -295,7 +295,7 @@ public:
     }
 
     /// Erase a pair by key. Return true if was found.
-    bool Erase(const T& key)
+    bool erase(const T& key)
     {
         if (!ptrs_)
             return false;
@@ -317,7 +317,7 @@ public:
     }
 
     /// Erase a pair by iterator. Return iterator to the next pair.
-    Iterator Erase(const Iterator& it)
+    Iterator erase(const Iterator& it)
     {
         if (!ptrs_ || !it.ptr_)
             return end();
@@ -347,7 +347,7 @@ public:
     }
 
     /// Clear the map.
-    void Clear()
+    void clear()
     {
         if (Size())
         {
@@ -416,7 +416,7 @@ public:
     }
 
     /// Return iterator to the pair with key, or end iterator if not found.
-    Iterator Find(const T& key)
+    Iterator find(const T& key)
     {
         if (!ptrs_)
             return end();
@@ -430,7 +430,7 @@ public:
     }
 
     /// Return const iterator to the pair with key, or end iterator if not found.
-    ConstIterator Find(const T& key) const
+    ConstIterator find(const T& key) const
     {
         if (!ptrs_)
             return end();
@@ -444,7 +444,7 @@ public:
     }
 
     /// Return whether contains a pair with key.
-    bool Contains(const T& key) const
+    bool contains(const T& key) const
     {
         if (!ptrs_)
             return false;
@@ -454,7 +454,7 @@ public:
     }
 
     /// Return all the keys.
-    Vector<T> Keys() const
+    Vector<T> keys() const
     {
         Vector<T> result;
         result.Reserve(Size());
@@ -464,7 +464,7 @@ public:
     }
 
     /// Return all the values.
-    Vector<U> Values() const
+    Vector<U> values() const
     {
         Vector<U> result;
         result.Reserve(Size());
@@ -482,9 +482,9 @@ public:
     /// Return iterator to the end.
     ConstIterator end() const { return ConstIterator(Tail()); }
     /// Return first key.
-    const T& Front() const { return *begin(); }
+    const T& front() const { return *begin(); }
     /// Return last key.
-    const T& Back() const { return *(--end()); }
+    const T& back() const { return *(--end()); }
 
 private:
     /// Return the head node.

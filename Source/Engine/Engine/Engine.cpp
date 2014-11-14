@@ -200,7 +200,7 @@ bool Engine::Initialize(const VariantMap& parameters)
     Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().Split(';');
     Vector<String> autoloadFolders = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().Split(';');
 
-    for (unsigned i = 0; i < resourcePaths.Size(); ++i)
+    for (unsigned i = 0; i < resourcePaths.size(); ++i)
     {
         bool success = false;
 
@@ -240,7 +240,7 @@ bool Engine::Initialize(const VariantMap& parameters)
     }
 
     // Then add specified packages
-    for (unsigned i = 0; i < resourcePackages.Size(); ++i)
+    for (unsigned i = 0; i < resourcePackages.size(); ++i)
     {
         bool success = false;
 
@@ -263,7 +263,7 @@ bool Engine::Initialize(const VariantMap& parameters)
     }
 
     // Add auto load folders. Prioritize these (if exist) before the default folders
-    for (unsigned i = 0; i < autoloadFolders.Size(); ++i)
+    for (unsigned i = 0; i < autoloadFolders.size(); ++i)
     {
         bool success = true;
         String autoloadFolder = autoloadFolders[i];
@@ -272,7 +272,7 @@ bool Engine::Initialize(const VariantMap& parameters)
         {
             Vector<String> folders;
             fileSystem->ScanDir(folders, autoloadFolder, "*", SCAN_DIRS, false);
-            for (unsigned y = 0; y < folders.Size(); ++y)
+            for (unsigned y = 0; y < folders.size(); ++y)
             {
                 String folder = folders[y];
                 if (folder.StartsWith("."))
@@ -291,7 +291,7 @@ bool Engine::Initialize(const VariantMap& parameters)
             {
                 Vector<String> paks;
                 fileSystem->ScanDir(paks, autoloadFolder, "*.pak", SCAN_FILES, false);
-                for (unsigned y = 0; y < paks.Size(); ++y)
+                for (unsigned y = 0; y < paks.size(); ++y)
                 {
                     String pak = paks[y];
                     if (pak.StartsWith("."))
@@ -536,7 +536,7 @@ void Engine::DumpResources(bool dumpFileName)
 {
     #ifdef URHO3D_LOGGING
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    const HashMap<StringHash, ResourceGroup>& resourceGroups = cache->GetAllResources();
+    const QHash<StringHash, ResourceGroup>& resourceGroups = cache->GetAllResources();
     LOGRAW("\n");
 
     if (dumpFileName)
@@ -544,26 +544,25 @@ void Engine::DumpResources(bool dumpFileName)
         LOGRAW("Used resources:\n");
     }
 
-    for (const auto & resourceGroup : resourceGroups)
+    for (const ResourceGroup & resourceGroup : resourceGroups)
     {
-        const HashMap<StringHash, SharedPtr<Resource> >& resources = resourceGroup.second_.resources_;
+        const QHash<StringHash, SharedPtr<Resource> >& resources = resourceGroup.resources_;
         if (dumpFileName)
         {
-            for (HashMap<StringHash, SharedPtr<Resource> >::ConstIterator j = resources.begin();
-                j != resources.end(); ++j)
+            for (auto j : resources)
             {
-                LOGRAW(j->second_->GetName() + "\n");
+                LOGRAW(j->GetName() + "\n");
             }
 
         }
         else
         {
-            unsigned num = resources.Size();
-            unsigned memoryUse = resourceGroup.second_.memoryUse_;
+            unsigned num = resources.size();
+            unsigned memoryUse = resourceGroup.memoryUse_;
 
             if (num)
             {
-                LOGRAW("Resource type " + resources.begin()->second_->GetTypeName() +
+                LOGRAW("Resource type " + (*resources.begin())->GetTypeName() +
                     ": count " + String(num) + " memory use " + String(memoryUse) + "\n");
             }
         }
@@ -725,12 +724,12 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
 {
     VariantMap ret;
 
-    for (unsigned i = 0; i < arguments.Size(); ++i)
+    for (unsigned i = 0; i < arguments.size(); ++i)
     {
         if (arguments[i].Length() > 1 && arguments[i][0] == '-')
         {
             String argument = arguments[i].Substring(1).ToLower();
-            String value = i + 1 < arguments.Size() ? arguments[i + 1] : String::EMPTY;
+            String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
 
             if (argument == "headless")
                 ret["Headless"] = true;
@@ -860,14 +859,14 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
 bool Engine::HasParameter(const VariantMap& parameters, const String& parameter)
 {
     StringHash nameHash(parameter);
-    return parameters.Find(nameHash) != parameters.end();
+    return parameters.find(nameHash) != parameters.end();
 }
 
 const Variant& Engine::GetParameter(const VariantMap& parameters, const String& parameter, const Variant& defaultValue)
 {
     StringHash nameHash(parameter);
-    VariantMap::ConstIterator i = parameters.Find(nameHash);
-    return i != parameters.end() ? i->second_ : defaultValue;
+    VariantMap::const_iterator i = parameters.find(nameHash);
+    return i != parameters.end() ? *i : defaultValue;
 }
 
 void Engine::HandleExitRequested(StringHash eventType, VariantMap& eventData)

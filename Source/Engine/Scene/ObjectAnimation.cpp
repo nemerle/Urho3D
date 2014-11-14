@@ -76,14 +76,14 @@ bool ObjectAnimation::Save(Serializer& dest) const
 
 bool ObjectAnimation::LoadXML(const XMLElement& source)
 {
-    attributeAnimationInfos_.Clear();
+    attributeAnimationInfos_.clear();
 
     XMLElement animElem;
     animElem = source.GetChild("attributeanimation");
     while (animElem)
     {
         String name = animElem.GetAttribute("name");
-        
+
         SharedPtr<ValueAnimation> animation(new ValueAnimation(context_));
         if (!animation->LoadXML(animElem))
             return false;
@@ -110,12 +110,13 @@ bool ObjectAnimation::LoadXML(const XMLElement& source)
 
 bool ObjectAnimation::SaveXML(XMLElement& dest) const
 {
-    for (const auto & elem : attributeAnimationInfos_)
+
+    for (auto elem=attributeAnimationInfos_.begin(),fin=attributeAnimationInfos_.end(); elem != fin; ++elem)
     {
         XMLElement animElem = dest.CreateChild("attributeanimation");
-        animElem.SetAttribute("name", elem.first_);
+        animElem.SetAttribute("name", elem.key());
 
-        const ValueAnimationInfo* info = elem.second_;
+        const ValueAnimationInfo* info = *elem;
         if (!info->GetAnimation()->SaveXML(animElem))
             return false;
 
@@ -137,11 +138,11 @@ void ObjectAnimation::AddAttributeAnimation(const String& name, ValueAnimation* 
 
 void ObjectAnimation::RemoveAttributeAnimation(const String& name)
 {
-    HashMap<String, SharedPtr<ValueAnimationInfo> >::Iterator i = attributeAnimationInfos_.Find(name);
+    QHash<String, SharedPtr<ValueAnimationInfo> >::Iterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
     {
-        i->second_->GetAnimation()->SetOwner(nullptr);
-        attributeAnimationInfos_.Erase(i);
+        (*i)->GetAnimation()->SetOwner(nullptr);
+        attributeAnimationInfos_.erase(i);
     }
 }
 
@@ -150,12 +151,12 @@ void ObjectAnimation::RemoveAttributeAnimation(ValueAnimation* attributeAnimatio
     if (!attributeAnimation)
         return;
 
-    for (HashMap<String, SharedPtr<ValueAnimationInfo> >::Iterator i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
+    for (QHash<String, SharedPtr<ValueAnimationInfo> >::Iterator i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
     {
-        if (i->second_->GetAnimation() == attributeAnimation)
+        if ((*i)->GetAnimation() == attributeAnimation)
         {
             attributeAnimation->SetOwner(nullptr);
-            attributeAnimationInfos_.Erase(i);
+            attributeAnimationInfos_.erase(i);
             return;
         }
     }
@@ -181,9 +182,9 @@ float ObjectAnimation::GetAttributeAnimationSpeed(const String& name) const
 
 ValueAnimationInfo* ObjectAnimation::GetAttributeAnimationInfo(const String& name) const
 {
-    HashMap<String, SharedPtr<ValueAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.Find(name);
+    QHash<String, SharedPtr<ValueAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
-        return i->second_;
+        return *i;
     return nullptr;
 }
 

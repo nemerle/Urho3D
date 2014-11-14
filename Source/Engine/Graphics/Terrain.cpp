@@ -132,7 +132,7 @@ void Terrain::OnSetEnabled()
 {
     bool enabled = IsEnabledEffective();
 
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetEnabled(enabled);
@@ -186,7 +186,7 @@ bool Terrain::SetHeightMap(Image* image)
 void Terrain::SetMaterial(Material* material)
 {
     material_ = material;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetMaterial(material);
@@ -198,7 +198,7 @@ void Terrain::SetMaterial(Material* material)
 void Terrain::SetDrawDistance(float distance)
 {
     drawDistance_ = distance;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetDrawDistance(distance);
@@ -210,7 +210,7 @@ void Terrain::SetDrawDistance(float distance)
 void Terrain::SetShadowDistance(float distance)
 {
     shadowDistance_ = distance;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetShadowDistance(distance);
@@ -222,7 +222,7 @@ void Terrain::SetShadowDistance(float distance)
 void Terrain::SetLodBias(float bias)
 {
     lodBias_ = bias;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetLodBias(bias);
@@ -234,7 +234,7 @@ void Terrain::SetLodBias(float bias)
 void Terrain::SetViewMask(unsigned mask)
 {
     viewMask_ = mask;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetViewMask(mask);
@@ -246,7 +246,7 @@ void Terrain::SetViewMask(unsigned mask)
 void Terrain::SetLightMask(unsigned mask)
 {
     lightMask_ = mask;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetLightMask(mask);
@@ -258,7 +258,7 @@ void Terrain::SetLightMask(unsigned mask)
 void Terrain::SetShadowMask(unsigned mask)
 {
     shadowMask_ = mask;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetShadowMask(mask);
@@ -270,7 +270,7 @@ void Terrain::SetShadowMask(unsigned mask)
 void Terrain::SetZoneMask(unsigned mask)
 {
     zoneMask_ = mask;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetZoneMask(mask);
@@ -282,7 +282,7 @@ void Terrain::SetZoneMask(unsigned mask)
 void Terrain::SetMaxLights(unsigned num)
 {
     maxLights_ = num;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetMaxLights(num);
@@ -294,7 +294,7 @@ void Terrain::SetMaxLights(unsigned num)
 void Terrain::SetCastShadows(bool enable)
 {
     castShadows_ = enable;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetCastShadows(enable);
@@ -306,7 +306,7 @@ void Terrain::SetCastShadows(bool enable)
 void Terrain::SetOccluder(bool enable)
 {
     occluder_ = enable;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetOccluder(enable);
@@ -318,7 +318,7 @@ void Terrain::SetOccluder(bool enable)
 void Terrain::SetOccludee(bool enable)
 {
     occludee_ = enable;
-    for (unsigned i = 0; i < patches_.Size(); ++i)
+    for (unsigned i = 0; i < patches_.size(); ++i)
     {
         if (patches_[i])
             patches_[i]->SetOccludee(enable);
@@ -345,7 +345,7 @@ Material* Terrain::GetMaterial() const
 
 TerrainPatch* Terrain::GetPatch(unsigned index) const
 {
-    return index < patches_.Size() ? patches_[index] : (TerrainPatch*)nullptr;
+    return index < patches_.size() ? patches_[index] : (TerrainPatch*)nullptr;
 }
 
 TerrainPatch* Terrain::GetPatch(int x, int z) const
@@ -596,7 +596,7 @@ void Terrain::CreateGeometry()
 
     PROFILE(CreateTerrainGeometry);
 
-    unsigned prevNumPatches = patches_.Size();
+    unsigned prevNumPatches = patches_.size();
 
     // Determine number of LOD levels
     unsigned lodSize = patchSize_;
@@ -658,7 +658,7 @@ void Terrain::CreateGeometry()
         {
             bool nodeOk = false;
             Vector<String> coords = (oldPatchNode)->GetName().Substring(6).Split('_');
-            if (coords.Size() == 2)
+            if (coords.size() == 2)
             {
                 int x = ToInt(coords[0]);
                 int z = ToInt(coords[1]);
@@ -818,7 +818,7 @@ void Terrain::CreateGeometry()
         {
             PROFILE(UpdateSmoothing);
             
-            for (unsigned i = 0; i < patches_.Size(); ++i)
+            for (unsigned i = 0; i < patches_.size(); ++i)
             {
                 if (dirtyPatches[i])
                 {
@@ -846,7 +846,7 @@ void Terrain::CreateGeometry()
             }
         }
         
-        for (unsigned i = 0; i < patches_.Size(); ++i)
+        for (unsigned i = 0; i < patches_.size(); ++i)
         {
             TerrainPatch* patch = patches_[i];
             
@@ -861,7 +861,7 @@ void Terrain::CreateGeometry()
     }
 
     // Send event only if new geometry was generated, or the old was cleared
-    if (patches_.Size() || prevNumPatches)
+    if (patches_.size() || prevNumPatches)
     {
         using namespace TerrainCreated;
 

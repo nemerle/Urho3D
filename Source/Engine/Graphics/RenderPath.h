@@ -129,7 +129,7 @@ struct RenderPathCommand
     /// Return shader parameter.
     const Variant& GetShaderParameter(const String& name) const;
     /// Return number of output rendertargets.
-    unsigned GetNumOutputs() const { return outputNames_.Size(); }
+    unsigned GetNumOutputs() const { return outputNames_.size(); }
     /// Return output rendertarget name.
     const String& GetOutputName(unsigned index) const;
 
@@ -156,7 +156,7 @@ struct RenderPathCommand
     /// Textures.
     String textureNames_[MAX_TEXTURE_UNITS];
     /// %Shader parameters.
-    HashMap<StringHash, Variant> shaderParameters_;
+    VariantMap shaderParameters_;
     /// Output rendertarget names.
     Vector<String> outputNames_;
     /// Clear flags.
@@ -222,9 +222,9 @@ public:
     void SetShaderParameter(const String& name, const Variant& value);
 
     /// Return number of rendertargets.
-    unsigned GetNumRenderTargets() const { return renderTargets_.Size(); }
+    unsigned GetNumRenderTargets() const { return renderTargets_.size(); }
     /// Return number of commands.
-    unsigned GetNumCommands() const { return commands_.Size(); }
+    unsigned GetNumCommands() const { return commands_.size(); }
     /// Return a shader parameter (first appearance in any command.)
     const Variant& GetShaderParameter(const String& name) const;
 

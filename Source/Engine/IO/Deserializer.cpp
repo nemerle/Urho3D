@@ -265,7 +265,7 @@ ResourceRefList Deserializer::ReadResourceRefList()
     ResourceRefList ret;
     ret.type_ = ReadStringHash();
     ret.names_.Resize(ReadVLE());
-    for (unsigned i = 0; i < ret.names_.Size(); ++i)
+    for (unsigned i = 0; i < ret.names_.size(); ++i)
         ret.names_[i] = ReadString();
     return ret;
 }
@@ -351,7 +351,7 @@ Variant Deserializer::ReadVariant(VariantType type)
 VariantVector Deserializer::ReadVariantVector()
 {
     VariantVector ret(ReadVLE());
-    for (unsigned i = 0; i < ret.Size(); ++i)
+    for (unsigned i = 0; i < ret.size(); ++i)
         ret[i] = ReadVariant();
     return ret;
 }

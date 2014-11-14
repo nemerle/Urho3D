@@ -55,10 +55,10 @@ Audio::Audio(Context* context) :
 {
     for (auto & elem : masterGain_)
         elem = 1.0f;
-    
+
     // Register Audio library object factories
     RegisterAudioLibrary(context_);
-    
+
     SubscribeToEvent(E_RENDERUPDATE, HANDLER(Audio, HandleRenderUpdate));
 }
 
@@ -70,32 +70,32 @@ Audio::~Audio()
 bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpolation)
 {
     Release();
-    
+
     bufferLengthMSec = Max(bufferLengthMSec, MIN_BUFFERLENGTH);
     mixRate = Clamp(mixRate, MIN_MIXRATE, MAX_MIXRATE);
-    
+
     SDL_AudioSpec desired;
     SDL_AudioSpec obtained;
-    
+
     desired.freq = mixRate;
     desired.format = AUDIO_S16SYS;
     desired.channels = stereo ? 2 : 1;
     desired.callback = SDLAudioCallback;
     desired.userdata = this;
-    
+
     // SDL uses power of two audio fragments. Determine the closest match
     int bufferSamples = mixRate * bufferLengthMSec / 1000;
     desired.samples = NextPowerOfTwo(bufferSamples);
     if (Abs((int)desired.samples / 2 - bufferSamples) < Abs((int)desired.samples - bufferSamples))
         desired.samples /= 2;
-    
+
     deviceID_ = SDL_OpenAudioDevice(nullptr, SDL_FALSE, &desired, &obtained, SDL_AUDIO_ALLOW_ANY_CHANGE);
     if (!deviceID_)
     {
         LOGERROR("Could not initialize audio output");
         return false;
     }
-    
+
     if (obtained.format != AUDIO_S16SYS && obtained.format != AUDIO_S16LSB && obtained.format != AUDIO_S16MSB)
     {
         LOGERROR("Could not initialize audio output, 16-bit buffer format not supported");
@@ -103,7 +103,7 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
         deviceID_ = 0;
         return false;
     }
-    
+
     stereo_ = obtained.channels == 2;
     sampleSize_ = stereo_ ? sizeof(int) : sizeof(short);
     // Guarantee a fragment size that is low enough so that Vorbis decoding buffers do not wrap
@@ -111,17 +111,17 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
     mixRate_ = mixRate;
     interpolation_ = interpolation;
     clipBuffer_ = new int[stereo ? fragmentSize_ << 1 : fragmentSize_];
-    
+
     LOGINFO("Set audio mode " + String(mixRate_) + " Hz " + (stereo_ ? "stereo" : "mono") + " " +
         (interpolation_ ? "interpolated" : ""));
-    
+
     return Play();
 }
 
 void Audio::Update(float timeStep)
 {
     PROFILE(UpdateAudio);
-    
+
     // Update in reverse order, because sound sources might remove themselves
     for (unsigned i = soundSources_.Size() - 1; i < soundSources_.Size(); --i)
         soundSources_[i]->Update(timeStep);
@@ -131,15 +131,15 @@ bool Audio::Play()
 {
     if (playing_)
         return true;
-    
+
     if (!deviceID_)
     {
         LOGERROR("No audio mode set, can not start playback");
         return false;
     }
-    
+
     SDL_PauseAudioDevice(deviceID_, 0);
-    
+
     playing_ = true;
     return true;
 }
@@ -153,7 +153,7 @@ void Audio::SetMasterGain(SoundType type, float gain)
 {
     if (type >= MAX_SOUND_TYPES)
         return;
-    
+
     masterGain_[type] = Clamp(gain, 0.0f, 1.0f);
 }
 
@@ -164,10 +164,10 @@ void Audio::SetListener(SoundListener* listener)
 
 void Audio::StopSound(Sound* soundClip)
 {
-    for (auto & elem : soundSources_)
+    for (SoundSource * elem : soundSources_)
     {
-        if ((elem)->GetSound() == soundClip)
-            (elem)->Stop();
+        if (elem->GetSound() == soundClip)
+            elem->Stop();
     }
 }
 
@@ -175,7 +175,7 @@ float Audio::GetMasterGain(SoundType type) const
 {
     if (type >= MAX_SOUND_TYPES)
         return 0.0f;
-    
+
     return masterGain_[type];
 }
 
@@ -203,7 +203,7 @@ void Audio::RemoveSoundSource(SoundSource* channel)
 void SDLAudioCallback(void *userdata, Uint8* stream, int len)
 {
     Audio* audio = static_cast<Audio*>(userdata);
-    
+
     {
         MutexLock Lock(audio->GetMutex());
         audio->MixOutput(stream, len / audio->GetSampleSize());
@@ -217,7 +217,7 @@ void Audio::MixOutput(void *dest, unsigned samples)
         memset(dest, 0, samples * sampleSize_);
         return;
     }
-    
+
     while (samples)
     {
         // If sample count exceeds the fragment (clip buffer) size, split the work
@@ -225,20 +225,20 @@ void Audio::MixOutput(void *dest, unsigned samples)
         unsigned clipSamples = workSamples;
         if (stereo_)
             clipSamples <<= 1;
-        
+
         // Clear clip buffer
         int* clipPtr = clipBuffer_.Get();
         memset(clipPtr, 0, clipSamples * sizeof(int));
-        
+
         // Mix samples to clip buffer
-        for (auto & elem : soundSources_)
-            (elem)->Mix(clipPtr, workSamples, mixRate_, stereo_, interpolation_);
-        
+        for (SoundSource * elem : soundSources_)
+            elem->Mix(clipPtr, workSamples, mixRate_, stereo_, interpolation_);
+
         // Copy output from clip buffer to destination
         short* destPtr = (short*)dest;
         while (clipSamples--)
             *destPtr++ = Clamp(*clipPtr++, -32768, 32767);
-        
+
         samples -= workSamples;
         ((unsigned char*&)dest) += sampleSize_ * workSamples;
     }
@@ -247,14 +247,14 @@ void Audio::MixOutput(void *dest, unsigned samples)
 void Audio::HandleRenderUpdate(StringHash eventType, VariantMap& eventData)
 {
     using namespace RenderUpdate;
-    
+
     Update(eventData[P_TIMESTEP].GetFloat());
 }
 
 void Audio::Release()
 {
     Stop();
-    
+
     if (deviceID_)
     {
         SDL_CloseAudioDevice(deviceID_);

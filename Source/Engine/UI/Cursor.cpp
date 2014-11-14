@@ -185,11 +185,11 @@ void Cursor::SetUseSystemShapes(bool enable)
 void Cursor::SetShapesAttr(VariantVector value)
 {
     unsigned index = 0;
-    if (!value.Size())
+    if (!value.size())
         return;
 
     unsigned numShapes = value[index++].GetUInt();
-    while (numShapes-- && (index + 4) <= value.Size())
+    while (numShapes-- && (index + 4) <= value.size())
     {
         CursorShape shape = (CursorShape)GetStringListIndex(value[index++].GetString().CString(), shapeNames, CS_MAX_SHAPES);
         if (shape != CS_MAX_SHAPES)

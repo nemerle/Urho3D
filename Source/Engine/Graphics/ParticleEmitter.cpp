@@ -188,7 +188,7 @@ void ParticleEmitter::Update(const FrameInfo& frame)
                 else
                     particle.velocity_ += lastTimeStep_ * constantForce;
             }
-            
+
             float dampingForce = effect_->GetDampingForce();
             if (dampingForce != 0.0f)
             {
@@ -214,14 +214,14 @@ void ParticleEmitter::Update(const FrameInfo& frame)
             // Color interpolation
             unsigned& index = particle.colorIndex_;
             const Vector<ColorFrame>& colorFrames_ = effect_->GetColorFrames();
-            if (index < colorFrames_.Size())
+            if (index < colorFrames_.size())
             {
-                if (index < colorFrames_.Size() - 1)
+                if (index < colorFrames_.size() - 1)
                 {
                     if (particle.timer_ >= colorFrames_[index + 1].time_)
                         ++index;
                 }
-                if (index < colorFrames_.Size() - 1)
+                if (index < colorFrames_.size() - 1)
                     billboard.color_ = colorFrames_[index].Interpolate(colorFrames_[index + 1], particle.timer_);
                 else
                     billboard.color_ = colorFrames_[index].color_;
@@ -230,7 +230,7 @@ void ParticleEmitter::Update(const FrameInfo& frame)
             // Texture animation
             unsigned& texIndex = particle.texIndex_;
             const Vector<TextureFrame>& textureFrames_ = effect_->GetTextureFrames();
-            if (textureFrames_.Size() && texIndex < textureFrames_.Size() - 1)
+            if (textureFrames_.size() && texIndex < textureFrames_.size() - 1)
             {
                 if (particle.timer_ >= textureFrames_[texIndex + 1].time_)
                 {
@@ -262,7 +262,7 @@ void ParticleEmitter::SetEffect(ParticleEffect* effect)
 
     if (effect_)
         SubscribeToEvent(effect_, E_RELOADFINISHED, HANDLER(ParticleEmitter, HandleEffectReloadFinished));
-    
+
     ApplyEffect();
     MarkNetworkUpdate();
 }
@@ -302,7 +302,7 @@ void ParticleEmitter::ResetEmissionTimer()
 
 void ParticleEmitter::RemoveAllParticles()
 {
-    for (auto & elem : billboards_)
+    for (Billboard & elem : billboards_)
         elem.enabled_ = false;
 
     Commit();
@@ -319,7 +319,7 @@ void ParticleEmitter::ApplyEffect()
 {
     if (!effect_)
         return;
-    
+
     SetMaterial(effect_->GetMaterial());
     SetNumParticles(effect_->GetNumParticles());
     SetRelative(effect_->IsRelative());
@@ -342,9 +342,9 @@ ResourceRef ParticleEmitter::GetEffectAttr() const
 void ParticleEmitter::SetParticlesAttr(VariantVector value)
 {
     unsigned index = 0;
-    SetNumParticles(index < value.Size() ? value[index++].GetUInt() : 0);
-    
-    for (PODVector<Particle>::Iterator i = particles_.begin(); i != particles_.end() && index < value.Size(); ++i)
+    SetNumParticles(index < value.size() ? value[index++].GetUInt() : 0);
+
+    for (PODVector<Particle>::Iterator i = particles_.begin(); i != particles_.end() && index < value.size(); ++i)
     {
         i->velocity_ = value[index++].GetVector3();
         i->size_ = value[index++].GetVector2();
@@ -365,10 +365,10 @@ VariantVector ParticleEmitter::GetParticlesAttr() const
         ret.Push(particles_.Size());
         return ret;
     }
-    
+
     ret.Reserve(particles_.Size() * 8 + 1);
     ret.Push(particles_.Size());
-    for (const auto & elem : particles_)
+    for (const Particle & elem : particles_)
     {
         ret.Push(elem.velocity_);
         ret.Push(elem.size_);
@@ -390,11 +390,11 @@ VariantVector ParticleEmitter::GetParticleBillboardsAttr() const
         ret.Push(billboards_.Size());
         return ret;
     }
-    
+
     ret.Reserve(billboards_.Size() * 6 + 1);
     ret.Push(billboards_.Size());
-    
-    for (const auto & elem : billboards_)
+
+    for (const Billboard & elem : billboards_)
     {
         ret.Push(elem.position_);
         ret.Push(elem.size_);
@@ -403,7 +403,7 @@ VariantVector ParticleEmitter::GetParticleBillboardsAttr() const
         ret.Push(elem.rotation_);
         ret.Push(elem.enabled_);
     }
-    
+
     return ret;
 }
 
@@ -431,7 +431,7 @@ bool ParticleEmitter::EmitNewParticle()
     Vector3 startPos;
     Vector3 startDir;
 
-    
+
     switch (effect_->GetEmitterType())
     {
     case EMITTER_SPHERE:
@@ -479,7 +479,7 @@ bool ParticleEmitter::EmitNewParticle()
     billboard.position_ = startPos;
     billboard.size_ = particles_[index].size_;
     const Vector<TextureFrame>& textureFrames_ = effect_->GetTextureFrames();
-    billboard.uv_ = textureFrames_.Size() ? textureFrames_[0].uv_ : Rect::POSITIVE;
+    billboard.uv_ = textureFrames_.size() ? textureFrames_[0].uv_ : Rect::POSITIVE;
     billboard.rotation_ = effect_->GetRandomRotation();
     const Vector<ColorFrame>& colorFrames_ = effect_->GetColorFrames();
     billboard.color_ = colorFrames_[0].color_;

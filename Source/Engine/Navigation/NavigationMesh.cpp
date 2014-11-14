@@ -349,11 +349,11 @@ bool NavigationMesh::Build()
     Vector<NavigationGeometryInfo> geometryList;
     CollectGeometries(geometryList);
     
-    if (geometryList.Empty())
+    if (geometryList.empty())
         return true; // Nothing to do
     
     // Build the combined bounding box
-    for (unsigned i = 0; i < geometryList.Size(); ++i)
+    for (unsigned i = 0; i < geometryList.size(); ++i)
         boundingBox_.Merge(geometryList[i].boundingBox_);
     
     // Expand bounding box by padding
@@ -861,7 +861,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
     if (recursive)
     {
         const Vector<SharedPtr<Node> >& children = node->GetChildren();
-        for(unsigned i = 0; i < children.Size(); ++i)
+        for(unsigned i = 0; i < children.size(); ++i)
             CollectGeometries(geometryList, children[i], processedNodes, recursive);
     }
 }
@@ -870,7 +870,7 @@ void NavigationMesh::GetTileGeometry(NavigationBuildData& build, Vector<Navigati
 {
     Matrix3x4 inverse = node_->GetWorldTransform().Inverse();
     
-    for (unsigned i = 0; i < geometryList.Size(); ++i)
+    for (unsigned i = 0; i < geometryList.size(); ++i)
     {
         if (box.IsInsideFast(geometryList[i].boundingBox_) != OUTSIDE)
         {
@@ -964,7 +964,7 @@ void NavigationMesh::GetTileGeometry(NavigationBuildData& build, Vector<Navigati
             {
                 const Vector<SourceBatch>& batches = drawable->GetBatches();
                 
-                for (unsigned j = 0; j < batches.Size(); ++j)
+                for (unsigned j = 0; j < batches.size(); ++j)
                     AddTriMeshGeometry(build, drawable->GetLodGeometry(j, geometryList[i].lodLevel_), transform);
             }
         }

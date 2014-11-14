@@ -170,11 +170,11 @@ void FileSelector::SetDefaultStyle(XMLFile* style)
     cancelButton_->SetStyle("FileSelectorButton");
 
     const Vector<SharedPtr<UIElement> >& filterTexts = filterList_->GetListView()->GetContentElement()->GetChildren();
-    for (unsigned i = 0; i < filterTexts.Size(); ++i)
+    for (unsigned i = 0; i < filterTexts.size(); ++i)
         filterTexts[i]->SetStyle("FileSelectorFilterText");
 
     const Vector<SharedPtr<UIElement> >& listTexts = fileList_->GetContentElement()->GetChildren();
-    for (unsigned i = 0; i < listTexts.Size(); ++i)
+    for (unsigned i = 0; i < listTexts.size(); ++i)
         listTexts[i]->SetStyle("FileSelectorListText");
 
     UpdateElements();
@@ -215,21 +215,21 @@ void FileSelector::SetFileName(const String& fileName)
 
 void FileSelector::SetFilters(const Vector<String>& filters, unsigned defaultIndex)
 {
-    if (filters.Empty())
+    if (filters.empty())
         return;
 
     ignoreEvents_ = true;
 
     filters_ = filters;
     filterList_->RemoveAllItems();
-    for (unsigned i = 0; i < filters_.Size(); ++i)
+    for (unsigned i = 0; i < filters_.size(); ++i)
     {
         Text* filterText = new Text(context_);
         filterList_->AddItem(filterText);
         filterText->SetText(filters_[i]);
         filterText->SetStyle("FileSelectorFilterText");
     }
-    if (defaultIndex > filters.Size())
+    if (defaultIndex > filters.size())
         defaultIndex = 0;
     filterList_->SetSelection(defaultIndex);
 
@@ -299,9 +299,9 @@ void FileSelector::RefreshFiles()
     fileSystem->ScanDir(directories, path_, "*", SCAN_DIRS, false);
     fileSystem->ScanDir(files, path_, GetFilter(), SCAN_FILES, false);
 
-    fileEntries_.Reserve(directories.Size() + files.Size());
+    fileEntries_.Reserve(directories.size() + files.size());
 
-    for (unsigned i = 0; i < directories.Size(); ++i)
+    for (unsigned i = 0; i < directories.size(); ++i)
     {
         FileSelectorEntry newEntry;
         newEntry.name_ = directories[i];
@@ -309,7 +309,7 @@ void FileSelector::RefreshFiles()
         fileEntries_.Push(newEntry);
     }
 
-    for (unsigned i = 0; i < files.Size(); ++i)
+    for (unsigned i = 0; i < files.size(); ++i)
     {
         FileSelectorEntry newEntry;
         newEntry.name_ = files[i];
@@ -322,7 +322,7 @@ void FileSelector::RefreshFiles()
     Sort(fileEntries_.begin(), fileEntries_.end(), CompareEntries);
     UIElement* listContent = fileList_->GetContentElement();
     listContent->DisableLayoutUpdate();
-    for (unsigned i = 0; i < fileEntries_.Size(); ++i)
+    for (unsigned i = 0; i < fileEntries_.size(); ++i)
     {
         String displayName;
         if (fileEntries_[i].directory_)
@@ -348,7 +348,7 @@ void FileSelector::RefreshFiles()
 bool FileSelector::EnterFile()
 {
     unsigned index = fileList_->GetSelection();
-    if (index >= fileEntries_.Size())
+    if (index >= fileEntries_.size())
         return false;
 
     if (fileEntries_[index].directory_)
@@ -407,7 +407,7 @@ void FileSelector::HandleFileSelected(StringHash eventType, VariantMap& eventDat
         return;
 
     unsigned index = fileList_->GetSelection();
-    if (index >= fileEntries_.Size())
+    if (index >= fileEntries_.size())
         return;
     // If a file selected, update the filename edit field
     if (!fileEntries_[index].directory_)

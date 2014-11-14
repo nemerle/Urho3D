@@ -262,8 +262,8 @@ bool UI::SetModalElement(UIElement* modalElement, bool enable)
         modalElement->SetParent(static_cast<UIElement*>(modalElement->GetVar(VAR_ORIGINAL_PARENT).GetPtr()),
             modalElement->GetVar(VAR_ORIGINAL_CHILD_INDEX).GetUInt());
         VariantMap& vars = const_cast<VariantMap&>(modalElement->GetVars());
-        vars.Erase(VAR_ORIGINAL_PARENT);
-        vars.Erase(VAR_ORIGINAL_CHILD_INDEX);
+        vars.remove(VAR_ORIGINAL_PARENT);
+        vars.remove(VAR_ORIGINAL_CHILD_INDEX);
 
         // If it is a popup element, revert back its top-level parent
         UIElement* originElement = static_cast<UIElement*>(modalElement->GetVar(VAR_ORIGIN).GetPtr());
@@ -272,12 +272,12 @@ bool UI::SetModalElement(UIElement* modalElement, bool enable)
             UIElement* element = static_cast<UIElement*>(originElement->GetVar(VAR_PARENT_CHANGED).GetPtr());
             if (element)
             {
-                const_cast<VariantMap&>(originElement->GetVars()).Erase(VAR_PARENT_CHANGED);
+                const_cast<VariantMap&>(originElement->GetVars()).remove(VAR_PARENT_CHANGED);
                 element->SetParent(static_cast<UIElement*>(element->GetVar(VAR_ORIGINAL_PARENT).GetPtr()),
                     element->GetVar(VAR_ORIGINAL_CHILD_INDEX).GetUInt());
                 vars = const_cast<VariantMap&>(element->GetVars());
-                vars.Erase(VAR_ORIGINAL_PARENT);
-                vars.Erase(VAR_ORIGINAL_CHILD_INDEX);
+                vars.remove(VAR_ORIGINAL_PARENT);
+                vars.remove(VAR_ORIGINAL_CHILD_INDEX);
             }
         }
 
@@ -376,7 +376,7 @@ void UI::Update(float timeStep)
                 eventData[P_ELEMENT] = element;
                 element->SendEvent(E_HOVEREND, eventData);
             }
-            i = hoveredElements_.Erase(i);
+            i = hoveredElements_.erase(i);
         }
         else
             ++i;
@@ -604,7 +604,7 @@ UIElement* UI::GetFrontElement() const
     int maxPriority = M_MIN_INT;
     UIElement* front = nullptr;
 
-    for (unsigned i = 0; i < rootChildren.Size(); ++i)
+    for (unsigned i = 0; i < rootChildren.size(); ++i)
     {
         // Do not take into account input-disabled elements, hidden elements or those that are always in the front
         if (!rootChildren[i]->IsEnabled() || !rootChildren[i]->IsVisible() || !rootChildren[i]->GetBringToBack())
@@ -624,7 +624,7 @@ UIElement* UI::GetFrontElement() const
 const Vector<UIElement*> UI::GetDragElements()
 {
     // Do not return the element until drag begin event has actually been posted
-    if (!dragElementsConfirmed_.Empty())
+    if (!dragElementsConfirmed_.empty())
         return dragElementsConfirmed_;
 
     for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end(); )
@@ -650,7 +650,7 @@ const Vector<UIElement*> UI::GetDragElements()
 UIElement* UI::GetDragElement(unsigned index)
 {
     GetDragElements();
-    if (index >= dragElementsConfirmed_.Size())
+    if (index >= dragElementsConfirmed_.size())
         return (UIElement*)nullptr;
 
     return dragElementsConfirmed_[index];
@@ -711,7 +711,7 @@ void UI::Update(float timeStep, UIElement* element)
 
     const Vector<SharedPtr<UIElement> >& children = element->GetChildren();
     // Update of an element may modify its child vector. Use just index-based iteration to be safe
-    for (unsigned i = 0; i < children.Size(); ++i)
+    for (unsigned i = 0; i < children.size(); ++i)
         Update(timeStep, children[i]);
 }
 
@@ -820,7 +820,7 @@ void UI::GetBatches(UIElement* element, IntRect currentScissor)
 
     element->SortChildren();
     const Vector<SharedPtr<UIElement> >& children = element->GetChildren();
-    if (children.Empty())
+    if (children.empty())
         return;
 
     // For non-root elements draw all children of same priority before recursing into their children: assumption is that they have
@@ -873,7 +873,7 @@ void UI::GetElementAt(UIElement*& result, UIElement* current, const IntVector2& 
     const Vector<SharedPtr<UIElement> >& children = current->GetChildren();
     LayoutMode parentLayoutMode = current->GetLayoutMode();
 
-    for (unsigned i = 0; i < children.Size(); ++i)
+    for (unsigned i = 0; i < children.size(); ++i)
     {
         UIElement* element = children[i];
         bool hasChildren = element->GetNumChildren() > 0;
@@ -1011,7 +1011,7 @@ void UI::ProcessHover(const IntVector2& cursorPos, int buttons, int qualifiers, 
                 element->OnHover(element->ScreenToElement(cursorPos), cursorPos, buttons, qualifiers, cursor);
 
                 // Begin hover event
-                if (!hoveredElements_.Contains(element))
+                if (!hoveredElements_.contains(element))
                 {
                     SendDragOrHoverEvent(E_HOVERBEGIN, element, cursorPos, IntVector2::ZERO, nullptr);
                     // Exit if element is destroyed by the event handling
@@ -1056,7 +1056,7 @@ void UI::ProcessHover(const IntVector2& cursorPos, int buttons, int qualifiers, 
             element->OnHover(element->ScreenToElement(cursorPos), cursorPos, buttons, qualifiers, cursor);
 
             // Begin hover event
-            if (!hoveredElements_.Contains(element))
+            if (!hoveredElements_.contains(element))
             {
                 SendDragOrHoverEvent(E_HOVERBEGIN, element, cursorPos, IntVector2::ZERO, nullptr);
                 // Exit if element is destroyed by the event handling
@@ -1109,7 +1109,7 @@ void UI::ProcessClickBegin(const IntVector2& cursorPos, int button, int buttons,
             }
 
             // Handle start of drag. Click handling may have caused destruction of the element, so check the pointer again
-            bool dragElementsContain = dragElements_.Contains(element);
+            bool dragElementsContain = dragElements_.contains(element);
             if (element && !dragElementsContain)
             {
                 DragData* dragData = new DragData();
@@ -1122,7 +1122,7 @@ void UI::ProcessClickBegin(const IntVector2& cursorPos, int button, int buttons,
                 dragData->numDragButtons = CountSetBits(dragData->dragButtons);
                 dragElementsCount_++;
 
-                dragElementsContain = dragElements_.Contains(element);
+                dragElementsContain = dragElements_.contains(element);
             }
             else if (element && dragElementsContain && newButton)
             {
@@ -1508,7 +1508,7 @@ void UI::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
     {
         int touches = i->second_;
         if (touches & touchId)
-            i = touchDragElements_.Erase(i);
+            i = touchDragElements_.erase(i);
         else
             ++i;
     }
@@ -1552,7 +1552,7 @@ void UI::HandleKeyDown(StringHash eventType, VariantMap& eventData)
     if (key == KEY_ESC && HasModalElement())
     {
         UIElement* element = rootModalElement_->GetChild(rootModalElement_->GetNumChildren() - 1);
-        if (element->GetVars().Contains(VAR_ORIGIN))
+        if (element->GetVars().contains(VAR_ORIGIN))
             // If it is a popup, dismiss by defocusing it
             SetFocusElement(nullptr);
         else
@@ -1677,7 +1677,7 @@ HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator UI::dragElementErase(HashMa
 
     if (!dragData->dragBeginPending)
         dragConfirmedCount_ --;
-    i = dragElements_.Erase(i);
+    i = dragElements_.erase(i);
     dragElementsCount_ --;
 
     delete dragData;

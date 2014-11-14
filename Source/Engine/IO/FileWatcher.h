@@ -37,16 +37,16 @@ class FileSystem;
 class URHO3D_API FileWatcher : public Object, public Thread
 {
     OBJECT(FileWatcher);
-    
+
 public:
     /// Construct.
     FileWatcher(Context* context);
     /// Destruct.
     virtual ~FileWatcher();
-    
+
     /// Directory watching loop.
     virtual void ThreadFunction();
-    
+
     /// Start watching a directory. Return true if successful.
     bool StartWatching(const String& pathName, bool watchSubDirs);
     /// Stop watching the directory.
@@ -57,19 +57,19 @@ public:
     void AddChange(const String& fileName);
     /// Return a file change (true if was found, false if not.)
     bool GetNextChange(String& dest);
-    
+
     /// Return the path being watched, or empty if not watching.
     const String& GetPath() const { return path_; }
     /// Return the delay in seconds for notifying file changes.
     float GetDelay() const { return delay_;}
-    
+
 private:
     /// Filesystem.
     SharedPtr<FileSystem> fileSystem_;
     /// The path being watched.
     String path_;
     /// Pending changes. These will be returned and removed from the list when their timer has exceeded the delay.
-    HashMap<String, Timer> changes_;
+    QHash<String, Timer> changes_;
     /// Mutex for the change buffer.
     Mutex changesMutex_;
     /// Delay in seconds for notifying changes.
@@ -85,12 +85,12 @@ private:
 #elif __linux__
 
     /// HashMap for the directory and sub-directories (needed for inotify's int handles).
-    HashMap<int, String> dirHandle_;
+    QHash<int, String> dirHandle_;
     /// Linux inotify needs a handle.
     int watchHandle_;
 
 #elif defined(__APPLE__) && !defined(IOS)
-    
+
     /// Flag indicating whether the running OS supports individual file watching.
     bool supported_;
     /// Pointer to internal MacFileWatcher delegate.

@@ -112,7 +112,7 @@ void Text3D::UpdateBatches(const FrameInfo& frame)
         worldBoundingBoxDirty_ = true;
     }
     
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
         batches_[i].distance_ = distance_;
         batches_[i].worldTransform_ = faceCameraMode_ != FC_NONE ? &customWorldTransform_ : &node_->GetWorldTransform();
@@ -123,7 +123,7 @@ void Text3D::UpdateGeometry(const FrameInfo& frame)
 {
     if (geometryDirty_)
     {
-        for (unsigned i = 0; i < batches_.Size(); ++i)
+        for (unsigned i = 0; i < batches_.size(); ++i)
         {
             Geometry* geometry = geometries_[i];
             geometry->SetDrawRange(TRIANGLE_LIST, 0, 0, uiBatches_[i].vertexStart_, (uiBatches_[i].vertexEnd_ -
@@ -507,7 +507,7 @@ void Text3D::UpdateTextMaterials(bool forceUpdate)
     batches_.Resize(uiBatches_.Size());
     geometries_.Resize(uiBatches_.Size());
     
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
         if (!geometries_[i])
         {

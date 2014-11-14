@@ -109,14 +109,14 @@ void Sprites::MoveSprites(float timeStep)
     float height = (float)graphics->GetHeight();
 
     // Go through all sprites
-    for (unsigned i = 0; i < sprites_.Size(); ++i)
+    for (unsigned i = 0; i < sprites_.size(); ++i)
     {
         Sprite* sprite = sprites_[i];
 
         // Rotate
         float newRot = sprite->GetRotation() + timeStep * 30.0f;
         sprite->SetRotation(newRot);
-        
+
         // Move, wrap around rendering window edges
         Vector2 newPos = sprite->GetPosition() + sprite->GetVar(VAR_VELOCITY).GetVector2() * timeStep;
         if (newPos.x_ < 0.0f)
@@ -143,7 +143,7 @@ void Sprites::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
     // Take the frame time step, which is stored as a float
     float timeStep = eventData[P_TIMESTEP].GetFloat();
-    
+
     // Move sprites, scale movement with time step
     MoveSprites(timeStep);
 }

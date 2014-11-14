@@ -41,7 +41,7 @@ struct TouchState
 {
     /// Return last touched UI element, used by scripting integration.
     UIElement* GetTouchedElement();
-    
+
     /// Touch (finger) ID.
     int touchID_;
     /// Position in screen coordinates.
@@ -200,11 +200,11 @@ public:
     /// Return mouse wheel movement since last frame.
     int GetMouseMoveWheel() const { return mouseMoveWheel_; }
     /// Return number of active finger touches.
-    unsigned GetNumTouches() const { return touches_.Size(); }
+    unsigned GetNumTouches() const { return touches_.size(); }
     /// Return active finger touch by index.
     TouchState* GetTouch(unsigned index) const;
     /// Return number of connected joysticks.
-    unsigned GetNumJoysticks() const { return joysticks_.Size(); }
+    unsigned GetNumJoysticks() const { return joysticks_.size(); }
     /// Return joystick state by ID, or null if does not exist.
     JoystickState* GetJoystick(SDL_JoystickID id);
     /// Return joystick state by index, or null if does not exist. 0 = first connected joystick.
@@ -273,11 +273,11 @@ private:
     /// Key pressed state by scancode.
     HashSet<int> scancodePress_;
     /// Active finger touches.
-    HashMap<int, TouchState> touches_;
+    QHash<int, TouchState> touches_;
     /// String for text input.
     String textInput_;
     /// Opened joysticks.
-    HashMap<SDL_JoystickID, JoystickState> joysticks_;
+    QHash<SDL_JoystickID, JoystickState> joysticks_;
     /// Mouse buttons' down state.
     unsigned mouseButtonDown_;
     /// Mouse buttons' pressed state.

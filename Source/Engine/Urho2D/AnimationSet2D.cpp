@@ -120,19 +120,19 @@ bool AnimationSet2D::EndLoad()
 
 unsigned AnimationSet2D::GetNumAnimations() const
 {
-    return animations_.Size();
+    return animations_.size();
 }
 
 Animation2D* AnimationSet2D::GetAnimation(unsigned index) const
 {
-    if (index < animations_.Size())
+    if (index < animations_.size())
         return animations_[index];
     return nullptr;
 }
 
 Animation2D* AnimationSet2D::GetAnimation(const String& name) const
 {
-    for (unsigned i = 0; i < animations_.Size(); ++i)
+    for (unsigned i = 0; i < animations_.size(); ++i)
     {
         if (animations_[i]->GetName() == name)
             return animations_[i];
@@ -233,7 +233,7 @@ bool AnimationSet2D::LoadFolders(const XMLElement& rootElem)
 Sprite2D* AnimationSet2D::GetSprite(unsigned folderId, unsigned fileId) const
 {
     unsigned key = (folderId << 16) + fileId;
-    HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator i = sprites_.Find(key);
+    HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator i = sprites_.find(key);
     if (i != sprites_.end())
         return i->second_;
     return nullptr;

@@ -134,7 +134,7 @@ bool ValueAnimation::SaveXML(XMLElement& dest) const
     if (interpolationMethod_ == IM_SPLINE)
         dest.SetFloat("splinetension", splineTension_);
 
-    for (unsigned i = 0; i < keyFrames_.Size(); ++i)
+    for (unsigned i = 0; i < keyFrames_.size(); ++i)
     {
         const VAnimKeyFrame& keyFrame = keyFrames_[i];
         XMLElement keyFrameEleme = dest.CreateChild("keyframe");
@@ -142,7 +142,7 @@ bool ValueAnimation::SaveXML(XMLElement& dest) const
         keyFrameEleme.SetVariant(keyFrame.value_);
     }
 
-    for (unsigned i = 0; i < eventFrames_.Size(); ++i)
+    for (unsigned i = 0; i < eventFrames_.size(); ++i)
     {
         const VAnimEventFrame& eventFrame = eventFrames_[i];
         XMLElement eventFrameElem = dest.CreateChild("eventframe");
@@ -211,11 +211,11 @@ bool ValueAnimation::SetKeyFrame(float time, const Variant& value)
     keyFrame.time_ = time;
     keyFrame.value_ = value;
 
-    if (keyFrames_.Empty() || time > keyFrames_.Back().time_)
+    if (keyFrames_.empty() || time > keyFrames_.Back().time_)
         keyFrames_.Push(keyFrame);
     else
     {
-        for (unsigned i = 0; i < keyFrames_.Size(); ++i)
+        for (unsigned i = 0; i < keyFrames_.size(); ++i)
         {
             // Guard against interpolation error caused by division by error due to 0 delta time between two key frames
             if (time == keyFrames_[i].time_)
@@ -242,11 +242,11 @@ void ValueAnimation::SetEventFrame(float time, const StringHash& eventType, cons
     eventFrame.eventType_ = eventType;
     eventFrame.eventData_ = eventData;
 
-    if (eventFrames_.Empty() || time >= eventFrames_.Back().time_)
+    if (eventFrames_.empty() || time >= eventFrames_.Back().time_)
         eventFrames_.Push(eventFrame);
     else
     {
-        for (unsigned i = 0; i < eventFrames_.Size(); ++i)
+        for (unsigned i = 0; i < eventFrames_.size(); ++i)
         {
             if (time < eventFrames_[i].time_)
             {
@@ -259,19 +259,19 @@ void ValueAnimation::SetEventFrame(float time, const StringHash& eventType, cons
 
 bool ValueAnimation::IsValid() const
 {
-    return (interpolationMethod_ == IM_LINEAR && keyFrames_.Size() > 1) || (interpolationMethod_ == IM_SPLINE && keyFrames_.Size() > 2);
+    return (interpolationMethod_ == IM_LINEAR && keyFrames_.size() > 1) || (interpolationMethod_ == IM_SPLINE && keyFrames_.size() > 2);
 }
 
 Variant ValueAnimation::GetAnimationValue(float scaledTime)
 {
     unsigned index = 1;
-    for (; index < keyFrames_.Size(); ++index)
+    for (; index < keyFrames_.size(); ++index)
     {
         if (scaledTime < keyFrames_[index].time_)
             break;
     }
 
-    if (index >= keyFrames_.Size() || !interpolatable_)
+    if (index >= keyFrames_.size() || !interpolatable_)
         return keyFrames_[index - 1].value_;
     else
     {
@@ -284,7 +284,7 @@ Variant ValueAnimation::GetAnimationValue(float scaledTime)
 
 void ValueAnimation::GetEventFrames(float beginTime, float endTime, PODVector<const VAnimEventFrame*>& eventFrames) const
 {
-    for (unsigned i = 0; i < eventFrames_.Size(); ++i)
+    for (unsigned i = 0; i < eventFrames_.size(); ++i)
     {
         const VAnimEventFrame& eventFrame = eventFrames_[i];
         if (eventFrame.time_ > endTime)
@@ -402,7 +402,7 @@ void ValueAnimation::UpdateSplineTangents()
     if (!IsValid())
         return;
 
-    unsigned size = keyFrames_.Size();
+    unsigned size = keyFrames_.size();
     splineTangents_.Resize(size);
 
     for (unsigned i = 1; i < size - 1; ++i)

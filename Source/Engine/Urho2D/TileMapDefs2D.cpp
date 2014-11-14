@@ -135,12 +135,12 @@ void PropertySet2D::Load(const XMLElement& element)
 
 bool PropertySet2D::HasProperty(const String& name) const
 {
-    return nameToValueMapping_.Find(name) != nameToValueMapping_.end();
+    return nameToValueMapping_.find(name) != nameToValueMapping_.end();
 }
 
 const String& PropertySet2D::GetProperty(const String& name) const
 {
-    HashMap<String, String>::ConstIterator i = nameToValueMapping_.Find(name);
+    HashMap<String, String>::ConstIterator i = nameToValueMapping_.find(name);
     if (i == nameToValueMapping_.end())
         return String::EMPTY;
 
@@ -178,12 +178,12 @@ TileMapObject2D::TileMapObject2D()
 
 unsigned TileMapObject2D::GetNumPoints() const
 {
-    return points_.Size();
+    return points_.size();
 }
 
 const Vector2& TileMapObject2D::GetPoint(unsigned index) const
 {
-    if (index >= points_.Size())
+    if (index >= points_.size())
         return Vector2::ZERO;
 
     return points_[index];

@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 
 void Run(const Vector<String>& arguments)
 {
-    if (arguments.Size() < 2)
+    if (arguments.size() < 2)
     {
         ErrorExit(
             "Usage: OgreImporter <input file> <output file> [options]\n\n"
@@ -101,9 +101,9 @@ void Run(const Vector<String>& arguments)
     bool rotationsOnly = false;
     bool saveMaterialList = false;
 
-    if (arguments.Size() > 2)
+    if (arguments.size() > 2)
     {
-        for (unsigned i = 2; i < arguments.Size(); ++i)
+        for (unsigned i = 2; i < arguments.size(); ++i)
         {
             if (arguments[i].Length() > 1 && arguments[i][0] == '-')
             {
@@ -158,7 +158,7 @@ void LoadSkeleton(const String& skeletonFileName)
         {
             unsigned index = bone.GetInt("id");
             String name = bone.GetAttribute("name");
-            if (index >= bones_.Size())
+            if (index >= bones_.size())
                 bones_.Resize(index + 1);
 
             // Convert from right- to left-handed
@@ -196,10 +196,10 @@ void LoadSkeleton(const String& skeletonFileName)
             String bone = boneParent.GetAttribute("bone");
             String parent = boneParent.GetAttribute("parent");
             unsigned i = 0, j = 0;
-            for (i = 0; i < bones_.Size() && bones_[i].name_ != bone; ++i);
-            for (j = 0; j < bones_.Size() && bones_[j].name_ != parent; ++j);
+            for (i = 0; i < bones_.size() && bones_[i].name_ != bone; ++i);
+            for (j = 0; j < bones_.size() && bones_[j].name_ != parent; ++j);
 
-            if (i >= bones_.Size() || j >= bones_.Size())
+            if (i >= bones_.size() || j >= bones_.size())
                 ErrorExit("Found indeterminate parent bone assignment");
             bones_[i].parentIndex_ = j;
 
@@ -207,7 +207,7 @@ void LoadSkeleton(const String& skeletonFileName)
         }
 
         // Calculate bone derived positions
-        for (unsigned i = 0; i < bones_.Size(); ++i)
+        for (unsigned i = 0; i < bones_.size(); ++i)
         {
             Vector3 derivedPosition = bones_[i].bindPosition_;
             Quaternion derivedRotation = bones_[i].bindRotation_;
@@ -451,7 +451,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
             iBuf->indexSize_ = sizeof(unsigned);
 
         XMLElement boneAssignments = subMesh.GetChild("boneassignments");
-        if (bones_.Size())
+        if (bones_.size())
         {
             if (boneAssignments)
             {
@@ -491,31 +491,31 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 }
             }
 
-            if ((subGeometryLodLevel.boneWeights_.Size()) && bones_.Size())
+            if ((subGeometryLodLevel.boneWeights_.size()) && bones_.size())
             {
                 vBuf->elementMask_ |= MASK_BLENDWEIGHTS | MASK_BLENDINDICES;
                 bool sorted = false;
 
                 // If amount of bones is larger than supported by HW skinning, must remap per submesh
-                if (bones_.Size() > MAX_SKIN_MATRICES)
+                if (bones_.size() > MAX_SKIN_MATRICES)
                 {
                     HashMap<unsigned, unsigned> usedBoneMap;
                     unsigned remapIndex = 0;
-                    for (auto & elem : subGeometryLodLevel.boneWeights_)
+                    for (PODVector<BoneWeightAssignment> & elem : subGeometryLodLevel.boneWeights_)
                     {
                         // Sort the bone assigns by weight
-                        Sort(elem.second_.begin(), elem.second_.end(), CompareWeights);
+                        Sort(elem.begin(), elem.end(), CompareWeights);
 
                         // Use only the first 4 weights
-                        for (unsigned j = 0; j < elem.second_.Size() && j < 4; ++j)
+                        for (unsigned j = 0; j < elem.Size() && j < 4; ++j)
                         {
-                            unsigned originalIndex = elem.second_[j].boneIndex_;
-                            if (!usedBoneMap.Contains(originalIndex))
+                            unsigned originalIndex = elem[j].boneIndex_;
+                            if (!usedBoneMap.contains(originalIndex))
                             {
                                 usedBoneMap[originalIndex] = remapIndex;
                                 remapIndex++;
                             }
-                            elem.second_[j].boneIndex_ = usedBoneMap[originalIndex];
+                            elem[j].boneIndex_ = usedBoneMap[originalIndex];
                         }
                     }
 
@@ -531,35 +531,37 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     sorted = true;
                 }
 
-                for (auto & elem : subGeometryLodLevel.boneWeights_)
+                for (auto iter=subGeometryLodLevel.boneWeights_.begin(),fin=subGeometryLodLevel.boneWeights_.end();
+                     iter!=fin; ++iter)
                 {
+                    PODVector<BoneWeightAssignment> & elem = *iter;
                     // Sort the bone assigns by weight, if not sorted yet in bone remapping pass
                     if (!sorted)
-                        Sort(elem.second_.begin(), elem.second_.end(), CompareWeights);
+                        Sort(elem.begin(), elem.end(), CompareWeights);
 
                     float totalWeight = 0.0f;
                     float normalizationFactor = 0.0f;
 
                     // Calculate normalization factor in case there are more than 4 blend weights, or they do not add up to 1
-                    for (unsigned j = 0; j < elem.second_.Size() && j < 4; ++j)
-                        totalWeight += elem.second_[j].weight_;
+                    for (unsigned j = 0; j < elem.Size() && j < 4; ++j)
+                        totalWeight += elem[j].weight_;
                     if (totalWeight > 0.0f)
                         normalizationFactor = 1.0f / totalWeight;
 
-                    for (unsigned j = 0; j < elem.second_.Size() && j < 4; ++j)
+                    for (unsigned j = 0; j < elem.Size() && j < 4; ++j)
                     {
-                        vBuf->vertices_[elem.first_].blendIndices_[j] = elem.second_[j].boneIndex_;
-                        vBuf->vertices_[elem.first_].blendWeights_[j] = elem.second_[j].weight_ * normalizationFactor;
+                        vBuf->vertices_[iter.key()].blendIndices_[j] = elem[j].boneIndex_;
+                        vBuf->vertices_[iter.key()].blendWeights_[j] = elem[j].weight_ * normalizationFactor;
                     }
 
                     // If there are less than 4 blend weights, fill rest with zero
-                    for (unsigned j = elem.second_.Size(); j < 4; ++j)
+                    for (unsigned j = elem.Size(); j < 4; ++j)
                     {
-                        vBuf->vertices_[elem.first_].blendIndices_[j] = 0;
-                        vBuf->vertices_[elem.first_].blendWeights_[j] = 0.0f;
+                        vBuf->vertices_[iter.key()].blendIndices_[j] = 0;
+                        vBuf->vertices_[iter.key()].blendWeights_[j] = 0.0f;
                     }
 
-                    vBuf->vertices_[elem.first_].hasBlendWeights_ = true;
+                    vBuf->vertices_[iter.key()].hasBlendWeights_ = true;
                 }
             }
         }
@@ -795,11 +797,11 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     }
 
     // Check any of the buffers for vertices with missing blend weight assignments
-    for (unsigned i = 0; i < vertexBuffers_.Size(); ++i)
+    for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
     {
         if (vertexBuffers_[i].elementMask_ & MASK_BLENDWEIGHTS)
         {
-            for (unsigned j = 0; j < vertexBuffers_[i].vertices_.Size(); ++j)
+            for (unsigned j = 0; j < vertexBuffers_[i].vertices_.size(); ++j)
                 if (!vertexBuffers_[i].vertices_[j].hasBlendWeights_)
                     ErrorExit("Found a vertex with missing skinning information");
         }
@@ -808,9 +810,9 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     // Tangent generation
     if (generateTangents)
     {
-        for (unsigned i = 0; i < subGeometries_.Size(); ++i)
+        for (unsigned i = 0; i < subGeometries_.size(); ++i)
         {
-            for (unsigned j = 0; j < subGeometries_[i].Size(); ++j)
+            for (unsigned j = 0; j < subGeometries_[i].size(); ++j)
             {
                 ModelVertexBuffer& vBuf = vertexBuffers_[subGeometries_[i][j].vertexBuffer_];
                 ModelIndexBuffer& iBuf = indexBuffers_[subGeometries_[i][j].indexBuffer_];
@@ -818,7 +820,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 unsigned indexCount = subGeometries_[i][j].indexCount_;
 
                 // If already has tangents, do not regenerate
-                if (vBuf.elementMask_ & MASK_TANGENT || vBuf.vertices_.Empty() || iBuf.indices_.Empty())
+                if (vBuf.elementMask_ & MASK_TANGENT || vBuf.vertices_.empty() || iBuf.indices_.Empty())
                     continue;
 
                 vBuf.elementMask_ |= MASK_TANGENT;
@@ -849,18 +851,18 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
         dest.WriteFileID("UMDL");
 
         // Vertexbuffers
-        dest.WriteUInt(vertexBuffers_.Size());
-        for (unsigned i = 0; i < vertexBuffers_.Size(); ++i)
+        dest.WriteUInt(vertexBuffers_.size());
+        for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
             vertexBuffers_[i].WriteData(dest);
 
         // Indexbuffers
-        dest.WriteUInt(indexBuffers_.Size());
-        for (unsigned i = 0; i < indexBuffers_.Size(); ++i)
+        dest.WriteUInt(indexBuffers_.size());
+        for (unsigned i = 0; i < indexBuffers_.size(); ++i)
             indexBuffers_[i].WriteData(dest);
 
         // Subgeometries
-        dest.WriteUInt(subGeometries_.Size());
-        for (unsigned i = 0; i < subGeometries_.Size(); ++i)
+        dest.WriteUInt(subGeometries_.size());
+        for (unsigned i = 0; i < subGeometries_.size(); ++i)
         {
             // Write bone mapping info from the first LOD level. It does not change for further LODs
             dest.WriteUInt(subGeometries_[i][0].boneMapping_.Size());
@@ -868,8 +870,8 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 dest.WriteUInt(subGeometries_[i][0].boneMapping_[k]);
 
             // Lod levels for this subgeometry
-            dest.WriteUInt(subGeometries_[i].Size());
-            for (unsigned j = 0; j < subGeometries_[i].Size(); ++j)
+            dest.WriteUInt(subGeometries_[i].size());
+            for (unsigned j = 0; j < subGeometries_[i].size(); ++j)
             {
                 dest.WriteFloat(subGeometries_[i][j].distance_);
                 dest.WriteUInt((unsigned)subGeometries_[i][j].primitiveType_);
@@ -881,13 +883,13 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
         }
 
         // Morphs
-        dest.WriteUInt(morphs_.Size());
-        for (unsigned i = 0; i < morphs_.Size(); ++i)
+        dest.WriteUInt(morphs_.size());
+        for (unsigned i = 0; i < morphs_.size(); ++i)
             morphs_[i].WriteData(dest);
 
         // Skeleton
-        dest.WriteUInt(bones_.Size());
-        for (unsigned i = 0; i < bones_.Size(); ++i)
+        dest.WriteUInt(bones_.size());
+        for (unsigned i = 0; i < bones_.size(); ++i)
         {
             dest.WriteString(bones_[i].name_);
             dest.WriteUInt(bones_[i].parentIndex_);
@@ -910,7 +912,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
         dest.WriteBoundingBox(boundingBox_);
 
         // Geometry centers
-        for (unsigned i = 0; i < subGeometryCenters_.Size(); ++i)
+        for (unsigned i = 0; i < subGeometryCenters_.size(); ++i)
             dest.WriteVector3(subGeometryCenters_[i]);
     }
 
@@ -920,7 +922,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
         File listFile(context_);
         if (listFile.Open(materialListName, FILE_WRITE))
         {
-            for (unsigned i = 0; i < materialNames_.Size(); ++i)
+            for (unsigned i = 0; i < materialNames_.size(); ++i)
             {
                 // Assume the materials will be located inside the standard Materials subdirectory
                 listFile.WriteLine("Materials/" + ReplaceExtension(SanitateAssetName(materialNames_[i]), ".xml"));
@@ -950,7 +952,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 {
                     String trackName = track.GetAttribute("bone");
                     ModelBone* bone = nullptr;
-                    for (unsigned i = 0; i < bones_.Size(); ++i)
+                    for (unsigned i = 0; i < bones_.size(); ++i)
                     {
                         if (bones_[i].name_ == trackName)
                         {
@@ -1006,7 +1008,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                     Sort(newAnimationTrack.keyFrames_.begin(), newAnimationTrack.keyFrames_.end(), CompareKeyFrames);
 
                     // Do not add tracks with no keyframes
-                    if (newAnimationTrack.keyFrames_.Size())
+                    if (newAnimationTrack.keyFrames_.size())
                         newAnimation.tracks_.Push(newAnimationTrack);
 
                     track = track.GetNext("track");
@@ -1023,16 +1025,15 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 dest.WriteFileID("UANI");
                 dest.WriteString(newAnimation.name_);
                 dest.WriteFloat(newAnimation.length_);
-                dest.WriteUInt(newAnimation.tracks_.Size());
-                for (unsigned i = 0; i < newAnimation.tracks_.Size(); ++i)
+                dest.WriteUInt(newAnimation.tracks_.size());
+                for (unsigned i = 0; i < newAnimation.tracks_.size(); ++i)
                 {
                     AnimationTrack& track = newAnimation.tracks_[i];
                     dest.WriteString(track.name_);
                     dest.WriteUByte(track.channelMask_);
-                    dest.WriteUInt(track.keyFrames_.Size());
-                    for (unsigned j = 0; j < track.keyFrames_.Size(); ++j)
+                    dest.WriteUInt(track.keyFrames_.size());
+                    for (const AnimationKeyFrame& keyFrame : track.keyFrames_)
                     {
-                        AnimationKeyFrame& keyFrame = track.keyFrames_[j];
                         dest.WriteFloat(keyFrame.time_);
                         if (track.channelMask_ & CHANNEL_POSITION)
                             dest.WriteVector3(keyFrame.position_);
@@ -1061,7 +1062,7 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
         return;
     }
 
-    for (unsigned i = 0; i < vb->vertices_.Size(); ++i)
+    for (unsigned i = 0; i < vb->vertices_.size(); ++i)
     {
         vb->vertices_[i].useCount_ = 0;
         vb->vertices_[i].cachePosition_ = -1;
@@ -1079,7 +1080,7 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
         oldTriangles.Push(triangle);
     }
 
-    for (unsigned i = 0; i < vb->vertices_.Size(); ++i)
+    for (unsigned i = 0; i < vb->vertices_.size(); ++i)
         CalculateScore(vb->vertices_[i]);
 
     PODVector<unsigned> vertexCache;

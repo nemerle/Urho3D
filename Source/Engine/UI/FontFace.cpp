@@ -50,7 +50,7 @@ FontFace::~FontFace()
     {
         // When a face is unloaded, deduct the used texture data size from the parent font
         unsigned totalTextureSize = 0;
-        for (unsigned i = 0; i < textures_.Size(); ++i)
+        for (unsigned i = 0; i < textures_.size(); ++i)
             totalTextureSize += textures_[i]->GetWidth() * textures_[i]->GetHeight();
         font_->SetMemoryUse(font_->GetMemoryUse() - totalTextureSize);
     }
@@ -58,7 +58,7 @@ FontFace::~FontFace()
 
 const FontGlyph* FontFace::GetGlyph(unsigned c)
 {
-    HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.Find(c);
+    HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
     if (i != glyphMapping_.end())
     {
         FontGlyph& glyph = i->second_;
@@ -82,7 +82,7 @@ short FontFace::GetKerning(unsigned c, unsigned d) const
 
     unsigned value = (c << 16) + d;
 
-    HashMap<unsigned, short>::ConstIterator i = kerningMapping_.Find(value);
+    HashMap<unsigned, short>::ConstIterator i = kerningMapping_.find(value);
     if (i != kerningMapping_.end())
         return i->second_;
 
@@ -91,7 +91,7 @@ short FontFace::GetKerning(unsigned c, unsigned d) const
 
 bool FontFace::IsDataLost() const
 {
-    for (unsigned i = 0; i < textures_.Size(); ++i)
+    for (unsigned i = 0; i < textures_.size(); ++i)
     {
         if (textures_[i]->IsDataLost())
             return true;

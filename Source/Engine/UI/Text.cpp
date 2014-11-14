@@ -177,7 +177,7 @@ void Text::GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData,
     // Text batch
     TextEffect textEffect = font_->IsSDFFont() ? TE_NONE : textEffect_;
     const Vector<SharedPtr<Texture2D> >& textures = face->GetTextures();
-    for (unsigned n = 0; n < textures.Size() && n < pageGlyphLocations_.Size(); ++n)
+    for (unsigned n = 0; n < textures.size() && n < pageGlyphLocations_.size(); ++n)
     {
         // One batch per texture/page
         UIBatch pageBatch(this, BLEND_ALPHA, currentScissor, textures[n], &vertexData);
@@ -593,8 +593,8 @@ void Text::UpdateCharLocations()
     // Store position & size of each character, and locations per texture page
     unsigned numChars = unicodeText_.Size();
     charLocations_.Resize(numChars + 1);
-    pageGlyphLocations_.Resize(face->GetTextures().Size());
-    for (unsigned i = 0; i < pageGlyphLocations_.Size(); ++i)
+    pageGlyphLocations_.Resize(face->GetTextures().size());
+    for (unsigned i = 0; i < pageGlyphLocations_.size(); ++i)
         pageGlyphLocations_[i].Clear();
 
     IntVector2 offset = font_->GetTotalGlyphOffset(fontSize_);
@@ -617,7 +617,7 @@ void Text::UpdateCharLocations()
             if (glyph)
             {
                 // Store glyph's location for rendering. Verify that glyph page is valid
-                if (glyph->page_ < pageGlyphLocations_.Size())
+                if (glyph->page_ < pageGlyphLocations_.size())
                     pageGlyphLocations_[glyph->page_].Push(GlyphLocation(x, y, glyph));
                 x += glyph->advanceX_;
                 if (i < printText_.Size() - 1)

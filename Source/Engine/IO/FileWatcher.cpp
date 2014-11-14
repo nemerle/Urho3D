@@ -21,9 +21,11 @@
 //
 
 #include "Precompiled.h"
+
+#include "FileWatcher.h"
+
 #include "File.h"
 #include "FileSystem.h"
-#include "FileWatcher.h"
 #include "Log.h"
 #include "Timer.h"
 
@@ -79,14 +81,14 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
         LOGERROR("No FileSystem, can not start watching");
         return false;
     }
-    
+
     // Stop any previous watching
     StopWatching();
-    
+
 #if defined(URHO3D_FILEWATCHER)
 #if defined(WIN32)
     String nativePath = GetNativePath(RemoveTrailingSlash(pathName));
-    
+
     dirHandle_ = (void*)CreateFileW(
         WString(nativePath).CString(),
         FILE_LIST_DIRECTORY,
@@ -95,13 +97,13 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
         0);
-    
+
     if (dirHandle_ != INVALID_HANDLE_VALUE)
     {
         path_ = AddTrailingSlash(pathName);
         watchSubDirs_ = watchSubDirs;
         Run();
-        
+
         LOGDEBUG("Started watching path " + pathName);
         return true;
     }
@@ -131,7 +133,7 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
             Vector<String> subDirs;
             fileSystem_->ScanDir(subDirs, pathName, "*", SCAN_DIRS, true);
 
-            for (unsigned i = 0; i < subDirs.Size(); ++i)
+            for (unsigned i = 0; i < subDirs.size(); ++i)
             {
                 String subDirFullPath = AddTrailingSlash(path_ + subDirs[i]);
 
@@ -160,14 +162,14 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
         LOGERROR("Individual file watching not supported by this OS version, can not start watching path " + pathName);
         return false;
     }
-    
+
     watcher_ = CreateFileWatcher(pathName.CString(), watchSubDirs);
     if (watcher_)
     {
         path_ = AddTrailingSlash(pathName);
         watchSubDirs_ = watchSubDirs;
         Run();
-        
+
         LOGDEBUG("Started watching path " + pathName);
         return true;
     }
@@ -191,26 +193,26 @@ void FileWatcher::StopWatching()
     if (handle_)
     {
         shouldRun_ = false;
-        
+
         // Create and delete a dummy file to make sure the watcher loop terminates
         String dummyFileName = path_ + "dummy.tmp";
         File file(context_, dummyFileName, FILE_WRITE);
         file.Close();
         if (fileSystem_)
             fileSystem_->Delete(dummyFileName);
-        
+
         Stop();
-        
+
         #if defined(WIN32)
         CloseHandle((HANDLE)dirHandle_);
         #elif defined(__linux__)
-        for (auto & elem : dirHandle_)
-            inotify_rm_watch(watchHandle_, elem.first_);
-        dirHandle_.Clear();
+        for (auto & elem : dirHandle_.keys())
+            inotify_rm_watch(watchHandle_, elem);
+        dirHandle_.clear();
         #elif defined(__APPLE__) && !defined(IOS)
         CloseFileWatcher(watcher_);
         #endif
-        
+
         LOGDEBUG("Stopped watching path " + path_);
         path_.Clear();
     }
@@ -227,7 +229,7 @@ void FileWatcher::ThreadFunction()
 #if defined(WIN32)
     unsigned char buffer[BUFFERSIZE];
     DWORD bytesFilled = 0;
-    
+
     while (shouldRun_)
     {
         if (ReadDirectoryChangesW((HANDLE)dirHandle_,
@@ -241,11 +243,11 @@ void FileWatcher::ThreadFunction()
             0))
         {
             unsigned offset = 0;
-            
+
             while (offset < bytesFilled)
             {
                 FILE_NOTIFY_INFORMATION* record = (FILE_NOTIFY_INFORMATION*)&buffer[offset];
-                
+
                 if (record->Action == FILE_ACTION_MODIFIED || record->Action == FILE_ACTION_RENAMED_NEW_NAME)
                 {
                     String fileName;
@@ -253,11 +255,11 @@ void FileWatcher::ThreadFunction()
                     const wchar_t* end = src + record->FileNameLength / 2;
                     while (src < end)
                         fileName.AppendUTF8(String::DecodeUTF16(src));
-                    
+
                     fileName = GetInternalPath(fileName);
                     AddChange(fileName);
                 }
-                
+
                 if (!record->NextEntryOffset)
                     break;
                 else
@@ -313,7 +315,7 @@ void FileWatcher::ThreadFunction()
 void FileWatcher::AddChange(const String& fileName)
 {
     MutexLock lock(changesMutex_);
-    
+
     // Reset the timer associated with the filename. Will be notified once timer exceeds the delay
     changes_[fileName].Reset();
 }
@@ -321,23 +323,23 @@ void FileWatcher::AddChange(const String& fileName)
 bool FileWatcher::GetNextChange(String& dest)
 {
     MutexLock lock(changesMutex_);
-    
+
     unsigned delayMsec = (unsigned)(delay_ * 1000.0f);
-    
-    if (changes_.Empty())
+
+    if (changes_.isEmpty())
         return false;
     else
     {
-        for (HashMap<String, Timer>::Iterator i = changes_.begin(); i != changes_.end(); ++i)
+        for (QHash<String, Timer>::Iterator i = changes_.begin(); i != changes_.end(); ++i)
         {
-            if (i->second_.GetMSec(false) >= delayMsec)
+            if (i->GetMSec(false) >= delayMsec)
             {
-                dest = i->first_;
-                changes_.Erase(i);
+                dest = i.key();
+                changes_.erase(i);
                 return true;
             }
         }
-        
+
         return false;
     }
 }

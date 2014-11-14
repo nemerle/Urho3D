@@ -65,7 +65,7 @@ void DrawableProxy2D::RegisterObject(Context* context)
 
 void DrawableProxy2D::UpdateBatches(const FrameInfo& frame)
 {
-    unsigned count = batches_.Size();
+    unsigned count = batches_.size();
 
     // Update non-thread critical parts of the source batches
     for (unsigned i = 0; i < count; ++i)
@@ -140,9 +140,9 @@ void DrawableProxy2D::UpdateGeometry(const FrameInfo& frame)
                     continue;
 
                 const Vector<Vertex2D>& vertices = drawables_[d]->GetVertices();
-                for (unsigned i = 0; i < vertices.Size(); ++i)
+                for (unsigned i = 0; i < vertices.size(); ++i)
                     dest[i] = vertices[i];
-                dest += vertices.Size();
+                dest += vertices.size();
             }
 
             vertexBuffer_->Unlock();
@@ -203,7 +203,7 @@ void CheckDrawableVisibility(const WorkItem* item, unsigned threadIndex)
     while (start != end)
     {
         Drawable2D* drawable = *start++;
-        if (proxy->CheckVisibility(drawable) && drawable->GetUsedMaterial() && drawable->GetVertices().Size())
+        if (proxy->CheckVisibility(drawable) && drawable->GetUsedMaterial() && drawable->GetVertices().size())
             drawable->SetVisibility(true);
         else
             drawable->SetVisibility(false);
@@ -268,7 +268,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     for (unsigned i = 0; i < drawables_.Size(); ++i)
     {
         if (drawables_[i]->GetVisibility())
-            vertexCount_ += drawables_[i]->GetVertices().Size();
+            vertexCount_ += drawables_[i]->GetVertices().size();
     }
     indexCount_ = vertexCount_ / 4 * 6;
 
@@ -303,8 +303,8 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
             material = usedMaterial;
         }
 
-        iCount += vertices.Size() / 4 * 6;
-        vCount += vertices.Size();
+        iCount += vertices.size() / 4 * 6;
+        vCount += vertices.size();
     }
 
     if (material)
@@ -312,7 +312,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
 
     // Now the amount of batches is known. Build the part of source batches that are sensitive to threading issues
     // (material & geometry pointers)
-    unsigned count = materials_.Size();
+    unsigned count = materials_.size();
     batches_.Resize(count);
 
     for (unsigned i = 0; i < count; ++i)
@@ -329,8 +329,8 @@ void DrawableProxy2D::AddBatch(Material* material, unsigned indexStart, unsigned
 
     materials_.Push(SharedPtr<Material>(material));
 
-    unsigned batchSize = materials_.Size();
-    if (geometries_.Size() < batchSize)
+    unsigned batchSize = materials_.size();
+    if (geometries_.size() < batchSize)
     {
         SharedPtr<Geometry> geometry(new Geometry(context_));
         geometry->SetIndexBuffer(indexBuffer_);

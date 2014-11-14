@@ -255,7 +255,7 @@ void Variant::FromString(VariantType type, const char* value)
     case VAR_RESOURCEREF:
         {
             Vector<String> values = String::Split(value, ';');
-            if (values.Size() == 2)
+            if (values.size() == 2)
             {
                 SetType(VAR_RESOURCEREF);
                 ResourceRef& ref = *(reinterpret_cast<ResourceRef*>(&value_));
@@ -268,13 +268,13 @@ void Variant::FromString(VariantType type, const char* value)
     case VAR_RESOURCEREFLIST:
         {
             Vector<String> values = String::Split(value, ';');
-            if (values.Size() >= 1)
+            if (values.size() >= 1)
             {
                 SetType(VAR_RESOURCEREFLIST);
                 ResourceRefList& refList = *(reinterpret_cast<ResourceRefList*>(&value_));
                 refList.type_ = values[0];
-                refList.names_.Resize(values.Size() - 1);
-                for (unsigned i = 1; i < values.Size(); ++i)
+                refList.names_.Resize(values.size() - 1);
+                for (unsigned i = 1; i < values.size(); ++i)
                     refList.names_[i - 1] = values[i];
             }
         }
@@ -447,10 +447,10 @@ bool Variant::IsZero() const
     }
 
     case VAR_VARIANTVECTOR:
-        return reinterpret_cast<const VariantVector*>(&value_)->Empty();
+        return reinterpret_cast<const VariantVector*>(&value_)->empty();
 
     case VAR_VARIANTMAP:
-        return reinterpret_cast<const VariantMap*>(&value_)->Empty();
+        return reinterpret_cast<const VariantMap*>(&value_)->empty();
 
     case VAR_INTRECT:
         return *reinterpret_cast<const IntRect*>(&value_) == IntRect::ZERO;

@@ -246,13 +246,13 @@ public:
     /// Return all color animation frames.
     const Vector<ColorFrame>& GetColorFrames() const { return colorFrames_; }
     /// Return number of color animation frames.
-    unsigned GetNumColorFrames() const { return colorFrames_.Size(); }
+    unsigned GetNumColorFrames() const { return colorFrames_.size(); }
     /// Return a color animation frame, or null if outside range.
     const ColorFrame* GetColorFrame(unsigned index) const;
     /// Return all texture animation frames.
     const Vector<TextureFrame>& GetTextureFrames() const { return textureFrames_; }
     /// Return number of texture animation frames.
-    unsigned GetNumTextureFrames() const { return textureFrames_.Size(); }
+    unsigned GetNumTextureFrames() const { return textureFrames_.size(); }
     /// Return a texture animation frame, or null if outside range.
     const TextureFrame* GetTextureFrame(unsigned index) const;
 

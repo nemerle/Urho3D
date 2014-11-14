@@ -119,7 +119,7 @@ void TileMapLayer2D::Initialize(TileMap2D* tileMap, const TmxLayer2D* tmxLayer)
 
     if (tmxLayer_)
     {
-        for (unsigned i = 0; i < nodes_.Size(); ++i)
+        for (unsigned i = 0; i < nodes_.size(); ++i)
         {
             if (nodes_[i])
                 nodes_[i]->Remove();
@@ -166,7 +166,7 @@ void TileMapLayer2D::SetDrawOrder(int drawOrder)
 
     drawOrder_ = drawOrder;
 
-    for (unsigned i = 0; i < nodes_.Size(); ++i)
+    for (unsigned i = 0; i < nodes_.size(); ++i)
     {
         if (!nodes_[i])
             continue;
@@ -184,7 +184,7 @@ void TileMapLayer2D::SetVisible(bool visible)
 
     visible_ = visible;
 
-    for (unsigned i = 0; i < nodes_.Size(); ++i)
+    for (unsigned i = 0; i < nodes_.size(); ++i)
     {
         if (nodes_[i])
             nodes_[i]->SetEnabled(visible_);
@@ -266,7 +266,7 @@ Node* TileMapLayer2D::GetObjectNode(unsigned index) const
     if (!objectGroup_)
         return nullptr;
 
-    if (index >= nodes_.Size())
+    if (index >= nodes_.size())
         return nullptr;
 
     return nodes_[index];
@@ -277,7 +277,7 @@ Node* TileMapLayer2D::GetImageNode() const
     if (!imageLayer_)
         return nullptr;
 
-    if (nodes_.Empty())
+    if (nodes_.empty())
         return nullptr;
 
     return nodes_[0];

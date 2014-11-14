@@ -48,10 +48,10 @@ ShaderProgram::~ShaderProgram()
 void ShaderProgram::OnDeviceLost()
 {
     GPUObject::OnDeviceLost();
-    
+
     if (graphics_ && graphics_->GetShaderProgram() == this)
         graphics_->SetShaders(nullptr, nullptr);
-    
+
 
     linkerOutput_.Clear();
 }
@@ -62,19 +62,19 @@ void ShaderProgram::Release()
     {
         if (!graphics_)
             return;
-        
+
         if (!graphics_->IsDeviceLost())
         {
             if (graphics_->GetShaderProgram() == this)
                 graphics_->SetShaders(nullptr, nullptr);
-            
+
             glDeleteProgram(object_);
         }
-        
+
         object_ = 0;
         linkerOutput_.Clear();
-        shaderParameters_.Clear();
-        
+        shaderParameters_.clear();
+
         for (auto & elem : useTextureUnit_)
             elem = false;
     }
@@ -83,17 +83,17 @@ void ShaderProgram::Release()
 bool ShaderProgram::Link()
 {
     Release();
-    
+
     if (!vertexShader_ || !pixelShader_ || !vertexShader_->GetGPUObject() || !pixelShader_->GetGPUObject())
         return false;
-    
+
     object_ = glCreateProgram();
     if (!object_)
     {
         linkerOutput_ = "Could not create shader program";
         return false;
     }
-    
+
     // Bind vertex attribute locations to ensure they are the same in all shaders
     // Note: this is not the same order as in VertexBuffer, instead a remapping is used to ensure everything except cube texture
     // coordinates fit to the first 8 for better GLES2 device compatibility
@@ -112,11 +112,11 @@ bool ShaderProgram::Link()
     glBindAttribLocation(object_, 11, "iInstanceMatrix2");
     glBindAttribLocation(object_, 12, "iInstanceMatrix3");
     #endif
-    
+
     glAttachShader(object_, vertexShader_->GetGPUObject());
     glAttachShader(object_, pixelShader_->GetGPUObject());
     glLinkProgram(object_);
-    
+
     int linked, length;
     glGetProgramiv(object_, GL_LINK_STATUS, &linked);
     if (!linked)
@@ -130,30 +130,30 @@ bool ShaderProgram::Link()
     }
     else
         linkerOutput_.Clear();
-    
+
     if (!object_)
         return false;
-    
+
     const int MAX_PARAMETER_NAME_LENGTH = 256;
     char uniformName[MAX_PARAMETER_NAME_LENGTH];
     int uniformCount;
-    
+
     glUseProgram(object_);
     glGetProgramiv(object_, GL_ACTIVE_UNIFORMS, &uniformCount);
-    
+
     // Check for shader parameters and texture units
     for (int i = 0; i < uniformCount; ++i)
     {
         unsigned type;
         int count;
-        
+
         glGetActiveUniform(object_, i, MAX_PARAMETER_NAME_LENGTH, nullptr, &count, &type, uniformName);
         int location = glGetUniformLocation(object_, uniformName);
-        
+
         // Skip inbuilt or disabled uniforms
         if (location < 0)
             continue;
-        
+
         // Check for array index included in the name and strip it
         String name(uniformName);
         unsigned index = name.Find('[');
@@ -162,10 +162,10 @@ bool ShaderProgram::Link()
             // If not the first index, skip
             if (name.Find("[0]", index) == String::NPOS)
                 continue;
-            
+
             name = name.Substring(0, index);
         }
-        
+
         if (name[0] == 'c')
         {
             // Store the constant uniform mapping
@@ -191,7 +191,7 @@ bool ShaderProgram::Link()
                     }
                 }
             }
-            
+
             if (unit < MAX_TEXTURE_UNITS)
             {
                 useTextureUnit_[unit] = true;
@@ -199,10 +199,10 @@ bool ShaderProgram::Link()
             }
         }
     }
-    
+
     // Rehash the parameter map to ensure minimal load factor
     shaderParameters_.Rehash(NextPowerOfTwo(shaderParameters_.Size()));
-    
+
     return true;
 }
 
@@ -218,12 +218,12 @@ ShaderVariation* ShaderProgram::GetPixelShader() const
 
 bool ShaderProgram::HasParameter(StringHash param) const
 {
-    return shaderParameters_.Find(param) != shaderParameters_.end();
+    return shaderParameters_.find(param) != shaderParameters_.end();
 }
 
 const ShaderParameter* ShaderProgram::GetParameter(StringHash param) const
 {
-    HashMap<StringHash, ShaderParameter>::ConstIterator i = shaderParameters_.Find(param);
+    HashMap<StringHash, ShaderParameter>::ConstIterator i = shaderParameters_.find(param);
     if (i != shaderParameters_.end())
         return &i->second_;
     else

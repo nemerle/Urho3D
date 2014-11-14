@@ -948,12 +948,12 @@ bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const P
 bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers, const PODVector<unsigned>&
     elementMasks, unsigned instanceOffset)
 {
-    if (buffers.Size() > MAX_VERTEX_STREAMS)
+    if (buffers.size() > MAX_VERTEX_STREAMS)
     {
         LOGERROR("Too many vertex buffers");
         return false;
     }
-    if (buffers.Size() != elementMasks.Size())
+    if (buffers.size() != elementMasks.Size())
     {
         LOGERROR("Amount of element masks and vertex buffers does not match");
         return false;
@@ -967,7 +967,7 @@ bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers,
         VertexBuffer* buffer = nullptr;
         unsigned elementMask = 0;
 
-        if (i < buffers.Size() && buffers[i])
+        if (i < buffers.size() && buffers[i])
         {
             buffer = buffers[i];
             if (elementMasks[i] == MASK_DEFAULT)
@@ -1115,7 +1115,7 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
         pixelShader_ = ps;
 
         Pair<ShaderVariation*, ShaderVariation*> combination(vs, ps);
-        ShaderProgramMap::Iterator i = shaderPrograms_.Find(combination);
+        ShaderProgramMap::Iterator i = shaderPrograms_.find(combination);
 
         if (i != shaderPrograms_.end())
         {
@@ -1444,7 +1444,7 @@ void Graphics::CleanupShaderPrograms()
         ShaderVariation* ps = i->second_->GetPixelShader();
 
         if (!vs || !ps || !vs->GetGPUObject() || !ps->GetGPUObject())
-            i = shaderPrograms_.Erase(i);
+            i = shaderPrograms_.erase(i);
         else
             ++i;
     }
@@ -1545,7 +1545,7 @@ void Graphics::SetTextureParametersDirty()
 {
     MutexLock lock(gpuObjectMutex_);
 
-    for (auto & elem : gpuObjects_)
+    for (GPUObject * elem : gpuObjects_)
     {
         Texture* texture = dynamic_cast<Texture*>(elem);
         if (texture)
@@ -1619,7 +1619,7 @@ void Graphics::SetDepthStencil(RenderSurface* depthStencil)
         if (width <= width_ && height <= height_)
         {
             int searchKey = (width << 16) | height;
-            HashMap<int, SharedPtr<Texture2D> >::Iterator i = depthTextures_.Find(searchKey);
+            HashMap<int, SharedPtr<Texture2D> >::Iterator i = depthTextures_.find(searchKey);
             if (i != depthTextures_.end())
                 depthStencil = i->second_->GetRenderSurface();
             else
@@ -2109,7 +2109,7 @@ VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
 
 TextureUnit Graphics::GetTextureUnit(const String& name)
 {
-    HashMap<String, TextureUnit>::Iterator i = textureUnits_.Find(name);
+    HashMap<String, TextureUnit>::Iterator i = textureUnits_.find(name);
     if (i != textureUnits_.end())
         return i->second_;
     else
@@ -2241,7 +2241,7 @@ void* Graphics::ReserveScratchBuffer(unsigned size)
         maxScratchBufferRequest_ = size;
 
     // First check for a free buffer that is large enough
-    for (auto & elem : scratchBuffers_)
+    for (ScratchBuffer & elem : scratchBuffers_)
     {
         if (!elem.reserved_ && elem.size_ >= size)
         {
@@ -2251,7 +2251,7 @@ void* Graphics::ReserveScratchBuffer(unsigned size)
     }
 
     // Then check if a free buffer can be resized
-    for (auto & elem : scratchBuffers_)
+    for (ScratchBuffer & elem : scratchBuffers_)
     {
         if (!elem.reserved_)
         {
@@ -2276,7 +2276,7 @@ void Graphics::FreeScratchBuffer(void* buffer)
     if (!buffer)
         return;
 
-    for (auto & elem : scratchBuffers_)
+    for (ScratchBuffer & elem : scratchBuffers_)
     {
         if (elem.reserved_ && elem.data_.Get() == buffer)
         {
@@ -2290,7 +2290,7 @@ void Graphics::FreeScratchBuffer(void* buffer)
 
 void Graphics::CleanupScratchBuffers()
 {
-    for (auto & elem : scratchBuffers_)
+    for (ScratchBuffer & elem : scratchBuffers_)
     {
         if (!elem.reserved_ && elem.size_ > maxScratchBufferRequest_ * 2)
         {
@@ -2315,14 +2315,14 @@ void Graphics::Release(bool clearGPUObjects, bool closeWindow)
         if (clearGPUObjects)
         {
             // Shutting down: release all GPU objects that still exist
-            for (auto & elem : gpuObjects_)
+            for (GPUObject * elem : gpuObjects_)
                 (elem)->Release();
             gpuObjects_.Clear();
         }
         else
         {
             // We are not shutting down, but recreating the context: mark GPU objects lost
-            for (auto & elem : gpuObjects_)
+            for (GPUObject * elem : gpuObjects_)
                 (elem)->OnDeviceLost();
         }
     }
@@ -2330,8 +2330,8 @@ void Graphics::Release(bool clearGPUObjects, bool closeWindow)
     releasingGPUObjects_ = false;
 
     CleanupFramebuffers(true);
-    depthTextures_.Clear();
-    shaderPrograms_.Clear();
+    depthTextures_.clear();
+    shaderPrograms_.clear();
 
     // End fullscreen mode first to counteract transition and getting stuck problems on OS X
     #if defined(__APPLE__) && !defined(IOS)
@@ -2398,7 +2398,7 @@ void Graphics::Restore()
     {
         MutexLock lock(gpuObjectMutex_);
 
-        for (auto & elem : gpuObjects_)
+        for (GPUObject * elem : gpuObjects_)
             (elem)->OnDeviceReset();
     }
 }
@@ -2695,7 +2695,7 @@ void Graphics::CommitFramebuffer()
     bool noFbo = !depthStencil_;
     if (noFbo)
     {
-        for (auto & elem : renderTargets_)
+        for (RenderSurface * elem : renderTargets_)
         {
             if (elem)
             {
@@ -2742,12 +2742,12 @@ void Graphics::CommitFramebuffer()
 
     unsigned long long fboKey = (rtSize.x_ << 16 | rtSize.y_) | (((unsigned long long)format) << 32);
 
-    HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.Find(fboKey);
+    HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.find(fboKey);
     if (i == impl_->frameBuffers_.end())
     {
         FrameBufferObject newFbo;
         glGenFramebuffersEXT(1, &newFbo.fbo_);
-        i = impl_->frameBuffers_.Insert(MakePair(fboKey, newFbo));
+        i = impl_->frameBuffers_.insert(MakePair(fboKey, newFbo));
     }
 
     i->second_.useTimer_.Reset();
@@ -2921,7 +2921,7 @@ void Graphics::CleanupFramebuffers(bool force)
                 MAX_FRAMEBUFFER_AGE))
             {
                 glDeleteFramebuffersEXT(1, &i->second_.fbo_);
-                i = impl_->frameBuffers_.Erase(i);
+                i = impl_->frameBuffers_.erase(i);
             }
             else
                 ++i;
@@ -2930,7 +2930,7 @@ void Graphics::CleanupFramebuffers(bool force)
     else
     {
         impl_->boundFbo_ = 0;
-        impl_->frameBuffers_.Clear();
+        impl_->frameBuffers_.clear();
     }
 }
 

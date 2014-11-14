@@ -107,7 +107,7 @@ Transform2D Transform2D::Lerp(const Transform2D& other, float t, int spin) const
 
 const Reference2D* MainlineKey2D::GetReference(int timeline) const
 {
-    for (unsigned i = 0; i < references_.Size(); ++i)
+    for (unsigned i = 0; i < references_.size(); ++i)
     {
         if (references_[i].timeline_ == timeline)
             return &references_[i];

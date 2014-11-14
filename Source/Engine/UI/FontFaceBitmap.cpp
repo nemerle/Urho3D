@@ -218,7 +218,7 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
 
     // Save the existing textures as image resources
     Vector<SharedPtr<Image> > oldImages;
-    for (unsigned i = 0; i < fontFace->textures_.Size(); ++i)
+    for (unsigned i = 0; i < fontFace->textures_.size(); ++i)
         oldImages.Push(SaveFaceTexture(fontFace->textures_[i]));
 
     Vector<SharedPtr<Image> > newImages(numPages);
@@ -247,15 +247,15 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
         Blit(newImages[newGlyph.page_], newGlyph.x_, newGlyph.y_, newGlyph.width_, newGlyph.height_, oldImages[oldGlyph.page_], oldGlyph.x_, oldGlyph.y_, components);
     }
 
-    textures_.Resize(newImages.Size());
-    for (unsigned i = 0; i < newImages.Size(); ++i)
+    textures_.Resize(newImages.size());
+    for (unsigned i = 0; i < newImages.size(); ++i)
         textures_[i] = LoadFaceTexture(newImages[i]);
 
     for (HashMap<unsigned, short>::ConstIterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
     {
         unsigned first = (i->first_) >> 16;
         unsigned second = (i->first_) & 0xffff;
-        if (glyphMapping_.Find(first) != glyphMapping_.end() && glyphMapping_.Find(second) != glyphMapping_.end())
+        if (glyphMapping_.find(first) != glyphMapping_.end() && glyphMapping_.find(second) != glyphMapping_.end())
             kerningMapping_[i->first_] = i->second_;
     }
 
@@ -278,7 +278,7 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize)
     // Common
     childElem = rootElem.CreateChild("common");
     childElem.SetInt("lineHeight", rowHeight_);
-    unsigned pages = textures_.Size();
+    unsigned pages = textures_.size();
     childElem.SetInt("pages", pages);
 
     // Construct the path to store the texture

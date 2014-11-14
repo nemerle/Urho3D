@@ -201,7 +201,7 @@ void DebugRenderer::AddPolyhedron(const Polyhedron& poly, const Color& color, bo
 {
     unsigned uintColor = color.ToUInt();
 
-    for (unsigned i = 0; i < poly.faces_.Size(); ++i)
+    for (unsigned i = 0; i < poly.faces_.size(); ++i)
     {
         const PODVector<Vector3>& face = poly.faces_[i];
         if (face.Size() >= 3)
@@ -245,12 +245,12 @@ void DebugRenderer::AddSphere(const Sphere& sphere, const Color& color, bool dep
 void DebugRenderer::AddSkeleton(const Skeleton& skeleton, const Color& color, bool depthTest)
 {
     const Vector<Bone>& bones = skeleton.GetBones();
-    if (!bones.Size())
+    if (!bones.size())
         return;
 
     unsigned uintColor = color.ToUInt();
 
-    for (unsigned i = 0; i < bones.Size(); ++i)
+    for (unsigned i = 0; i < bones.size(); ++i)
     {
         // Skip if bone contains no skinned geometry
         if (bones[i].radius_ < M_EPSILON && bones[i].boundingBox_.Size().LengthSquared() < M_EPSILON)

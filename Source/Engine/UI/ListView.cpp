@@ -98,7 +98,7 @@ public:
         // Adjust the container size for child clipping effect
         overlayContainer_->SetSize(GetParent()->GetSize());
 
-        for (unsigned i = 0; i < children_.Size(); ++i)
+        for (unsigned i = 0; i < children_.size(); ++i)
         {
             const IntVector2& position = children_[i]->GetPosition();
             CheckBox* overlay = static_cast<CheckBox*>(overlayContainer_->GetChild(i));
@@ -828,7 +828,7 @@ unsigned ListView::FindItem(UIElement* item) const
     {
         int itemY = item->GetScreenPosition().y_;
         int left = 0;
-        int right = children.Size() - 1;
+        int right = children.size() - 1;
         while (right >= left)
         {
             int mid = (left + right) / 2;
@@ -842,7 +842,7 @@ unsigned ListView::FindItem(UIElement* item) const
     }
 
     // Fallback to linear search in case the coordinates/sizes were not yet initialized
-    for (unsigned i = 0; i < children.Size(); ++i)
+    for (unsigned i = 0; i < children.size(); ++i)
     {
         if (children[i] == item)
             return i;

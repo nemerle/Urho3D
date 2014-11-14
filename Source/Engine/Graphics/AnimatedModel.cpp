@@ -149,7 +149,7 @@ void AnimatedModel::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQu
     const Vector<Bone>& bones = skeleton_.GetBones();
     Sphere boneSphere;
 
-    for (unsigned i = 0; i < bones.Size(); ++i)
+    for (unsigned i = 0; i < bones.size(); ++i)
     {
         const Bone& bone = bones[i];
         if (!bone.node_)
@@ -230,12 +230,12 @@ void AnimatedModel::UpdateBatches(const FrameInfo& frame)
 
     // Note: per-geometry distances do not take skinning into account. Especially in case of a ragdoll they may be
     // much off base if the node's own transform is not updated
-    if (batches_.Size() > 1)
+    if (batches_.size() > 1)
     {
-        for (unsigned i = 0; i < batches_.Size(); ++i)
+        for (unsigned i = 0; i < batches_.size(); ++i)
             batches_[i].distance_ = frame.camera_->GetDistance(worldTransform * geometryData_[i].center_);
     }
-    else if (batches_.Size() == 1)
+    else if (batches_.size() == 1)
         batches_[0].distance_ = distance_;
 
     // Use a transformed version of the model's bounding box instead of world bounding box for LOD scale
@@ -307,7 +307,7 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
         SetNumGeometries(model->GetNumGeometries());
         const Vector<Vector<SharedPtr<Geometry> > >& geometries = model->GetGeometries();
         const PODVector<Vector3>& geometryCenters = model->GetGeometryCenters();
-        for (unsigned i = 0; i < geometries.Size(); ++i)
+        for (unsigned i = 0; i < geometries.size(); ++i)
         {
             geometries_[i] = geometries[i];
             geometryData_[i].center_ = geometryCenters[i];
@@ -316,17 +316,17 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
         // Copy geometry bone mappings
         const Vector<PODVector<unsigned> >& geometryBoneMappings = model->GetGeometryBoneMappings();
         geometryBoneMappings_.Clear();
-        geometryBoneMappings_.Reserve(geometryBoneMappings.Size());
-        for (unsigned i = 0; i < geometryBoneMappings.Size(); ++i)
+        geometryBoneMappings_.Reserve(geometryBoneMappings.size());
+        for (unsigned i = 0; i < geometryBoneMappings.size(); ++i)
             geometryBoneMappings_.Push(geometryBoneMappings[i]);
 
         // Copy morphs. Note: morph vertex buffers will be created later on-demand
         morphVertexBuffers_.Clear();
         morphs_.Clear();
         const Vector<ModelMorph>& morphs = model->GetMorphs();
-        morphs_.Reserve(morphs.Size());
+        morphs_.Reserve(morphs.size());
         morphElementMask_ = 0;
-        for (unsigned i = 0; i < morphs.Size(); ++i)
+        for (unsigned i = 0; i < morphs.size(); ++i)
         {
             ModelMorph newMorph;
             newMorph.name_ = morphs[i].name_;
@@ -334,7 +334,7 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
             newMorph.weight_ = 0.0f;
             newMorph.buffers_ = morphs[i].buffers_;
             for (const auto & elem : morphs[i].buffers_)
-                morphElementMask_ |= elem.second_.elementMask_;
+                morphElementMask_ |= elem.elementMask_;
             morphs_.Push(newMorph);
         }
 
@@ -347,13 +347,13 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
         ResetLodLevels();
 
         // Enable skinning in batches
-        for (unsigned i = 0; i < batches_.Size(); ++i)
+        for (unsigned i = 0; i < batches_.size(); ++i)
         {
             if (skinMatrices_.Size())
             {
                 batches_[i].geometryType_ = GEOM_SKINNED;
                 // Check if model has per-geometry bone mappings
-                if (geometrySkinMatrices_.Size() && geometrySkinMatrices_[i].Size())
+                if (geometrySkinMatrices_.size() && geometrySkinMatrices_[i].Size())
                 {
                     batches_[i].worldTransform_ = &geometrySkinMatrices_[i][0];
                     batches_[i].numWorldTransforms_ = geometrySkinMatrices_[i].Size();
@@ -468,7 +468,7 @@ void AnimatedModel::RemoveAnimationState(AnimationState* state)
 
 void AnimatedModel::RemoveAnimationState(unsigned index)
 {
-    if (index < animationStates_.Size())
+    if (index < animationStates_.size())
     {
         animationStates_.Erase(index);
         MarkAnimationDirty();
@@ -477,7 +477,7 @@ void AnimatedModel::RemoveAnimationState(unsigned index)
 
 void AnimatedModel::RemoveAllAnimationStates()
 {
-    if (animationStates_.Size())
+    if (animationStates_.size())
     {
         animationStates_.Clear();
         MarkAnimationDirty();
@@ -499,11 +499,11 @@ void AnimatedModel::SetUpdateInvisible(bool enable)
 
 void AnimatedModel::SetMorphWeight(unsigned index, float weight)
 {
-    if (index >= morphs_.Size())
+    if (index >= morphs_.size())
         return;
 
     // If morph vertex buffers have not been created yet, create now
-    if (weight > 0.0f && morphVertexBuffers_.Empty())
+    if (weight > 0.0f && morphVertexBuffers_.empty())
         CloneGeometries();
 
     weight = Clamp(weight, 0.0f, 1.0f);
@@ -533,7 +533,7 @@ void AnimatedModel::SetMorphWeight(unsigned index, float weight)
 
 void AnimatedModel::SetMorphWeight(const String& name, float weight)
 {
-    for (unsigned i = 0; i < morphs_.Size(); ++i)
+    for (unsigned i = 0; i < morphs_.size(); ++i)
     {
         if (morphs_[i].name_ == name)
         {
@@ -545,7 +545,7 @@ void AnimatedModel::SetMorphWeight(const String& name, float weight)
 
 void AnimatedModel::SetMorphWeight(StringHash nameHash, float weight)
 {
-    for (unsigned i = 0; i < morphs_.Size(); ++i)
+    for (unsigned i = 0; i < morphs_.size(); ++i)
     {
         if (morphs_[i].nameHash_ == nameHash)
         {
@@ -579,7 +579,7 @@ void AnimatedModel::ResetMorphWeights()
 
 float AnimatedModel::GetMorphWeight(unsigned index) const
 {
-    return index < morphs_.Size() ? morphs_[index].weight_ : 0.0f;
+    return index < morphs_.size() ? morphs_[index].weight_ : 0.0f;
 }
 
 float AnimatedModel::GetMorphWeight(const String& name) const
@@ -634,7 +634,7 @@ AnimationState* AnimatedModel::GetAnimationState(StringHash animationNameHash) c
 
 AnimationState* AnimatedModel::GetAnimationState(unsigned index) const
 {
-    return index < animationStates_.Size() ? animationStates_[index].Get() : nullptr;
+    return index < animationStates_.size() ? animationStates_[index].Get() : nullptr;
 }
 
 void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
@@ -654,7 +654,7 @@ void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
             const Vector<Bone>& srcBones = skeleton.GetBones();
             bool compatible = true;
 
-            for (unsigned i = 0; i < destBones.Size(); ++i)
+            for (unsigned i = 0; i < destBones.size(); ++i)
             {
                 if (destBones[i].node_ && destBones[i].name_ == srcBones[i].name_ && destBones[i].parentIndex_ ==
                     srcBones[i].parentIndex_)
@@ -707,10 +707,10 @@ void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
                 bone.node_ = boneNode;
             }
 
-            for (unsigned i = 0; i < bones.Size(); ++i)
+            for (unsigned i = 0; i < bones.size(); ++i)
             {
                 unsigned parentIndex = bones[i].parentIndex_;
-                if (parentIndex != i && parentIndex < bones.Size())
+                if (parentIndex != i && parentIndex < bones.size())
                     bones[parentIndex].node_->AddChild(bones[i].node_);
             }
         }
@@ -756,7 +756,7 @@ void AnimatedModel::SetModelAttr(ResourceRef value)
 void AnimatedModel::SetBonesEnabledAttr(VariantVector value)
 {
     Vector<Bone>& bones = skeleton_.GetModifiableBones();
-    for (unsigned i = 0; i < bones.Size() && i < value.Size(); ++i)
+    for (unsigned i = 0; i < bones.size() && i < value.size(); ++i)
         bones[i].animated_ = value[i].GetBool();
 }
 
@@ -765,7 +765,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     RemoveAllAnimationStates();
     unsigned index = 0;
-    unsigned numStates = index < value.Size() ? value[index++].GetUInt() : 0;
+    unsigned numStates = index < value.size() ? value[index++].GetUInt() : 0;
     // Prevent negative or overly large value being assigned from the editor
     if (numStates > M_MAX_INT)
         numStates = 0;
@@ -775,7 +775,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
     animationStates_.Reserve(numStates);
     while (numStates--)
     {
-        if (index + 5 < value.Size())
+        if (index + 5 < value.size())
         {
             // Note: null animation is allowed here for editing
             const ResourceRef& animRef = value[index++].GetResourceRef();
@@ -796,7 +796,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
         }
     }
 
-    if (animationStates_.Size())
+    if (animationStates_.size())
     {
         MarkAnimationDirty();
         MarkAnimationOrderDirty();
@@ -818,7 +818,7 @@ VariantVector AnimatedModel::GetBonesEnabledAttr() const
 {
     VariantVector ret;
     const Vector<Bone>& bones = skeleton_.GetBones();
-    ret.Reserve(bones.Size());
+    ret.Reserve(bones.size());
     for (const Bone &bone : bones)
         ret.Push(bone.animated_);
     return ret;
@@ -827,8 +827,8 @@ VariantVector AnimatedModel::GetBonesEnabledAttr() const
 VariantVector AnimatedModel::GetAnimationStatesAttr() const
 {
     VariantVector ret;
-    ret.Reserve(animationStates_.Size() * 6 + 1);
-    ret.Push(animationStates_.Size());
+    ret.Reserve(animationStates_.size() * 6 + 1);
+    ret.Push(animationStates_.size());
     for (const SharedPtr<AnimationState> &i : animationStates_)
     {
         AnimationState* state = i.Get();
@@ -962,9 +962,9 @@ void AnimatedModel::CloneGeometries()
 {
     const Vector<SharedPtr<VertexBuffer> >& originalVertexBuffers = model_->GetVertexBuffers();
     HashMap<VertexBuffer*, SharedPtr<VertexBuffer> > clonedVertexBuffers;
-    morphVertexBuffers_.Resize(originalVertexBuffers.Size());
+    morphVertexBuffers_.Resize(originalVertexBuffers.size());
 
-    for (unsigned i = 0; i < originalVertexBuffers.Size(); ++i)
+    for (unsigned i = 0; i < originalVertexBuffers.size(); ++i)
     {
         VertexBuffer* original = originalVertexBuffers[i];
         if (model_->GetMorphRangeCount(i))
@@ -986,9 +986,9 @@ void AnimatedModel::CloneGeometries()
     }
 
     // Geometries will always be cloned fully. They contain only references to buffer, so they are relatively light
-    for (unsigned i = 0; i < geometries_.Size(); ++i)
+    for (unsigned i = 0; i < geometries_.size(); ++i)
     {
-        for (unsigned j = 0; j < geometries_[i].Size(); ++j)
+        for (unsigned j = 0; j < geometries_[i].size(); ++j)
         {
             SharedPtr<Geometry> original = geometries_[i][j];
             SharedPtr<Geometry> clone(new Geometry(context_));
@@ -996,22 +996,22 @@ void AnimatedModel::CloneGeometries()
             // Add an additional vertex stream into the clone, which supplies only the morphable vertex data, while the static
             // data comes from the original vertex buffer(s)
             const Vector<SharedPtr<VertexBuffer> >& originalBuffers = original->GetVertexBuffers();
-            unsigned totalBuf = originalBuffers.Size();
-            for (unsigned k = 0; k < originalBuffers.Size(); ++k)
+            unsigned totalBuf = originalBuffers.size();
+            for (unsigned k = 0; k < originalBuffers.size(); ++k)
             {
                 VertexBuffer* originalBuffer = originalBuffers[k];
-                if (clonedVertexBuffers.Contains(originalBuffer))
+                if (clonedVertexBuffers.contains(originalBuffer))
                     ++totalBuf;
             }
             clone->SetNumVertexBuffers(totalBuf);
 
             unsigned l = 0;
-            for (unsigned k = 0; k < originalBuffers.Size(); ++k)
+            for (unsigned k = 0; k < originalBuffers.size(); ++k)
             {
                 VertexBuffer* originalBuffer = originalBuffers[k];
                 unsigned originalMask = original->GetVertexElementMask(k);
 
-                if (clonedVertexBuffers.Contains(originalBuffer))
+                if (clonedVertexBuffers.contains(originalBuffer))
                 {
                     VertexBuffer* clonedBuffer = clonedVertexBuffers[originalBuffer];
                     clone->SetVertexBuffer(l++, originalBuffer, originalMask & ~clonedBuffer->GetElementMask());
@@ -1080,12 +1080,12 @@ void AnimatedModel::SetGeometryBoneMappings()
     geometrySkinMatrices_.Clear();
     geometrySkinMatrixPtrs_.Clear();
 
-    if (!geometryBoneMappings_.Size())
+    if (!geometryBoneMappings_.size())
         return;
 
     // Check if all mappings are empty, then we do not need to use mapped skinning
     bool allEmpty = true;
-    for (unsigned i = 0; i < geometryBoneMappings_.Size(); ++i)
+    for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
         if (geometryBoneMappings_[i].Size())
             allEmpty = false;
 
@@ -1093,14 +1093,14 @@ void AnimatedModel::SetGeometryBoneMappings()
         return;
 
     // Reserve space for per-geometry skinning matrices
-    geometrySkinMatrices_.Resize(geometryBoneMappings_.Size());
-    for (unsigned i = 0; i < geometryBoneMappings_.Size(); ++i)
+    geometrySkinMatrices_.Resize(geometryBoneMappings_.size());
+    for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
         geometrySkinMatrices_[i].Resize(geometryBoneMappings_[i].Size());
 
     // Build original-to-skinindex matrix pointer mapping for fast copying
     // Note: at this point layout of geometrySkinMatrices_ cannot be modified or pointers become invalid
     geometrySkinMatrixPtrs_.Resize(skeleton_.GetNumBones());
-    for (unsigned i = 0; i < geometryBoneMappings_.Size(); ++i)
+    for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
     {
         for (unsigned j = 0; j < geometryBoneMappings_[i].Size(); ++j)
             geometrySkinMatrixPtrs_[geometryBoneMappings_[i][j]].Push(&geometrySkinMatrices_[i][j]);
@@ -1185,9 +1185,9 @@ void AnimatedModel::UpdateSkinning()
     const Matrix3x4& worldTransform = node_->GetWorldTransform();
 
     // Skinning with global matrices only
-    if (!geometrySkinMatrices_.Size())
+    if (!geometrySkinMatrices_.size())
     {
-        for (unsigned i = 0; i < bones.Size(); ++i)
+        for (unsigned i = 0; i < bones.size(); ++i)
         {
             const Bone& bone = bones[i];
             if (bone.node_)
@@ -1199,7 +1199,7 @@ void AnimatedModel::UpdateSkinning()
     // Skinning with per-geometry matrices
     else
     {
-        for (unsigned i = 0; i < bones.Size(); ++i)
+        for (unsigned i = 0; i < bones.size(); ++i)
         {
             const Bone& bone = bones[i];
             if (bone.node_)
@@ -1222,10 +1222,10 @@ void AnimatedModel::UpdateMorphs()
     if (!graphics)
         return;
 
-    if (morphs_.Size())
+    if (morphs_.size())
     {
         // Reset the morph data range from all morphable vertex buffers, then apply morphs
-        for (unsigned i = 0; i < morphVertexBuffers_.Size(); ++i)
+        for (unsigned i = 0; i < morphVertexBuffers_.size(); ++i)
         {
             VertexBuffer* buffer = morphVertexBuffers_[i];
             if (buffer)
@@ -1241,13 +1241,13 @@ void AnimatedModel::UpdateMorphs()
                     CopyMorphVertices(dest, originalBuffer->GetShadowData() + morphStart * originalBuffer->GetVertexSize(),
                         morphCount, buffer, originalBuffer);
 
-                    for (unsigned j = 0; j < morphs_.Size(); ++j)
+                    for (unsigned j = 0; j < morphs_.size(); ++j)
                     {
                         if (morphs_[j].weight_ > 0.0f)
                         {
-                            HashMap<unsigned, VertexBufferMorph>::Iterator k = morphs_[j].buffers_.Find(i);
+                            QHash<unsigned, VertexBufferMorph>::Iterator k = morphs_[j].buffers_.find(i);
                             if (k != morphs_[j].buffers_.end())
-                                ApplyMorph(buffer, dest, morphStart, k->second_, morphs_[j].weight_);
+                                ApplyMorph(buffer, dest, morphStart, *k, morphs_[j].weight_);
                         }
                     }
 

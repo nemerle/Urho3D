@@ -541,3 +541,8 @@ private:
 };
 
 }
+typedef unsigned int uint;
+inline uint qHash(const Urho3D::String & key, uint seed)
+{
+    return key.ToHash();
+}

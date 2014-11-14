@@ -113,7 +113,7 @@ bool Node::Save(Serializer& dest) const
 
     // Write components
     dest.WriteVLE(GetNumPersistentComponents());
-    for (unsigned i = 0; i < components_.Size(); ++i)
+    for (unsigned i = 0; i < components_.size(); ++i)
     {
         Component* component = components_[i];
         if (component->IsTemporary())
@@ -129,7 +129,7 @@ bool Node::Save(Serializer& dest) const
 
     // Write child nodes
     dest.WriteVLE(GetNumPersistentChildren());
-    for (unsigned i = 0; i < children_.Size(); ++i)
+    for (unsigned i = 0; i < children_.size(); ++i)
     {
         Node* node = children_[i];
         if (node->IsTemporary())
@@ -172,7 +172,7 @@ bool Node::SaveXML(XMLElement& dest) const
         return false;
 
     // Write components
-    for (unsigned i = 0; i < components_.Size(); ++i)
+    for (unsigned i = 0; i < components_.size(); ++i)
     {
         Component* component = components_[i];
         if (component->IsTemporary())
@@ -184,7 +184,7 @@ bool Node::SaveXML(XMLElement& dest) const
     }
 
     // Write child nodes
-    for (unsigned i = 0; i < children_.Size(); ++i)
+    for (unsigned i = 0; i < children_.size(); ++i)
     {
         Node* node = children_[i];
         if (node->IsTemporary())
@@ -200,10 +200,10 @@ bool Node::SaveXML(XMLElement& dest) const
 
 void Node::ApplyAttributes()
 {
-    for (unsigned i = 0; i < components_.Size(); ++i)
+    for (unsigned i = 0; i < components_.size(); ++i)
         components_[i]->ApplyAttributes();
 
-    for (unsigned i = 0; i < children_.Size(); ++i)
+    for (unsigned i = 0; i < children_.size(); ++i)
         children_[i]->ApplyAttributes();
 }
 
@@ -632,7 +632,7 @@ void Node::RemoveChildren(bool removeReplicated, bool removeLocal, bool recursiv
 {
     unsigned numRemoved = 0;
 
-    for (unsigned i = children_.Size() - 1; i < children_.Size(); --i)
+    for (unsigned i = children_.size() - 1; i < children_.size(); --i)
     {
         bool remove = false;
         Node* childNode = children_[i];
@@ -686,7 +686,7 @@ Component* Node::CloneComponent(Component* component, unsigned id)
         LOGERROR("Null source component given for CloneComponent");
         return nullptr;
     }
-    
+
     return CloneComponent(component, component->GetID() < FIRST_LOCAL_ID ? REPLICATED : LOCAL, id);
 }
 
@@ -707,10 +707,10 @@ Component* Node::CloneComponent(Component* component, CreateMode mode, unsigned 
 
     const Vector<AttributeInfo>* compAttributes = component->GetAttributes();
     const Vector<AttributeInfo>* cloneAttributes = cloneComponent->GetAttributes();
-    
+
     if (compAttributes)
     {
-        for (unsigned i = 0; i < compAttributes->Size() && i < cloneAttributes->Size(); ++i)
+        for (unsigned i = 0; i < compAttributes->size() && i < cloneAttributes->size(); ++i)
         {
             const AttributeInfo& attr = compAttributes->At(i);
             const AttributeInfo& cloneAttr = cloneAttributes->At(i);
@@ -725,7 +725,7 @@ Component* Node::CloneComponent(Component* component, CreateMode mode, unsigned 
         }
         cloneComponent->ApplyAttributes();
     }
-    
+
     return cloneComponent;
 }
 
@@ -768,7 +768,7 @@ void Node::RemoveComponents(bool removeReplicated, bool removeLocal)
 {
     unsigned numRemoved = 0;
 
-    for (unsigned i = components_.Size() - 1; i < components_.Size(); --i)
+    for (unsigned i = components_.size() - 1; i < components_.size(); --i)
     {
         bool remove = false;
         Component* component = components_[i];
@@ -906,10 +906,10 @@ Vector2 Node::WorldToLocal2D(const Vector2& vector) const
 unsigned Node::GetNumChildren(bool recursive) const
 {
     if (!recursive)
-        return children_.Size();
+        return children_.size();
     else
     {
-        unsigned allChildren = children_.Size();
+        unsigned allChildren = children_.size();
         for (const auto & elem : children_)
             allChildren += (elem)->GetNumChildren(true);
 
@@ -948,7 +948,7 @@ void Node::GetChildrenWithComponent(PODVector<Node*>& dest, StringHash type, boo
 
 Node* Node::GetChild(unsigned index) const
 {
-    return index < children_.Size() ? children_[index].Get() : nullptr;
+    return index < children_.size() ? children_[index].Get() : nullptr;
 }
 
 Node* Node::GetChild(const String& name, bool recursive) const
@@ -1019,8 +1019,8 @@ bool Node::HasComponent(StringHash type) const
 
 const Variant& Node::GetVar(StringHash key) const
 {
-    VariantMap::ConstIterator i = vars_.Find(key);
-    return i != vars_.end() ? i->second_ : Variant::EMPTY;
+    auto i = vars_.find(key);
+    return i != vars_.end() ? *i : Variant::EMPTY;
 }
 
 Component* Node::GetComponent(StringHash type) const
@@ -1263,9 +1263,9 @@ void Node::PrepareNetworkUpdate()
         AllocateNetworkState();
 
     const Vector<AttributeInfo>* attributes = networkState_->attributes_;
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
 
-    if (networkState_->currentValues_.Size() != numAttributes)
+    if (networkState_->currentValues_.size() != numAttributes)
     {
         networkState_->currentValues_.Resize(numAttributes);
         networkState_->previousValues_.Resize(numAttributes);
@@ -1306,24 +1306,23 @@ void Node::PrepareNetworkUpdate()
     }
 
     // Finally check for user var changes
-    for (VariantMap::ConstIterator i = vars_.begin(); i != vars_.end(); ++i)
+    for (VariantMap::const_iterator i=vars_.begin(),fin=vars_.end(); i!=fin; ++i)
     {
-        VariantMap::ConstIterator j = networkState_->previousVars_.Find(i->first_);
-        if (j == networkState_->previousVars_.end() || j->second_ != i->second_)
+        auto j = networkState_->previousVars_.find(i.key());
+        if (j != networkState_->previousVars_.end() && *j == *i)
+            continue;
+        networkState_->previousVars_[i.key()] = *i;
+
+        // Mark the var dirty in all replication states that are tracking this node
+        for (auto & elem : networkState_->replicationStates_)
         {
-            networkState_->previousVars_[i->first_] = i->second_;
+            NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
+            nodeState->dirtyVars_.Insert(i.key());
 
-            // Mark the var dirty in all replication states that are tracking this node
-            for (auto & elem : networkState_->replicationStates_)
+            if (!nodeState->markedDirty_)
             {
-                NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
-                nodeState->dirtyVars_.Insert(i->first_);
-
-                if (!nodeState->markedDirty_)
-                {
-                    nodeState->markedDirty_ = true;
-                    nodeState->sceneState_->dirtyNodes_.Insert(id_);
-                }
+                nodeState->markedDirty_ = true;
+                nodeState->sceneState_->dirtyNodes_.Insert(id_);
             }
         }
     }
@@ -1472,14 +1471,14 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
 {
     Vector<String> names = name.Split('/');
     // Only attribute name
-    if (names.Size() == 1)
+    if (names.size() == 1)
         SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
     else
     {
         // Name must in following format: "#0/#1/@component#0/attribute"
         Node* node = this;
         unsigned i = 0;
-        for (; i < names.Size() - 1; ++i)
+        for (; i < names.size() - 1; ++i)
         {
             if (names[i].Front() != '#')
                 break;
@@ -1492,14 +1491,14 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
                 return;
             }
         }
-        
-        if (i == names.Size() - 1)
+
+        if (i == names.size() - 1)
         {
             node->SetAttributeAnimation(names.Back(), attributeAnimation, wrapMode, speed);
             return;
         }
 
-        if (i != names.Size() - 2 || names[i].Front() != '@')
+        if (i != names.size() - 2 || names[i].Front() != '@')
         {
             LOGERROR("Invalid name " + name);
             return;
@@ -1507,7 +1506,7 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
 
         String componentName = names[i].Substring(1, names[i].Length() - 1);
         Vector<String> componentNames = componentName.Split('#');
-        if (componentNames.Size() == 1)
+        if (componentNames.size() == 1)
         {
             Component* component = node->GetComponent(StringHash(componentNames.Front()));
             if (!component)
@@ -1545,7 +1544,7 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
 
     if (storeSelf)
         enabledPrev_ = enable;
-    
+
     if (enable != enabled_)
     {
         enabled_ = enable;
@@ -1668,7 +1667,7 @@ void Node::GetChildrenRecursive(PODVector<Node*>& dest) const
     {
         Node* node = elem;
         dest.Push(node);
-        if (!node->children_.Empty())
+        if (!node->children_.empty())
             node->GetChildrenRecursive(dest);
     }
 }
@@ -1680,7 +1679,7 @@ void Node::GetChildrenWithComponentRecursive(PODVector<Node*>& dest, StringHash 
         Node* node = elem;
         if (node->HasComponent(type))
             dest.Push(node);
-        if (!node->children_.Empty())
+        if (!node->children_.empty())
             node->GetChildrenWithComponentRecursive(dest, type);
     }
 }
@@ -1704,7 +1703,7 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
 
     // Copy attributes
     const Vector<AttributeInfo>* attributes = GetAttributes();
-    for (unsigned j = 0; j < attributes->Size(); ++j)
+    for (unsigned j = 0; j < attributes->size(); ++j)
     {
         const AttributeInfo& attr = attributes->At(j);
         // Do not copy network-only attributes, as they may have unintended side effects

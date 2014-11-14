@@ -228,13 +228,13 @@ private:
     void PreloadResourcesXML(const XMLElement& element);
 
     /// Replicated scene nodes by ID.
-    HashMap<unsigned, Node*> replicatedNodes_;
+    QHash<unsigned, Node*> replicatedNodes_;
     /// Local scene nodes by ID.
-    HashMap<unsigned, Node*> localNodes_;
+    QHash<unsigned, Node*> localNodes_;
     /// Replicated components by ID.
-    HashMap<unsigned, Component*> replicatedComponents_;
+    QHash<unsigned, Component*> replicatedComponents_;
     /// Local components by ID.
-    HashMap<unsigned, Component*> localComponents_;
+    QHash<unsigned, Component*> localComponents_;
     /// Asynchronous loading progress.
     AsyncProgress asyncProgress_;
     /// Node and component ID resolver for asynchronous loading.
@@ -244,7 +244,7 @@ private:
     /// Required package files for networking.
     Vector<SharedPtr<PackageFile> > requiredPackageFiles_;
     /// Registered node user variable reverse mappings.
-    HashMap<StringHash, String> varNames_;
+    QHash<StringHash, String> varNames_;
     /// Nodes to check for attribute changes on the next network update.
     HashSet<unsigned> networkUpdateNodes_;
     /// Components to check for attribute changes on the next network update.

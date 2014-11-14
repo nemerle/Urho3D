@@ -43,10 +43,10 @@ enum PListValueType
 
 class PListValue;
 
-class PListValueMap : public HashMap<String, PListValue>
+class PListValueMap : public QHash<String, PListValue>
 {
 public:
-    PListValue& operator [](const String& key); 
+    PListValue& operator [](const String& key);
     const PListValue& operator [](const String& key) const;
 };
 
@@ -88,7 +88,7 @@ public:
     /// Set string.
     void SetString(const String& value);
     /// Set value map.
-    void SetValueMap(const PListValueMap& valueMap);    
+    void SetValueMap(const PListValueMap& valueMap);
     /// Set value vector.
     void SetValueVector(const PListValueVector& valueVector);
 

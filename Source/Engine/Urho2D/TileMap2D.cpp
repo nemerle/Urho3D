@@ -83,7 +83,7 @@ void TileMap2D::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
         break;
     }
 
-    for (unsigned i = 0; i < layers_.Size(); ++i)
+    for (unsigned i = 0; i < layers_.size(); ++i)
         layers_[i]->DrawDebugGeometry(debug, depthTest);
 }
 
@@ -107,7 +107,7 @@ void TileMap2D::SetTmxFile(TmxFile2D* tmxFile)
 
     if (tmxFile_)
     {
-        for (unsigned i = 0; i < layers_.Size(); ++i)
+        for (unsigned i = 0; i < layers_.size(); ++i)
             layers_[i]->GetNode()->Remove();
         layers_.Clear();
     }
@@ -143,7 +143,7 @@ TmxFile2D* TileMap2D::GetTmxFile() const
 
 TileMapLayer2D* TileMap2D::GetLayer(unsigned index) const
 {
-    if (index >= layers_.Size())
+    if (index >= layers_.size())
         return nullptr;
 
     return layers_[index];

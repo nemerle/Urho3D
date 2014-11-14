@@ -47,13 +47,13 @@ template <class T> unsigned MakeHash(kNet::MessageConnection* value)
 class URHO3D_API Network : public Object, public kNet::IMessageHandler, public kNet::INetworkServerListener
 {
     OBJECT(Network);
-    
+
 public:
     /// Construct.
     Network(Context* context);
     /// Destruct.
     ~Network();
-    
+
     /// Handle a kNet message from either a client or the server.
     virtual void HandleMessage(kNet::MessageConnection *source, kNet::packet_id_t packetId, kNet::message_id_t msgId, const char *data, size_t numBytes);
     /// Compute the content ID for a message.
@@ -62,7 +62,7 @@ public:
     virtual void NewConnectionEstablished(kNet::MessageConnection* connection);
     /// Handle a client disconnection.
     virtual void ClientDisconnected(kNet::MessageConnection* connection);
-    
+
     /// Connect to a server using UDP protocol. Return true if connection process successfully started.
     bool Connect(const String& address, unsigned short port, Scene* scene, const VariantMap& identity = Variant::emptyVariantMap);
     /// Disconnect the connection to the server. If wait time is non-zero, will block while waiting for disconnect to finish.
@@ -110,12 +110,12 @@ public:
     bool CheckRemoteEvent(StringHash eventType) const;
     /// Return the package download cache directory.
     const String& GetPackageCacheDir() const { return packageCacheDir_; }
-    
+
     /// Process incoming messages from connections. Called by HandleBeginFrame.
     void Update(float timeStep);
     /// Send outgoing messages after frame logic. Called by HandleRenderUpdate.
     void PostUpdate(float timeStep);
-    
+
 private:
     /// Handle begin frame event.
     void HandleBeginFrame(StringHash eventType, VariantMap& eventData);
@@ -125,13 +125,13 @@ private:
     void OnServerConnected();
     /// Handle server disconnection.
     void OnServerDisconnected();
-    
+
     /// kNet instance.
     kNet::Network* network_;
     /// Client's server connection.
     SharedPtr<Connection> serverConnection_;
     /// Server's client connections.
-    HashMap<kNet::MessageConnection*, SharedPtr<Connection> > clientConnections_;
+    QHash<kNet::MessageConnection*, SharedPtr<Connection> > clientConnections_;
     /// Allowed remote events.
     HashSet<StringHash> allowedRemoteEvents_;
     /// Remote event fixed blacklist.

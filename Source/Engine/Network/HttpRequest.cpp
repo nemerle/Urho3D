@@ -96,7 +96,7 @@ void HttpRequest::ThreadFunction()
     memset(errorBuffer, 0, sizeof(errorBuffer));
     
     String headersStr;
-    for (unsigned i = 0; i < headers_.Size(); ++i)
+    for (unsigned i = 0; i < headers_.size(); ++i)
     {
         // Trim and only add non-empty header strings
         String header = headers_[i].Trimmed();

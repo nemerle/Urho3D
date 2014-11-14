@@ -194,9 +194,9 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
                 return false;
 
             Vector<String> points = childElem.GetAttribute("points").Split(' ');
-            object->points_.Resize(points.Size());
+            object->points_.Resize(points.size());
 
-            for (unsigned i = 0; i < points.Size(); ++i)
+            for (unsigned i = 0; i < points.size(); ++i)
             {
                 points[i].Replace(',', ' ');
                 Vector2 point = position + ToVector2(points[i]);
@@ -221,7 +221,7 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
 
 TileMapObject2D* TmxObjectGroup2D::GetObject(unsigned index) const
 {
-    if (index >= objects_.Size())
+    if (index >= objects_.size())
         return nullptr;
     return objects_[index];
 }
@@ -275,7 +275,7 @@ TmxFile2D::TmxFile2D(Context* context) :
 
 TmxFile2D::~TmxFile2D()
 {
-    for (unsigned i = 0; i < layers_.Size(); ++i)
+    for (unsigned i = 0; i < layers_.size(); ++i)
         delete layers_[i];
 }
 
@@ -371,7 +371,7 @@ bool TmxFile2D::EndLoad()
     info_.tileWidth_ = rootElem.GetFloat("tilewidth") * PIXEL_SIZE;
     info_.tileHeight_ = rootElem.GetFloat("tileheight") * PIXEL_SIZE;
 
-    for (unsigned i = 0; i < layers_.Size(); ++i)
+    for (unsigned i = 0; i < layers_.size(); ++i)
         delete layers_[i];
     layers_.Clear();
 
@@ -407,36 +407,36 @@ bool TmxFile2D::EndLoad()
         if (!ret)
         {
             loadXMLFile_.Reset();
-            tsxXMLFiles_.Clear();
+            tsxXMLFiles_.clear();
             return false;
         }
     }
 
     loadXMLFile_.Reset();
-    tsxXMLFiles_.Clear();
+    tsxXMLFiles_.clear();
     return true;
 }
 
 Sprite2D* TmxFile2D::GetTileSprite(int gid) const
 {
-    HashMap<int, SharedPtr<Sprite2D> >::ConstIterator i = gidToSpriteMapping_.Find(gid);
+    QHash<int, SharedPtr<Sprite2D> >::ConstIterator i = gidToSpriteMapping_.find(gid);
     if (i == gidToSpriteMapping_.end())
         return nullptr;
 
-    return i->second_;
+    return (*i);
 }
 
 PropertySet2D* TmxFile2D::GetTilePropertySet(int gid) const
 {
-    HashMap<int, SharedPtr<PropertySet2D> >::ConstIterator i = gidToPropertySetMapping_.Find(gid);
+    QHash<int, SharedPtr<PropertySet2D> >::ConstIterator i = gidToPropertySetMapping_.find(gid);
     if (i == gidToPropertySetMapping_.end())
         return nullptr;
-    return i->second_;
+    return (*i);
 }
 
 const TmxLayer2D* TmxFile2D::GetLayer(unsigned index) const
 {
-    if (index >= layers_.Size())
+    if (index >= layers_.size())
         return nullptr;
 
     return layers_[index];
@@ -465,7 +465,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
     if (element.HasAttribute("source"))
     {
         String source = element.GetAttribute("source");
-        HashMap<String, SharedPtr<XMLFile> >::Iterator i = tsxXMLFiles_.Find(source);
+        HashMap<String, SharedPtr<XMLFile> >::Iterator i = tsxXMLFiles_.find(source);
         if (i == tsxXMLFiles_.end())
         {
             SharedPtr<XMLFile> tsxXMLFile = LoadTSXFile(source);

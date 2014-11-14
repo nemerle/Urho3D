@@ -23,6 +23,10 @@
 # Set project name
 project (Urho3D)
 
+
+# Set minimum version
+cmake_minimum_required (VERSION 2.8.6)
+
 IF(CMAKE_CXX_COMPILER MATCHES cl.exe)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
 ELSE()
@@ -30,9 +34,12 @@ ELSE()
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra" )
     add_definitions(-D__STDC_FORMAT_MACROS) #-D_GLIBCXX_DEBUG
 ENDIF()
-
-# Set minimum version
-cmake_minimum_required (VERSION 2.8.6)
+find_package(Qt5Core)
+find_package(Qt5Gui)
+find_package(Qt5OpenGL)
+find_package(Qt5Quick)
+find_package(Qt5Widgets)
+set(CMAKE_AUTOMOC TRUE)
 
 if (COMMAND cmake_policy)
     cmake_policy (SET CMP0003 NEW)

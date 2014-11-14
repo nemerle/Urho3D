@@ -957,13 +957,13 @@ void PolyhedronAddFaceArray(CScriptArray* arr, Polyhedron* ptr)
 
 static unsigned PolyhedronGetNumFaces(Polyhedron* ptr)
 {
-    return ptr->faces_.Size();
+    return ptr->faces_.size();
 }
 
 static CScriptArray* PolyhedronGetFace(unsigned index, Polyhedron* ptr)
 {
     PODVector<Vector3> face;
-    if (index < ptr->faces_.Size())
+    if (index < ptr->faces_.size())
         face = ptr->faces_[index];
     return VectorToArray<Vector3>(face, "Array<Vector3>");
 }

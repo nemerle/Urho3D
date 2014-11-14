@@ -86,7 +86,7 @@ void BackgroundLoader::ThreadFunction()
                 for (const Pair<StringHash, StringHash> &dependent : item.dependents_)
                 {
                     HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j =
-                        backgroundLoadQueue_.Find(dependent);
+                        backgroundLoadQueue_.find(dependent);
                     if (j != backgroundLoadQueue_.end())
                         j->second_.dependencies_.Erase(key);
                 }
@@ -108,7 +108,7 @@ bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool s
     MutexLock lock(backgroundLoadMutex_);
 
     // Check if already exists in the queue
-    if (backgroundLoadQueue_.Find(key) != backgroundLoadQueue_.end())
+    if (backgroundLoadQueue_.find(key) != backgroundLoadQueue_.end())
         return false;
 
     BackgroundLoadItem& item = backgroundLoadQueue_[key];
@@ -129,7 +129,7 @@ bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool s
             owner_->SendEvent(E_UNKNOWNRESOURCETYPE, eventData);
         }
 
-        backgroundLoadQueue_.Erase(key);
+        backgroundLoadQueue_.erase(key);
         return false;
     }
 
@@ -142,7 +142,7 @@ bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool s
     if (caller)
     {
         Pair<StringHash, StringHash> callerKey = MakePair(caller->GetType(), caller->GetNameHash());
-        HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j = backgroundLoadQueue_.Find(callerKey);
+        HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j = backgroundLoadQueue_.find(callerKey);
         if (j != backgroundLoadQueue_.end())
         {
             BackgroundLoadItem& callerItem = j->second_;
@@ -166,7 +166,7 @@ void BackgroundLoader::WaitForResource(StringHash type, StringHash nameHash)
 
     // Check if the resource in question is being background loaded
     Pair<StringHash, StringHash> key = MakePair(type, nameHash);
-    HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.Find(key);
+    HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.find(key);
     if (i != backgroundLoadQueue_.end())
     {
         backgroundLoadMutex_.Release();
@@ -197,7 +197,7 @@ void BackgroundLoader::WaitForResource(StringHash type, StringHash nameHash)
         FinishBackgroundLoading(i->second_);
 
         backgroundLoadMutex_.Acquire();
-        backgroundLoadQueue_.Erase(i);
+        backgroundLoadQueue_.erase(i);
         backgroundLoadMutex_.Release();
     }
     else
@@ -227,7 +227,7 @@ void BackgroundLoader::FinishResources(int maxMs)
                 backgroundLoadMutex_.Release();
                 FinishBackgroundLoading(i->second_);
                 backgroundLoadMutex_.Acquire();
-                i = backgroundLoadQueue_.Erase(i);
+                i = backgroundLoadQueue_.erase(i);
             }
 
             // Break when the time limit passed so that we keep sufficient FPS

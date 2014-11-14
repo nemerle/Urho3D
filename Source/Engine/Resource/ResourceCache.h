@@ -28,6 +28,8 @@
 #include "Mutex.h"
 #include "Resource.h"
 
+#include <unordered_map>
+
 namespace Urho3D
 {
 
@@ -47,13 +49,13 @@ struct ResourceGroup
         memoryUse_(0)
     {
     }
-    
+
     /// Memory budget.
     unsigned memoryBudget_;
     /// Current memory use.
     unsigned memoryUse_;
     /// Resources.
-    HashMap<StringHash, SharedPtr<Resource> > resources_;
+    QHash<StringHash, SharedPtr<Resource> > resources_;
 };
 
 /// Resource request types.
@@ -72,7 +74,7 @@ public:
         Object(context)
     {
     }
-    
+
     /// Process the resource request and optionally modify the resource name string. Empty name string means the resource is not found or not allowed.
     virtual void Route(String& name, ResourceRequest requestType) = 0;
 };
@@ -81,13 +83,13 @@ public:
 class URHO3D_API ResourceCache : public Object
 {
     OBJECT(ResourceCache);
-    
+
 public:
     /// Construct.
     ResourceCache(Context* context);
     /// Destruct. Free all resources.
     virtual ~ResourceCache();
-    
+
     /// Add a resource load directory. Optional priority parameter which will control search order.
     bool AddResourceDir(const String& pathName, unsigned priority = PRIORITY_LAST );
     /// Add a package file for loading resources from. Optional priority parameter which will control search order.
@@ -126,7 +128,7 @@ public:
     void SetFinishBackgroundResourcesMs(int ms) { finishBackgroundResourcesMs_ = Max(ms, 1); }
     /// Set the resource router object. By default there is none, so the routing process is skipped.
     void SetResourceRouter(ResourceRouter* router) { resourceRouter_ = router; }
-    
+
     /// Open and return a file from the resource load paths or from inside a package file. If not found, use a fallback search with absolute path. Return null if fails. Can be called from outside the main thread.
     SharedPtr<File> GetFile(const String& name, bool sendEventOnFailure = true);
     /// Return a resource by type and name. Load if not loaded yet. Return null if not found or if fails, unless SetReturnFailedResources(true) has been called. Can be called only from the main thread.
@@ -140,7 +142,7 @@ public:
     /// Return all loaded resources of a specific type.
     void GetResources(PODVector<Resource*>& result, StringHash type) const;
     /// Return all loaded resources.
-    const HashMap<StringHash, ResourceGroup>& GetAllResources() const { return resourceGroups_; }
+    const QHash<StringHash, ResourceGroup>& GetAllResources() const { return resourceGroups_; }
     /// Return added resource load directories.
     const Vector<String>& GetResourceDirs() const { return resourceDirs_; }
     /// Return added package files.
@@ -184,7 +186,7 @@ public:
     void StoreResourceDependency(Resource* resource, const String& dependency);
     /// Reset dependencies for a resource.
     void ResetDependencies(Resource* resource);
-    
+
 private:
     /// Find a resource.
     const SharedPtr<Resource>& FindResource(StringHash type, StringHash nameHash);
@@ -200,11 +202,11 @@ private:
     File* SearchResourceDirs(const String& nameIn);
     /// Search resource packages for file.
     File* SearchPackages(const String& nameIn);
-    
+
     /// Mutex for thread-safe access to the resource directories, resource packages and resource dependencies.
     mutable Mutex resourceMutex_;
     /// Resources by type.
-    HashMap<StringHash, ResourceGroup> resourceGroups_;
+    QHash<StringHash, ResourceGroup> resourceGroups_;
     /// Resource load directories.
     Vector<String> resourceDirs_;
     /// File watchers for resource directories, if automatic reloading enabled.
@@ -212,7 +214,7 @@ private:
     /// Package files.
     Vector<SharedPtr<PackageFile> > packages_;
     /// Dependent resources. Only used with automatic reload to eg. trigger reload of a cube texture when any of its faces change.
-    HashMap<StringHash, HashSet<StringHash> > dependentResources_;
+    QHash<StringHash, HashSet<StringHash> > dependentResources_;
     /// Resource background loader.
     SharedPtr<BackgroundLoader> backgroundLoader_;
     /// Resource router.
@@ -250,7 +252,7 @@ template <class T> void ResourceCache::GetResources(PODVector<T*>& result) const
     PODVector<Resource*>& resources = reinterpret_cast<PODVector<Resource*>&>(result);
     StringHash type = T::GetTypeStatic();
     GetResources(resources, type);
-    
+
     // Perform conversion of the returned pointers
     for (unsigned i = 0; i < result.Size(); ++i)
     {

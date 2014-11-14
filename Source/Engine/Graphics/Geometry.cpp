@@ -61,7 +61,7 @@ bool Geometry::SetNumVertexBuffers(unsigned num)
         return false;
     }
     
-    unsigned oldSize = vertexBuffers_.Size();
+    unsigned oldSize = vertexBuffers_.size();
     vertexBuffers_.Resize(num);
     elementMasks_.Resize(num);
     
@@ -74,7 +74,7 @@ bool Geometry::SetNumVertexBuffers(unsigned num)
 
 bool Geometry::SetVertexBuffer(unsigned index, VertexBuffer* buffer, unsigned elementMask)
 {
-    if (index >= vertexBuffers_.Size())
+    if (index >= vertexBuffers_.size())
     {
         LOGERROR("Stream index out of bounds");
         return false;
@@ -200,7 +200,7 @@ void Geometry::Draw(Graphics* graphics)
 
 VertexBuffer* Geometry::GetVertexBuffer(unsigned index) const
 {
-    return index < vertexBuffers_.Size() ? vertexBuffers_[index] : (VertexBuffer*)nullptr;
+    return index < vertexBuffers_.size() ? vertexBuffers_[index] : (VertexBuffer*)nullptr;
 }
 
 unsigned Geometry::GetVertexElementMask(unsigned index) const
@@ -212,7 +212,7 @@ unsigned short Geometry::GetBufferHash() const
 {
     unsigned short hash = 0;
     
-    for (unsigned i = 0; i < vertexBuffers_.Size(); ++i)
+    for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
     {
         VertexBuffer* vBuf = vertexBuffers_[i];
         hash += *((unsigned short*)&vBuf);
@@ -235,7 +235,7 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
     }
     else
     {
-        if (positionBufferIndex_ < vertexBuffers_.Size() && vertexBuffers_[positionBufferIndex_])
+        if (positionBufferIndex_ < vertexBuffers_.size() && vertexBuffers_[positionBufferIndex_])
         {
             vertexData = vertexBuffers_[positionBufferIndex_]->GetShadowData();
             if (vertexData)
@@ -291,7 +291,7 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
     }
     else
     {
-        if (positionBufferIndex_ < vertexBuffers_.Size() && vertexBuffers_[positionBufferIndex_])
+        if (positionBufferIndex_ < vertexBuffers_.size() && vertexBuffers_[positionBufferIndex_])
         {
             vertexData = vertexBuffers_[positionBufferIndex_]->GetShadowDataShared();
             if (vertexData)
@@ -374,7 +374,7 @@ bool Geometry::IsInside(const Ray& ray) const
 
 void Geometry::GetPositionBufferIndex()
 {
-    for (unsigned i = 0; i < vertexBuffers_.Size(); ++i)
+    for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
     {
         if (vertexBuffers_[i] && vertexBuffers_[i]->GetElementMask() & MASK_POSITION)
         {

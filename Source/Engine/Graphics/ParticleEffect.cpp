@@ -260,7 +260,7 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
         SetColorFrames(fades);
     }
 
-    if (colorFrames_.Empty())
+    if (colorFrames_.empty())
         colorFrames_.Push(ColorFrame(Color::WHITE));
 
     if (rootElem.HasChild("texanim"))
@@ -368,15 +368,15 @@ bool ParticleEffect::Save(Serializer& dest) const
     childElem.SetFloat("add", sizeAdd_);
     childElem.SetFloat("mul", sizeMul_);
 
-    if (colorFrames_.Size() == 1)
+    if (colorFrames_.size() == 1)
     {
         childElem = rootElem.CreateChild("color");
         childElem.SetColor("value", colorFrames_[0].color_);
     }
 
-    if (colorFrames_.Size() > 1)
+    if (colorFrames_.size() > 1)
     {
-        for (unsigned i = 0; i < colorFrames_.Size(); ++i)
+        for (unsigned i = 0; i < colorFrames_.size(); ++i)
         {
             childElem = rootElem.CreateChild("colorfade");
             childElem.SetColor("color", colorFrames_[i].color_);
@@ -384,7 +384,7 @@ bool ParticleEffect::Save(Serializer& dest) const
         }
     }
 
-    for (unsigned i = 0; i < textureFrames_.Size(); ++i)
+    for (unsigned i = 0; i < textureFrames_.size(); ++i)
     {
         childElem = rootElem.CreateChild("texanim");
         childElem.SetRect("uv", textureFrames_[i].uv_);
@@ -547,7 +547,7 @@ void ParticleEffect::SetColorFrames(const Vector<ColorFrame>& colorFrames)
 
 void ParticleEffect::SetColorFrame(unsigned index, const ColorFrame& colorFrame)
 {
-    if (colorFrames_.Size() < index + 1)
+    if (colorFrames_.size() < index + 1)
          colorFrames_.Resize(index + 1);
     colorFrames_[index] = colorFrame;
 }
@@ -559,19 +559,19 @@ void ParticleEffect::SetTextureFrames(const Vector<TextureFrame>& textureFrames)
 
 void ParticleEffect::SetTextureFrame(unsigned index, const TextureFrame& textureFrame)
 {
-    if (textureFrames_.Size() < index + 1)
+    if (textureFrames_.size() < index + 1)
         textureFrames_.Resize(index + 1);
     textureFrames_[index] = textureFrame;
 }
 
 const ColorFrame* ParticleEffect::GetColorFrame(unsigned index) const
 {
-    return index < colorFrames_.Size() ? &colorFrames_[index] : (ColorFrame*)nullptr;
+    return index < colorFrames_.size() ? &colorFrames_[index] : (ColorFrame*)nullptr;
 }
 
 const TextureFrame* ParticleEffect::GetTextureFrame(unsigned index) const
 {
-    return index < colorFrames_.Size() ? &textureFrames_[index] : (TextureFrame*)nullptr;
+    return index < colorFrames_.size() ? &textureFrames_[index] : (TextureFrame*)nullptr;
 }
 
 Vector3 ParticleEffect::GetRandomDirection() const

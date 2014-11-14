@@ -190,7 +190,7 @@ void Drawable2D::SetSpriteAttr(ResourceRef value)
     {
         // value.name_ include sprite speet name and sprite name.
         Vector<String> names = value.name_.Split('@');
-        if (names.Size() != 2)
+        if (names.size() != 2)
             return;
 
         const String& spriteSheetName = names[0];

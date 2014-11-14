@@ -69,7 +69,7 @@ public:
     /// Return vertex element masks.
     const PODVector<unsigned>& GetVertexElementMasks() const { return elementMasks_; }
     /// Return number of vertex buffers.
-    unsigned GetNumVertexBuffers() const { return vertexBuffers_.Size(); }
+    unsigned GetNumVertexBuffers() const { return vertexBuffers_.size(); }
     /// Return vertex buffer by index.
     VertexBuffer* GetVertexBuffer(unsigned index) const;
     /// Return vertex element mask by index.

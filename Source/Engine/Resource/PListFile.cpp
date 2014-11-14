@@ -39,16 +39,16 @@ static PListValueVector EMPTY_VALUEVECTOR;
 
 PListValue& PListValueMap::operator [](const String& key)
 {
-    return HashMap<String, PListValue>::operator [](key);
+    return QHash<String, PListValue>::operator [](key);
 }
 
 const PListValue& PListValueMap::operator [](const String& key) const
 {
-    ConstIterator i = Find(key);
+    ConstIterator i = find(key);
     if (i == end())
         return EMPTY_VALUE;
 
-    return i->second_;
+    return *i;
 }
 
 PListValue::PListValue() : type_(PLVT_NONE)
@@ -153,7 +153,7 @@ void PListValue::SetFloat(float value)
     {
         Reset();
         type_ = PLVT_FLOAT;
-    }    
+    }
     float_ = value;
 }
 
@@ -322,7 +322,7 @@ bool PListFile::BeginLoad(Deserializer& source)
         return false;
     }
 
-    root_.Clear();
+    root_.clear();
 
     XMLElement dictElem = plistElem.GetChild("dict");
     if (!LoadDict(root_, dictElem))
@@ -366,7 +366,7 @@ bool PListFile::LoadArray(PListValueVector& array, const XMLElement& arrayElem)
     for (XMLElement valueElem = arrayElem.GetChild(); valueElem; valueElem = valueElem.GetNext())
     {
         PListValue value;
-        
+
         if (!LoadValue(value, valueElem))
             return false;
 
