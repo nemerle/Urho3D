@@ -63,7 +63,7 @@ static const char* methodDeclarations[] = {
 ScriptInstance::ScriptInstance(Context* context) :
     Component(context),
     script_(GetSubsystem<Script>()),
-    scriptObject_(0),
+    scriptObject_(nullptr),
     subscribed_(false),
     subscribedPostFixed_(false)
 {
@@ -122,7 +122,7 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
         // If a cached ID value has been stored, return it instead of querying from the actual object
         // (the object handle is likely null at that point)
         HashMap<AttributeInfo*, unsigned>::ConstIterator i = idAttributes_.Find(attrPtr);
-        if (i != idAttributes_.End())
+        if (i != idAttributes_.end())
             dest = i->second_;
         else if (attr.mode_ & AM_NODEID)
         {
@@ -150,16 +150,16 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
 void ScriptInstance::ApplyAttributes()
 {
     // Apply node / component ID attributes now (find objects from the scene and assign to the object handles)
-    for (HashMap<AttributeInfo*, unsigned>::Iterator i = idAttributes_.Begin(); i != idAttributes_.End(); ++i)
+    for (auto & elem : idAttributes_)
     {
-        AttributeInfo& attr = *i->first_;
+        AttributeInfo& attr = *elem.first_;
         if (attr.mode_ & AM_NODEID)
         {
             Node*& nodePtr = *(reinterpret_cast<Node**>(attr.ptr_));
             // Decrease reference count of the old object if any, then increment the new
             if (nodePtr)
                 nodePtr->ReleaseRef();
-            nodePtr = GetScene()->GetNode(i->second_);
+            nodePtr = GetScene()->GetNode(elem.second_);
             if (nodePtr)
                 nodePtr->AddRef();
         }
@@ -168,7 +168,7 @@ void ScriptInstance::ApplyAttributes()
             Component*& componentPtr = *(reinterpret_cast<Component**>(attr.ptr_));
             if (componentPtr)
                 componentPtr->ReleaseRef();
-            componentPtr = GetScene()->GetComponent(i->second_);
+            componentPtr = GetScene()->GetComponent(elem.second_);
             if (componentPtr)
                 componentPtr->AddRef();
         }
@@ -190,7 +190,7 @@ bool ScriptInstance::CreateObject(ScriptFile* scriptFile, const String& classNam
     className_ = String::EMPTY; // Do not create object during SetScriptFile()
     SetScriptFile(scriptFile);
     SetClassName(className);
-    return scriptObject_ != 0;
+    return scriptObject_ != nullptr;
 }
 
 void ScriptInstance::SetScriptFile(ScriptFile* scriptFile)
@@ -270,7 +270,7 @@ void ScriptInstance::ClearDelayedExecute(const String& declaration)
         delayedCalls_.Clear();
     else
     {
-        for (Vector<DelayedCall>::Iterator i = delayedCalls_.Begin(); i != delayedCalls_.End();)
+        for (Vector<DelayedCall>::Iterator i = delayedCalls_.begin(); i != delayedCalls_.end();)
         {
             if (declaration == i->declaration_)
                 i = delayedCalls_.Erase(i);
@@ -363,13 +363,13 @@ void ScriptInstance::SetDelayedCallsAttr(PODVector<unsigned char> value)
 {
     MemoryBuffer buf(value);
     delayedCalls_.Resize(buf.ReadVLE());
-    for (Vector<DelayedCall>::Iterator i = delayedCalls_.Begin(); i != delayedCalls_.End(); ++i)
+    for (auto & elem : delayedCalls_)
     {
-        i->period_ = buf.ReadFloat();
-        i->delay_ = buf.ReadFloat();
-        i->repeat_ = buf.ReadBool();
-        i->declaration_ = buf.ReadString();
-        i->parameters_ = buf.ReadVariantVector();
+        elem.period_ = buf.ReadFloat();
+        elem.delay_ = buf.ReadFloat();
+        elem.repeat_ = buf.ReadBool();
+        elem.declaration_ = buf.ReadString();
+        elem.parameters_ = buf.ReadVariantVector();
     }
 
     if (scriptObject_ && delayedCalls_.Size() && !subscribed_)
@@ -407,13 +407,13 @@ PODVector<unsigned char> ScriptInstance::GetDelayedCallsAttr() const
 {
     VectorBuffer buf;
     buf.WriteVLE(delayedCalls_.Size());
-    for (Vector<DelayedCall>::ConstIterator i = delayedCalls_.Begin(); i != delayedCalls_.End(); ++i)
+    for (const auto & elem : delayedCalls_)
     {
-        buf.WriteFloat(i->period_);
-        buf.WriteFloat(i->delay_);
-        buf.WriteBool(i->repeat_);
-        buf.WriteString(i->declaration_);
-        buf.WriteVariantVector(i->parameters_);
+        buf.WriteFloat(elem.period_);
+        buf.WriteFloat(elem.delay_);
+        buf.WriteBool(elem.repeat_);
+        buf.WriteString(elem.declaration_);
+        buf.WriteVariantVector(elem.parameters_);
     }
     return buf.GetBuffer();
 }
@@ -503,16 +503,16 @@ void ScriptInstance::ReleaseObject()
         ClearScriptMethods();
         ClearScriptAttributes();
 
-        scriptObject_->SetUserData(0);
+        scriptObject_->SetUserData(nullptr);
         scriptObject_->Release();
-        scriptObject_ = 0;
+        scriptObject_ = nullptr;
     }
 }
 
 void ScriptInstance::ClearScriptMethods()
 {
-    for (unsigned i = 0; i < MAX_SCRIPT_METHODS; ++i)
-        methods_[i] = 0;
+    for (auto & elem : methods_)
+        elem = nullptr;
 
     delayedCalls_.Clear();
 }
@@ -585,7 +585,7 @@ void ScriptInstance::GetScriptAttributes()
             StringHash typeHash(typeName);
             const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
             HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator j = factories.Find(typeHash);
-            if (j != factories.End())
+            if (j != factories.end())
             {
                 // Check base class type. Node & Component are supported as ID attributes, Resource as a resource reference
                 StringHash baseType = j->second_->GetBaseType();
@@ -721,7 +721,7 @@ void ScriptInstance::HandleSceneUpdate(StringHash eventType, VariantMap& eventDa
     if (methods_[METHOD_DELAYEDSTART])
     {
         scriptFile_->Execute(scriptObject_, methods_[METHOD_DELAYEDSTART]);
-        methods_[METHOD_DELAYEDSTART] = 0;  // Only execute once
+        methods_[METHOD_DELAYEDSTART] = nullptr;  // Only execute once
     }
 
     if (methods_[METHOD_UPDATE])
@@ -805,22 +805,22 @@ Context* GetScriptContext()
 ScriptInstance* GetScriptContextInstance()
 {
     asIScriptContext* context = asGetActiveContext();
-    asIScriptObject* object = context ? static_cast<asIScriptObject*>(context->GetThisPointer()) : 0;
+    asIScriptObject* object = context ? static_cast<asIScriptObject*>(context->GetThisPointer()) : nullptr;
     if (object)
         return static_cast<ScriptInstance*>(object->GetUserData());
     else
-        return 0;
+        return nullptr;
 }
 
 Node* GetScriptContextNode()
 {
     ScriptInstance* instance = GetScriptContextInstance();
-    return instance ? instance->GetNode() : 0;
+    return instance ? instance->GetNode() : nullptr;
 }
 
 Scene* GetScriptContextScene()
 {
-    Scene* scene = 0;
+    Scene* scene = nullptr;
     Node* node = GetScriptContextNode();
     if (node)
         scene = node->GetScene();
@@ -844,7 +844,7 @@ ScriptEventListener* GetScriptContextEventListener()
             return GetScriptContextFile();
     }
     else
-        return 0;
+        return nullptr;
 }
 
 Object* GetScriptContextEventListenerObject()

@@ -145,16 +145,16 @@ void Input::Update()
     mouseButtonPress_ = 0;
     mouseMove_ = IntVector2::ZERO;
     mouseMoveWheel_ = 0;
-    for (HashMap<SDL_JoystickID, JoystickState>::Iterator i = joysticks_.Begin(); i != joysticks_.End(); ++i)
+    for (auto & elem : joysticks_)
     {
-        for (unsigned j = 0; j < i->second_.buttonPress_.Size(); ++j)
-            i->second_.buttonPress_[j] = false;
+        for (unsigned j = 0; j < elem.second_.buttonPress_.Size(); ++j)
+            elem.second_.buttonPress_[j] = false;
     }
 
     // Reset touch delta movement
-    for (HashMap<int, TouchState>::Iterator i = touches_.Begin(); i != touches_.End(); ++i)
+    for (auto & elem : touches_)
     {
-        TouchState& state = i->second_;
+        TouchState& state = elem.second_;
         state.lastPosition_ = state.position_;
         state.delta_ = IntVector2::ZERO;
     }
@@ -491,9 +491,9 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
     unsigned numAxes = 0;
     unsigned numHats = 0;
     const Vector<SharedPtr<UIElement> >& children = state.screenJoystick_->GetChildren();
-    for (Vector<SharedPtr<UIElement> >::ConstIterator iter = children.Begin(); iter != children.End(); ++iter)
+    for (const auto & elem : children)
     {
-        UIElement* element = iter->Get();
+        UIElement* element = elem.Get();
         String name = element->GetName();
         if (name.StartsWith("Button"))
         {
@@ -513,7 +513,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                     PopulateKeyBindingMap(keyBindingMap);
 
                     HashMap<String, int>::Iterator i = keyBindingMap.Find(key);
-                    if (i != keyBindingMap.End())
+                    if (i != keyBindingMap.end())
                         keyBinding = i->second_;
                     else
                     {
@@ -535,7 +535,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                 PopulateMouseButtonBindingMap(mouseButtonBindingMap);
 
                 HashMap<String, int>::Iterator i = mouseButtonBindingMap.Find(mouseButton);
-                if (i != mouseButtonBindingMap.End())
+                if (i != mouseButtonBindingMap.end())
                     element->SetVar(VAR_BUTTON_MOUSE_BUTTON_BINDING, i->second_);
                 else
                     LOGERRORF("Unsupported mouse button binding: %s", mouseButton.CString());
@@ -573,7 +573,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                             else
                             {
                                 HashMap<String, int>::Iterator i = keyBindingMap.Find(keyBindings[j]);
-                                if (i != keyBindingMap.End())
+                                if (i != keyBindingMap.end())
                                     mappedKeyBinding.Append(i->second_);
                                 else
                                     break;
@@ -604,8 +604,8 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
     // Make sure all the children are non-focusable so they do not mistakenly to be considered as active UI input controls by application
     PODVector<UIElement*> allChildren;
     state.screenJoystick_->GetChildren(allChildren, true);
-    for (PODVector<UIElement*>::Iterator iter = allChildren.Begin(); iter != allChildren.End(); ++iter)
-        (*iter)->SetFocusMode(FM_NOTFOCUSABLE);
+    for (auto & elem : allChildren)
+        (elem)->SetFocusMode(FM_NOTFOCUSABLE);
 
     state.Initialize(numButtons, numAxes, numHats);
 
@@ -882,9 +882,9 @@ IntVector2 Input::GetMousePosition() const
 TouchState* Input::GetTouch(unsigned index) const
 {
     if (index >= touches_.Size())
-        return 0;
+        return nullptr;
 
-    HashMap<int, TouchState>::ConstIterator i = touches_.Begin();
+    HashMap<int, TouchState>::ConstIterator i = touches_.begin();
     while (index--)
         ++i;
 
@@ -894,25 +894,25 @@ TouchState* Input::GetTouch(unsigned index) const
 JoystickState* Input::GetJoystickByIndex(unsigned index)
 {
     unsigned compare = 0;
-    for (HashMap<SDL_JoystickID, JoystickState>::Iterator i = joysticks_.Begin(); i != joysticks_.End(); ++i)
+    for (auto & elem : joysticks_)
     {
         if (compare++ == index)
-            return &(i->second_);
+            return &(elem.second_);
     }
 
-    return 0;
+    return nullptr;
 }
 
 JoystickState* Input::GetJoystick(SDL_JoystickID id)
 {
     HashMap<SDL_JoystickID, JoystickState>::Iterator i = joysticks_.Find(id);
-    return i != joysticks_.End() ? &(i->second_) : 0;
+    return i != joysticks_.end() ? &(i->second_) : nullptr;
 }
 
 bool Input::IsScreenJoystickVisible(SDL_JoystickID id) const
 {
     HashMap<SDL_JoystickID, JoystickState>::ConstIterator i = joysticks_.Find(id);
-    return i != joysticks_.End() && i->second_.screenJoystick_ && i->second_.screenJoystick_->IsVisible();
+    return i != joysticks_.end() && i->second_.screenJoystick_ && i->second_.screenJoystick_->IsVisible();
 }
 
 bool Input::GetScreenKeyboardSupport() const
@@ -1027,8 +1027,8 @@ void Input::ResetState()
     scancodePress_.Clear();
 
     /// \todo Check if resetting joystick state on input focus loss is even necessary
-    for (HashMap<SDL_JoystickID, JoystickState>::Iterator i = joysticks_.Begin(); i != joysticks_.End(); ++i)
-        i->second_.Reset();
+    for (auto & elem : joysticks_)
+        elem.second_.Reset();
 
     ResetTouches();
 
@@ -1044,9 +1044,9 @@ void Input::ResetState()
 
 void Input::ResetTouches()
 {
-    for (HashMap<int, TouchState>::Iterator i = touches_.Begin(); i != touches_.End(); ++i)
+    for (auto & elem : touches_)
     {
-        TouchState& state = i->second_;
+        TouchState& state = elem.second_;
 
         using namespace TouchEnd;
 

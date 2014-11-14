@@ -85,8 +85,8 @@ bool SpriteSheet2D::EndLoad()
 Sprite2D* SpriteSheet2D::GetSprite(const String& name) const
 {
     HashMap<String, SharedPtr<Sprite2D> >::ConstIterator i = spriteMapping_.Find(name);
-    if (i == spriteMapping_.End())
-        return 0;
+    if (i == spriteMapping_.end())
+        return nullptr;
 
     return i->second_;
 }
@@ -149,11 +149,11 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     const PListValueMap& root = loadPListFile_->GetRoot();
 
     const PListValueMap& frames = root["frames"].GetValueMap();
-    for (PListValueMap::ConstIterator i = frames.Begin(); i != frames.End(); ++i)
+    for (const auto & frame : frames)
     {
-        String name = i->first_.Split('.')[0];
+        String name = frame.first_.Split('.')[0];
 
-        const PListValueMap& frameInfo = i->second_.GetValueMap();
+        const PListValueMap& frameInfo = frame.second_.GetValueMap();
         if (frameInfo["rotated"].GetBool())
         {
             LOGWARNING("Rotated sprite is not support now");

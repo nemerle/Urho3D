@@ -146,7 +146,7 @@ void Texture2D::Release()
             for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
             {
                 if (graphics_->GetTexture(i) == this)
-                    graphics_->SetTexture(i, 0);
+                    graphics_->SetTexture(i, nullptr);
             }
             
             glDeleteTextures(1, &object_);
@@ -257,7 +257,7 @@ bool Texture2D::SetData(unsigned level, int x, int y, int width, int height, con
             glCompressedTexSubImage2D(target_, level, x, y, width, height, format, GetDataSize(width, height), data);
     }
     
-    graphics_->SetTexture(0, 0);
+    graphics_->SetTexture(0, nullptr);
     return true;
 }
 
@@ -415,7 +415,7 @@ bool Texture2D::GetData(unsigned level, void* dest) const
     else
         glGetCompressedTexImage(target_, level, dest);
     
-    graphics_->SetTexture(0, 0);
+    graphics_->SetTexture(0, nullptr);
     return true;
     #else
     LOGERROR("Getting texture data not supported");
@@ -469,7 +469,7 @@ bool Texture2D::Create()
     if (!IsCompressed())
     {
         glGetError();
-        glTexImage2D(target_, 0, format, width_, height_, 0, externalFormat, dataType, 0);
+        glTexImage2D(target_, 0, format, width_, height_, 0, externalFormat, dataType, nullptr);
         if (glGetError())
         {
             LOGERROR("Failed to create texture");
@@ -496,7 +496,7 @@ bool Texture2D::Create()
     
     // Set initial parameters, then unbind the texture
     UpdateParameters();
-    graphics_->SetTexture(0, 0);
+    graphics_->SetTexture(0, nullptr);
     
     return success;
 }

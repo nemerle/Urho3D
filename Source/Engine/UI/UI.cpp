@@ -300,8 +300,8 @@ void UI::Update(float timeStep)
     PROFILE(UpdateUI);
 
     // Expire hovers
-    for (HashMap<WeakPtr<UIElement>, bool>::Iterator i = hoveredElements_.Begin(); i != hoveredElements_.End(); ++i)
-        i->second_ = false;
+    for (auto & elem : hoveredElements_)
+        elem.second_ = false;
 
     Input* input = GetSubsystem<Input>();
     bool mouseGrabbed = input->IsMouseGrabbed();
@@ -313,7 +313,7 @@ void UI::Update(float timeStep)
     // Drag begin based on time
     if (dragElementsCount_ > 0 && !mouseGrabbed)
     {
-        for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.Begin(); i != dragElements_.End(); )
+        for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end(); )
         {
             WeakPtr<UIElement> dragElement = i->first_;
             UI::DragData* dragData = i->second_;
@@ -338,7 +338,7 @@ void UI::Update(float timeStep)
                 if (!usingTouchInput_)
                     dragElement->OnDragBegin(dragElement->ScreenToElement(beginSendPos), beginSendPos, dragData->dragButtons, qualifiers_,cursor_);
                 else
-                    dragElement->OnDragBegin(dragElement->ScreenToElement(beginSendPos), beginSendPos, dragData->dragButtons, 0, 0);
+                    dragElement->OnDragBegin(dragElement->ScreenToElement(beginSendPos), beginSendPos, dragData->dragButtons, 0, nullptr);
 
                 SendDragOrHoverEvent(E_DRAGBEGIN, dragElement, beginSendPos, IntVector2::ZERO, dragData);
             }
@@ -359,11 +359,11 @@ void UI::Update(float timeStep)
     for (unsigned i = 0; i < numTouches; ++i)
     {
         TouchState* touch = input->GetTouch(i);
-        ProcessHover(touch->position_, TOUCHID_MASK(touch->touchID_), 0, 0);
+        ProcessHover(touch->position_, TOUCHID_MASK(touch->touchID_), 0, nullptr);
     }
 
     // End hovers that expired without refreshing
-    for (HashMap<WeakPtr<UIElement>, bool>::Iterator i = hoveredElements_.Begin(); i != hoveredElements_.End();)
+    for (HashMap<WeakPtr<UIElement>, bool>::Iterator i = hoveredElements_.begin(); i != hoveredElements_.end();)
     {
         if (i->first_.Expired() || !i->second_)
         {
@@ -588,7 +588,7 @@ IntVector2 UI::GetCursorPosition() const
 
 UIElement* UI::GetElementAt(const IntVector2& position, bool enabledOnly)
 {
-    UIElement* result = 0;
+    UIElement* result = nullptr;
     GetElementAt(result, HasModalElement() ? rootModalElement_ : rootElement_, position, enabledOnly);
     return result;
 }
@@ -602,7 +602,7 @@ UIElement* UI::GetFrontElement() const
 {
     const Vector<SharedPtr<UIElement> >& rootChildren = rootElement_->GetChildren();
     int maxPriority = M_MIN_INT;
-    UIElement* front = 0;
+    UIElement* front = nullptr;
 
     for (unsigned i = 0; i < rootChildren.Size(); ++i)
     {
@@ -627,7 +627,7 @@ const Vector<UIElement*> UI::GetDragElements()
     if (!dragElementsConfirmed_.Empty())
         return dragElementsConfirmed_;
 
-    for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.Begin(); i != dragElements_.End(); )
+    for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end(); )
     {
         WeakPtr<UIElement> dragElement = i->first_;
         UI::DragData* dragData = i->second_;
@@ -651,7 +651,7 @@ UIElement* UI::GetDragElement(unsigned index)
 {
     GetDragElements();
     if (index >= dragElementsConfirmed_.Size())
-        return (UIElement*)0;
+        return (UIElement*)nullptr;
 
     return dragElementsConfirmed_[index];
 }
@@ -825,14 +825,14 @@ void UI::GetBatches(UIElement* element, IntRect currentScissor)
 
     // For non-root elements draw all children of same priority before recursing into their children: assumption is that they have
     // same renderstate
-    Vector<SharedPtr<UIElement> >::ConstIterator i = children.Begin();
+    Vector<SharedPtr<UIElement> >::ConstIterator i = children.begin();
     if (element->GetTraversalMode() == TM_BREADTH_FIRST)
     {
         Vector<SharedPtr<UIElement> >::ConstIterator j = i;
-        while (i != children.End())
+        while (i != children.end())
         {
             int currentPriority = (*i)->GetPriority();
-            while (j != children.End() && (*j)->GetPriority() == currentPriority)
+            while (j != children.end() && (*j)->GetPriority() == currentPriority)
             {
                 if ((*j)->IsWithinScissor(currentScissor) && (*j) != cursor_)
                     (*j)->GetBatches(batches_, vertexData_, currentScissor);
@@ -850,7 +850,7 @@ void UI::GetBatches(UIElement* element, IntRect currentScissor)
     // On the root level draw each element and its children immediately after to avoid artifacts
     else
     {
-        while (i != children.End())
+        while (i != children.end())
         {
             if ((*i) != cursor_)
             {
@@ -986,7 +986,7 @@ void UI::ProcessHover(const IntVector2& cursorPos, int buttons, int qualifiers, 
 {
     WeakPtr<UIElement> element(GetElementAt(cursorPos));
 
-    for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.Begin(); i != dragElements_.End();)
+    for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
     {
         WeakPtr<UIElement> dragElement = i->first_;
         UI::DragData* dragData = i->second_;
@@ -1015,7 +1015,7 @@ void UI::ProcessHover(const IntVector2& cursorPos, int buttons, int qualifiers, 
                 // Begin hover event
                 if (!hoveredElements_.Contains(element))
                 {
-                    SendDragOrHoverEvent(E_HOVERBEGIN, element, cursorPos, IntVector2::ZERO, 0);
+                    SendDragOrHoverEvent(E_HOVERBEGIN, element, cursorPos, IntVector2::ZERO, nullptr);
                     // Exit if element is destroyed by the event handling
                     if (!element)
                         return;
@@ -1060,7 +1060,7 @@ void UI::ProcessHover(const IntVector2& cursorPos, int buttons, int qualifiers, 
             // Begin hover event
             if (!hoveredElements_.Contains(element))
             {
-                SendDragOrHoverEvent(E_HOVERBEGIN, element, cursorPos, IntVector2::ZERO, 0);
+                SendDragOrHoverEvent(E_HOVERBEGIN, element, cursorPos, IntVector2::ZERO, nullptr);
                 // Exit if element is destroyed by the event handling
                 if (!element)
                     return;
@@ -1094,7 +1094,7 @@ void UI::ProcessClickBegin(const IntVector2& cursorPos, int button, int buttons,
 
             // Handle click
             element->OnClickBegin(element->ScreenToElement(cursorPos), cursorPos, button, buttons, qualifiers, cursor);
-            SendClickEvent(E_UIMOUSECLICK, NULL, element, cursorPos, button, buttons, qualifiers);
+            SendClickEvent(E_UIMOUSECLICK, nullptr, element, cursorPos, button, buttons, qualifiers);
 
             // Fire double click event if element matches and is in time
             if (doubleClickElement_ && element == doubleClickElement_ && clickTimer_.GetMSec(true) <
@@ -1102,7 +1102,7 @@ void UI::ProcessClickBegin(const IntVector2& cursorPos, int button, int buttons,
             {
                 element->OnDoubleClick(element->ScreenToElement(cursorPos), cursorPos, button, buttons, qualifiers, cursor);
                 doubleClickElement_.Reset();
-                SendClickEvent(E_UIMOUSEDOUBLECLICK, NULL, element, cursorPos, button, buttons, qualifiers);
+                SendClickEvent(E_UIMOUSEDOUBLECLICK, nullptr, element, cursorPos, button, buttons, qualifiers);
             }
             else
             {
@@ -1139,8 +1139,8 @@ void UI::ProcessClickBegin(const IntVector2& cursorPos, int button, int buttons,
         {
             // If clicked over no element, or a disabled element, lose focus (but not if there is a modal element)
             if (!HasModalElement())
-                SetFocusElement(0);
-            SendClickEvent(E_UIMOUSECLICK, NULL, element, cursorPos, button, buttons, qualifiers);
+                SetFocusElement(nullptr);
+            SendClickEvent(E_UIMOUSECLICK, nullptr, element, cursorPos, button, buttons, qualifiers);
         }
 
         lastMouseButtons_ = buttons;
@@ -1154,7 +1154,7 @@ void UI::ProcessClickEnd(const IntVector2& cursorPos, int button, int buttons, i
         WeakPtr<UIElement> element(GetElementAt(cursorPos));
 
         // Handle end of drag
-        for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.Begin(); i != dragElements_.End();)
+        for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
         {
             WeakPtr<UIElement> dragElement = i->first_;
             UI::DragData* dragData = i->second_;
@@ -1217,7 +1217,7 @@ void UI::ProcessMove(const IntVector2& cursorPos, const IntVector2& cursorDeltaP
     {
         Input* input = GetSubsystem<Input>();
         bool mouseGrabbed = input->IsMouseGrabbed();
-        for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.Begin(); i != dragElements_.End();)
+        for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
         {
             WeakPtr<UIElement> dragElement = i->first_;
             UI::DragData* dragData = i->second_;
@@ -1488,11 +1488,11 @@ void UI::HandleTouchBegin(StringHash eventType, VariantMap& eventData)
 
     if (element)
     {
-        ProcessClickBegin(pos, touchId, touchDragElements_[element], 0, 0, true);
+        ProcessClickBegin(pos, touchId, touchDragElements_[element], 0, nullptr, true);
         touchDragElements_[element] |= touchId;
     }
     else
-        ProcessClickBegin(pos, touchId, touchId, 0, 0, true);
+        ProcessClickBegin(pos, touchId, touchId, 0, nullptr, true);
 }
 
 void UI::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
@@ -1508,7 +1508,7 @@ void UI::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
     WeakPtr<UIElement> element(GetElementAt(pos));
 
     // Clear any drag events that were using the touch id
-    for (HashMap<WeakPtr<UIElement>, int>::Iterator i = touchDragElements_.Begin(); i != touchDragElements_.End(); )
+    for (HashMap<WeakPtr<UIElement>, int>::Iterator i = touchDragElements_.begin(); i != touchDragElements_.end(); )
     {
         int touches = i->second_;
         if (touches & touchId)
@@ -1518,9 +1518,9 @@ void UI::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
     }
 
     if (element && element->IsEnabled())
-        element->OnHover(element->ScreenToElement(pos), pos, 0, 0, 0);
+        element->OnHover(element->ScreenToElement(pos), pos, 0, 0, nullptr);
 
-    ProcessClickEnd(pos, touchId, 0, 0, 0, true);
+    ProcessClickEnd(pos, touchId, 0, 0, nullptr, true);
 }
 
 void UI::HandleTouchMove(StringHash eventType, VariantMap& eventData)
@@ -1533,7 +1533,7 @@ void UI::HandleTouchMove(StringHash eventType, VariantMap& eventData)
 
     int touchId = TOUCHID_MASK(eventData[P_TOUCHID].GetInt());
 
-    ProcessMove(pos, deltaPos, touchId, 0, 0, true);
+    ProcessMove(pos, deltaPos, touchId, 0, nullptr, true);
 }
 
 void UI::HandleKeyDown(StringHash eventType, VariantMap& eventData)
@@ -1558,7 +1558,7 @@ void UI::HandleKeyDown(StringHash eventType, VariantMap& eventData)
         UIElement* element = rootModalElement_->GetChild(rootModalElement_->GetNumChildren() - 1);
         if (element->GetVars().Contains(VAR_ORIGIN))
             // If it is a popup, dismiss by defocusing it
-            SetFocusElement(0);
+            SetFocusElement(nullptr);
         else
         {
             // If it is a modal window, by resetting its modal flag
@@ -1582,7 +1582,7 @@ void UI::HandleKeyDown(StringHash eventType, VariantMap& eventData)
             if (topLevel)
             {
                 topLevel->GetChildren(tempElements_, true);
-                for (PODVector<UIElement*>::Iterator i = tempElements_.Begin(); i != tempElements_.End();)
+                for (PODVector<UIElement*>::Iterator i = tempElements_.begin(); i != tempElements_.end();)
                 {
                     if ((*i)->GetFocusMode() < FM_FOCUSABLE)
                         i = tempElements_.Erase(i);
@@ -1698,7 +1698,7 @@ void UI::ProcessDragCancel()
     bool cursorVisible;
     GetCursorPositionAndVisible(cursorPos, cursorVisible);
 
-    for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.Begin(); i != dragElements_.End();)
+    for (HashMap<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
     {
         WeakPtr<UIElement> dragElement = i->first_;
         UI::DragData* dragData = i->second_;

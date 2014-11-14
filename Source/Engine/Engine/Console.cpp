@@ -121,7 +121,7 @@ void Console::SetDefaultStyle(XMLFile* style)
 
     closeButton_->SetDefaultStyle(style);
     closeButton_->SetStyle("CloseButton");
-    
+
     UpdateElements();
 }
 
@@ -204,7 +204,7 @@ void Console::SetNumRows(unsigned rows)
     displayedRows_ = rows;
     if (GetNumBufferedRows() < rows)
         SetNumBufferedRows(rows);
-    
+
     UpdateElements();
 }
 
@@ -268,9 +268,9 @@ bool Console::PopulateInterpreter()
         return false;
 
     Vector<String> names;
-    for (HashSet<Object*>::ConstIterator iter = receivers->Begin(); iter != receivers->End(); ++iter)
-        names.Push((*iter)->GetTypeName());
-    Sort(names.Begin(), names.End());
+    for (const Object* receiver : *receivers)
+        names.Push(receiver->GetTypeName());
+    Sort(names.begin(), names.end());
 
     unsigned selection = M_MAX_UNSIGNED;
     for (unsigned i = 0; i < names.Size(); ++i)
@@ -324,7 +324,7 @@ void Console::HandleTextFinished(StringHash eventType, VariantMap& eventData)
         // Store to history, then clear the lineedit
         history_.Push(line);
         if (history_.Size() > historyRows_)
-            history_.Erase(history_.Begin());
+            history_.Erase(history_.begin());
         historyPosition_ = history_.Size();
 
         currentRow_.Clear();
@@ -386,13 +386,13 @@ void Console::HandleLogMessage(StringHash eventType, VariantMap& eventData)
     // If printing a log message causes more messages to be logged (error accessing font), disregard them
     if (printing_)
         return;
-    
+
     using namespace LogMessage;
 
     int level = eventData[P_LEVEL].GetInt();
     // The message may be multi-line, so split to rows in that case
     Vector<String> rows = eventData[P_MESSAGE].GetString().Split('\n');
-    
+
     for (unsigned i = 0; i < rows.Size(); ++i)
         pendingRows_.Push(MakePair(level, rows[i]));
 
@@ -413,10 +413,10 @@ void Console::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
 
     if (!rowContainer_->GetNumItems() || pendingRows_.Empty())
         return;
-    
+
     printing_ = true;
     rowContainer_->DisableLayoutUpdate();
-    
+
     Text* text;
     for (unsigned i = 0; i < pendingRows_.Size(); ++i)
     {
@@ -427,9 +427,9 @@ void Console::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
         text->SetStyle(pendingRows_[i].first_ == LOG_ERROR ? "ConsoleHighlightedText" : "ConsoleText");
         rowContainer_->AddItem(text);
     }
-    
+
     pendingRows_.Clear();
-    
+
     rowContainer_->EnsureItemVisibility(text);
     rowContainer_->EnableLayoutUpdate();
     rowContainer_->UpdateLayout();

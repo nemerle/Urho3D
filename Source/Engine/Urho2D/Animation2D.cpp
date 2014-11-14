@@ -112,7 +112,7 @@ const Reference2D* MainlineKey2D::GetReference(int timeline) const
         if (references_[i].timeline_ == timeline)
             return &references_[i];
     }
-    return 0;
+    return nullptr;
 }
 
 TimelineKey2D::TimelineKey2D() :

@@ -110,8 +110,8 @@ void Skeleton::Define(const Skeleton& src)
     bones_ = src.bones_;
     // Make sure we clear node references, if they exist
     // (AnimatedModel will create new nodes on its own)
-    for (Vector<Bone>::Iterator i = bones_.Begin(); i != bones_.End(); ++i)
-        i->node_.Reset();
+    for (auto & elem : bones_)
+        elem.node_.Reset();
     rootBoneIndex_ = src.rootBoneIndex_;
 }
 
@@ -131,19 +131,19 @@ void Skeleton::ClearBones()
 
 void Skeleton::Reset()
 {
-    for (Vector<Bone>::Iterator i = bones_.Begin(); i != bones_.End(); ++i)
+    for (auto & elem : bones_)
     {
-        if (i->animated_ && i->node_)
-            i->node_->SetTransform(i->initialPosition_, i->initialRotation_, i->initialScale_);
+        if (elem.animated_ && elem.node_)
+            elem.node_->SetTransform(elem.initialPosition_, elem.initialRotation_, elem.initialScale_);
     }
 }
 
 void Skeleton::ResetSilent()
 {
-    for (Vector<Bone>::Iterator i = bones_.Begin(); i != bones_.End(); ++i)
+    for (auto & elem : bones_)
     {
-        if (i->animated_ && i->node_)
-            i->node_->SetTransformSilent(i->initialPosition_, i->initialRotation_, i->initialScale_);
+        if (elem.animated_ && elem.node_)
+            elem.node_->SetTransformSilent(elem.initialPosition_, elem.initialRotation_, elem.initialScale_);
     }
 }
 
@@ -155,7 +155,7 @@ Bone* Skeleton::GetRootBone()
 
 Bone* Skeleton::GetBone(unsigned index)
 {
-    return index < bones_.Size() ? &bones_[index] : (Bone*)0;
+    return index < bones_.Size() ? &bones_[index] : (Bone*)nullptr;
 }
 
 Bone* Skeleton::GetBone(const String& name)
@@ -170,13 +170,13 @@ Bone* Skeleton::GetBone(const char* name)
 
 Bone* Skeleton::GetBone(StringHash nameHash)
 {
-    for (Vector<Bone>::Iterator i = bones_.Begin(); i != bones_.End(); ++i)
+    for (auto & elem : bones_)
     {
-        if (i->nameHash_ == nameHash)
-            return &(*i);
+        if (elem.nameHash_ == nameHash)
+            return &(elem);
     }
     
-    return 0;
+    return nullptr;
 }
 
 }

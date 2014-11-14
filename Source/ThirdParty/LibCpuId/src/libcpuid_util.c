@@ -36,15 +36,15 @@ int _current_verboselevel;
 
 void match_features(const struct feature_map_t* matchtable, int count, uint32_t reg, struct cpu_id_t* data)
 {
-	int i;
-	for (i = 0; i < count; i++)
-		if (reg & (1 << matchtable[i].bit))
-			data->flags[matchtable[i].feature] = 1;
+    int i;
+    for (i = 0; i < count; i++)
+        if (reg & (1U << matchtable[i].bit))
+            data->flags[matchtable[i].feature] = 1;
 }
 
 static void default_warn(const char *msg)
 {
-	fprintf(stderr, "%s", msg);
+    fprintf(stderr, "%s", msg);
 }
 
 libcpuid_warn_fn_t _warn_fun = default_warn;
@@ -54,129 +54,129 @@ libcpuid_warn_fn_t _warn_fun = default_warn;
 #endif
 void warnf(const char* format, ...)
 {
-	char buff[1024];
-	va_list va;
-	if (!_warn_fun) return;
-	va_start(va, format);
-	vsnprintf(buff, sizeof(buff), format, va);
-	va_end(va);
-	_warn_fun(buff);
+    char buff[1024];
+    va_list va;
+    if (!_warn_fun) return;
+    va_start(va, format);
+    vsnprintf(buff, sizeof(buff), format, va);
+    va_end(va);
+    _warn_fun(buff);
 }
 
 void debugf(int verboselevel, const char* format, ...)
 {
-	char buff[1024];
-	va_list va;
-	if (verboselevel > _current_verboselevel) return;
-	va_start(va, format);
-	vsnprintf(buff, sizeof(buff), format, va);
-	va_end(va);
-	_warn_fun(buff);
+    char buff[1024];
+    va_list va;
+    if (verboselevel > _current_verboselevel) return;
+    va_start(va, format);
+    vsnprintf(buff, sizeof(buff), format, va);
+    va_end(va);
+    _warn_fun(buff);
 }
 
 static int score(const struct match_entry_t* entry, const struct cpu_id_t* data,
                  int brand_code, int model_code)
 {
-	int res = 0;
-	if (entry->family	== data->family    ) res++;
-	if (entry->model	== data->model     ) res++;
-	if (entry->stepping	== data->stepping  ) res++;
-	if (entry->ext_family	== data->ext_family) res++;
-	if (entry->ext_model	== data->ext_model ) res++;
-	if (entry->ncores	== data->num_cores ) res++;
-	if (entry->l2cache	== data->l2_cache  ) res++;
-	if (entry->l3cache	== data->l3_cache  ) res++;
-	if (entry->brand_code   == brand_code      ) res++;
-	if (entry->model_code   == model_code      ) res++;
-	return res;
+    int res = 0;
+    if (entry->family	== data->family    ) res++;
+    if (entry->model	== data->model     ) res++;
+    if (entry->stepping	== data->stepping  ) res++;
+    if (entry->ext_family	== data->ext_family) res++;
+    if (entry->ext_model	== data->ext_model ) res++;
+    if (entry->ncores	== data->num_cores ) res++;
+    if (entry->l2cache	== data->l2_cache  ) res++;
+    if (entry->l3cache	== data->l3_cache  ) res++;
+    if (entry->brand_code   == brand_code      ) res++;
+    if (entry->model_code   == model_code      ) res++;
+    return res;
 }
 
 void match_cpu_codename(const struct match_entry_t* matchtable, int count,
                         struct cpu_id_t* data, int brand_code, int model_code)
 {
-	int bestscore = -1;
-	int bestindex = 0;
-	int i, t;
-	
-	debugf(3, "Matching cpu f:%d, m:%d, s:%d, xf:%d, xm:%d, ncore:%d, l2:%d, bcode:%d, code:%d\n",
-		data->family, data->model, data->stepping, data->ext_family,
-		data->ext_model, data->num_cores, data->l2_cache, brand_code, model_code);
-	
-	for (i = 0; i < count; i++) {
-		t = score(&matchtable[i], data, brand_code, model_code);
-		debugf(3, "Entry %d, `%s', score %d\n", i, matchtable[i].name, t);
-		if (t > bestscore) {
-			debugf(2, "Entry `%s' selected - best score so far (%d)\n", matchtable[i].name, t);
-			bestscore = t;
-			bestindex = i;
-		}
-	}
-	strcpy(data->cpu_codename, matchtable[bestindex].name);
+    int bestscore = -1;
+    int bestindex = 0;
+    int i, t;
+
+    debugf(3, "Matching cpu f:%d, m:%d, s:%d, xf:%d, xm:%d, ncore:%d, l2:%d, bcode:%d, code:%d\n",
+        data->family, data->model, data->stepping, data->ext_family,
+        data->ext_model, data->num_cores, data->l2_cache, brand_code, model_code);
+
+    for (i = 0; i < count; i++) {
+        t = score(&matchtable[i], data, brand_code, model_code);
+        debugf(3, "Entry %d, `%s', score %d\n", i, matchtable[i].name, t);
+        if (t > bestscore) {
+            debugf(2, "Entry `%s' selected - best score so far (%d)\n", matchtable[i].name, t);
+            bestscore = t;
+            bestindex = i;
+        }
+    }
+    strcpy(data->cpu_codename, matchtable[bestindex].name);
 }
 
 void generic_get_cpu_list(const struct match_entry_t* matchtable, int count,
                           struct cpu_list_t* list)
 {
-	int i, j, n, good;
-	n = 0;
-	list->names = (char**) malloc(sizeof(char*) * count);
-	for (i = 0; i < count; i++) {
-		if (strstr(matchtable[i].name, "Unknown")) continue;
-		good = 1;
-		for (j = n - 1; j >= 0; j--)
-			if (!strcmp(list->names[j], matchtable[i].name)) {
-				good = 0;
-				break;
-			}
-		if (!good) continue;
-		list->names[n++] = strdup(matchtable[i].name);
-	}
-	list->num_entries = n;
+    int i, j, n, good;
+    n = 0;
+    list->names = (char**) malloc(sizeof(char*) * count);
+    for (i = 0; i < count; i++) {
+        if (strstr(matchtable[i].name, "Unknown")) continue;
+        good = 1;
+        for (j = n - 1; j >= 0; j--)
+            if (!strcmp(list->names[j], matchtable[i].name)) {
+                good = 0;
+                break;
+            }
+        if (!good) continue;
+        list->names[n++] = strdup(matchtable[i].name);
+    }
+    list->num_entries = n;
 }
 
 static int xmatch_entry(char c, const char* p)
 {
-	int i, j;
-	if (c == 0) return -1;
-	if (c == p[0]) return 1;
-	if (p[0] == '.') return 1;
-	if (p[0] == '#' && isdigit(c)) return 1;
-	if (p[0] == '[') {
-		j = 1;
-		while (p[j] && p[j] != ']') j++;
-		if (!p[j]) return -1;
-		for (i = 1; i < j; i++)
-			if (p[i] == c) return j + 1;
-	}
-	return -1;
+    int i, j;
+    if (c == 0) return -1;
+    if (c == p[0]) return 1;
+    if (p[0] == '.') return 1;
+    if (p[0] == '#' && isdigit(c)) return 1;
+    if (p[0] == '[') {
+        j = 1;
+        while (p[j] && p[j] != ']') j++;
+        if (!p[j]) return -1;
+        for (i = 1; i < j; i++)
+            if (p[i] == c) return j + 1;
+    }
+    return -1;
 }
 
 int match_pattern(const char* s, const char* p)
 {
-	int i, j, dj, k, n, m;
-	n = (int) strlen(s);
-	m = (int) strlen(p);
-	for (i = 0; i < n; i++) {
-		if (xmatch_entry(s[i], p) != -1) {
-			j = 0;
-			k = 0;
-			while (j < m && ((dj = xmatch_entry(s[i + k], p + j)) != -1)) {
-				k++;
-				j += dj;
-			}
-			if (j == m) return i + 1;
-		}
-	}
-	return 0;
+    int i, j, dj, k, n, m;
+    n = (int) strlen(s);
+    m = (int) strlen(p);
+    for (i = 0; i < n; i++) {
+        if (xmatch_entry(s[i], p) != -1) {
+            j = 0;
+            k = 0;
+            while (j < m && ((dj = xmatch_entry(s[i + k], p + j)) != -1)) {
+                k++;
+                j += dj;
+            }
+            if (j == m) return i + 1;
+        }
+    }
+    return 0;
 }
 
 struct cpu_id_t* get_cached_cpuid(void)
 {
-	static int initialized = 0;
-	static struct cpu_id_t id;
-	if (initialized) return &id;
-	if (cpu_identify(NULL, &id))
-		memset(&id, 0, sizeof(id));
-	initialized = 1;
-	return &id;
+    static int initialized = 0;
+    static struct cpu_id_t id;
+    if (initialized) return &id;
+    if (cpu_identify(NULL, &id))
+        memset(&id, 0, sizeof(id));
+    initialized = 1;
+    return &id;
 }

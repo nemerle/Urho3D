@@ -51,7 +51,7 @@ public:
     }
 
     /// Write bytes to output.
-    void write(const void* data, size_t size)
+    void write(const void* data, size_t size) override
     {
         if (dest_.Write(data, size) != size)
             success_ = false;
@@ -72,7 +72,7 @@ XMLFile::XMLFile(Context* context) :
 XMLFile::~XMLFile()
 {
     delete document_;
-    document_ = 0;
+    document_ = nullptr;
 }
 
 void XMLFile::RegisterObject(Context* context)
@@ -184,9 +184,9 @@ void XMLFile::Patch(XMLElement patchElement)
 {
     pugi::xml_node root = pugi::xml_node(patchElement.GetNode());
 
-    for (pugi::xml_node::iterator patch = root.begin(); patch != root.end(); patch++)
+    for (auto & elem : root)
     {
-        pugi::xml_attribute sel = patch->attribute("sel");
+        pugi::xml_attribute sel = elem.attribute("sel");
         if (sel.empty())
         {
             LOGERROR("XML Patch failed due to node not having a sel attribute.");
@@ -201,11 +201,11 @@ void XMLFile::Patch(XMLElement patchElement)
             continue;
         }
 
-        if (strcmp(patch->name(),"add") == 0)
-            PatchAdd(*patch, original);
-        else if (strcmp(patch->name(), "replace") == 0)
-            PatchReplace(*patch, original);
-        else if (strcmp(patch->name(), "remove") == 0)
+        if (strcmp(elem.name(),"add") == 0)
+            PatchAdd(elem, original);
+        else if (strcmp(elem.name(), "replace") == 0)
+            PatchReplace(elem, original);
+        else if (strcmp(elem.name(), "remove") == 0)
             PatchRemove(original);
         else
             LOGERROR("XMLFiles used for patching should only use 'add', 'replace' or 'remove' elements.");

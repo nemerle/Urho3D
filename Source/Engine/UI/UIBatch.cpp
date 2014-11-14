@@ -41,11 +41,11 @@ static const float posAdjust = 0.5f;
 static const Vector3 posAdjustVec(posAdjust, posAdjust, 0.0f);
 
 UIBatch::UIBatch() :
-    element_(0),
+    element_(nullptr),
     blendMode_(BLEND_REPLACE),
-    texture_(0),
+    texture_(nullptr),
     invTextureSize_(Vector2::ONE),
-    vertexData_(0),
+    vertexData_(nullptr),
     vertexStart_(0),
     vertexEnd_(0)
 {

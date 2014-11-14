@@ -238,7 +238,7 @@ static RenderTargetInfo* RenderPathGetRenderTarget(unsigned index, RenderPath* p
         asIScriptContext* context = asGetActiveContext();
         if (context)
             context->SetException("Index out of bounds");
-        return 0;
+        return nullptr;
     }
     else
         return &ptr->renderTargets_[index];
@@ -251,7 +251,7 @@ static RenderPathCommand* RenderPathGetCommand(unsigned index, RenderPath* ptr)
         asIScriptContext* context = asGetActiveContext();
         if (context)
             context->SetException("Index out of bounds");
-        return 0;
+        return nullptr;
     }
     else
         return &ptr->commands_[index];
@@ -545,10 +545,10 @@ static CScriptArray* MaterialGetShaderParameterNames(Material* material)
     Vector<String> result;
 
     const HashMap<StringHash, MaterialShaderParameter>& parameters = material->GetShaderParameters();
-    for (HashMap<StringHash, MaterialShaderParameter>::ConstIterator i = parameters.Begin(); i != parameters.End(); ++i)
-        result.Push(i->second_.name_);
+    for (const auto & parameter : parameters)
+        result.Push(parameter.second_.name_);
 
-    Sort(result.Begin(), result.End());
+    Sort(result.begin(), result.end());
     return VectorToArray<String>(result, "Array<String>");
 }
 
@@ -711,7 +711,7 @@ static void RegisterModel(asIScriptEngine* engine)
 static AnimationTriggerPoint* AnimationGetTrigger(unsigned index, Animation* animation)
 {
     const Vector<AnimationTriggerPoint>& points = animation->GetTriggers();
-    return index < points.Size() ? const_cast<AnimationTriggerPoint*>(&points[index]) : (AnimationTriggerPoint*)0;
+    return index < points.Size() ? const_cast<AnimationTriggerPoint*>(&points[index]) : (AnimationTriggerPoint*)nullptr;
 }
 
 static void RegisterAnimation(asIScriptEngine* engine)
@@ -1459,7 +1459,7 @@ static DebugRenderer* GetDebugRenderer()
     if (scene)
         return scene->GetComponent<DebugRenderer>();
     else
-        return 0;
+        return nullptr;
 }
 
 static DebugRenderer* SceneGetDebugRenderer(Scene* ptr)
@@ -1566,7 +1566,7 @@ static Octree* SceneGetOctree(Scene* ptr)
 static Octree* GetOctree()
 {
     Scene* scene = GetScriptContextScene();
-    return scene ? scene->GetComponent<Octree>() : 0;
+    return scene ? scene->GetComponent<Octree>() : nullptr;
 }
 
 static void RegisterOctree(asIScriptEngine* engine)

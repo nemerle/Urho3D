@@ -42,7 +42,7 @@ IndexBuffer::IndexBuffer(Context* context) :
     lockState_(LOCK_NONE),
     lockStart_(0),
     lockCount_(0),
-    lockScratchData_(0),
+    lockScratchData_(nullptr),
     shadowed_(false),
     dynamic_(false)
 {
@@ -81,7 +81,7 @@ void IndexBuffer::Release()
         if (!graphics_->IsDeviceLost())
         {
             if (graphics_->GetIndexBuffer() == this)
-                graphics_->SetIndexBuffer(0);
+                graphics_->SetIndexBuffer(nullptr);
             
             glDeleteBuffers(1, &object_);
         }
@@ -144,7 +144,7 @@ bool IndexBuffer::SetData(const void* data)
     {
         if (!graphics_->IsDeviceLost())
         {
-            graphics_->SetIndexBuffer(0);
+            graphics_->SetIndexBuffer(nullptr);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object_);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * indexSize_, data, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
         }
@@ -192,7 +192,7 @@ bool IndexBuffer::SetDataRange(const void* data, unsigned start, unsigned count,
     {
         if (!graphics_->IsDeviceLost())
         {
-            graphics_->SetIndexBuffer(0);
+            graphics_->SetIndexBuffer(nullptr);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object_);
             if (!discard || start != 0)
                 glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start * indexSize_, count * indexSize_, data);
@@ -214,23 +214,23 @@ void* IndexBuffer::Lock(unsigned start, unsigned count, bool discard)
     if (lockState_ != LOCK_NONE)
     {
         LOGERROR("Index buffer already locked");
-        return 0;
+        return nullptr;
     }
     
     if (!indexSize_)
     {
         LOGERROR("Index size not defined, can not lock index buffer");
-        return 0;
+        return nullptr;
     }
     
     if (start + count > indexCount_)
     {
         LOGERROR("Illegal range for locking index buffer");
-        return 0;
+        return nullptr;
     }
     
     if (!count)
-        return 0;
+        return nullptr;
     
     lockStart_ = start;
     lockCount_ = count;
@@ -247,7 +247,7 @@ void* IndexBuffer::Lock(unsigned start, unsigned count, bool discard)
         return lockScratchData_;
     }
     else
-        return 0;
+        return nullptr;
 }
 
 void IndexBuffer::Unlock()
@@ -263,7 +263,7 @@ void IndexBuffer::Unlock()
         SetDataRange(lockScratchData_, lockStart_, lockCount_);
         if (graphics_)
             graphics_->FreeScratchBuffer(lockScratchData_);
-        lockScratchData_ = 0;
+        lockScratchData_ = nullptr;
         lockState_ = LOCK_NONE;
         break;
     
@@ -334,7 +334,7 @@ bool IndexBuffer::Create()
             return true;
         }
         
-        graphics_->SetIndexBuffer(0);
+        graphics_->SetIndexBuffer(nullptr);
         
         if (!object_)
             glGenBuffers(1, &object_);
@@ -345,7 +345,7 @@ bool IndexBuffer::Create()
         }
         
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object_);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * indexSize_, 0, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * indexSize_, nullptr, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
     
     return true;

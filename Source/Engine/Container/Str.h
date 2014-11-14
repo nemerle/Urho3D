@@ -42,7 +42,7 @@ class URHO3D_API String
 public:
     typedef RandomAccessIterator<char> Iterator;
     typedef RandomAccessConstIterator<char> ConstIterator;
-    
+
     /// Construct empty.
     String() :
         length_(0),
@@ -50,7 +50,7 @@ public:
         buffer_(&endZero)
     {
     }
-    
+
     /// Construct from another string.
     String(const String& str) :
         length_(0),
@@ -59,7 +59,7 @@ public:
     {
         *this = str;
     }
-    
+
     /// Construct from a C string.
     String(const char* str) :
         length_(0),
@@ -68,7 +68,7 @@ public:
     {
         *this = str;
     }
-    
+
     /// Construct from a C string.
     String(char* str) :
         length_(0),
@@ -77,7 +77,7 @@ public:
     {
         *this = (const char*)str;
     }
-    
+
     /// Construct from a char array and length.
     String(const char* str, unsigned length) :
         length_(0),
@@ -87,7 +87,7 @@ public:
         Resize(length);
         CopyChars(buffer_, str, length);
     }
-    
+
     /// Construct from a null-terminated wide character array.
     String(const wchar_t* str) :
         length_(0),
@@ -96,7 +96,7 @@ public:
     {
         SetUTF8FromWChar(str);
     }
-    
+
     /// Construct from a null-terminated wide character array.
     String(wchar_t* str) :
         length_(0),
@@ -105,10 +105,10 @@ public:
     {
         SetUTF8FromWChar(str);
     }
-    
+
     /// Construct from a wide character string.
     String(const WString& str);
-    
+
     /// Construct from an integer.
     explicit String(int value);
     /// Construct from a short integer.
@@ -135,7 +135,7 @@ public:
     explicit String(char value);
     /// Construct from a character and fill length.
     explicit String(char value, unsigned length);
-    
+
     /// Construct from a convertable value.
     template <class T> explicit String(const T& value) :
         length_(0),
@@ -144,43 +144,43 @@ public:
     {
         *this = value.ToString();
     }
-    
+
     /// Destruct.
     ~String()
     {
         if (capacity_)
             delete[] buffer_;
     }
-    
+
     /// Assign a string.
     String& operator = (const String& rhs)
     {
         Resize(rhs.length_);
         CopyChars(buffer_, rhs.buffer_, rhs.length_);
-        
+
         return *this;
     }
-    
+
     /// Assign a C string.
     String& operator = (const char* rhs)
     {
         unsigned rhsLength = CStringLength(rhs);
         Resize(rhsLength);
         CopyChars(buffer_, rhs, rhsLength);
-        
+
         return *this;
     }
-    
+
     /// Add-assign a string.
     String& operator += (const String& rhs)
     {
         unsigned oldLength = length_;
         Resize(length_ + rhs.length_);
         CopyChars(buffer_ + oldLength, rhs.buffer_, rhs.length_);
-        
+
         return *this;
     }
-    
+
     /// Add-assign a C string.
     String& operator += (const char* rhs)
     {
@@ -188,20 +188,20 @@ public:
         unsigned oldLength = length_;
         Resize(length_ + rhsLength);
         CopyChars(buffer_ + oldLength, rhs, rhsLength);
-        
+
         return *this;
     }
-    
+
     /// Add-assign a character.
     String& operator += (char rhs)
     {
         unsigned oldLength = length_;
         Resize(length_ + 1);
         buffer_[oldLength]  = rhs;
-        
+
         return *this;
     }
-    
+
     /// Add-assign an integer.
     String& operator += (int rhs);
     /// Add-assign a short integer.
@@ -216,7 +216,7 @@ public:
     String& operator += (bool rhs);
     /// Add-assign an arbitraty type.
     template <class T> String operator += (const T& rhs) { return *this += rhs.ToString(); }
-    
+
     /// Add a string.
     String operator + (const String& rhs) const
     {
@@ -224,10 +224,10 @@ public:
         ret.Resize(length_ + rhs.length_);
         CopyChars(ret.buffer_, buffer_, length_);
         CopyChars(ret.buffer_ + length_, rhs.buffer_, rhs.length_);
-        
+
         return ret;
     }
-    
+
     /// Add a C string.
     String operator + (const char* rhs) const
     {
@@ -236,19 +236,19 @@ public:
         ret.Resize(length_ + rhsLength);
         CopyChars(ret.buffer_, buffer_, length_);
         CopyChars(ret.buffer_ + length_, rhs, rhsLength);
-        
+
         return ret;
     }
-    
+
     /// Add a character.
     String operator + (char rhs) const
     {
         String ret(*this);
         ret += rhs;
-        
+
         return ret;
     }
-    
+
     /// Test for equality with another string.
     bool operator == (const String& rhs) const { return strcmp(CString(), rhs.CString()) == 0; }
     /// Test for inequality with another string.
@@ -273,7 +273,7 @@ public:
     char& At(unsigned index) { assert(index < length_); return buffer_[index]; }
     /// Return const char at index.
     const char& At(unsigned index) const { assert(index < length_); return buffer_[index]; }
-    
+
     /// Replace all occurrences of a character.
     void Replace(char replaceThis, char replaceWith, bool caseSensitive = true);
     /// Replace all occurrences of a string.
@@ -322,15 +322,15 @@ public:
     void Clear();
     /// Swap with another string.
     void Swap(String& str);
-    
+
     /// Return iterator to the beginning.
-    Iterator Begin() { return Iterator(buffer_); }
+    Iterator begin() { return Iterator(buffer_); }
     /// Return const iterator to the beginning.
-    ConstIterator Begin() const { return ConstIterator(buffer_); }
+    ConstIterator begin() const { return ConstIterator(buffer_); }
     /// Return iterator to the end.
-    Iterator End() { return Iterator(buffer_ + length_); }
+    Iterator end() { return Iterator(buffer_ + length_); }
     /// Return const iterator to the end.
-    ConstIterator End() const { return ConstIterator(buffer_ + length_); }
+    ConstIterator end() const { return ConstIterator(buffer_ + length_); }
     /// Return first char, or 0 if empty.
     char Front() const { return buffer_[0]; }
     /// Return last char, or 0 if empty.
@@ -398,7 +398,7 @@ public:
     String SubstringUTF8(unsigned pos) const;
     /// Return a UTF8 substring with length from position.
     String SubstringUTF8(unsigned pos, unsigned length) const;
-    
+
     /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const
     {
@@ -409,10 +409,10 @@ public:
             hash = *ptr + (hash << 6) + (hash << 16) - hash;
             ++ptr;
         }
-        
+
         return hash;
     }
-    
+
     /// Return substrings split by a separator char.
     static Vector<String> Split(const char* str, char separator);
     /// Return a string by joining substrings with a 'glue' string.
@@ -427,7 +427,7 @@ public:
     /// Decode Unicode character from UTF16. Pointer will be incremented.
     static unsigned DecodeUTF16(const wchar_t*& src);
     #endif
-    
+
     /// Return length of a C string.
     static unsigned CStringLength(const char* str)
     {
@@ -442,22 +442,22 @@ public:
         return ptr - str;
         #endif
     }
-    
+
     /// Append to string using formatting.
     String& AppendWithFormat(const char* formatString, ... );
     /// Append to string using variable arguments.
     String& AppendWithFormatArgs(const char* formatString, va_list args);
-    
+
     /// Compare two C strings.
     static int Compare(const char* str1, const char* str2, bool caseSensitive);
-    
+
     /// Position for "not found."
     static const unsigned NPOS = 0xffffffff;
     /// Initial dynamic allocation size.
     static const unsigned MIN_CAPACITY = 8;
     /// Empty string.
     static const String EMPTY;
-    
+
 private:
     /// Move a range of characters within the string.
     void MoveRange(unsigned dest, unsigned src, unsigned count)
@@ -465,7 +465,7 @@ private:
         if (count)
             memmove(buffer_ + dest, buffer_ + src, count);
     }
-    
+
     /// Copy chars from one buffer to another.
     static void CopyChars(char* dest, const char* src, unsigned count)
     {
@@ -482,17 +482,17 @@ private:
         }
         #endif
     }
-    
+
     /// Replace a substring with another substring.
     void Replace(unsigned pos, unsigned length, const char* srcStart, unsigned srcLength);
-    
+
     /// String length.
     unsigned length_;
     /// Capacity, zero if buffer not allocated.
     unsigned capacity_;
     /// String buffer, null if not allocated.
     char* buffer_;
-    
+
     /// End zero for empty strings.
     static char endZero;
 };
@@ -515,7 +515,7 @@ public:
     WString(const String& str);
     /// Destruct.
     ~WString();
-    
+
     /// Return char at index.
     wchar_t& operator [] (unsigned index) { assert(index < length_); return buffer_[index]; }
     /// Return const char at index.
@@ -532,7 +532,7 @@ public:
     unsigned Length() const { return length_; }
     /// Return character data.
     const wchar_t* CString() const { return buffer_; }
-    
+
 private:
     /// String length.
     unsigned length_;

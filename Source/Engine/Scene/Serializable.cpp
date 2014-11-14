@@ -37,8 +37,8 @@ namespace Urho3D
 
 Serializable::Serializable(Context* context) :
     Object(context),
-    networkState_(0),
-    instanceDefaultValues_(0),
+    networkState_(nullptr),
+    instanceDefaultValues_(nullptr),
     temporary_(false)
 {
 }
@@ -46,9 +46,9 @@ Serializable::Serializable(Context* context) :
 Serializable::~Serializable()
 {
     delete networkState_;
-    networkState_ = 0;
+    networkState_ = nullptr;
     delete instanceDefaultValues_;
-    instanceDefaultValues_ = 0;
+    instanceDefaultValues_ = nullptr;
 }
 
 void Serializable::OnSetAttribute(const AttributeInfo& attr, const Variant& src)
@@ -456,7 +456,7 @@ bool Serializable::SetAttribute(const String& name, const Variant& value)
         return false;
     }
 
-    for (Vector<AttributeInfo>::ConstIterator i = attributes->Begin(); i != attributes->End(); ++i)
+    for (Vector<AttributeInfo>::ConstIterator i = attributes->begin(); i != attributes->end(); ++i)
     {
         if (!i->name_.Compare(name, true))
         {
@@ -502,7 +502,7 @@ void Serializable::ResetToDefault()
 void Serializable::RemoveInstanceDefault()
 {
     delete instanceDefaultValues_;
-    instanceDefaultValues_ = 0;
+    instanceDefaultValues_ = nullptr;
 }
 
 void Serializable::SetTemporary(bool enable)
@@ -677,11 +677,11 @@ Variant Serializable::GetAttribute(const String& name) const
         return ret;
     }
 
-    for (Vector<AttributeInfo>::ConstIterator i = attributes->Begin(); i != attributes->End(); ++i)
+    for (const auto & attribute : *attributes)
     {
-        if (!i->name_.Compare(name, true))
+        if (!attribute.name_.Compare(name, true))
         {
-            OnGetAttribute(*i, ret);
+            OnGetAttribute(attribute, ret);
             return ret;
         }
     }
@@ -722,10 +722,10 @@ Variant Serializable::GetAttributeDefault(const String& name) const
         return Variant::EMPTY;
     }
 
-    for (Vector<AttributeInfo>::ConstIterator i = attributes->Begin(); i != attributes->End(); ++i)
+    for (const auto & attribute : *attributes)
     {
-        if (!i->name_.Compare(name, true))
-            return i->defaultValue_;
+        if (!attribute.name_.Compare(name, true))
+            return attribute.defaultValue_;
     }
 
     LOGERROR("Could not find attribute " + name + " in " + GetTypeName());
@@ -758,7 +758,7 @@ Variant Serializable::GetInstanceDefault(const String& name) const
     if (instanceDefaultValues_)
     {
         VariantMap::ConstIterator i = instanceDefaultValues_->Find(name);
-        if (i != instanceDefaultValues_->End())
+        if (i != instanceDefaultValues_->end())
             return i->second_;
     }
 

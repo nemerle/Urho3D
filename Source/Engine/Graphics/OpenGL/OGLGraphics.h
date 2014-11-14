@@ -64,7 +64,7 @@ struct ScratchBuffer
         reserved_(false)
     {
     }
-    
+
     /// Buffer data.
     SharedArrayPtr<unsigned char> data_;
     /// Data size.
@@ -77,7 +77,7 @@ struct ScratchBuffer
 class URHO3D_API Graphics : public Object
 {
     OBJECT(Graphics);
-    
+
 public:
     /// Construct.
     Graphics(Context* context_);
@@ -406,7 +406,7 @@ public:
     void CleanupRenderSurface(RenderSurface* surface);
     /// Mark the FBO needing an update.
     void MarkFBODirty();
-    
+
     /// Return the API-specific alpha texture format.
     static unsigned GetAlphaFormat();
     /// Return the API-specific luminance texture format.
@@ -439,7 +439,7 @@ public:
     static unsigned GetDepthStencilFormat();
     /// Return the API-specific texture format from a textual description, for example "rgb".
     static unsigned GetFormat(const String& formatName);
-    
+
 private:
     /// Create the application window icon.
     void CreateWindowIcon();
@@ -455,7 +455,7 @@ private:
     void ResetCachedState();
     /// Initialize texture unit mappings.
     void SetTextureUnitMappings();
-    
+
     /// Mutex for accessing the GPU objects vector from several threads.
     Mutex gpuObjectMutex_;
     /// Implementation.
@@ -496,10 +496,12 @@ private:
     bool anisotropySupport_;
     /// DXT format support flag.
     bool dxtTextureSupport_;
+#ifdef GL_ES_VERSION_2_0
     /// ETC1 format support flag.
     bool etcTextureSupport_;
     /// PVRTC formats support flag.
     bool pvrtcTextureSupport_;
+#endif
     /// sRGB conversion on read support flag.
     bool sRGBSupport_;
     /// sRGB conversion on write support flag.

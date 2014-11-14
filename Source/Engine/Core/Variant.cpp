@@ -59,7 +59,7 @@ static const char* typeNames[] =
     "Matrix3",
     "Matrix3x4",
     "Matrix4",
-    0
+    nullptr
 };
 
 Variant& Variant::operator = (const Variant& rhs)
@@ -95,19 +95,19 @@ Variant& Variant::operator = (const Variant& rhs)
     case VAR_PTR:
         *(reinterpret_cast<WeakPtr<RefCounted>*>(&value_)) = *(reinterpret_cast<const WeakPtr<RefCounted>*>(&rhs.value_));
         break;
-        
+
     case VAR_MATRIX3:
         *(reinterpret_cast<Matrix3*>(value_.ptr_)) = *(reinterpret_cast<const Matrix3*>(rhs.value_.ptr_));
         break;
-        
+
     case VAR_MATRIX3X4:
         *(reinterpret_cast<Matrix3x4*>(value_.ptr_)) = *(reinterpret_cast<const Matrix3x4*>(rhs.value_.ptr_));
         break;
-        
+
     case VAR_MATRIX4:
         *(reinterpret_cast<Matrix4*>(value_.ptr_)) = *(reinterpret_cast<const Matrix4*>(rhs.value_.ptr_));
         break;
-        
+
     default:
         value_ = rhs.value_;
         break;
@@ -122,7 +122,7 @@ bool Variant::operator == (const Variant& rhs) const
         return GetVoidPtr() == rhs.GetVoidPtr();
     else if (type_ != rhs.type_)
         return false;
-    
+
     switch (type_)
     {
     case VAR_INT:
@@ -249,7 +249,7 @@ void Variant::FromString(VariantType type, const char* value)
 
     case VAR_VOIDPTR:
         // From string to void pointer not supported, set to null
-        *this = (void*)0;
+        *this = (void*)nullptr;
         break;
 
     case VAR_RESOURCEREF:
@@ -290,21 +290,21 @@ void Variant::FromString(VariantType type, const char* value)
 
     case VAR_PTR:
         // From string to RefCounted pointer not supported, set to null
-        *this = (RefCounted*)0;
+        *this = (RefCounted*)nullptr;
         break;
-        
+
     case VAR_MATRIX3:
         *this = ToMatrix3(value);
         break;
-        
+
     case VAR_MATRIX3X4:
         *this = ToMatrix3x4(value);
         break;
-        
+
     case VAR_MATRIX4:
         *this = ToMatrix4(value);
         break;
-        
+
     default:
         SetType(VAR_NONE);
     }
@@ -362,7 +362,7 @@ String Variant::ToString() const
         {
             const PODVector<unsigned char>& buffer = *(reinterpret_cast<const PODVector<unsigned char>*>(&value_));
             String ret;
-            BufferToString(ret, buffer.Begin().ptr_, buffer.Size());
+            BufferToString(ret, buffer.begin().ptr_, buffer.Size());
             return ret;
         }
 
@@ -388,7 +388,7 @@ String Variant::ToString() const
 
     case VAR_MATRIX3X4:
         return (reinterpret_cast<const Matrix3x4*>(value_.ptr_))->ToString();
-        
+
     case VAR_MATRIX4:
         return (reinterpret_cast<const Matrix4*>(value_.ptr_))->ToString();
     }
@@ -430,7 +430,7 @@ bool Variant::IsZero() const
         return reinterpret_cast<const PODVector<unsigned char>*>(&value_)->Empty();
 
     case VAR_VOIDPTR:
-        return value_.ptr_ == 0;
+        return value_.ptr_ == nullptr;
 
     case VAR_RESOURCEREF:
         return reinterpret_cast<const ResourceRef*>(&value_)->name_.Empty();
@@ -438,9 +438,9 @@ bool Variant::IsZero() const
     case VAR_RESOURCEREFLIST:
     {
         const Vector<String>& names = reinterpret_cast<const ResourceRefList*>(&value_)->names_;
-        for (Vector<String>::ConstIterator i = names.Begin(); i != names.End(); ++i)
+        for (const String &name : names)
         {
-            if (!i->Empty())
+            if (!name.Empty())
                 return false;
         }
         return true;
@@ -459,17 +459,17 @@ bool Variant::IsZero() const
         return *reinterpret_cast<const IntVector2*>(&value_) == IntVector2::ZERO;
 
     case VAR_PTR:
-        return *reinterpret_cast<const WeakPtr<RefCounted>*>(&value_) == (RefCounted*)0;
-        
+        return *reinterpret_cast<const WeakPtr<RefCounted>*>(&value_) == (RefCounted*)nullptr;
+
     case VAR_MATRIX3:
         return *reinterpret_cast<const Matrix3*>(value_.ptr_) == Matrix3::IDENTITY;
-        
+
     case VAR_MATRIX3X4:
         return *reinterpret_cast<const Matrix3x4*>(value_.ptr_) == Matrix3x4::IDENTITY;
-        
+
     case VAR_MATRIX4:
         return *reinterpret_cast<const Matrix4*>(value_.ptr_) == Matrix4::IDENTITY;
-        
+
     default:
         return true;
     }
@@ -509,19 +509,19 @@ void Variant::SetType(VariantType newType)
     case VAR_PTR:
         (reinterpret_cast<WeakPtr<RefCounted>*>(&value_))->~WeakPtr<RefCounted>();
         break;
-        
+
     case VAR_MATRIX3:
         delete reinterpret_cast<Matrix3*>(value_.ptr_);
         break;
-        
+
     case VAR_MATRIX3X4:
         delete reinterpret_cast<Matrix3x4*>(value_.ptr_);
         break;
-        
+
     case VAR_MATRIX4:
         delete reinterpret_cast<Matrix4*>(value_.ptr_);
         break;
-        
+
     default:
         break;
     }
@@ -557,19 +557,19 @@ void Variant::SetType(VariantType newType)
     case VAR_PTR:
         new(reinterpret_cast<WeakPtr<RefCounted>*>(&value_)) WeakPtr<RefCounted>();
         break;
-        
+
     case VAR_MATRIX3:
         value_.ptr_ = new Matrix3();
         break;
-        
+
     case VAR_MATRIX3X4:
         value_.ptr_ = new Matrix3x4();
         break;
-        
+
     case VAR_MATRIX4:
         value_.ptr_ = new Matrix4();
         break;
-        
+
     default:
         break;
     }

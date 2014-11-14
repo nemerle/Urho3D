@@ -302,8 +302,8 @@ void ParticleEmitter::ResetEmissionTimer()
 
 void ParticleEmitter::RemoveAllParticles()
 {
-    for (PODVector<Billboard>::Iterator i = billboards_.Begin(); i != billboards_.End(); ++i)
-        i->enabled_ = false;
+    for (auto & elem : billboards_)
+        elem.enabled_ = false;
 
     Commit();
 }
@@ -344,7 +344,7 @@ void ParticleEmitter::SetParticlesAttr(VariantVector value)
     unsigned index = 0;
     SetNumParticles(index < value.Size() ? value[index++].GetUInt() : 0);
     
-    for (PODVector<Particle>::Iterator i = particles_.Begin(); i != particles_.End() && index < value.Size(); ++i)
+    for (PODVector<Particle>::Iterator i = particles_.begin(); i != particles_.end() && index < value.Size(); ++i)
     {
         i->velocity_ = value[index++].GetVector3();
         i->size_ = value[index++].GetVector2();
@@ -368,16 +368,16 @@ VariantVector ParticleEmitter::GetParticlesAttr() const
     
     ret.Reserve(particles_.Size() * 8 + 1);
     ret.Push(particles_.Size());
-    for (PODVector<Particle>::ConstIterator i = particles_.Begin(); i != particles_.End(); ++i)
+    for (const auto & elem : particles_)
     {
-        ret.Push(i->velocity_);
-        ret.Push(i->size_);
-        ret.Push(i->timer_);
-        ret.Push(i->timeToLive_);
-        ret.Push(i->scale_);
-        ret.Push(i->rotationSpeed_);
-        ret.Push(i->colorIndex_);
-        ret.Push(i->texIndex_);
+        ret.Push(elem.velocity_);
+        ret.Push(elem.size_);
+        ret.Push(elem.timer_);
+        ret.Push(elem.timeToLive_);
+        ret.Push(elem.scale_);
+        ret.Push(elem.rotationSpeed_);
+        ret.Push(elem.colorIndex_);
+        ret.Push(elem.texIndex_);
     }
     return ret;
 }
@@ -394,14 +394,14 @@ VariantVector ParticleEmitter::GetParticleBillboardsAttr() const
     ret.Reserve(billboards_.Size() * 6 + 1);
     ret.Push(billboards_.Size());
     
-    for (PODVector<Billboard>::ConstIterator i = billboards_.Begin(); i != billboards_.End(); ++i)
+    for (const auto & elem : billboards_)
     {
-        ret.Push(i->position_);
-        ret.Push(i->size_);
-        ret.Push(Vector4(i->uv_.min_.x_, i->uv_.min_.y_, i->uv_.max_.x_, i->uv_.max_.y_));
-        ret.Push(i->color_);
-        ret.Push(i->rotation_);
-        ret.Push(i->enabled_);
+        ret.Push(elem.position_);
+        ret.Push(elem.size_);
+        ret.Push(Vector4(elem.uv_.min_.x_, elem.uv_.min_.y_, elem.uv_.max_.x_, elem.uv_.max_.y_));
+        ret.Push(elem.color_);
+        ret.Push(elem.rotation_);
+        ret.Push(elem.enabled_);
     }
     
     return ret;

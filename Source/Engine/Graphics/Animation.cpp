@@ -227,7 +227,7 @@ void Animation::AddTrigger(float time, bool timeIsNormalized, const Variant& dat
     newTrigger.data_ = data;
     triggers_.Push(newTrigger);
     
-    Sort(triggers_.Begin(), triggers_.End(), CompareTriggers);
+    Sort(triggers_.begin(), triggers_.end(), CompareTriggers);
 }
 
 void Animation::RemoveTrigger(unsigned index)
@@ -248,29 +248,29 @@ void Animation::SetNumTriggers(unsigned num)
 
 const AnimationTrack* Animation::GetTrack(unsigned index) const
 {
-    return index < tracks_.Size() ? &tracks_[index] : 0;
+    return index < tracks_.Size() ? &tracks_[index] : nullptr;
 }
 
 const AnimationTrack* Animation::GetTrack(const String& name) const
 {
-    for (Vector<AnimationTrack>::ConstIterator i = tracks_.Begin(); i != tracks_.End(); ++i)
+    for (const auto & elem : tracks_)
     {
-        if (i->name_ == name)
-            return &(*i);
+        if (elem.name_ == name)
+            return &(elem);
     }
     
-    return 0;
+    return nullptr;
 }
 
 const AnimationTrack* Animation::GetTrack(StringHash nameHash) const
 {
-    for (Vector<AnimationTrack>::ConstIterator i = tracks_.Begin(); i != tracks_.End(); ++i)
+    for (const auto & elem : tracks_)
     {
-        if (i->nameHash_ == nameHash)
-            return &(*i);
+        if (elem.nameHash_ == nameHash)
+            return &(elem);
     }
     
-    return 0;
+    return nullptr;
 }
 
 }

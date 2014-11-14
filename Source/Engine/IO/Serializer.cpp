@@ -305,8 +305,8 @@ bool Serializer::WriteVariantVector(const VariantVector& value)
 {
     bool success = true;
     success &= WriteVLE(value.Size());
-    for (VariantVector::ConstIterator i = value.Begin(); i != value.End(); ++i)
-        success &= WriteVariant(*i);
+    for (const auto & elem : value)
+        success &= WriteVariant(elem);
     return success;
 }
 
@@ -314,10 +314,10 @@ bool Serializer::WriteVariantMap(const VariantMap& value)
 {
     bool success = true;
     success &= WriteVLE(value.Size());
-    for (VariantMap::ConstIterator i = value.Begin(); i != value.End(); ++i)
+    for (const auto & elem : value)
     {
-        WriteStringHash(i->first_);
-        WriteVariant(i->second_);
+        WriteStringHash(elem.first_);
+        WriteVariant(elem.second_);
     }
     return success;
 }

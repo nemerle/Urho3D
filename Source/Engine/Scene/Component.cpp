@@ -34,7 +34,7 @@ namespace Urho3D
 
 Component::Component(Context* context) :
     Animatable(context),
-    node_(0),
+    node_(nullptr),
     id_(0),
     networkUpdate_(false),
     enabled_(true)
@@ -122,7 +122,7 @@ void Component::Remove()
 
 Scene* Component::GetScene() const
 {
-    return node_ ? node_->GetScene() : 0;
+    return node_ ? node_->GetScene() : nullptr;
 }
 
 void Component::AddReplicationState(ComponentReplicationState* state)
@@ -169,10 +169,9 @@ void Component::PrepareNetworkUpdate()
             networkState_->previousValues_[i] = networkState_->currentValues_[i];
 
             // Mark the attribute dirty in all replication states that are tracking this component
-            for (PODVector<ReplicationState*>::Iterator j = networkState_->replicationStates_.Begin(); j !=
-                networkState_->replicationStates_.End(); ++j)
+            for (auto & elem : networkState_->replicationStates_)
             {
-                ComponentReplicationState* compState = static_cast<ComponentReplicationState*>(*j);
+                ComponentReplicationState* compState = static_cast<ComponentReplicationState*>(elem);
                 compState->dirtyAttributes_.Set(i);
 
                 // Add component's parent node to the dirty set if not added yet
@@ -238,7 +237,7 @@ void Component::SetNode(Node* node)
 
 Component* Component::GetComponent(StringHash type) const
 {
-    return node_ ? node_->GetComponent(type) : 0;
+    return node_ ? node_->GetComponent(type) : nullptr;
 }
 
 bool Component::IsEnabledEffective() const

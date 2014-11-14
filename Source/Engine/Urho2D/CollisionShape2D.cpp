@@ -38,7 +38,7 @@ extern const char* URHO2D_CATEGORY;
 
 CollisionShape2D::CollisionShape2D(Context* context) :
     Component(context), 
-    fixture_(0),
+    fixture_(nullptr),
     cachedWorldScale_(Vector3::ONE)
 {
 
@@ -236,7 +236,7 @@ void CollisionShape2D::ReleaseFixture()
         return;
 
     body->DestroyFixture(fixture_);
-    fixture_ = 0;
+    fixture_ = nullptr;
 }
 
 float CollisionShape2D::GetMass() const

@@ -51,13 +51,13 @@ public:
     }
     
     /// Read from stream (no-op).
-    virtual void Read(void* ptr, asUINT size)
+    virtual void Read(void* ptr, asUINT size) override
     {
         // No-op, can not read from a Serializer
     }
     
     /// Write to stream.
-    virtual void Write(const void* ptr, asUINT size)
+    virtual void Write(const void* ptr, asUINT size) override
     {
         dest_.Write(ptr, size);
     }
@@ -78,13 +78,13 @@ public:
     }
     
     /// Read from stream.
-    virtual void Read(void* ptr, asUINT size)
+    virtual void Read(void* ptr, asUINT size) override
     {
         source_.Read(ptr, size);
     }
     
     /// Write to stream (no-op).
-    virtual void Write(const void* ptr, asUINT size)
+    virtual void Write(const void* ptr, asUINT size) override
     {
     }
     
@@ -96,7 +96,7 @@ private:
 ScriptFile::ScriptFile(Context* context) :
     Resource(context),
     script_(GetSubsystem<Script>()),
-    scriptModule_(0),
+    scriptModule_(nullptr),
     compiled_(false),
     subscribed_(false)
 {
@@ -193,7 +193,7 @@ void ScriptFile::AddEventHandler(StringHash eventType, const String& handlerName
     if (!compiled_)
         return;
 
-    AddEventHandlerInternal(0, eventType, handlerName);
+    AddEventHandlerInternal(nullptr, eventType, handlerName);
 }
 
 void ScriptFile::AddEventHandler(Object* sender, StringHash eventType, const String& handlerName)
@@ -214,7 +214,7 @@ void ScriptFile::RemoveEventHandler(StringHash eventType)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
     HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.Find(receiver);
-    if (i != eventInvokers_.End())
+    if (i != eventInvokers_.end())
     {
         i->second_->UnsubscribeFromEvent(eventType);
         // If no longer have any subscribed events, remove the event invoker object
@@ -227,7 +227,7 @@ void ScriptFile::RemoveEventHandler(Object* sender, StringHash eventType)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
     HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.Find(receiver);
-    if (i != eventInvokers_.End())
+    if (i != eventInvokers_.end())
     {
         i->second_->UnsubscribeFromEvent(sender, eventType);
         if (!i->second_->HasEventHandlers())
@@ -239,7 +239,7 @@ void ScriptFile::RemoveEventHandlers(Object* sender)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
     HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.Find(receiver);
-    if (i != eventInvokers_.End())
+    if (i != eventInvokers_.end())
     {
         i->second_->UnsubscribeFromEvents(sender);
         if (!i->second_->HasEventHandlers())
@@ -251,7 +251,7 @@ void ScriptFile::RemoveEventHandlers()
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
     HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.Find(receiver);
-    if (i != eventInvokers_.End())
+    if (i != eventInvokers_.end())
     {
         i->second_->UnsubscribeFromAllEvents();
         if (!i->second_->HasEventHandlers())
@@ -263,7 +263,7 @@ void ScriptFile::RemoveEventHandlersExcept(const PODVector<StringHash>& exceptio
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
     HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.Find(receiver);
-    if (i != eventInvokers_.End())
+    if (i != eventInvokers_.end())
     {
         i->second_->UnsubscribeFromAllEventsExcept(exceptions, true);
         if (!i->second_->HasEventHandlers())
@@ -371,7 +371,7 @@ void ScriptFile::ClearDelayedExecute(const String& declaration)
         delayedCalls_.Clear();
     else
     {
-        for (Vector<DelayedCall>::Iterator i = delayedCalls_.Begin(); i != delayedCalls_.End();)
+        for (Vector<DelayedCall>::Iterator i = delayedCalls_.begin(); i != delayedCalls_.end();)
         {
             if (declaration == i->declaration_)
                 i = delayedCalls_.Erase(i);
@@ -385,16 +385,16 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
     PROFILE(CreateObject);
     
     if (!compiled_)
-        return 0;
+        return nullptr;
     
     asIScriptContext* context = script_->GetScriptFileContext();
-    asIObjectType* type = 0;
+    asIObjectType* type = nullptr;
     if (useInterface)
     {
         asIObjectType* interfaceType = scriptModule_->GetObjectTypeByDecl(className.CString());
 
         if (!interfaceType)
-            return 0;
+            return nullptr;
 
         for (unsigned i = 0; i < scriptModule_->GetObjectTypeCount(); ++i)
         {
@@ -412,12 +412,12 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
     }
 
     if (!type)
-        return 0;
+        return nullptr;
     
     // Ensure that the type implements the "ScriptObject" interface, so it can be returned to script properly
     bool found = false;
     HashMap<asIObjectType*, bool>::ConstIterator i = validClasses_.Find(type);
-    if (i != validClasses_.End())
+    if (i != validClasses_.end())
         found = i->second_;
     else
     {
@@ -430,14 +430,14 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
     if (!found)
     {
         LOGERRORF("Script class %s does not implement the ScriptObject interface", type->GetName());
-        return 0;
+        return nullptr;
     }
     
     // Get the factory function id from the object type
     String factoryName = String(type->GetName()) + "@ " + type->GetName() + "()";
     asIScriptFunction* factory = type->GetFactoryByDecl(factoryName.CString());
     if (!factory || context->Prepare(factory) < 0 || context->Execute() < 0)
-        return 0;
+        return nullptr;
     
     asIScriptObject* obj = *(static_cast<asIScriptObject**>(context->GetAddressOfReturnValue()));
     if (obj)
@@ -461,10 +461,10 @@ bool ScriptFile::SaveByteCode(Serializer& dest)
 asIScriptFunction* ScriptFile::GetFunction(const String& declaration)
 {
     if (!compiled_)
-        return 0;
+        return nullptr;
     
     HashMap<String, asIScriptFunction*>::ConstIterator i = functions_.Find(declaration);
-    if (i != functions_.End())
+    if (i != functions_.end())
         return i->second_;
     
     asIScriptFunction* function = scriptModule_->GetFunctionByDecl(declaration.CString());
@@ -475,16 +475,16 @@ asIScriptFunction* ScriptFile::GetFunction(const String& declaration)
 asIScriptFunction* ScriptFile::GetMethod(asIScriptObject* object, const String& declaration)
 {
     if (!compiled_ || !object)
-        return 0;
+        return nullptr;
     
     asIObjectType* type = object->GetObjectType();
     if (!type)
-        return 0;
+        return nullptr;
     HashMap<asIObjectType*, HashMap<String, asIScriptFunction*> >::ConstIterator i = methods_.Find(type);
-    if (i != methods_.End())
+    if (i != methods_.end())
     {
         HashMap<String, asIScriptFunction*>::ConstIterator j = i->second_.Find(declaration);
-        if (j != i->second_.End())
+        if (j != i->second_.end())
             return j->second_;
     }
     
@@ -501,7 +501,7 @@ void ScriptFile::CleanupEventInvoker(asIScriptObject* object)
 void ScriptFile::AddEventHandlerInternal(Object* sender, StringHash eventType, const String& handlerName)
 {
     String declaration = "void " + handlerName + "(StringHash, VariantMap&)";
-    asIScriptFunction* function = 0;
+    asIScriptFunction* function = nullptr;
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
 
     if (receiver)
@@ -527,12 +527,12 @@ void ScriptFile::AddEventHandlerInternal(Object* sender, StringHash eventType, c
 
     HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.Find(receiver);
     // Remove previous handler in case an object pointer gets reused
-    if (i != eventInvokers_.End() && !i->second_->IsObjectAlive())
+    if (i != eventInvokers_.end() && !i->second_->IsObjectAlive())
     {
         eventInvokers_.Erase(i);
-        i = eventInvokers_.End();
+        i = eventInvokers_.end();
     }
-    if (i == eventInvokers_.End())
+    if (i == eventInvokers_.end())
         i = eventInvokers_.Insert(MakePair(receiver, SharedPtr<ScriptEventInvoker>(new ScriptEventInvoker(this, receiver))));
 
     if (!sender)
@@ -765,7 +765,7 @@ void ScriptFile::ReleaseModule()
         eventInvokers_.Clear();
         
         asIScriptEngine* engine = script_->GetScriptEngine();
-        scriptModule_->SetUserData(0);
+        scriptModule_->SetUserData(nullptr);
         
         // Remove the module
         {
@@ -775,7 +775,7 @@ void ScriptFile::ReleaseModule()
             engine->DiscardModule(GetName().CString());
         }
         
-        scriptModule_ = 0;
+        scriptModule_ = nullptr;
         compiled_ = false;
         SetMemoryUse(0);
         
@@ -820,7 +820,7 @@ void ScriptFile::HandleUpdate(StringHash eventType, VariantMap& eventData)
 ScriptEventInvoker::ScriptEventInvoker(ScriptFile* file, asIScriptObject* object) :
     Object(file->GetContext()),
     file_(file),
-    sharedBool_(0),
+    sharedBool_(nullptr),
     object_(object)
 {
     if (object_)
@@ -836,8 +836,8 @@ ScriptEventInvoker::~ScriptEventInvoker()
     if (sharedBool_)
         sharedBool_->Release();
 
-    sharedBool_ = 0;
-    object_ = 0;
+    sharedBool_ = nullptr;
+    object_ = nullptr;
 }
 
 bool ScriptEventInvoker::IsObjectAlive() const
@@ -880,12 +880,12 @@ void ScriptEventInvoker::HandleScriptEvent(StringHash eventType, VariantMap& eve
 ScriptFile* GetScriptContextFile()
 {
     asIScriptContext* context = asGetActiveContext();
-    asIScriptFunction* function = context ? context->GetFunction() : 0;
-    asIScriptModule* module = function ? function->GetEngine()->GetModule(function->GetModuleName()) : 0;
+    asIScriptFunction* function = context ? context->GetFunction() : nullptr;
+    asIScriptModule* module = function ? function->GetEngine()->GetModule(function->GetModuleName()) : nullptr;
     if (module)
         return static_cast<ScriptFile*>(module->GetUserData());
     else
-        return 0;
+        return nullptr;
 }
 
 }

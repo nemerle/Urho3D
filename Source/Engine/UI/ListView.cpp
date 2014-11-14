@@ -41,7 +41,7 @@ static const char* highlightModes[] =
     "Never",
     "Focus",
     "Always",
-    0
+    nullptr
 };
 
 template<> HighlightMode Variant::Get<HighlightMode>() const
@@ -134,8 +134,8 @@ public:
         {
             const Vector<SharedPtr<UIElement> >& children = overlayContainer_->GetChildren();
             Vector<SharedPtr<UIElement> >::ConstIterator i = children.Find(SharedPtr<UIElement>(overlay));
-            if (i != children.End())
-                listView_->ToggleExpand(i - children.Begin());
+            if (i != children.end())
+                listView_->ToggleExpand(i - children.begin());
         }
     }
 
@@ -492,7 +492,7 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
     unsigned numItems = GetNumItems();
 
     // Remove first items that should no longer be selected
-    for (PODVector<unsigned>::Iterator i = selections_.Begin(); i != selections_.End();)
+    for (PODVector<unsigned>::Iterator i = selections_.begin(); i != selections_.end();)
     {
         unsigned index = *i;
         if (!indices.Contains(index))
@@ -516,9 +516,9 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
     bool added = false;
 
     // Then add missing items
-    for (PODVector<unsigned>::ConstIterator i = indices.Begin(); i != indices.End(); ++i)
+    for (const auto & indice : indices)
     {
-        unsigned index = *i;
+        unsigned index = indice;
         if (index < numItems)
         {
             // In singleselect mode, resend the event even for the same selection
@@ -535,7 +535,7 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
 
                 VariantMap& eventData = GetEventDataMap();
                 eventData[P_ELEMENT] = this;
-                eventData[P_SELECTION] = *i;
+                eventData[P_SELECTION] = indice;
                 SendEvent(E_ITEMSELECTED, eventData);
 
                 if (self.Expired())
@@ -549,7 +549,7 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
 
     // Re-sort selections if necessary
     if (added)
-        Sort(selections_.Begin(), selections_.End());
+        Sort(selections_.begin(), selections_.end());
 
     UpdateSelectionEffect();
     SendEvent(E_SELECTIONCHANGED);
@@ -581,7 +581,7 @@ void ListView::AddSelection(unsigned index)
             if (self.Expired())
                 return;
 
-            Sort(selections_.Begin(), selections_.End());
+            Sort(selections_.begin(), selections_.end());
         }
 
         EnsureItemVisibility(index);
@@ -868,9 +868,9 @@ PODVector<UIElement*> ListView::GetSelectedItems() const
 {
     PODVector<UIElement*> ret;
 
-    for (PODVector<unsigned>::ConstIterator i = selections_.Begin(); i != selections_.End(); ++i)
+    for (const auto & elem : selections_)
     {
-        UIElement* item = GetItem(*i);
+        UIElement* item = GetItem(elem);
         if (item)
             ret.Push(item);
     }
@@ -882,10 +882,10 @@ void ListView::CopySelectedItemsToClipboard() const
 {
     String selectedText;
 
-    for (PODVector<unsigned>::ConstIterator i = selections_.Begin(); i != selections_.End(); ++i)
+    for (const auto & elem : selections_)
     {
         // Only handle Text UI element
-        Text* text = dynamic_cast<Text*>(GetItem(*i));
+        Text* text = dynamic_cast<Text*>(GetItem(elem));
         if (text)
             selectedText.Append(text->GetText()).Append("\n");
     }

@@ -35,8 +35,8 @@ namespace Urho3D
 {
 
 AnimationStateTrack::AnimationStateTrack() :
-    track_(0),
-    bone_(0),
+    track_(nullptr),
+    bone_(nullptr),
     weight_(1.0f),
     keyFrame_(0)
 {
@@ -49,20 +49,20 @@ AnimationStateTrack::~AnimationStateTrack()
 AnimationState::AnimationState(AnimatedModel* model, Animation* animation) :
     model_(model),
     animation_(animation),
-    startBone_(0),
+    startBone_(nullptr),
     looped_(false),
     weight_(0.0f),
     time_(0.0f),
     layer_(0)
 {
     // Set default start bone (use all tracks.)
-    SetStartBone(0);
+    SetStartBone(nullptr);
 }
 
 AnimationState::AnimationState(Node* node, Animation* animation) :
     node_(node),
     animation_(animation),
-    startBone_(0),
+    startBone_(nullptr),
     looped_(false),
     weight_(1.0f),
     time_(0.0f),
@@ -137,7 +137,7 @@ void AnimationState::SetStartBone(Bone* startBone)
         stateTrack.track_ = &tracks[i];
         
         // Include those tracks that are either the start bone itself, or its children
-        Bone* trackBone = 0;
+        Bone* trackBone = nullptr;
         const StringHash& nameHash = tracks[i].nameHash_;
         
         if (nameHash == startBone->nameHash_)
@@ -287,9 +287,9 @@ void AnimationState::AddTime(float delta)
             Swap(oldTime, time);
         
         const Vector<AnimationTriggerPoint>& triggers = animation_->GetTriggers();
-        for (Vector<AnimationTriggerPoint>::ConstIterator i = triggers.Begin(); i != triggers.End(); ++i)
+        for (const auto & trigger : triggers)
         {
-            float frameTime = i->time_;
+            float frameTime = trigger.time_;
             if (looped_ && wrap)
                 frameTime = fmodf(frameTime, length);
             
@@ -302,8 +302,8 @@ void AnimationState::AddTime(float delta)
                 VariantMap& eventData = senderNode->GetEventDataMap();
                 eventData[P_NODE] = senderNode;
                 eventData[P_NAME] = animation_->GetAnimationName();
-                eventData[P_TIME] = i->time_;
-                eventData[P_DATA] = i->data_;
+                eventData[P_TIME] = trigger.time_;
+                eventData[P_DATA] = trigger.data_;
                 senderNode->SendEvent(E_ANIMATIONTRIGGER, eventData);
             }
         }
@@ -332,7 +332,7 @@ Node* AnimationState::GetNode() const
 
 Bone* AnimationState::GetStartBone() const
 {
-    return model_ ? startBone_ : 0;
+    return model_ ? startBone_ : nullptr;
 }
 
 float AnimationState::GetBoneWeight(unsigned index) const
@@ -403,9 +403,9 @@ void AnimationState::Apply()
 
 void AnimationState::ApplyToModel()
 {
-    for (Vector<AnimationStateTrack>::Iterator i = stateTracks_.Begin(); i != stateTracks_.End(); ++i)
+    for (auto & stateTrack : stateTracks_)
     {
-        AnimationStateTrack& stateTrack = *i;
+        
         float finalWeight = weight_ * stateTrack.weight_;
         
         // Do not apply if zero effective weight or the bone has animation disabled
@@ -422,8 +422,8 @@ void AnimationState::ApplyToModel()
 void AnimationState::ApplyToNodes()
 {
     // When applying to a node hierarchy, can only use full weight (nothing to blend to)
-    for (Vector<AnimationStateTrack>::Iterator i = stateTracks_.Begin(); i != stateTracks_.End(); ++i)
-        ApplyTrackFullWeight(*i);
+    for (auto & elem : stateTracks_)
+        ApplyTrackFullWeight(elem);
 }
 
 void AnimationState::ApplyTrackFullWeight(AnimationStateTrack& stateTrack)

@@ -113,7 +113,7 @@ int ToInt(const char* source)
         return 0;
     
     // Explicitly ask for base 10 to prevent source starts with '0' or '0x' from being converted to base 8 or base 16, respectively
-    return strtol(source, 0, 10);
+    return strtol(source, nullptr, 10);
 }
 
 unsigned ToUInt(const String& source)
@@ -126,7 +126,7 @@ unsigned ToUInt(const char* source)
     if (!source)
         return 0;
     
-    return strtoul(source, 0, 10);
+    return strtoul(source, nullptr, 10);
 }
 
 float ToFloat(const String& source)
@@ -139,7 +139,7 @@ float ToFloat(const char* source)
     if (!source)
         return 0;
     
-    return (float)strtod(source, 0);
+    return (float)strtod(source, nullptr);
 }
 
 Color ToColor(const String& source)

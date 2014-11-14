@@ -61,7 +61,7 @@ public:
     /// Destruct. Free the child blocks.
     ~ProfilerBlock()
     {
-        for (PODVector<ProfilerBlock*>::Iterator i = children_.Begin(); i != children_.End(); ++i)
+        for (PODVector<ProfilerBlock*>::Iterator i = children_.begin(); i != children_.end(); ++i)
         {
             delete *i;
             *i = 0;
@@ -104,7 +104,7 @@ public:
         maxTime_ = 0;
         count_ = 0;
         
-        for (PODVector<ProfilerBlock*>::Iterator i = children_.Begin(); i != children_.End(); ++i)
+        for (PODVector<ProfilerBlock*>::Iterator i = children_.begin(); i != children_.end(); ++i)
             (*i)->EndFrame();
     }
     
@@ -115,14 +115,14 @@ public:
         intervalMaxTime_ = 0;
         intervalCount_ = 0;
         
-        for (PODVector<ProfilerBlock*>::Iterator i = children_.Begin(); i != children_.End(); ++i)
+        for (PODVector<ProfilerBlock*>::Iterator i = children_.begin(); i != children_.end(); ++i)
             (*i)->BeginInterval();
     }
     
     /// Return child block with the specified name.
     ProfilerBlock* GetChild(const char* name)
     {
-        for (PODVector<ProfilerBlock*>::Iterator i = children_.Begin(); i != children_.End(); ++i)
+        for (PODVector<ProfilerBlock*>::Iterator i = children_.begin(); i != children_.end(); ++i)
         {
             if (!String::Compare((*i)->name_, name, true))
                 return *i;

@@ -264,7 +264,7 @@ void AnimatedModel::UpdateGeometry(const FrameInfo& frame)
 {
     if (morphsDirty_)
         UpdateMorphs();
-    
+
     if (skinningDirty_)
         UpdateSkinning();
 }
@@ -333,8 +333,8 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
             newMorph.nameHash_ = morphs[i].nameHash_;
             newMorph.weight_ = 0.0f;
             newMorph.buffers_ = morphs[i].buffers_;
-            for (HashMap<unsigned, VertexBufferMorph>::ConstIterator j = morphs[i].buffers_.Begin(); j != morphs[i].buffers_.End(); ++j)
-                morphElementMask_ |= j->second_.elementMask_;
+            for (const auto & elem : morphs[i].buffers_)
+                morphElementMask_ |= elem.second_.elementMask_;
             morphs_.Push(newMorph);
         }
 
@@ -393,11 +393,11 @@ AnimationState* AnimatedModel::AddAnimationState(Animation* animation)
     if (!isMaster_)
     {
         LOGERROR("Can not add animation state to non-master model");
-        return 0;
+        return nullptr;
     }
 
     if (!animation || !skeleton_.GetNumBones())
-        return 0;
+        return nullptr;
 
     // Check for not adding twice
     AnimationState* existing = GetAnimationState(animation);
@@ -416,7 +416,7 @@ void AnimatedModel::RemoveAnimationState(Animation* animation)
         RemoveAnimationState(animation->GetNameHash());
     else
     {
-        for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+        for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
         {
             AnimationState* state = *i;
             if (!state->GetAnimation())
@@ -436,7 +436,7 @@ void AnimatedModel::RemoveAnimationState(const String& animationName)
 
 void AnimatedModel::RemoveAnimationState(StringHash animationNameHash)
 {
-    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
     {
         AnimationState* state = *i;
         Animation* animation = state->GetAnimation();
@@ -455,7 +455,7 @@ void AnimatedModel::RemoveAnimationState(StringHash animationNameHash)
 
 void AnimatedModel::RemoveAnimationState(AnimationState* state)
 {
-    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
     {
         if (*i == state)
         {
@@ -557,8 +557,8 @@ void AnimatedModel::SetMorphWeight(StringHash nameHash, float weight)
 
 void AnimatedModel::ResetMorphWeights()
 {
-    for (Vector<ModelMorph>::Iterator i = morphs_.Begin(); i != morphs_.End(); ++i)
-        i->weight_ = 0.0f;
+    for (ModelMorph & morph : morphs_)
+        morph.weight_ = 0.0f;
 
     // For a master model, reset weights on non-master models
     if (isMaster_)
@@ -584,35 +584,31 @@ float AnimatedModel::GetMorphWeight(unsigned index) const
 
 float AnimatedModel::GetMorphWeight(const String& name) const
 {
-    for (Vector<ModelMorph>::ConstIterator i = morphs_.Begin(); i != morphs_.End(); ++i)
-    {
-        if (i->name_ == name)
-            return i->weight_;
-    }
+    for (const ModelMorph & morph : morphs_)
+        if (morph.name_ == name)
+            return morph.weight_;
 
     return 0.0f;
 }
 
 float AnimatedModel::GetMorphWeight(StringHash nameHash) const
 {
-    for (Vector<ModelMorph>::ConstIterator i = morphs_.Begin(); i != morphs_.End(); ++i)
-    {
-        if (i->nameHash_ == nameHash)
-            return i->weight_;
-    }
+    for (const ModelMorph & morph : morphs_)
+        if (morph.nameHash_ == nameHash)
+            return morph.weight_;
 
     return 0.0f;
 }
 
 AnimationState* AnimatedModel::GetAnimationState(Animation* animation) const
 {
-    for (Vector<SharedPtr<AnimationState> >::ConstIterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+    for (const SharedPtr<AnimationState> &i : animationStates_)
     {
-        if ((*i)->GetAnimation() == animation)
-            return *i;
+        if (i->GetAnimation() == animation)
+            return i.Get();
     }
 
-    return 0;
+    return nullptr;
 }
 
 AnimationState* AnimatedModel::GetAnimationState(const String& animationName) const
@@ -622,23 +618,23 @@ AnimationState* AnimatedModel::GetAnimationState(const String& animationName) co
 
 AnimationState* AnimatedModel::GetAnimationState(StringHash animationNameHash) const
 {
-    for (Vector<SharedPtr<AnimationState> >::ConstIterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+    for (const SharedPtr<AnimationState> &i : animationStates_)
     {
-        Animation* animation = (*i)->GetAnimation();
+        Animation* animation = i->GetAnimation();
         if (animation)
         {
             // Check both the animation and the resource name
             if (animation->GetNameHash() == animationNameHash || animation->GetAnimationNameHash() == animationNameHash)
-                return *i;
+                return i.Get();
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 AnimationState* AnimatedModel::GetAnimationState(unsigned index) const
 {
-    return index < animationStates_.Size() ? animationStates_[index].Get() : 0;
+    return index < animationStates_.Size() ? animationStates_[index].Get() : nullptr;
 }
 
 void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
@@ -691,24 +687,24 @@ void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
         // Remove collision information from dummy bones that do not affect skinning, to prevent them from being merged
         // to the bounding box
         Vector<Bone>& bones = skeleton_.GetModifiableBones();
-        for (Vector<Bone>::Iterator i = bones.Begin(); i != bones.End(); ++i)
+        for (Bone &bone : bones)
         {
-            if (i->collisionMask_ & BONECOLLISION_BOX && i->boundingBox_.Size().Length() < M_EPSILON)
-                i->collisionMask_ &= ~BONECOLLISION_BOX;
-            if (i->collisionMask_ & BONECOLLISION_SPHERE && i->radius_ < M_EPSILON)
-                i->collisionMask_ &= ~BONECOLLISION_SPHERE;
+            if (bone.collisionMask_ & BONECOLLISION_BOX && bone.boundingBox_.Size().Length() < M_EPSILON)
+                bone.collisionMask_ &= ~BONECOLLISION_BOX;
+            if (bone.collisionMask_ & BONECOLLISION_SPHERE && bone.radius_ < M_EPSILON)
+                bone.collisionMask_ &= ~BONECOLLISION_SPHERE;
         }
 
         // Create scene nodes for the bones
         if (createBones)
         {
-            for (Vector<Bone>::Iterator i = bones.Begin(); i != bones.End(); ++i)
+            for (Bone &bone : bones)
             {
                 // Create bones as local, as they are never to be directly synchronized over the network
-                Node* boneNode = node_->CreateChild(i->name_, LOCAL);
+                Node* boneNode = node_->CreateChild(bone.name_, LOCAL);
                 boneNode->AddListener(this);
-                boneNode->SetTransform(i->initialPosition_, i->initialRotation_, i->initialScale_);
-                i->node_ = boneNode;
+                boneNode->SetTransform(bone.initialPosition_, bone.initialRotation_, bone.initialScale_);
+                bone.node_ = boneNode;
             }
 
             for (unsigned i = 0; i < bones.Size(); ++i)
@@ -733,12 +729,12 @@ void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
         if (createBones)
         {
             Vector<Bone>& bones = skeleton_.GetModifiableBones();
-            for (Vector<Bone>::Iterator i = bones.Begin(); i != bones.End(); ++i)
+            for (Bone &bone : bones)
             {
-                Node* boneNode = node_->GetChild(i->name_, true);
+                Node* boneNode = node_->GetChild(bone.name_, true);
                 if (boneNode)
                     boneNode->AddListener(this);
-                i->node_ = boneNode;
+                bone.node_ = boneNode;
             }
         }
     }
@@ -775,7 +771,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
         numStates = 0;
     if (numStates > MAX_ANIMATION_STATES)
         numStates = MAX_ANIMATION_STATES;
-    
+
     animationStates_.Reserve(numStates);
     while (numStates--)
     {
@@ -795,7 +791,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
         else
         {
             // If not enough data, just add an empty animation state
-            SharedPtr<AnimationState> newState(new AnimationState(this, 0));
+            SharedPtr<AnimationState> newState(new AnimationState(this, nullptr));
             animationStates_.Push(newState);
         }
     }
@@ -823,8 +819,8 @@ VariantVector AnimatedModel::GetBonesEnabledAttr() const
     VariantVector ret;
     const Vector<Bone>& bones = skeleton_.GetBones();
     ret.Reserve(bones.Size());
-    for (Vector<Bone>::ConstIterator i = bones.Begin(); i != bones.End(); ++i)
-        ret.Push(i->animated_);
+    for (const Bone &bone : bones)
+        ret.Push(bone.animated_);
     return ret;
 }
 
@@ -833,9 +829,9 @@ VariantVector AnimatedModel::GetAnimationStatesAttr() const
     VariantVector ret;
     ret.Reserve(animationStates_.Size() * 6 + 1);
     ret.Push(animationStates_.Size());
-    for (Vector<SharedPtr<AnimationState> >::ConstIterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+    for (const SharedPtr<AnimationState> &i : animationStates_)
     {
-        AnimationState* state = *i;
+        AnimationState* state = i.Get();
         Animation* animation = state->GetAnimation();
         Bone* startBone = state->GetStartBone();
         ret.Push(GetResourceRef(animation, Animation::GetTypeStatic()));
@@ -851,8 +847,8 @@ VariantVector AnimatedModel::GetAnimationStatesAttr() const
 const PODVector<unsigned char>& AnimatedModel::GetMorphsAttr() const
 {
     attrBuffer_.Clear();
-    for (Vector<ModelMorph>::ConstIterator i = morphs_.Begin(); i != morphs_.End(); ++i)
-        attrBuffer_.WriteUByte((unsigned char)(i->weight_ * 255.0f));
+    for (const ModelMorph & morph : morphs_)
+        attrBuffer_.WriteUByte((unsigned char)(morph.weight_ * 255.0f));
 
     return attrBuffer_.GetBuffer();
 }
@@ -908,17 +904,16 @@ void AnimatedModel::AssignBoneNodes()
         return;
 
     // Find the bone nodes from the node hierarchy and add listeners
-    Vector<Bone>& bones = skeleton_.GetModifiableBones();
     bool boneFound = false;
-    for (Vector<Bone>::Iterator i = bones.Begin(); i != bones.End(); ++i)
+    for (Bone &bone : skeleton_.GetModifiableBones())
     {
-        Node* boneNode = node_->GetChild(i->name_, true);
+        Node* boneNode = node_->GetChild(bone.name_, true);
         if (boneNode)
         {
             boneFound = true;
             boneNode->AddListener(this);
         }
-        i->node_ = boneNode;
+        bone.node_ = boneNode;
     }
 
     // If no bones found, this may be a prefab where the bone information was left out.
@@ -927,9 +922,8 @@ void AnimatedModel::AssignBoneNodes()
         SetSkeleton(model_->GetSkeleton(), true);
 
     // Re-assign the same start bone to animations to get the proper bone node this time
-    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
+    for (SharedPtr<AnimationState> &state : animationStates_)
     {
-        AnimationState* state = *i;
         state->SetStartBone(state->GetStartBone());
     }
 }
@@ -1134,7 +1128,7 @@ void AnimatedModel::UpdateAnimation(const FrameInfo& frame)
     // Make sure animations are in ascending priority order
     if (animationOrderDirty_)
     {
-        Sort(animationStates_.Begin(), animationStates_.End(), CompareAnimationOrder);
+        Sort(animationStates_.begin(), animationStates_.end(), CompareAnimationOrder);
         animationOrderDirty_ = false;
     }
 
@@ -1143,16 +1137,16 @@ void AnimatedModel::UpdateAnimation(const FrameInfo& frame)
     if (isMaster_)
     {
         skeleton_.ResetSilent();
-        for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.Begin(); i != animationStates_.End(); ++i)
-            (*i)->Apply();
-        
+        for (SharedPtr<AnimationState> &state : animationStates_)
+            state->Apply();
+
         // Skeleton reset and animations apply the node transforms "silently" to avoid repeated marking dirty. Mark dirty now
         node_->MarkDirty();
 
         // Calculate new bone bounding box
         UpdateBoneBoundingBox();
     }
-    
+
     animationDirty_ = false;
 }
 
@@ -1163,23 +1157,22 @@ void AnimatedModel::UpdateBoneBoundingBox()
         // The bone bounding box is in local space, so need the node's inverse transform
         boneBoundingBox_.defined_ = false;
         Matrix3x4 inverseNodeTransform = node_->GetWorldTransform().Inverse();
-        
-        const Vector<Bone>& bones = skeleton_.GetBones();
-        for (Vector<Bone>::ConstIterator i = bones.Begin(); i != bones.End(); ++i)
+
+        for (const Bone &bone : skeleton_.GetBones())
         {
-            Node* boneNode = i->node_;
+            Node* boneNode = bone.node_;
             if (!boneNode)
                 continue;
 
             // Use hitbox if available. If not, use only half of the sphere radius
             /// \todo The sphere radius should be multiplied with bone scale
-            if (i->collisionMask_ & BONECOLLISION_BOX)
-                boneBoundingBox_.Merge(i->boundingBox_.Transformed(inverseNodeTransform * boneNode->GetWorldTransform()));
-            else if (i->collisionMask_ & BONECOLLISION_SPHERE)
-                boneBoundingBox_.Merge(Sphere(inverseNodeTransform * boneNode->GetWorldPosition(), i->radius_ * 0.5f));
+            if (bone.collisionMask_ & BONECOLLISION_BOX)
+                boneBoundingBox_.Merge(bone.boundingBox_.Transformed(inverseNodeTransform * boneNode->GetWorldTransform()));
+            else if (bone.collisionMask_ & BONECOLLISION_SPHERE)
+                boneBoundingBox_.Merge(Sphere(inverseNodeTransform * boneNode->GetWorldPosition(), bone.radius_ * 0.5f));
         }
     }
-    
+
     boneBoundingBoxDirty_ = false;
     worldBoundingBoxDirty_ = true;
 }
@@ -1253,7 +1246,7 @@ void AnimatedModel::UpdateMorphs()
                         if (morphs_[j].weight_ > 0.0f)
                         {
                             HashMap<unsigned, VertexBufferMorph>::Iterator k = morphs_[j].buffers_.Find(i);
-                            if (k != morphs_[j].buffers_.End())
+                            if (k != morphs_[j].buffers_.end())
                                 ApplyMorph(buffer, dest, morphStart, k->second_, morphs_[j].weight_);
                         }
                     }

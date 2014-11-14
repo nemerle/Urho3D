@@ -156,7 +156,7 @@ void StaticModel::UpdateBatches(const FrameInfo& frame)
 Geometry* StaticModel::GetLodGeometry(unsigned batchIndex, unsigned level)
 {
     if (batchIndex >= geometries_.Size())
-        return 0;
+        return nullptr;
     
     // If level is out of range, use visible geometry
     if (level < geometries_[batchIndex].Size())
@@ -324,7 +324,7 @@ void StaticModel::ApplyMaterialList(const String& fileName)
 
 Material* StaticModel::GetMaterial(unsigned index) const
 {
-    return index < batches_.Size() ? batches_[index].material_ : (Material*)0;
+    return index < batches_.Size() ? batches_[index].material_ : (Material*)nullptr;
 }
 
 bool StaticModel::IsInside(const Vector3& point) const

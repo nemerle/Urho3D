@@ -53,8 +53,8 @@ Audio::Audio(Context* context) :
     sampleSize_(0),
     playing_(false)
 {
-    for (unsigned i = 0; i < MAX_SOUND_TYPES; ++i)
-        masterGain_[i] = 1.0f;
+    for (auto & elem : masterGain_)
+        elem = 1.0f;
     
     // Register Audio library object factories
     RegisterAudioLibrary(context_);
@@ -89,7 +89,7 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
     if (Abs((int)desired.samples / 2 - bufferSamples) < Abs((int)desired.samples - bufferSamples))
         desired.samples /= 2;
     
-    deviceID_ = SDL_OpenAudioDevice(0, SDL_FALSE, &desired, &obtained, SDL_AUDIO_ALLOW_ANY_CHANGE);
+    deviceID_ = SDL_OpenAudioDevice(nullptr, SDL_FALSE, &desired, &obtained, SDL_AUDIO_ALLOW_ANY_CHANGE);
     if (!deviceID_)
     {
         LOGERROR("Could not initialize audio output");
@@ -164,10 +164,10 @@ void Audio::SetListener(SoundListener* listener)
 
 void Audio::StopSound(Sound* soundClip)
 {
-    for (PODVector<SoundSource*>::Iterator i = soundSources_.Begin(); i != soundSources_.End(); ++i)
+    for (auto & elem : soundSources_)
     {
-        if ((*i)->GetSound() == soundClip)
-            (*i)->Stop();
+        if ((elem)->GetSound() == soundClip)
+            (elem)->Stop();
     }
 }
 
@@ -193,7 +193,7 @@ void Audio::AddSoundSource(SoundSource* channel)
 void Audio::RemoveSoundSource(SoundSource* channel)
 {
     PODVector<SoundSource*>::Iterator i = soundSources_.Find(channel);
-    if (i != soundSources_.End())
+    if (i != soundSources_.end())
     {
         MutexLock lock(audioMutex_);
         soundSources_.Erase(i);
@@ -231,8 +231,8 @@ void Audio::MixOutput(void *dest, unsigned samples)
         memset(clipPtr, 0, clipSamples * sizeof(int));
         
         // Mix samples to clip buffer
-        for (PODVector<SoundSource*>::Iterator i = soundSources_.Begin(); i != soundSources_.End(); ++i)
-            (*i)->Mix(clipPtr, workSamples, mixRate_, stereo_, interpolation_);
+        for (auto & elem : soundSources_)
+            (elem)->Mix(clipPtr, workSamples, mixRate_, stereo_, interpolation_);
         
         // Copy output from clip buffer to destination
         short* destPtr = (short*)dest;

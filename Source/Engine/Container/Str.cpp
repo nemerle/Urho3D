@@ -72,7 +72,7 @@ String::String(long value) :
     sprintf(tempBuffer, "%ld", value);
     *this = tempBuffer;
 }
-    
+
 String::String(long long value) :
     length_(0),
     capacity_(0),
@@ -112,7 +112,7 @@ String::String(unsigned long value) :
     sprintf(tempBuffer, "%lu", value);
     *this = tempBuffer;
 }
-    
+
 String::String(unsigned long long value) :
     length_(0),
     capacity_(0),
@@ -227,7 +227,7 @@ void String::Replace(char replaceThis, char replaceWith, bool caseSensitive)
 void String::Replace(const String& replaceThis, const String& replaceWith, bool caseSensitive)
 {
     unsigned nextPos = 0;
-    
+
     while (nextPos < length_)
     {
         unsigned pos = Find(replaceThis, nextPos, caseSensitive);
@@ -243,7 +243,7 @@ void String::Replace(unsigned pos, unsigned length, const String& replaceWith)
     // If substring is illegal, do nothing
     if (pos + length > length_)
         return;
-    
+
     Replace(pos, length, replaceWith.buffer_, replaceWith.length_);
 }
 
@@ -252,19 +252,19 @@ void String::Replace(unsigned pos, unsigned length, const char* replaceWith)
     // If substring is illegal, do nothing
     if (pos + length > length_)
         return;
-    
+
     Replace(pos, length, replaceWith, CStringLength(replaceWith));
 }
 
-String::Iterator String::Replace(const String::Iterator& start, const String::Iterator& end, const String& replaceWith)
+String::Iterator String::Replace(const String::Iterator& start, const String::Iterator& fin, const String& replaceWith)
 {
-    unsigned pos = start - Begin();
+    unsigned pos = start - begin();
     if (pos >= length_)
-        return End();
-    unsigned length = end - start;
+        return end();
+    unsigned length = fin - start;
     Replace(pos, length, replaceWith);
-    
-    return Begin() + pos;
+
+    return begin() + pos;
 }
 
 String String::Replaced(char replaceThis, char replaceWith, bool caseSensitive) const
@@ -311,7 +311,7 @@ void String::Insert(unsigned pos, const String& str)
 {
     if (pos > length_)
         pos = length_;
-    
+
     if (pos == length_)
         (*this) += str;
     else
@@ -322,7 +322,7 @@ void String::Insert(unsigned pos, char c)
 {
     if (pos > length_)
         pos = length_;
-    
+
     if (pos == length_)
         (*this) += c;
     else
@@ -336,33 +336,33 @@ void String::Insert(unsigned pos, char c)
 
 String::Iterator String::Insert(const String::Iterator& dest, const String& str)
 {
-    unsigned pos = dest - Begin();
+    unsigned pos = dest - begin();
     if (pos > length_)
         pos = length_;
     Insert(pos, str);
-    
-    return Begin() + pos;
+
+    return begin() + pos;
 }
 
 String::Iterator String::Insert(const String::Iterator& dest, const String::Iterator& start, const String::Iterator& end)
 {
-    unsigned pos = dest - Begin();
+    unsigned pos = dest - begin();
     if (pos > length_)
         pos = length_;
     unsigned length = end - start;
     Replace(pos, 0, &(*start), length);
-    
-    return Begin() + pos;
+
+    return begin() + pos;
 }
 
 String::Iterator String::Insert(const String::Iterator& dest, char c)
 {
-    unsigned pos = dest - Begin();
+    unsigned pos = dest - begin();
     if (pos > length_)
         pos = length_;
     Insert(pos, c);
-    
-    return Begin() + pos;
+
+    return begin() + pos;
 }
 
 void String::Erase(unsigned pos, unsigned length)
@@ -372,23 +372,23 @@ void String::Erase(unsigned pos, unsigned length)
 
 String::Iterator String::Erase(const String::Iterator& it)
 {
-    unsigned pos = it - Begin();
+    unsigned pos = it - begin();
     if (pos >= length_)
-        return End();
+        return end();
     Erase(pos);
-    
-    return Begin() + pos;
+
+    return begin() + pos;
 }
 
-String::Iterator String::Erase(const String::Iterator& start, const String::Iterator& end)
+String::Iterator String::Erase(const String::Iterator& start, const String::Iterator& fin)
 {
-    unsigned pos = start - Begin();
+    unsigned pos = start - begin();
     if (pos >= length_)
-        return End();
-    unsigned length = end - start;
+        return end();
+    unsigned length = fin - start;
     Erase(pos, length);
-    
-    return Begin() + pos;
+
+    return begin() + pos;
 }
 
 void String::Resize(unsigned newLength)
@@ -398,12 +398,12 @@ void String::Resize(unsigned newLength)
         // If zero length requested, do not allocate buffer yet
         if (!newLength)
             return;
-        
+
         // Calculate initial capacity
         capacity_ = newLength + 1;
         if (capacity_ < MIN_CAPACITY)
             capacity_ = MIN_CAPACITY;
-        
+
         buffer_ = new char[capacity_];
     }
     else
@@ -413,17 +413,17 @@ void String::Resize(unsigned newLength)
             // Increase the capacity with half each time it is exceeded
             while (capacity_ < newLength + 1)
                 capacity_ += (capacity_ + 1) >> 1;
-            
+
             char* newBuffer = new char[capacity_];
             // Move the existing data to the new buffer, then delete the old buffer
             if (length_)
                 CopyChars(newBuffer, buffer_, length_);
             delete[] buffer_;
-            
+
             buffer_ = newBuffer;
         }
     }
-    
+
     buffer_[newLength] = 0;
     length_ = newLength;
 }
@@ -434,13 +434,13 @@ void String::Reserve(unsigned newCapacity)
         newCapacity = length_ + 1;
     if (newCapacity == capacity_)
         return;
-    
+
     char* newBuffer = new char[newCapacity];
     // Move the existing data to the new buffer, then delete the old buffer
     CopyChars(newBuffer, buffer_, length_ + 1);
     if (capacity_)
         delete[] buffer_;
-    
+
     capacity_ = newCapacity;
     buffer_ = newBuffer;
 }
@@ -470,7 +470,7 @@ String String::Substring(unsigned pos) const
         String ret;
         ret.Resize(length_ - pos);
         CopyChars(ret.buffer_, buffer_ + pos, ret.length_);
-        
+
         return ret;
     }
     else
@@ -486,7 +486,7 @@ String String::Substring(unsigned pos, unsigned length) const
             length = length_ - pos;
         ret.Resize(length);
         CopyChars(ret.buffer_, buffer_ + pos, ret.length_);
-        
+
         return ret;
     }
     else
@@ -497,7 +497,7 @@ String String::Trimmed() const
 {
     unsigned trimStart = 0;
     unsigned trimEnd = length_;
-    
+
     while (trimStart < trimEnd)
     {
         char c = buffer_[trimStart];
@@ -512,7 +512,7 @@ String String::Trimmed() const
             break;
         --trimEnd;
     }
-    
+
     return Substring(trimStart, trimEnd - trimStart);
 }
 
@@ -521,7 +521,7 @@ String String::ToLower() const
     String ret(*this);
     for (unsigned i = 0; i < ret.length_; ++i)
         ret[i] = tolower(buffer_[i]);
-    
+
     return ret;
 }
 
@@ -530,7 +530,7 @@ String String::ToUpper() const
     String ret(*this);
     for (unsigned i = 0; i < ret.length_; ++i)
         ret[i] = toupper(buffer_[i]);
-    
+
     return ret;
 }
 
@@ -538,7 +538,7 @@ Vector<String> String::Split(char separator) const
 {
     return Split(CString(), separator);
 }
-    
+
 void String::Join(const Vector<String>& subStrings, String glue)
 {
     *this = Joined(subStrings, glue);
@@ -563,7 +563,7 @@ unsigned String::Find(char c, unsigned startPos, bool caseSensitive) const
                 return i;
         }
     }
-    
+
     return NPOS;
 }
 
@@ -571,7 +571,7 @@ unsigned String::Find(const String& str, unsigned startPos, bool caseSensitive) 
 {
     if (!str.length_ || str.length_ > length_)
         return NPOS;
-    
+
     char first = str.buffer_[0];
     if (!caseSensitive)
         first = tolower(first);
@@ -611,7 +611,7 @@ unsigned String::Find(const String& str, unsigned startPos, bool caseSensitive) 
                 return i;
         }
     }
-    
+
     return NPOS;
 }
 
@@ -619,7 +619,7 @@ unsigned String::FindLast(char c, unsigned startPos, bool caseSensitive) const
 {
     if (startPos >= length_)
         startPos = length_ - 1;
-    
+
     if (caseSensitive)
     {
         for (unsigned i = startPos; i < length_; --i)
@@ -637,7 +637,7 @@ unsigned String::FindLast(char c, unsigned startPos, bool caseSensitive) const
                 return i;
         }
     }
-    
+
     return NPOS;
 }
 
@@ -647,7 +647,7 @@ unsigned String::FindLast(const String& str, unsigned startPos, bool caseSensiti
         return NPOS;
     if (startPos > length_ - str.length_)
         startPos = length_ - str.length_;
-    
+
     char first = str.buffer_[0];
     if (!caseSensitive)
         first = tolower(first);
@@ -681,7 +681,7 @@ unsigned String::FindLast(const String& str, unsigned startPos, bool caseSensiti
                 return i;
         }
     }
-    
+
     return NPOS;
 }
 
@@ -709,12 +709,12 @@ int String::Compare(const char* str, bool caseSensitive) const
 void String::SetUTF8FromLatin1(const char* str)
 {
     char temp[7];
-    
+
     Clear();
-    
+
     if (!str)
         return;
-    
+
     while (*str)
     {
         char* dest = temp;
@@ -727,12 +727,12 @@ void String::SetUTF8FromLatin1(const char* str)
 void String::SetUTF8FromWChar(const wchar_t* str)
 {
     char temp[7];
-    
+
     Clear();
-    
+
     if (!str)
         return;
-    
+
     #ifdef WIN32
     while (*str)
     {
@@ -756,18 +756,18 @@ void String::SetUTF8FromWChar(const wchar_t* str)
 unsigned String::LengthUTF8() const
 {
     unsigned ret = 0;
-    
+
     const char* src = buffer_;
     if (!src)
         return ret;
     const char* end = buffer_ + length_;
-    
+
     while (src < end)
     {
         DecodeUTF8(src);
         ++ret;
     }
-    
+
     return ret;
 }
 
@@ -775,13 +775,13 @@ unsigned String::ByteOffsetUTF8(unsigned index) const
 {
     unsigned byteOffset = 0;
     unsigned utfPos = 0;
-    
+
     while (utfPos < index && byteOffset < length_)
     {
         NextUTF8Char(byteOffset);
         ++utfPos;
     }
-    
+
     return byteOffset;
 }
 
@@ -789,11 +789,11 @@ unsigned String::NextUTF8Char(unsigned& byteOffset) const
 {
     if (!buffer_)
         return 0;
-    
+
     const char* src = buffer_ + byteOffset;
     unsigned ret = DecodeUTF8(src);
     byteOffset = src - buffer_;
-    
+
     return ret;
 }
 
@@ -807,24 +807,24 @@ void String::ReplaceUTF8(unsigned index, unsigned unicodeChar)
 {
     unsigned utfPos = 0;
     unsigned byteOffset = 0;
-    
+
     while (utfPos < index && byteOffset < length_)
     {
         NextUTF8Char(byteOffset);
         ++utfPos;
     }
-    
+
     if (utfPos < index)
         return;
-    
+
     unsigned beginCharPos = byteOffset;
     NextUTF8Char(byteOffset);
-    
+
     char temp[7];
     char* dest = temp;
     EncodeUTF8(dest, unicodeChar);
     *dest = 0;
-    
+
     Replace(beginCharPos, byteOffset - beginCharPos, temp, dest - temp);
 }
 
@@ -842,13 +842,13 @@ String String::SubstringUTF8(unsigned pos) const
     unsigned utf8Length = LengthUTF8();
     unsigned byteOffset = ByteOffsetUTF8(pos);
     String ret;
-    
+
     while (pos < utf8Length)
     {
         ret.AppendUTF8(NextUTF8Char(byteOffset));
         ++pos;
     }
-    
+
     return ret;
 }
 
@@ -858,13 +858,13 @@ String String::SubstringUTF8(unsigned pos, unsigned length) const
     unsigned byteOffset = ByteOffsetUTF8(pos);
     unsigned endPos = pos + length;
     String ret;
-    
+
     while (pos < endPos && pos < utf8Length)
     {
         ret.AppendUTF8(NextUTF8Char(byteOffset));
         ++pos;
     }
-    
+
     return ret;
 }
 
@@ -918,11 +918,11 @@ void String::EncodeUTF8(char*& dest, unsigned unicodeChar)
 
 unsigned String::DecodeUTF8(const char*& src)
 {
-    if (src == 0)
+    if (src == nullptr)
         return 0;
-    
+
     unsigned char char1 = *src++;
-    
+
     // Check if we are in the middle of a UTF8 character
     if (char1 >= 0x80 && char1 < 0xc0)
     {
@@ -930,7 +930,7 @@ unsigned String::DecodeUTF8(const char*& src)
             ++src;
         return '?';
     }
-    
+
     if (char1 < 0x80)
         return char1;
     else if (char1 < 0xe0)
@@ -988,9 +988,9 @@ unsigned String::DecodeUTF16(const wchar_t*& src)
 {
     if (src == 0)
         return 0;
-    
+
     unsigned short word1 = *src;
-    
+
     // Check if we are at a low surrogate
     word1 = *src++;
     if (word1 >= 0xdc00 && word1 < 0xe000)
@@ -999,7 +999,7 @@ unsigned String::DecodeUTF16(const wchar_t*& src)
             ++src;
         return '?';
     }
-    
+
     if (word1 < 0xd800 || word1 >= 0xe00)
         return word1;
     else
@@ -1021,46 +1021,46 @@ Vector<String> String::Split(const char* str, char separator)
     Vector<String> ret;
     unsigned pos = 0;
     unsigned length = CStringLength(str);
-    
+
     while (pos < length)
     {
         if (str[pos] != separator)
             break;
         ++pos;
     }
-    
+
     while (pos < length)
     {
         unsigned start = pos;
-        
+
         while (start < length)
         {
             if (str[start] == separator)
                 break;
-            
+
             ++start;
         }
-        
+
         if (start == length)
         {
             ret.Push(String(&str[pos]));
             break;
         }
-        
+
         unsigned end = start;
-        
+
         while (end < length)
         {
             if (str[end] != separator)
                 break;
-            
+
             ++end;
         }
-        
+
         ret.Push(String(&str[pos], start - pos));
         pos = end;
     }
-    
+
     return ret;
 }
 
@@ -1068,11 +1068,11 @@ String String::Joined(const Vector<String>& subStrings, String glue)
 {
     if (subStrings.Empty())
         return String();
-    
+
     String joinedString(subStrings[0]);
     for (unsigned i = 1; i < subStrings.Size(); ++i)
         joinedString.Append(glue).Append(subStrings[i]);
-    
+
     return joinedString;
 }
 
@@ -1097,11 +1097,11 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
         Append(formatString + lastPos, pos - lastPos);
         if (pos >= length)
             return *this;
-        
+
         char arg = formatString[pos + 1];
         pos += 2;
         lastPos = pos;
-        
+
         switch (arg)
         {
         // Integer
@@ -1112,7 +1112,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(String(arg));
                 break;
             }
-            
+
         // Unsigned
         case 'u':
             {
@@ -1120,7 +1120,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(String(arg));
                 break;
             }
-            
+
         // Real
         case 'f':
             {
@@ -1128,7 +1128,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(String(arg));
                 break;
             }
-            
+
         // Character
         case 'c':
             {
@@ -1136,7 +1136,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(arg);
                 break;
             }
-            
+
         // C string
         case 's':
             {
@@ -1144,7 +1144,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(arg);
                 break;
             }
-            
+
         // Hex
         case 'x':
             {
@@ -1154,7 +1154,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(buf, arglen);
                 break;
             }
-            
+
         // Pointer
         case 'p':
             {
@@ -1164,7 +1164,7 @@ String& String::AppendWithFormatArgs(const char* formatString, va_list args)
                 Append(buf, arglen);
                 break;
             }
-            
+
         case '%':
             {
                 Append("%", 1);
@@ -1180,7 +1180,7 @@ int String::Compare(const char* lhs, const char* rhs, bool caseSensitive)
 {
     if (!lhs || !rhs)
         return lhs ? 1 : (rhs ? -1 : 0);
-    
+
     if (caseSensitive)
         return strcmp(lhs, rhs);
     else
@@ -1195,7 +1195,7 @@ int String::Compare(const char* lhs, const char* rhs, bool caseSensitive)
                 return -1;
             if (l > r)
                 return 1;
-            
+
             ++lhs;
             ++rhs;
         }
@@ -1205,7 +1205,7 @@ int String::Compare(const char* lhs, const char* rhs, bool caseSensitive)
 void String::Replace(unsigned pos, unsigned length, const char* srcStart, unsigned srcLength)
 {
     int delta = (int)srcLength - (int)length;
-    
+
     if (pos + length < length_)
     {
         if (delta < 0)
@@ -1221,24 +1221,24 @@ void String::Replace(unsigned pos, unsigned length, const char* srcStart, unsign
     }
     else
         Resize(length_ + delta);
-    
+
     CopyChars(buffer_ + pos, srcStart, srcLength);
 }
 
 WString::WString() :
     length_(0),
-    buffer_(0)
+    buffer_(nullptr)
 {
 }
 
 WString::WString(const String& str) :
     length_(0),
-    buffer_(0)
+    buffer_(nullptr)
 {
     #ifdef WIN32
     unsigned neededSize = 0;
     wchar_t temp[3];
-    
+
     unsigned byteOffset = 0;
     while (byteOffset < str.Length())
     {
@@ -1246,16 +1246,16 @@ WString::WString(const String& str) :
         String::EncodeUTF16(dest, str.NextUTF8Char(byteOffset));
         neededSize += dest - temp;
     }
-    
+
     Resize(neededSize);
-    
+
     byteOffset = 0;
     wchar_t* dest = buffer_;
     while (byteOffset < str.Length())
         String::EncodeUTF16(dest, str.NextUTF8Char(byteOffset));
     #else
     Resize(str.LengthUTF8());
-    
+
     unsigned byteOffset = 0;
     wchar_t* dest = buffer_;
     while (byteOffset < str.Length())
@@ -1273,7 +1273,7 @@ void WString::Resize(unsigned newLength)
     if (!newLength)
     {
         delete[] buffer_;
-        buffer_ = 0;
+        buffer_ = nullptr;
         length_ = 0;
     }
     else

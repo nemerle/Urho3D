@@ -419,10 +419,10 @@ void Renderer::SetMaxShadowMaps(int shadowMaps)
         return;
     
     maxShadowMaps_ = shadowMaps;
-    for (HashMap<int, Vector<SharedPtr<Texture2D> > >::Iterator i = shadowMaps_.Begin(); i != shadowMaps_.End(); ++i)
+    for (auto & elem : shadowMaps_)
     {
-        if ((int)i->second_.Size() > maxShadowMaps_)
-            i->second_.Resize(maxShadowMaps_);
+        if ((int)elem.second_.Size() > maxShadowMaps_)
+            elem.second_.Resize(maxShadowMaps_);
     }
 }
 
@@ -482,7 +482,7 @@ void Renderer::ReloadShaders()
 
 Viewport* Renderer::GetViewport(unsigned index) const
 {
-    return index < viewports_.Size() ? viewports_[index] : (Viewport*)0;
+    return index < viewports_.Size() ? viewports_[index] : (Viewport*)nullptr;
 }
 
 RenderPath* Renderer::GetDefaultRenderPath() const
@@ -530,9 +530,9 @@ unsigned Renderer::GetNumShadowMaps(bool allViews) const
         
         const Vector<LightBatchQueue>& lightQueues = views_[i]->GetLightQueues();
         
-        for (Vector<LightBatchQueue>::ConstIterator i = lightQueues.Begin(); i != lightQueues.End(); ++i)
+        for (const auto & lightQueue : lightQueues)
         {
-            if (i->shadowMap_)
+            if (lightQueue.shadowMap_)
                 ++numShadowMaps;
         }
     }
@@ -568,7 +568,7 @@ void Renderer::Update(float timeStep)
     // Set up the frameinfo structure for this frame
     frame_.frameNumber_ = GetSubsystem<Time>()->GetFrameNumber();
     frame_.timeStep_ = timeStep;
-    frame_.camera_ = 0;
+    frame_.camera_ = nullptr;
     numShadowCameras_ = 0;
     numOcclusionBuffers_ = 0;
     updatedOctrees_.Clear();
@@ -580,7 +580,7 @@ void Renderer::Update(float timeStep)
     // Queue update of the main viewports. Use reverse order, as rendering order is also reverse
     // to render auxiliary views before dependant main views
     for (unsigned i = viewports_.Size() - 1; i < viewports_.Size(); --i)
-        QueueViewport(0, viewports_[i]);
+        QueueViewport(nullptr, viewports_[i]);
     
     // Gather other render surfaces that are autoupdated
     SendEvent(E_RENDERSURFACEUPDATE);
@@ -637,7 +637,7 @@ void Renderer::Update(float timeStep)
         
         VariantMap& eventData = GetEventDataMap();
         eventData[P_SURFACE] = renderTarget.Get();
-        eventData[P_TEXTURE] = (renderTarget ? renderTarget->GetParentTexture() : 0);
+        eventData[P_TEXTURE] = (renderTarget ? renderTarget->GetParentTexture() : nullptr);
         eventData[P_SCENE] = scene;
         eventData[P_CAMERA] = viewport->GetCamera();
         SendEvent(E_BEGINVIEWUPDATE, eventData);
@@ -703,7 +703,7 @@ void Renderer::Render()
             
             VariantMap& eventData = GetEventDataMap();
             eventData[P_SURFACE] = renderTarget;
-            eventData[P_TEXTURE] = (renderTarget ? renderTarget->GetParentTexture() : 0);
+            eventData[P_TEXTURE] = (renderTarget ? renderTarget->GetParentTexture() : nullptr);
             eventData[P_SCENE] = views_[i]->GetScene();
             eventData[P_CAMERA] = views_[i]->GetCamera();
             SendEvent(E_BEGINVIEWRENDER, eventData);
@@ -799,7 +799,7 @@ Geometry* Renderer::GetLightGeometry(Light* light)
         return pointLightGeometry_;
     }
     
-    return 0;
+    return nullptr;
 }
 
 Geometry* Renderer::GetQuadGeometry()
@@ -879,14 +879,14 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
                 return shadowMaps_[searchKey][allocated];
             }
             else if ((int)allocated >= maxShadowMaps_)
-                return 0;
+                return nullptr;
         }
     }
     
     unsigned shadowMapFormat = (shadowQuality_ & SHADOWQUALITY_LOW_24BIT) ? graphics_->GetHiresShadowMapFormat() :
         graphics_->GetShadowMapFormat();
     if (!shadowMapFormat)
-        return 0;
+        return nullptr;
     
     SharedPtr<Texture2D> newShadowMap(new Texture2D(context_));
     int retries = 3;
@@ -961,7 +961,7 @@ Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, boo
         searchKey += ((long long)persistentKey << 32);
     
     // If new size or format, initialize the allocation stats
-    if (screenBuffers_.Find(searchKey) == screenBuffers_.End())
+    if (screenBuffers_.Find(searchKey) == screenBuffers_.end())
         screenBufferAllocations_[searchKey] = 0;
     
     // Reuse depth-stencil buffers whenever the size matches, instead of allocating new
@@ -985,7 +985,7 @@ Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, boo
             // Note: this loses current rendertarget assignment
             graphics_->ResetRenderTargets();
             graphics_->SetRenderTarget(0, newBuffer);
-            graphics_->SetDepthStencil((RenderSurface*)0);
+            graphics_->SetDepthStencil((RenderSurface*)nullptr);
             graphics_->SetViewport(IntRect(0, 0, width, height));
             graphics_->Clear(CLEAR_COLOR);
         }
@@ -1007,7 +1007,7 @@ RenderSurface* Renderer::GetDepthStencil(int width, int height)
     // Return the default depth-stencil surface if applicable
     // (when using OpenGL Graphics will allocate right size surfaces on demand to emulate Direct3D9)
     if (width == graphics_->GetWidth() && height == graphics_->GetHeight() && graphics_->GetMultiSample() <= 1)
-        return 0;
+        return nullptr;
     else
         return GetScreenBuffer(width, height, Graphics::GetDepthStencilFormat(), false, false)->GetRenderSurface();
 }
@@ -1086,8 +1086,8 @@ void Renderer::SetBatchShaders(Batch& batch, Technique* tech, bool allowShadows)
             if (!lightQueue)
             {
                 // Do not log error, as it would result in a lot of spam
-                batch.vertexShader_ = 0;
-                batch.pixelShader_ = 0;
+                batch.vertexShader_ = nullptr;
+                batch.pixelShader_ = nullptr;
                 return;
             }
             
@@ -1340,7 +1340,7 @@ const Rect& Renderer::GetLightScissor(Light* light, Camera* camera)
     Pair<Light*, Camera*> combination(light, camera);
     
     HashMap<Pair<Light*, Camera*>, Rect>::Iterator i = lightScissorCache_.Find(combination);
-    if (i != lightScissorCache_.End())
+    if (i != lightScissorCache_.end())
         return i->second_;
     
     const Matrix3x4& view = camera->GetView();
@@ -1377,7 +1377,7 @@ void Renderer::RemoveUnusedBuffers()
         }
     }
     
-    for (HashMap<long long, Vector<SharedPtr<Texture2D> > >::Iterator i = screenBuffers_.Begin(); i != screenBuffers_.End();)
+    for (HashMap<long long, Vector<SharedPtr<Texture2D> > >::Iterator i = screenBuffers_.begin(); i != screenBuffers_.end();)
     {
         HashMap<long long, Vector<SharedPtr<Texture2D> > >::Iterator current = i++;
         Vector<SharedPtr<Texture2D> >& buffers = current->second_;
@@ -1400,14 +1400,14 @@ void Renderer::RemoveUnusedBuffers()
 
 void Renderer::ResetShadowMapAllocations()
 {
-    for (HashMap<int, PODVector<Light*> >::Iterator i = shadowMapAllocations_.Begin(); i != shadowMapAllocations_.End(); ++i)
-        i->second_.Clear();
+    for (auto & elem : shadowMapAllocations_)
+        elem.second_.Clear();
 }
 
 void Renderer::ResetScreenBufferAllocations()
 {
-    for (HashMap<long long, unsigned>::Iterator i = screenBufferAllocations_.Begin(); i != screenBufferAllocations_.End(); ++i)
-        i->second_ = 0;
+    for (auto & elem : screenBufferAllocations_)
+        elem.second_ = 0;
 }
 
 void Renderer::Initialize()

@@ -40,8 +40,8 @@ namespace Urho3D
 
 Script::Script(Context* context) :
     Object(context),
-    scriptEngine_(0),
-    immediateContext_(0),
+    scriptEngine_(nullptr),
+    immediateContext_(nullptr),
     scriptNestingLevel_(0),
     executeConsoleCommands_(false)
 {
@@ -103,7 +103,7 @@ Script::~Script()
     if (immediateContext_)
     {
         immediateContext_->Release();
-        immediateContext_ = 0;
+        immediateContext_ = nullptr;
     }
 
     for (unsigned i = 0 ; i < scriptFileContexts_.Size(); ++i)
@@ -112,7 +112,7 @@ Script::~Script()
     if (scriptEngine_)
     {
         scriptEngine_->Release();
-        scriptEngine_ = 0;
+        scriptEngine_ = nullptr;
     }
 }
 
@@ -126,7 +126,7 @@ bool Script::Execute(const String& line)
     String wrappedLine = "void f(){\n" + line + ";\n}";
 
     // If no immediate mode script file set, create a dummy module for compiling the line
-    asIScriptModule* module = 0;
+    asIScriptModule* module = nullptr;
     if (defaultScriptFile_)
         module = defaultScriptFile_->GetScriptModule();
     if (!module)
@@ -134,7 +134,7 @@ bool Script::Execute(const String& line)
     if (!module)
         return false;
 
-    asIScriptFunction *function = 0;
+    asIScriptFunction *function = nullptr;
     if (module->CompileFunction("", wrappedLine.CString(), -1, 0, &function) < 0)
         return false;
 
@@ -243,7 +243,7 @@ void Script::ClearObjectTypeCache()
 asIObjectType* Script::GetObjectType(const char* declaration)
 {
     HashMap<const char*, asIObjectType*>::ConstIterator i = objectTypes_.Find(declaration);
-    if (i != objectTypes_.End())
+    if (i != objectTypes_.end())
         return i->second_;
 
     asIObjectType* type = scriptEngine_->GetObjectTypeById(scriptEngine_->GetTypeIdByDecl(declaration));

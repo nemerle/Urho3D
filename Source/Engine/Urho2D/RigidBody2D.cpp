@@ -43,7 +43,7 @@ static const char* bodyTypeNames[] =
     "Static",
     "Dynamic",
     "Kinematic",
-    0
+    nullptr
 };
 
 template<> BodyType2D Variant::Get<BodyType2D>() const
@@ -55,7 +55,7 @@ RigidBody2D::RigidBody2D(Context* context) :
     Component(context),
     massData_(),    // b2MassData structure does not have a constructor so need to zero-initialize all its members
     useFixtureMass_(true),
-    body_(0)
+    body_(nullptr)
 {
     // Make sure the massData's center is zero-initialized as well
     massData_.center.SetZero();
@@ -379,7 +379,7 @@ void RigidBody2D::ReleaseBody()
     }
 
     physicsWorld_->GetWorld()->DestroyBody(body_);
-    body_ = 0;
+    body_ = nullptr;
 }
 
 void RigidBody2D::ApplyWorldTransform()

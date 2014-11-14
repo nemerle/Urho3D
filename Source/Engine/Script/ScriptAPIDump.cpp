@@ -60,7 +60,7 @@ struct PropertyInfo
 void ExtractPropertyInfo(const String& functionName, const String& declaration, Vector<PropertyInfo>& propertyInfos)
 {
     String propertyName = functionName.Substring(4);
-    PropertyInfo* info = 0;
+    PropertyInfo* info = nullptr;
     for (unsigned k = 0; k < propertyInfos.Size(); ++k)
     {
         if (propertyInfos[k].name_ == propertyName)
@@ -201,7 +201,7 @@ void Script::DumpAPI(DumpMode mode)
         if (!headerFiles.Empty())
         {
             Log::WriteRaw("\n\\page EventList Event list\n");
-            Sort(headerFiles.Begin(), headerFiles.End());
+            Sort(headerFiles.begin(), headerFiles.end());
 
             for (unsigned i = 0; i < headerFiles.Size(); ++i)
             {
@@ -247,11 +247,10 @@ void Script::DumpAPI(DumpMode mode)
         const HashMap<StringHash, Vector<AttributeInfo> >& attributes = context_->GetAllAttributes();
 
         Vector<String> objectTypes;
-        for (HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes.Begin(); i != attributes.End();
-            ++i)
-            objectTypes.Push(context_->GetTypeName(i->first_));
+        for (const auto & attribute : attributes)
+            objectTypes.Push(context_->GetTypeName(attribute.first_));
         
-        Sort(objectTypes.Begin(), objectTypes.End());
+        Sort(objectTypes.begin(), objectTypes.end());
         
         for (unsigned i = 0; i < objectTypes.Size(); ++i)
         {
@@ -319,7 +318,7 @@ void Script::DumpAPI(DumpMode mode)
             sortedTypes.Push(MakePair(typeName, i));
         }
     }
-    Sort(sortedTypes.Begin(), sortedTypes.End());
+    Sort(sortedTypes.begin(), sortedTypes.end());
     
     if (mode == DOXYGEN)
     {
@@ -427,8 +426,8 @@ void Script::DumpAPI(DumpMode mode)
                 propertyInfos.Push(newInfo);
             }
             
-            Sort(methodDeclarations.Begin(), methodDeclarations.End(), ComparePropertyStrings);
-            Sort(propertyInfos.Begin(), propertyInfos.End(), ComparePropertyInfos);
+            Sort(methodDeclarations.begin(), methodDeclarations.end(), ComparePropertyStrings);
+            Sort(propertyInfos.begin(), propertyInfos.end(), ComparePropertyInfos);
             
             if (!methodDeclarations.Empty())
             {
@@ -494,8 +493,8 @@ void Script::DumpAPI(DumpMode mode)
             globalFunctions.Push(declaration);
     }
 
-    Sort(globalFunctions.Begin(), globalFunctions.End(), ComparePropertyStrings);
-    Sort(globalPropertyInfos.Begin(), globalPropertyInfos.End(), ComparePropertyInfos);
+    Sort(globalFunctions.begin(), globalFunctions.end(), ComparePropertyStrings);
+    Sort(globalPropertyInfos.begin(), globalPropertyInfos.end(), ComparePropertyInfos);
 
     if (mode == DOXYGEN)
         Log::WriteRaw("\\section ScriptAPI_Enums Enumerations\n");
@@ -509,7 +508,7 @@ void Script::DumpAPI(DumpMode mode)
         int typeId;
         sortedEnums.Push(MakePair(String(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
     }
-    Sort(sortedEnums.Begin(), sortedEnums.End());
+    Sort(sortedEnums.begin(), sortedEnums.end());
     
     for (unsigned i = 0; i < sortedEnums.Size(); ++i)
     {
@@ -560,14 +559,14 @@ void Script::DumpAPI(DumpMode mode)
         const char* propertyName;
         const char* propertyDeclaration;
         int typeId;
-        scriptEngine_->GetGlobalPropertyByIndex(i, &propertyName, 0, &typeId);
+        scriptEngine_->GetGlobalPropertyByIndex(i, &propertyName, nullptr, &typeId);
         propertyDeclaration = scriptEngine_->GetTypeDeclaration(typeId);
 
         String type(propertyDeclaration);
         globalConstants.Push(type + " " + String(propertyName));
     }
     
-    Sort(globalConstants.Begin(), globalConstants.End(), ComparePropertyStrings);
+    Sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);
     
     for (unsigned i = 0; i < globalConstants.Size(); ++i)
         OutputAPIRow(mode, globalConstants[i], true);

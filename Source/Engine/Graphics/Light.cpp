@@ -59,7 +59,7 @@ static const char* typeNames[] =
     "Directional",
     "Spot",
     "Point",
-    0
+    nullptr
 };
 
 void BiasParameters::Validate()
@@ -70,8 +70,8 @@ void BiasParameters::Validate()
 
 void CascadeParameters::Validate()
 {
-    for (unsigned i = 0; i < MAX_CASCADE_SPLITS; ++i)
-        splits_[i] = Max(splits_[i], 0.0f);
+    for (auto & elem : splits_)
+        elem = Max(elem, 0.0f);
     fadeStart_ = Clamp(fadeStart_, M_EPSILON, 1.0f);
 }
 
@@ -92,7 +92,7 @@ Light::Light(Context* context) :
     shadowBias_(BiasParameters(DEFAULT_CONSTANTBIAS, DEFAULT_SLOPESCALEDBIAS)),
     shadowCascade_(CascadeParameters(DEFAULT_SHADOWSPLIT, 0.0f, 0.0f, 0.0f, DEFAULT_SHADOWFADESTART)),
     shadowFocus_(FocusParameters(true, true, true, DEFAULT_SHADOWQUANTIZE, DEFAULT_SHADOWMINVIEW)),
-    lightQueue_(0),
+    lightQueue_(nullptr),
     specularIntensity_(DEFAULT_SPECULARINTENSITY),
     brightness_(DEFAULT_BRIGHTNESS),
     range_(DEFAULT_RANGE),

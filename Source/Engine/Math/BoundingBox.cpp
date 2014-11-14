@@ -158,9 +158,9 @@ Rect BoundingBox::Projected(const Matrix4& projection) const
     vertices[7] = projMax;
     
     Rect rect;
-    for (unsigned i = 0; i < 8; ++i)
+    for (auto & vertex : vertices)
     {
-        Vector3 projected = projection * vertices[i];
+        Vector3 projected = projection * vertex;
         rect.Merge(Vector2(projected.x_, projected.y_));
     }
     

@@ -39,7 +39,7 @@ static const char* fillModeNames[] =
     "Solid",
     "Wireframe",
     "Point",
-    0
+    nullptr
 };
 
 static const Matrix4 flipMatrix(

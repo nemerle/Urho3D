@@ -570,11 +570,11 @@ static CScriptArray* NodeGetChildrenWithClassName(const String& className, bool 
     PODVector<Node*> result;
 
     ptr->GetChildrenWithComponent<ScriptInstance>(nodes, recursive);
-    for (PODVector<Node*>::Iterator i = nodes.Begin(); i != nodes.End(); ++i)
+    for (PODVector<Node*>::Iterator i = nodes.begin(); i != nodes.end(); ++i)
     {
         Node* node = *i;
         const Vector<SharedPtr<Component> >& components = node->GetComponents();
-        for (Vector<SharedPtr<Component> >::ConstIterator j = components.Begin(); j != components.End(); ++j)
+        for (Vector<SharedPtr<Component> >::ConstIterator j = components.begin(); j != components.end(); ++j)
         {
             if ((*j)->GetType() == ScriptInstance::GetTypeStatic())
             {

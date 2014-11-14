@@ -77,7 +77,7 @@ bool Animatable::LoadXML(const XMLElement& source, bool setInstanceDefault)
     if (!Serializable::LoadXML(source, setInstanceDefault))
         return false;
 
-    SetObjectAnimation(0);
+    SetObjectAnimation(nullptr);
     attributeAnimationInfos_.Clear();
 
     XMLElement elem = source.GetChild("objectanimation");
@@ -131,20 +131,20 @@ bool Animatable::SaveXML(XMLElement& dest) const
             return false;
     }
 
-    for (HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.Begin(); i != attributeAnimationInfos_.End(); ++i)
+    for (const auto & _i : attributeAnimationInfos_)
     {
-        ValueAnimation* attributeAnimation = i->second_->GetAnimation();
+        ValueAnimation* attributeAnimation = _i.second_->GetAnimation();
         if (attributeAnimation->GetOwner())
             continue;
 
-        const AttributeInfo& attr = i->second_->GetAttributeInfo();
+        const AttributeInfo& attr = _i.second_->GetAttributeInfo();
         XMLElement elem = dest.CreateChild("attributeanimation");
         elem.SetAttribute("name", attr.name_);
         if (!attributeAnimation->SaveXML(elem))
             return false;
 
-        elem.SetAttribute("wrapmode", wrapModeNames[i->second_->GetWrapMode()]);
-        elem.SetFloat("speed", i->second_->GetSpeed());
+        elem.SetAttribute("wrapmode", wrapModeNames[_i.second_->GetWrapMode()]);
+        elem.SetFloat("speed", _i.second_->GetSpeed());
     }
 
     return true;
@@ -178,7 +178,7 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
         }
 
         // Get attribute info
-        const AttributeInfo* attributeInfo = 0;
+        const AttributeInfo* attributeInfo = nullptr;
         if (info)
             attributeInfo = &info->GetAttributeInfo();
         else
@@ -190,11 +190,11 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
                 return;
             }
 
-            for (Vector<AttributeInfo>::ConstIterator i = attributes->Begin(); i != attributes->End(); ++i)
+            for (const auto & attribute : *attributes)
             {
-                if (name == (*i).name_)
+                if (name == (attribute).name_)
                 {
-                    attributeInfo = &(*i);
+                    attributeInfo = &(attribute);
                     break;
                 }
             }
@@ -258,7 +258,7 @@ ObjectAnimation* Animatable::GetObjectAnimation() const
 ValueAnimation* Animatable::GetAttributeAnimation(const String& name) const
 {
     const AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
-    return info ? info->GetAnimation() : 0;
+    return info ? info->GetAnimation() : nullptr;
 }
 
 WrapMode Animatable::GetAttributeAnimationWrapMode(const String& name) const
@@ -299,10 +299,10 @@ void Animatable::OnObjectAnimationAdded(ObjectAnimation* objectAnimation)
 
     // Set all attribute animations from the object animation
     const HashMap<String, SharedPtr<ValueAnimationInfo> >& attributeAnimationInfos = objectAnimation->GetAttributeAnimationInfos();
-    for (HashMap<String, SharedPtr<ValueAnimationInfo> >::ConstIterator i = attributeAnimationInfos.Begin(); i != attributeAnimationInfos.End(); ++i)
+    for (const auto & attributeAnimationInfo : attributeAnimationInfos)
     {
-        const String& name = i->first_;
-        ValueAnimationInfo* info = i->second_;
+        const String& name = attributeAnimationInfo.first_;
+        ValueAnimationInfo* info = attributeAnimationInfo.second_;
         SetObjectAttributeAnimation(name, info->GetAnimation(), info->GetWrapMode(), info->GetSpeed());
     }
 }
@@ -314,14 +314,14 @@ void Animatable::OnObjectAnimationRemoved(ObjectAnimation* objectAnimation)
 
     // Just remove all attribute animations from the object animation
     Vector<String> names;
-    for (HashMap<String, SharedPtr<AttributeAnimationInfo> >::Iterator i = attributeAnimationInfos_.Begin(); i != attributeAnimationInfos_.End(); ++i)
+    for (auto & elem : attributeAnimationInfos_)
     {
-        if (i->second_->GetAnimation()->GetOwner() == objectAnimation)
-            names.Push(i->first_);
+        if (elem.second_->GetAnimation()->GetOwner() == objectAnimation)
+            names.Push(elem.first_);
     }
 
     for (unsigned i = 0; i < names.Size(); ++i)
-        SetObjectAttributeAnimation(names[i], 0, WM_LOOP, 1.0f);
+        SetObjectAttributeAnimation(names[i], nullptr, WM_LOOP, 1.0f);
 }
 
 void Animatable::UpdateAttributeAnimations(float timeStep)
@@ -330,28 +330,28 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
         return;
 
     Vector<String> finishedNames;
-    for (HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.Begin(); i != attributeAnimationInfos_.End(); ++i)
+    for (HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
     {
         if (i->second_->Update(timeStep))
             finishedNames.Push(i->second_->GetAttributeInfo().name_);
     }
 
     for (unsigned i = 0; i < finishedNames.Size(); ++i)
-        SetAttributeAnimation(finishedNames[i], 0);
+        SetAttributeAnimation(finishedNames[i], nullptr);
 }
 
 bool Animatable::IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const
 {
-    return animatedNetworkAttributes_.Find(&attrInfo) != animatedNetworkAttributes_.End();
+    return animatedNetworkAttributes_.Find(&attrInfo) != animatedNetworkAttributes_.end();
 }
 
 AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const String& name) const
 {
     HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.Find(name);
-    if (i != attributeAnimationInfos_.End())
+    if (i != attributeAnimationInfos_.end())
         return i->second_;
 
-    return 0;
+    return nullptr;
 }
 
 }

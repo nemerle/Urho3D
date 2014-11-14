@@ -388,7 +388,7 @@ static PhysicsWorld2D* SceneGetPhysicsWorld2D(Scene* ptr)
 static PhysicsWorld2D* GetPhysicsWorld2D()
 {
     Scene* scene = GetScriptContextScene();
-    return scene ? scene->GetComponent<PhysicsWorld2D>() : 0;
+    return scene ? scene->GetComponent<PhysicsWorld2D>() : nullptr;
 }
 
 static void RegisterPhysicsWorld2D(asIScriptEngine* engine)

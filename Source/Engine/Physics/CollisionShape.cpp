@@ -74,7 +74,7 @@ static const char* typeNames[] =
     "TriangleMesh",
     "ConvexHull",
     "Terrain",
-    0
+    nullptr
 };
 
 extern const char* PHYSICS_CATEGORY;
@@ -176,9 +176,9 @@ private:
 };
 
 TriangleMeshData::TriangleMeshData(Model* model, unsigned lodLevel) :
-    meshInterface_(0),
-    shape_(0),
-    infoMap_(0)
+    meshInterface_(nullptr),
+    shape_(nullptr),
+    infoMap_(nullptr)
 {
     meshInterface_ = new TriangleMeshInterface(model, lodLevel);
     shape_ = new btBvhTriangleMeshShape(meshInterface_, true, true);
@@ -188,9 +188,9 @@ TriangleMeshData::TriangleMeshData(Model* model, unsigned lodLevel) :
 }
 
 TriangleMeshData::TriangleMeshData(CustomGeometry* custom) :
-    meshInterface_(0),
-    shape_(0),
-    infoMap_(0)
+    meshInterface_(nullptr),
+    shape_(nullptr),
+    infoMap_(nullptr)
 {
     meshInterface_ = new TriangleMeshInterface(custom);
     shape_ = new btBvhTriangleMeshShape(meshInterface_, true, true);
@@ -202,13 +202,13 @@ TriangleMeshData::TriangleMeshData(CustomGeometry* custom) :
 TriangleMeshData::~TriangleMeshData()
 {
     delete shape_;
-    shape_ = 0;
+    shape_ = nullptr;
 
     delete meshInterface_;
-    meshInterface_ = 0;
+    meshInterface_ = nullptr;
 
     delete infoMap_;
-    infoMap_ = 0;
+    infoMap_ = nullptr;
 }
 
 ConvexData::ConvexData(Model* model, unsigned lodLevel)
@@ -358,7 +358,7 @@ bool HasDynamicBuffers(Model* model, unsigned lodLevel)
 
 CollisionShape::CollisionShape(Context* context) :
     Component(context),
-    shape_(0),
+    shape_(nullptr),
     shapeType_(SHAPE_BOX),
     position_(Vector3::ZERO),
     rotation_(Quaternion::IDENTITY),
@@ -451,7 +451,7 @@ void CollisionShape::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
         world->debugDrawObject(btTransform(ToBtQuaternion(worldRotation), ToBtVector3(worldPosition)), shape_, bodyActive ?
             WHITE : GREEN);
 
-        physicsWorld_->SetDebugRenderer(0);
+        physicsWorld_->SetDebugRenderer(nullptr);
     }
 }
 
@@ -853,7 +853,7 @@ void CollisionShape::ReleaseShape()
     }
 
     delete shape_;
-    shape_ = 0;
+    shape_ = nullptr;
 
     geometry_.Reset();
 
@@ -936,7 +936,7 @@ btCompoundShape* CollisionShape::GetParentCompoundShape()
     if (!rigidBody_)
         rigidBody_ = GetComponent<RigidBody>();
 
-    return rigidBody_ ? rigidBody_->GetCompoundShape() : 0;
+    return rigidBody_ ? rigidBody_->GetCompoundShape() : nullptr;
 }
 
 void CollisionShape::UpdateShape()
@@ -988,7 +988,7 @@ void CollisionShape::UpdateShape()
             if (customGeometryID_ && GetScene())
             {
                 Node* node = GetScene()->GetNode(customGeometryID_);
-                CustomGeometry* custom = node ? node->GetComponent<CustomGeometry>() : 0;
+                CustomGeometry* custom = node ? node->GetComponent<CustomGeometry>() : nullptr;
                 if (custom)
                 {
                     geometry_ = new TriangleMeshData(custom);
@@ -1004,7 +1004,7 @@ void CollisionShape::UpdateShape()
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
                 HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetTriMeshCache();
                 HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.Find(id);
-                if (j != cache.End())
+                if (j != cache.end())
                     geometry_ = j->second_;
                 else
                 {
@@ -1026,7 +1026,7 @@ void CollisionShape::UpdateShape()
             if (customGeometryID_ && GetScene())
             {
                 Node* node = GetScene()->GetNode(customGeometryID_);
-                CustomGeometry* custom = node ? node->GetComponent<CustomGeometry>() : 0;
+                CustomGeometry* custom = node ? node->GetComponent<CustomGeometry>() : nullptr;
                 if (custom)
                 {
                     geometry_ = new ConvexData(custom);
@@ -1043,7 +1043,7 @@ void CollisionShape::UpdateShape()
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
                 HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetConvexCache();
                 HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.Find(id);
-                if (j != cache.End())
+                if (j != cache.end())
                     geometry_ = j->second_;
                 else
                 {

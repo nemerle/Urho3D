@@ -1369,7 +1369,7 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
             {
                 LOGERROR("Compressed level is outside image data. Offset: " + String(offset) + " Size: " + String(level.dataSize_) +
                     " Datasize: " + String(GetMemoryUse()));
-                level.data_ = 0;
+                level.data_ = nullptr;
                 return level;
             }
 
@@ -1407,7 +1407,7 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
             {
                 LOGERROR("Compressed level is outside image data. Offset: " + String(offset) + " Size: " + String(level.dataSize_) +
                     " Datasize: " + String(GetMemoryUse()));
-                level.data_ = 0;
+                level.data_ = nullptr;
                 return level;
             }
 
@@ -1425,18 +1425,18 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
 Image* Image::GetSubimage(const IntRect& rect) const
 {
     if (!data_)
-        return 0;
+        return nullptr;
 
     if (depth_ > 1)
     {
         LOGERROR("Subimage not supported for 3D images");
-        return 0;
+        return nullptr;
     }
     
     if (rect.left_ < 0 || rect.top_ < 0 || rect.right_ > width_ || rect.bottom_ > height_ || !rect.Width() || !rect.Height())
     {
         LOGERROR("Can not get subimage from image " + GetName() + " with invalid region");
-        return 0;
+        return nullptr;
     }
     
     if (!IsCompressed())
@@ -1512,7 +1512,7 @@ Image* Image::GetSubimage(const IntRect& rect) const
         if (!subimageLevels)
         {
             LOGERROR("Subimage region from compressed image " + GetName() + " did not produce any data");
-            return 0;
+            return nullptr;
         }
         
         Image* image = new Image(context_);
@@ -1533,24 +1533,24 @@ Image* Image::GetSubimage(const IntRect& rect) const
 SDL_Surface* Image::GetSDLSurface(const IntRect& rect) const
 {
     if (!data_)
-        return 0;
+        return nullptr;
 
     if (depth_ > 1)
     {
         LOGERROR("Can not get SDL surface from 3D image");
-        return 0;
+        return nullptr;
     }
     
     if (IsCompressed())
     {
         LOGERROR("Can not get SDL surface from compressed image " + GetName());
-        return 0;
+        return nullptr;
     }
 
     if (components_ < 3)
     {
         LOGERROR("Can not get SDL surface from image " + GetName() + " with less than 3 components");
-        return 0;
+        return nullptr;
     }
 
     IntRect imageRect = rect;

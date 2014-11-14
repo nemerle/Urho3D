@@ -36,7 +36,7 @@ const char* orientations[] =
 {
     "Horizontal",
     "Vertical",
-    0
+    nullptr
 };
 
 template<> Orientation Variant::Get<Orientation>() const

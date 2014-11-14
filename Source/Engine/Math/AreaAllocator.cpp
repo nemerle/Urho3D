@@ -65,9 +65,9 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
     
     for(;;)
     {
-        best = freeAreas_.End();
+        best = freeAreas_.end();
         bestFreeArea = M_MAX_INT;
-        for (PODVector<IntRect>::Iterator i = freeAreas_.Begin(); i != freeAreas_.End(); ++i)
+        for (PODVector<IntRect>::Iterator i = freeAreas_.begin(); i != freeAreas_.end(); ++i)
         {
             int freeWidth = i->Width();
             int freeHeight = i->Height();
@@ -85,7 +85,7 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
             }
         }
         
-        if (best == freeAreas_.End())
+        if (best == freeAreas_.end())
         {
             if (doubleWidth_ && size_.x_ < maxSize_.x_)
             {

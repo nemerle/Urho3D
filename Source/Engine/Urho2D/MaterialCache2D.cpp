@@ -51,7 +51,7 @@ void MaterialCache2D::RegisterObject(Context* context)
 Material* MaterialCache2D::GetMaterial(Texture2D* texture, BlendMode blendMode)
 {
     HashMap<Texture2D*, HashMap<int, SharedPtr<Material> > >::Iterator t = materials_.Find(texture);
-    if (t == materials_.End())
+    if (t == materials_.end())
     {
         SharedPtr<Material> material(CreateMaterial(texture, blendMode));
         materials_[texture][blendMode] = material;
@@ -60,7 +60,7 @@ Material* MaterialCache2D::GetMaterial(Texture2D* texture, BlendMode blendMode)
 
     HashMap<int, SharedPtr<Material> >& materials = t->second_;
     HashMap<int, SharedPtr<Material> >::Iterator b = materials.Find(blendMode);
-    if (b != materials.End())
+    if (b != materials.end())
         return b->second_;
 
     SharedPtr<Material> material(CreateMaterial(texture, blendMode));

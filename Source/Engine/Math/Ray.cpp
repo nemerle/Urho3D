@@ -204,7 +204,7 @@ float Ray::HitDistance(const Sphere& sphere) const
 
 float Ray::HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2) const
 {
-    return HitDistance(v0, v1, v2, 0);
+    return HitDistance(v0, v1, v2, nullptr);
 }
 
 float Ray::HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2, Vector3* outNormal) const

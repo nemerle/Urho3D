@@ -88,7 +88,7 @@ void View3D::OnResize()
 void View3D::SetView(Scene* scene, Camera* camera)
 {
     scene_ = scene;
-    cameraNode_ = camera ? camera->GetNode() : 0;
+    cameraNode_ = camera ? camera->GetNode() : nullptr;
     
     viewport_->SetScene(scene_);
     viewport_->SetCamera(camera);

@@ -52,7 +52,7 @@ struct StoredLogMessage
     StoredLogMessage()
     {
     }
-    
+
     /// Construct with parameters.
     StoredLogMessage(const String& message, int level, bool error) :
         message_(message),
@@ -60,7 +60,7 @@ struct StoredLogMessage
         error_(error)
     {
     }
-    
+
     /// Message text.
     String message_;
     /// Message level. -1 for raw messages.
@@ -108,7 +108,7 @@ public:
 private:
     /// Handle end of frame. Process the threaded log messages.
     void HandleEndFrame(StringHash eventType, VariantMap& eventData);
-    
+
     /// Mutex for threaded operation.
     Mutex logMutex_;
     /// Log messages from other threads.
@@ -133,11 +133,11 @@ private:
 #define LOGWARNING(message) Urho3D::Log::Write(Urho3D::LOG_WARNING, message)
 #define LOGERROR(message) Urho3D::Log::Write(Urho3D::LOG_ERROR, message)
 #define LOGRAW(message) Urho3D::Log::WriteRaw(message)
-#define LOGDEBUGF(format, ...) Urho3D::Log::Write(Urho3D::LOG_DEBUG, Urho3D::ToString(format, ##__VA_ARGS__))
-#define LOGINFOF(format, ...) Urho3D::Log::Write(Urho3D::LOG_INFO, Urho3D::ToString(format, ##__VA_ARGS__))
-#define LOGWARNINGF(format, ...) Urho3D::Log::Write(Urho3D::LOG_WARNING, Urho3D::ToString(format, ##__VA_ARGS__))
-#define LOGERRORF(format, ...) Urho3D::Log::Write(Urho3D::LOG_ERROR, Urho3D::ToString(format, ##__VA_ARGS__))
-#define LOGRAWF(format, ...) Urho3D::Log::WriteRaw(Urho3D::ToString(format, ##__VA_ARGS__))
+#define LOGDEBUGF(...) Urho3D::Log::Write(Urho3D::LOG_DEBUG, Urho3D::ToString(__VA_ARGS__))
+#define LOGINFOF(...) Urho3D::Log::Write(Urho3D::LOG_INFO, Urho3D::ToString(__VA_ARGS__))
+#define LOGWARNINGF(...) Urho3D::Log::Write(Urho3D::LOG_WARNING, Urho3D::ToString(__VA_ARGS__))
+#define LOGERRORF(...) Urho3D::Log::Write(Urho3D::LOG_ERROR, Urho3D::ToString(__VA_ARGS__))
+#define LOGRAWF(...) Urho3D::Log::WriteRaw(Urho3D::ToString(__VA_ARGS__))
 #else
 #define LOGDEBUG(message)
 #define LOGINFO(message)

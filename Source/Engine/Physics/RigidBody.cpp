@@ -55,16 +55,16 @@ static const char* collisionEventModeNames[] =
     "Never",
     "When Active",
     "Always",
-    0
+    nullptr
 };
 
 extern const char* PHYSICS_CATEGORY;
 
 RigidBody::RigidBody(Context* context) :
     Component(context),
-    body_(0),
-    compoundShape_(0),
-    shiftedCompoundShape_(0),
+    body_(nullptr),
+    compoundShape_(nullptr),
+    shiftedCompoundShape_(nullptr),
     gravityOverride_(Vector3::ZERO),
     centerOfMass_(Vector3::ZERO),
     mass_(DEFAULT_MASS),
@@ -93,9 +93,9 @@ RigidBody::~RigidBody()
         physicsWorld_->RemoveRigidBody(this);
 
     delete compoundShape_;
-    compoundShape_ = 0;
+    compoundShape_ = nullptr;
     delete shiftedCompoundShape_;
-    shiftedCompoundShape_ = 0;
+    shiftedCompoundShape_ = nullptr;
 }
 
 void RigidBody::RegisterObject(Context* context)
@@ -173,7 +173,7 @@ void RigidBody::setWorldTransform(const btTransform &worldTrans)
 {
     Quaternion newWorldRotation = ToQuaternion(worldTrans.getRotation());
     Vector3 newWorldPosition = ToVector3(worldTrans.getOrigin()) - newWorldRotation * centerOfMass_;
-    RigidBody* parentRigidBody = 0;
+    RigidBody* parentRigidBody = nullptr;
 
     // It is possible that the RigidBody component has been kept alive via a shared pointer,
     // while its scene node has already been destroyed
@@ -212,7 +212,7 @@ void RigidBody::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
         world->debugDrawObject(body_->getWorldTransform(), shiftedCompoundShape_, IsActive() ? btVector3(1.0f, 1.0f, 1.0f) :
             btVector3(0.0f, 1.0f, 0.0f));
 
-        physicsWorld_->SetDebugRenderer(0);
+        physicsWorld_->SetDebugRenderer(nullptr);
     }
 }
 
@@ -704,7 +704,7 @@ void RigidBody::ApplyWorldTransform(const Vector3& newWorldPosition, const Quate
     physicsWorld_->SetApplyingTransforms(true);
 
     // Apply transform to the SmoothedTransform component instead of node transform if available
-    SmoothedTransform* transform = 0;
+    SmoothedTransform* transform = nullptr;
     if (hasSmoothedTransform_)
         transform = GetComponent<SmoothedTransform>();
 
@@ -794,8 +794,8 @@ void RigidBody::UpdateMass()
     // Reapply constraint positions for new center of mass shift
     if (node_)
     {
-        for (PODVector<Constraint*>::Iterator i = constraints_.Begin(); i != constraints_.End(); ++i)
-            (*i)->ApplyFrames();
+        for (auto & elem : constraints_)
+            (elem)->ApplyFrames();
     }
 }
 
@@ -859,13 +859,13 @@ void RigidBody::ReleaseBody()
         // Release all constraints which refer to this body
         // Make a copy for iteration
         PODVector<Constraint*> constraints = constraints_;
-        for (PODVector<Constraint*>::Iterator i = constraints.Begin(); i != constraints.End(); ++i)
-            (*i)->ReleaseConstraint();
+        for (auto & constraint : constraints)
+            (constraint)->ReleaseConstraint();
 
         RemoveBodyFromWorld();
 
         delete body_;
-        body_ = 0;
+        body_ = nullptr;
     }
 }
 
@@ -957,15 +957,15 @@ void RigidBody::AddBodyToWorld()
         // Do not update mass yet, but do it once all shapes have been added
         PODVector<CollisionShape*> shapes;
         node_->GetComponents<CollisionShape>(shapes);
-        for (PODVector<CollisionShape*>::Iterator i = shapes.Begin(); i != shapes.End(); ++i)
-            (*i)->NotifyRigidBody(false);
+        for (auto & shape : shapes)
+            (shape)->NotifyRigidBody(false);
 
         // Check if this node contains Constraint components that were waiting for the rigid body to be created, and signal them
         // to create themselves now
         PODVector<Constraint*> constraints;
         node_->GetComponents<Constraint>(constraints);
-        for (PODVector<Constraint*>::Iterator i = constraints.Begin(); i != constraints.End(); ++i)
-            (*i)->CreateConstraint();
+        for (auto & constraint : constraints)
+            (constraint)->CreateConstraint();
     }
 
     UpdateMass();

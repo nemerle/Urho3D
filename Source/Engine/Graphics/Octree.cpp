@@ -94,8 +94,8 @@ Octant::Octant(const BoundingBox& box, unsigned level, Octant* parent, Octree* r
 {
     Initialize(box);
 
-    for (unsigned i = 0; i < NUM_OCTANTS; ++i)
-        children_[i] = 0;
+    for (auto & elem : children_)
+        elem = nullptr;
 }
 
 Octant::~Octant()
@@ -103,11 +103,11 @@ Octant::~Octant()
     if (root_)
     {
         // Remove the drawables (if any) from this octant to the root octant
-        for (PODVector<Drawable*>::Iterator i = drawables_.Begin(); i != drawables_.End(); ++i)
+        for (auto & elem : drawables_)
         {
-            (*i)->SetOctant(root_);
-            root_->drawables_.Push(*i);
-            root_->QueueUpdate(*i);
+            (elem)->SetOctant(root_);
+            root_->drawables_.Push(elem);
+            root_->QueueUpdate(elem);
         }
         drawables_.Clear();
         numDrawables_ = 0;
@@ -149,7 +149,7 @@ void Octant::DeleteChild(unsigned index)
 {
     assert(index < NUM_OCTANTS);
     delete children_[index];
-    children_[index] = 0;
+    children_[index] = nullptr;
 }
 
 void Octant::InsertDrawable(Drawable* drawable)
@@ -212,16 +212,16 @@ bool Octant::CheckDrawableFit(const BoundingBox& box) const
 
 void Octant::ResetRoot()
 {
-    root_ = 0;
+    root_ = nullptr;
 
     // The whole octree is being destroyed, just detach the drawables
-    for (PODVector<Drawable*>::Iterator i = drawables_.Begin(); i != drawables_.End(); ++i)
-        (*i)->SetOctant(0);
+    for (auto & elem : drawables_)
+        (elem)->SetOctant(nullptr);
 
-    for (unsigned i = 0; i < NUM_OCTANTS; ++i)
+    for (auto & elem : children_)
     {
-        if (children_[i])
-            children_[i]->ResetRoot();
+        if (elem)
+            elem->ResetRoot();
     }
 }
 
@@ -231,10 +231,10 @@ void Octant::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
     {
         debug->AddBoundingBox(worldBoundingBox_, Color(0.25f, 0.25f, 0.25f), depthTest);
 
-        for (unsigned i = 0; i < NUM_OCTANTS; ++i)
+        for (auto & elem : children_)
         {
-            if (children_[i])
-                children_[i]->DrawDebugGeometry(debug, depthTest);
+            if (elem)
+                elem->DrawDebugGeometry(debug, depthTest);
         }
     }
 }
@@ -268,10 +268,10 @@ void Octant::GetDrawablesInternal(OctreeQuery& query, bool inside) const
         query.TestDrawables(start, end, inside);
     }
 
-    for (unsigned i = 0; i < NUM_OCTANTS; ++i)
+    for (auto & elem : children_)
     {
-        if (children_[i])
-            children_[i]->GetDrawablesInternal(query, inside);
+        if (elem)
+            elem->GetDrawablesInternal(query, inside);
     }
 }
 
@@ -295,10 +295,10 @@ void Octant::GetDrawablesInternal(RayOctreeQuery& query) const
         }
     }
 
-    for (unsigned i = 0; i < NUM_OCTANTS; ++i)
+    for (auto & elem : children_)
     {
-        if (children_[i])
-            children_[i]->GetDrawablesInternal(query);
+        if (elem)
+            elem->GetDrawablesInternal(query);
     }
 }
 
@@ -322,22 +322,22 @@ void Octant::GetDrawablesOnlyInternal(RayOctreeQuery& query, PODVector<Drawable*
         }
     }
 
-    for (unsigned i = 0; i < NUM_OCTANTS; ++i)
+    for (auto & elem : children_)
     {
-        if (children_[i])
-            children_[i]->GetDrawablesOnlyInternal(query, drawables);
+        if (elem)
+            elem->GetDrawablesOnlyInternal(query, drawables);
     }
 }
 
 Octree::Octree(Context* context) :
     Component(context),
-    Octant(BoundingBox(-DEFAULT_OCTREE_SIZE, DEFAULT_OCTREE_SIZE), 0, 0, this),
+    Octant(BoundingBox(-DEFAULT_OCTREE_SIZE, DEFAULT_OCTREE_SIZE), 0, nullptr, this),
     numLevels_(DEFAULT_OCTREE_LEVELS)
 {
     // Resize threaded ray query intermediate result vector according to number of worker threads
     WorkQueue* workQueue = GetSubsystem<WorkQueue>();
     rayQueryResults_.Resize(workQueue ? workQueue->GetNumThreads() + 1 : 1);
-    
+
     // If the engine is running headless, subscribe to RenderUpdate events for manually updating the octree
     // to allow raycasts and animation update
     if (!GetSubsystem<Graphics>())
@@ -406,11 +406,11 @@ void Octree::Update(const FrameInfo& frame)
         Scene* scene = GetScene();
         WorkQueue* queue = GetSubsystem<WorkQueue>();
         scene->BeginThreadedUpdate();
-        
+
         int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
         int drawablesPerItem = Max((int)(drawableUpdates_.Size() / numWorkItems), 1);
-        
-        PODVector<Drawable*>::Iterator start = drawableUpdates_.Begin();
+
+        PODVector<Drawable*>::Iterator start = drawableUpdates_.begin();
         // Create a work item for each thread
         for (int i = 0; i < numWorkItems; ++i)
         {
@@ -419,7 +419,7 @@ void Octree::Update(const FrameInfo& frame)
             item->workFunction_ = UpdateDrawablesWork;
             item->aux_ = const_cast<FrameInfo*>(&frame);
 
-            PODVector<Drawable*>::Iterator end = drawableUpdates_.End();
+            PODVector<Drawable*>::Iterator end = drawableUpdates_.end();
             if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                 end = start + drawablesPerItem;
 
@@ -433,7 +433,7 @@ void Octree::Update(const FrameInfo& frame)
         queue->Complete(M_MAX_UNSIGNED);
         scene->EndThreadedUpdate();
     }
-    
+
     // Notify drawable update being finished. Custom animation (eg. IK) can be done at this point
     Scene* scene = GetScene();
     if (scene)
@@ -445,16 +445,16 @@ void Octree::Update(const FrameInfo& frame)
         eventData[P_TIMESTEP] = frame.timeStep_;
         scene->SendEvent(E_SCENEDRAWABLEUPDATEFINISHED, eventData);
     }
-    
+
     // Reinsert drawables that have been moved or resized, or that have been newly added to the octree and do not sit inside
     // the proper octant yet
     if (!drawableUpdates_.Empty())
     {
         PROFILE(ReinsertToOctree);
 
-        for (PODVector<Drawable*>::Iterator i = drawableUpdates_.Begin(); i != drawableUpdates_.End(); ++i)
+        for (auto drawable : drawableUpdates_)
         {
-            Drawable* drawable = *i;
+            
             drawable->updateQueued_ = false;
             Octant* octant = drawable->GetOctant();
             const BoundingBox& box = drawable->GetWorldBoundingBox();
@@ -479,7 +479,7 @@ void Octree::Update(const FrameInfo& frame)
             #endif
         }
     }
-    
+
     drawableUpdates_.Clear();
 }
 
@@ -531,15 +531,15 @@ void Octree::Raycast(RayOctreeQuery& query) const
             for (unsigned i = 0; i < rayQueryResults_.Size(); ++i)
                 rayQueryResults_[i].Clear();
 
-            PODVector<Drawable*>::Iterator start = rayQueryDrawables_.Begin();
-            while (start != rayQueryDrawables_.End())
+            PODVector<Drawable*>::Iterator start = rayQueryDrawables_.begin();
+            while (start != rayQueryDrawables_.end())
             {
                 SharedPtr<WorkItem> item = queue->GetFreeItem();
                 item->priority_ = M_MAX_UNSIGNED;
                 item->workFunction_ = RaycastDrawablesWork;
                 item->aux_ = const_cast<Octree*>(this);
 
-                PODVector<Drawable*>::Iterator end = rayQueryDrawables_.End();
+                PODVector<Drawable*>::Iterator end = rayQueryDrawables_.end();
                 if (end - start > RAYCASTS_PER_WORK_ITEM)
                     end = start + RAYCASTS_PER_WORK_ITEM;
 
@@ -553,16 +553,16 @@ void Octree::Raycast(RayOctreeQuery& query) const
             // Merge per-thread results
             queue->Complete(M_MAX_UNSIGNED);
             for (unsigned i = 0; i < rayQueryResults_.Size(); ++i)
-                query.result_.Insert(query.result_.End(), rayQueryResults_[i].Begin(), rayQueryResults_[i].End());
+                query.result_.Insert(query.result_.end(), rayQueryResults_[i].begin(), rayQueryResults_[i].end());
         }
         else
         {
-            for (PODVector<Drawable*>::Iterator i = rayQueryDrawables_.Begin(); i != rayQueryDrawables_.End(); ++i)
-                (*i)->ProcessRayQuery(query, query.result_);
+            for (auto & elem : rayQueryDrawables_)
+                (elem)->ProcessRayQuery(query, query.result_);
         }
     }
 
-    Sort(query.result_.Begin(), query.result_.End(), CompareRayQueryResults);
+    Sort(query.result_.begin(), query.result_.end(), CompareRayQueryResults);
 }
 
 void Octree::RaycastSingle(RayOctreeQuery& query) const
@@ -574,19 +574,19 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
     GetDrawablesOnlyInternal(query, rayQueryDrawables_);
 
     // Sort by increasing hit distance to AABB
-    for (PODVector<Drawable*>::Iterator i = rayQueryDrawables_.Begin(); i != rayQueryDrawables_.End(); ++i)
+    for (auto drawable : rayQueryDrawables_)
     {
-        Drawable* drawable = *i;
+        
         drawable->SetSortValue(query.ray_.HitDistance(drawable->GetWorldBoundingBox()));
     }
 
-    Sort(rayQueryDrawables_.Begin(), rayQueryDrawables_.End(), CompareDrawables);
+    Sort(rayQueryDrawables_.begin(), rayQueryDrawables_.end(), CompareDrawables);
 
     // Then do the actual test according to the query, and early-out as possible
     float closestHit = M_INFINITY;
-    for (PODVector<Drawable*>::Iterator i = rayQueryDrawables_.Begin(); i != rayQueryDrawables_.End(); ++i)
+    for (auto drawable : rayQueryDrawables_)
     {
-        Drawable* drawable = *i;
+        
         if (drawable->GetSortValue() < Min(closestHit, query.maxDistance_))
         {
             unsigned oldSize = query.result_.Size();
@@ -600,7 +600,7 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
 
     if (query.result_.Size() > 1)
     {
-        Sort(query.result_.Begin(), query.result_.End(), CompareRayQueryResults);
+        Sort(query.result_.begin(), query.result_.end(), CompareRayQueryResults);
         query.result_.Resize(1);
     }
 }
@@ -615,7 +615,7 @@ void Octree::QueueUpdate(Drawable* drawable)
     }
     else
         drawableUpdates_.Push(drawable);
-    
+
     drawable->updateQueued_ = true;
 }
 
@@ -637,14 +637,14 @@ void Octree::HandleRenderUpdate(StringHash eventType, VariantMap& eventData)
     Scene* scene = GetScene();
     if (!scene || !scene->IsUpdateEnabled())
         return;
-    
+
     using namespace RenderUpdate;
-    
+
     FrameInfo frame;
     frame.frameNumber_ = GetSubsystem<Time>()->GetFrameNumber();
     frame.timeStep_ = eventData[P_TIMESTEP].GetFloat();
-    frame.camera_ = 0;
-    
+    frame.camera_ = nullptr;
+
     Update(frame);
 }
 

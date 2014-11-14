@@ -47,7 +47,7 @@ DrawableProxy2D::DrawableProxy2D(Context* context) :
     indexBuffer_(new IndexBuffer(context_)),
     vertexBuffer_(new VertexBuffer(context_)),
     orderDirty_(true),
-    frustum_(0),
+    frustum_(nullptr),
     indexCount_(0),
     vertexCount_(0)
 {
@@ -222,7 +222,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
 
     if (orderDirty_)
     {
-        Sort(drawables_.Begin(), drawables_.End(), CompareDrawable2Ds);
+        Sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
         orderDirty_ = false;
     }
 
@@ -232,7 +232,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     {
         // Define bounding box with min and max points
         frustumBoundingBox_.Define(frustum_->vertices_[2], frustum_->vertices_[4]);
-        frustum_ = 0;
+        frustum_ = nullptr;
     }
 
     {
@@ -242,7 +242,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
         int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
         int drawablesPerItem = drawables_.Size() / numWorkItems;
         
-        PODVector<Drawable2D*>::Iterator start = drawables_.Begin();
+        PODVector<Drawable2D*>::Iterator start = drawables_.begin();
         for (int i = 0; i < numWorkItems; ++i)
         {
             SharedPtr<WorkItem> item = queue->GetFreeItem();
@@ -250,7 +250,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
             item->workFunction_ = CheckDrawableVisibility;
             item->aux_ = this;
 
-            PODVector<Drawable2D*>::Iterator end = drawables_.End();
+            PODVector<Drawable2D*>::Iterator end = drawables_.end();
             if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                 end = start + drawablesPerItem;
             
@@ -275,7 +275,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     // Go through the drawables to form geometries & batches, but upload the actual vertex data later
     materials_.Clear();
 
-    Material* material = 0;
+    Material* material = nullptr;
     unsigned iStart = 0;
     unsigned iCount = 0;
     unsigned vStart = 0;

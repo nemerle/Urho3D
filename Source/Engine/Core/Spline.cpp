@@ -30,7 +30,7 @@ namespace Urho3D
 const char* interpolationModeNames[] =
 {
     "Bezier",
-    0
+    nullptr
 };
 
 template<> InterpolationMode Variant::Get<InterpolationMode>() const

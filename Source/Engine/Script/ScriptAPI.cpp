@@ -66,15 +66,15 @@ static void ScriptFileDelayedExecuteNoParams(float delay, bool repeat, const Str
 static asIScriptObject* NodeCreateScriptObjectWithFile(ScriptFile* file, const String& className, CreateMode mode, Node* ptr)
 {
     if (!file)
-        return 0;
+        return nullptr;
 
     // Try first to reuse an existing, empty ScriptInstance
     const Vector<SharedPtr<Component> >& components = ptr->GetComponents();
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components.Begin(); i != components.End(); ++i)
+    for (const auto & component : components)
     {
-        if ((*i)->GetType() == ScriptInstance::GetTypeStatic())
+        if ((component)->GetType() == ScriptInstance::GetTypeStatic())
         {
-            ScriptInstance* instance = static_cast<ScriptInstance*>(i->Get());
+            ScriptInstance* instance = static_cast<ScriptInstance*>(component.Get());
             asIScriptObject* object = instance->GetScriptObject();
             if (!object)
             {
@@ -110,28 +110,28 @@ asIScriptObject* NodeGetScriptObject(Node* ptr)
 {
     // Get the first available ScriptInstance with an object
     const Vector<SharedPtr<Component> >& components = ptr->GetComponents();
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components.Begin(); i != components.End(); ++i)
+    for (const auto & component : components)
     {
-        if ((*i)->GetType() == ScriptInstance::GetTypeStatic())
+        if ((component)->GetType() == ScriptInstance::GetTypeStatic())
         {
-            ScriptInstance* instance = static_cast<ScriptInstance*>(i->Get());
+            ScriptInstance* instance = static_cast<ScriptInstance*>(component.Get());
             asIScriptObject* object = instance->GetScriptObject();
             if (object)
                 return object;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 asIScriptObject* NodeGetNamedScriptObject(const String& className, Node* ptr)
 {
     const Vector<SharedPtr<Component> >& components = ptr->GetComponents();
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components.Begin(); i != components.End(); ++i)
+    for (const auto & component : components)
     {
-        if ((*i)->GetType() == ScriptInstance::GetTypeStatic())
+        if ((component)->GetType() == ScriptInstance::GetTypeStatic())
         {
-            ScriptInstance* instance = static_cast<ScriptInstance*>(i->Get());
+            ScriptInstance* instance = static_cast<ScriptInstance*>(component.Get());
             if (instance->GetClassName() == className)
             {
                 asIScriptObject* object = instance->GetScriptObject();
@@ -141,7 +141,7 @@ asIScriptObject* NodeGetNamedScriptObject(const String& className, Node* ptr)
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 static bool ScriptInstanceExecute(const String& declaration, CScriptArray* srcParams, ScriptInstance* ptr)

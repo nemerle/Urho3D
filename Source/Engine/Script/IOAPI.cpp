@@ -205,7 +205,7 @@ static unsigned char* VectorBufferAt(unsigned index, VectorBuffer* ptr)
     if (index >= ptr->GetSize())
     {
         asGetActiveContext()->SetException("Index out of bounds");
-        return 0;
+        return nullptr;
     }
 
     return ptr->GetModifiableData() + index;

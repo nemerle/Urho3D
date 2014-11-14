@@ -200,7 +200,7 @@ void Geometry::Draw(Graphics* graphics)
 
 VertexBuffer* Geometry::GetVertexBuffer(unsigned index) const
 {
-    return index < vertexBuffers_.Size() ? vertexBuffers_[index] : (VertexBuffer*)0;
+    return index < vertexBuffers_.Size() ? vertexBuffers_[index] : (VertexBuffer*)nullptr;
 }
 
 unsigned Geometry::GetVertexElementMask(unsigned index) const
@@ -251,7 +251,7 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
         }
         else
         {
-            vertexData = 0;
+            vertexData = nullptr;
             vertexSize = 0;
             elementMask = 0;
         }
@@ -274,7 +274,7 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
         }
         else
         {
-            indexData = 0;
+            indexData = nullptr;
             indexSize = 0;
         }
     }
@@ -307,7 +307,7 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
         }
         else
         {
-            vertexData = 0;
+            vertexData = nullptr;
             vertexSize = 0;
             elementMask = 0;
         }
@@ -330,7 +330,7 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
         }
         else
         {
-            indexData = 0;
+            indexData = nullptr;
             indexSize = 0;
         }
     }

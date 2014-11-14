@@ -101,14 +101,14 @@ public:
     const Vector<AttributeInfo>* GetAttributes(StringHash type) const
     {
         HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes_.Find(type);
-        return i != attributes_.End() ? &i->second_ : 0;
+        return i != attributes_.end() ? &i->second_ : 0;
     }
 
     /// Return network replication attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetNetworkAttributes(StringHash type) const
     {
         HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = networkAttributes_.Find(type);
-        return i != networkAttributes_.End() ? &i->second_ : 0;
+        return i != networkAttributes_.end() ? &i->second_ : 0;
     }
 
     /// Return all registered attributes.
@@ -118,10 +118,10 @@ public:
     HashSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
     {
         HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.Find(sender);
-        if (i != specificEventReceivers_.End())
+        if (i != specificEventReceivers_.end())
         {
             HashMap<StringHash, HashSet<Object*> >::Iterator j = i->second_.Find(eventType);
-            return j != i->second_.End() ? &j->second_ : 0;
+            return j != i->second_.end() ? &j->second_ : 0;
         }
         else
             return 0;
@@ -131,7 +131,7 @@ public:
     HashSet<Object*>* GetEventReceivers(StringHash eventType)
     {
         HashMap<StringHash, HashSet<Object*> >::Iterator i = eventReceivers_.Find(eventType);
-        return i != eventReceivers_.End() ? &i->second_ : 0;
+        return i != eventReceivers_.end() ? &i->second_ : 0;
     }
 
 private:
