@@ -41,6 +41,7 @@
 
 #include <angelscript.h>
 #include <cstring>
+#include <QtCore/QList>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -68,7 +69,7 @@ template <class T> CScriptArray* VectorToArray(const Vector<T>& vector, const ch
     if (context)
     {
         asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
-        CScriptArray* arr = CScriptArray::Create(type, vector.Size());
+        CScriptArray* arr = CScriptArray::Create(type, vector.size());
 
         for (unsigned i = 0; i < arr->GetSize(); ++i)
             *(static_cast<T*>(arr->At(i))) = vector[i];
@@ -96,7 +97,23 @@ template <class T> CScriptArray* VectorToArray(const PODVector<T>& vector, const
     else
         return 0;
 }
+/// Template function for QList to array conversion.
+template <class T> CScriptArray* VectorToArray(const QList<T>& list, const char* arrayName)
+{
+    asIScriptContext *context = asGetActiveContext();
+    if (context)
+    {
+        asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
+        CScriptArray* arr = CScriptArray::Create(type, list.size());
 
+        for (unsigned i = 0; i < arr->GetSize(); ++i)
+            *(static_cast<T*>(arr->At(i))) = list[i];
+
+        return arr;
+    }
+    else
+        return 0;
+}
 /// Template function for data buffer to array conversion.
 template <class T> CScriptArray* BufferToArray(const T* buffer, unsigned size, const char* arrayName)
 {
@@ -122,7 +139,7 @@ template <class T> CScriptArray* VectorToHandleArray(const Vector<T*>& vector, c
     if (context)
     {
         asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
-        CScriptArray* arr = CScriptArray::Create(type, vector.Size());
+        CScriptArray* arr = CScriptArray::Create(type, vector.size());
 
         for (unsigned i = 0; i < arr->GetSize(); ++i)
         {
@@ -170,7 +187,7 @@ template <class T> CScriptArray* VectorToHandleArray(const Vector<SharedPtr<T> >
     if (context)
     {
         asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
-        CScriptArray* arr = CScriptArray::Create(type, vector.Size());
+        CScriptArray* arr = CScriptArray::Create(type, vector.size());
 
         for (unsigned i = 0; i < arr->GetSize(); ++i)
         {
@@ -382,7 +399,7 @@ static const AttributeInfo noAttributeInfo;
 static const AttributeInfo& SerializableGetAttributeInfo(unsigned index, Serializable* ptr)
 {
     const Vector<AttributeInfo>* attributes = ptr->GetAttributes();
-    if (!attributes || index >= attributes->Size())
+    if (!attributes || index >= attributes->size())
     {
         asGetActiveContext()->SetException("Index out of bounds");
         return noAttributeInfo;
@@ -490,7 +507,7 @@ static void NodeRemoveComponent(const String& typeName, Node* ptr)
 static Component* NodeGetComponent(unsigned index, Node* ptr)
 {
     const Vector<SharedPtr<Component> >& components = ptr->GetComponents();
-    if (index >= components.Size())
+    if (index >= components.size())
     {
         asGetActiveContext()->SetException("Index out of bounds");
         return 0;
@@ -548,7 +565,7 @@ static unsigned NodeGetNumChildrenRecursive(Node* ptr)
 static Node* NodeGetChild(unsigned index, Node* ptr)
 {
     const Vector<SharedPtr<Node> >& children = ptr->GetChildren();
-    if (index >= children.Size())
+    if (index >= children.size())
     {
         asGetActiveContext()->SetException("Index out of bounds");
         return 0;
@@ -600,9 +617,9 @@ template <class T> void RegisterNode(asIScriptEngine* engine, const char* classN
 {
     RegisterAnimatable<T>(engine, className);
     RegisterSubclass<Node, T>(engine, "Node", className);
-	engine->RegisterObjectMethod(className, "void SetPosition2D(float, float)", asMETHODPR(T, SetPosition2D, (float, float), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void SetPosition2D(float, float)", asMETHODPR(T, SetPosition2D, (float, float), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SetScale(float)", asMETHODPR(T, SetScale, (float), void), asCALL_THISCALL);
-	engine->RegisterObjectMethod(className, "void SetScale2D(float, float)", asMETHODPR(T, SetScale2D, (float, float), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void SetScale2D(float, float)", asMETHODPR(T, SetScale2D, (float, float), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SetTransform(const Vector3&in, const Quaternion&in)", asMETHODPR(T, SetTransform, (const Vector3&, const Quaternion&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SetTransform(const Vector3&in, const Quaternion&in, const Vector3&in)", asMETHODPR(T, SetTransform, (const Vector3&, const Quaternion&, const Vector3&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SetTransform(const Vector3&in, const Quaternion&in, float)", asMETHODPR(T, SetTransform, (const Vector3&, const Quaternion&, float), void), asCALL_THISCALL);

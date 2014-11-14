@@ -101,13 +101,13 @@ bool ResourceCache::AddResourceDir(const String& pathName, unsigned priority)
     String fixedPath = SanitateResourceDirName(pathName);
 
     // Check that the same path does not already exist
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (!resourceDirs_[i].Compare(fixedPath, false))
             return true;
     }
 
-    if (priority < resourceDirs_.Size())
+    if (priority < resourceDirs_.size())
         resourceDirs_.Insert(priority, fixedPath);
     else
         resourceDirs_.Push(fixedPath);
@@ -132,7 +132,7 @@ void ResourceCache::AddPackageFile(PackageFile* package, unsigned priority)
     if (!package || !package->GetNumFiles())
         return;
 
-    if (priority < packages_.Size())
+    if (priority < packages_.size())
         packages_.Insert(priority, SharedPtr<PackageFile>(package));
     else
         packages_.Push(SharedPtr<PackageFile>(package));
@@ -167,13 +167,13 @@ void ResourceCache::RemoveResourceDir(const String& pathName)
 
     String fixedPath = SanitateResourceDirName(pathName);
 
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (!resourceDirs_[i].Compare(fixedPath, false))
         {
             resourceDirs_.Erase(i);
             // Remove the filewatcher with the matching path
-            for (unsigned j = 0; j < fileWatchers_.Size(); ++j)
+            for (unsigned j = 0; j < fileWatchers_.size(); ++j)
             {
                 if (!fileWatchers_[j]->GetPath().Compare(fixedPath, false))
                 {
@@ -234,7 +234,7 @@ void ResourceCache::ReleaseResource(StringHash type, const String& name, bool fo
     // If other references exist, do not release, unless forced
     if ((existingRes.Refs() == 1 && existingRes.WeakRefs() == 0) || force)
     {
-        resourceGroups_[type].resources_.Erase(nameHash);
+        resourceGroups_[type].resources_.remove(nameHash);
         UpdateResourceGroup(type);
     }
 }
@@ -243,19 +243,18 @@ void ResourceCache::ReleaseResources(StringHash type, bool force)
 {
     bool released = false;
 
-    HashMap<StringHash, ResourceGroup>::Iterator i = resourceGroups_.Find(type);
-    if (i != resourceGroups_.end())
+    QHash<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
+    if (i == resourceGroups_.end())
+        return;
+    for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = i->resources_.begin();
+        j != i->resources_.end();)
     {
-        for (HashMap<StringHash, SharedPtr<Resource> >::Iterator j = i->second_.resources_.begin();
-            j != i->second_.resources_.end();)
+        QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
+        // If other references exist, do not release, unless forced
+        if ((current->Refs() == 1 && current->WeakRefs() == 0) || force)
         {
-            HashMap<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-            // If other references exist, do not release, unless forced
-            if ((current->second_.Refs() == 1 && current->second_.WeakRefs() == 0) || force)
-            {
-                i->second_.resources_.Erase(current);
-                released = true;
-            }
+            i->resources_.erase(current);
+            released = true;
         }
     }
 
@@ -267,19 +266,19 @@ void ResourceCache::ReleaseResources(StringHash type, const String& partialName,
 {
     bool released = false;
 
-    HashMap<StringHash, ResourceGroup>::Iterator i = resourceGroups_.Find(type);
+    QHash<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
     if (i != resourceGroups_.end())
     {
-        for (HashMap<StringHash, SharedPtr<Resource> >::Iterator j = i->second_.resources_.begin();
-            j != i->second_.resources_.end();)
+        for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = i->resources_.begin();
+            j != i->resources_.end();)
         {
-            HashMap<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-            if (current->second_->GetName().Contains(partialName))
+            QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
+            if ((*current)->GetName().Contains(partialName))
             {
                 // If other references exist, do not release, unless forced
-                if ((current->second_.Refs() == 1 && current->second_.WeakRefs() == 0) || force)
+                if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
                 {
-                    i->second_.resources_.Erase(current);
+                    i->resources_.erase(current);
                     released = true;
                 }
             }
@@ -298,26 +297,27 @@ void ResourceCache::ReleaseResources(const String& partialName, bool force)
 
     while (repeat--)
     {
-        for (auto & elem : resourceGroups_)
+        for (auto iter = resourceGroups_.begin(),fin=resourceGroups_.end(); iter!=fin; ++iter)
         {
+            ResourceGroup & elem(*iter);
             bool released = false;
 
-            for (HashMap<StringHash, SharedPtr<Resource> >::Iterator j = elem.second_.resources_.begin();
-                j != elem.second_.resources_.end();)
+            for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = elem.resources_.begin();
+                j != elem.resources_.end();)
             {
-                HashMap<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-                if (current->second_->GetName().Contains(partialName))
+                QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
+                if ((*current)->GetName().Contains(partialName))
                 {
                     // If other references exist, do not release, unless forced
-                    if ((current->second_.Refs() == 1 && current->second_.WeakRefs() == 0) || force)
+                    if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
                     {
-                        elem.second_.resources_.Erase(current);
+                        elem.resources_.erase(current);
                         released = true;
                     }
                 }
             }
             if (released)
-                UpdateResourceGroup(elem.first_);
+                UpdateResourceGroup(iter.key());
         }
     }
 }
@@ -328,23 +328,24 @@ void ResourceCache::ReleaseAllResources(bool force)
 
     while (repeat--)
     {
-        for (auto & elem : resourceGroups_)
+        for (auto iter = resourceGroups_.begin(),fin=resourceGroups_.end(); iter!=fin; ++iter)
         {
+            ResourceGroup & elem(*iter);
             bool released = false;
 
-            for (HashMap<StringHash, SharedPtr<Resource> >::Iterator j = elem.second_.resources_.begin();
-                j != elem.second_.resources_.end();)
+            for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = elem.resources_.begin();
+                j != elem.resources_.end();)
             {
-                HashMap<StringHash, SharedPtr<Resource> >::Iterator current = j++;
+                QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
                 // If other references exist, do not release, unless forced
-                if ((current->second_.Refs() == 1 && current->second_.WeakRefs() == 0) || force)
+                if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
                 {
-                    elem.second_.resources_.Erase(current);
+                    elem.resources_.erase(current);
                     released = true;
                 }
             }
             if (released)
-                UpdateResourceGroup(elem.first_);
+                UpdateResourceGroup(iter.key());
         }
     }
 }
@@ -389,26 +390,26 @@ void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
     if (!resource || GetExtension(resource->GetName()) == ".xml")
     {
         // Check if this is a dependency resource, reload dependents
-        HashMap<StringHash, HashSet<StringHash> >::ConstIterator j = dependentResources_.Find(fileNameHash);
-        if (j != dependentResources_.end())
+        QHash<StringHash, HashSet<StringHash> >::ConstIterator j = dependentResources_.find(fileNameHash);
+        if (j == dependentResources_.end())
+            return;
+
+        // Reloading a resource may modify the dependency tracking structure. Therefore collect the
+        // resources we need to reload first
+        Vector<SharedPtr<Resource> > dependents;
+        dependents.Reserve(j->Size());
+
+        for (const StringHash &k : *j)
         {
-            // Reloading a resource may modify the dependency tracking structure. Therefore collect the
-            // resources we need to reload first
-            Vector<SharedPtr<Resource> > dependents;
-            dependents.Reserve(j->second_.Size());
+            const SharedPtr<Resource>& dependent = FindResource(k);
+            if (dependent)
+                dependents.Push(dependent);
+        }
 
-            for (const StringHash &k : j->second_)
-            {
-                const SharedPtr<Resource>& dependent = FindResource(k);
-                if (dependent)
-                    dependents.Push(dependent);
-            }
-
-            for (unsigned k = 0; k < dependents.Size(); ++k)
-            {
-                LOGDEBUG("Reloading resource " + dependents[k]->GetName() + " depending on " + fileName);
-                ReloadResource(dependents[k]);
-            }
+        for (unsigned k = 0; k < dependents.size(); ++k)
+        {
+            LOGDEBUG("Reloading resource " + dependents[k]->GetName() + " depending on " + fileName);
+            ReloadResource(dependents[k]);
         }
     }
 }
@@ -424,7 +425,7 @@ void ResourceCache::SetAutoReloadResources(bool enable)
     {
         if (enable)
         {
-            for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+            for (unsigned i = 0; i < resourceDirs_.size(); ++i)
             {
                 SharedPtr<FileWatcher> watcher(new FileWatcher(context_));
                 watcher->StartWatching(resourceDirs_[i], true);
@@ -642,11 +643,11 @@ unsigned ResourceCache::GetNumBackgroundLoadResources() const
 void ResourceCache::GetResources(PODVector<Resource*>& result, StringHash type) const
 {
     result.Clear();
-    HashMap<StringHash, ResourceGroup>::ConstIterator i = resourceGroups_.Find(type);
+    QHash<StringHash, ResourceGroup>::const_iterator i = resourceGroups_.find(type);
     if (i != resourceGroups_.end())
     {
-        for (const auto & elem : i->second_.resources_)
-            result.Push(elem.second_);
+        for (const auto & elem : i->resources_)
+            result.Push(elem);
     }
 }
 
@@ -661,14 +662,14 @@ bool ResourceCache::Exists(const String& nameIn) const
     if (name.Empty())
         return false;
 
-    for (unsigned i = 0; i < packages_.Size(); ++i)
+    for (unsigned i = 0; i < packages_.size(); ++i)
     {
         if (packages_[i]->Exists(name))
             return true;
     }
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (fileSystem->FileExists(resourceDirs_[i] + name))
             return true;
@@ -683,18 +684,18 @@ bool ResourceCache::Exists(const String& nameIn) const
 
 unsigned ResourceCache::GetMemoryBudget(StringHash type) const
 {
-    HashMap<StringHash, ResourceGroup>::ConstIterator i = resourceGroups_.Find(type);
+    QHash<StringHash, ResourceGroup>::const_iterator i = resourceGroups_.find(type);
     if (i != resourceGroups_.end())
-        return i->second_.memoryBudget_;
+        return i->memoryBudget_;
     else
         return 0;
 }
 
 unsigned ResourceCache::GetMemoryUse(StringHash type) const
 {
-    HashMap<StringHash, ResourceGroup>::ConstIterator i = resourceGroups_.Find(type);
+    QHash<StringHash, ResourceGroup>::const_iterator i = resourceGroups_.find(type);
     if (i != resourceGroups_.end())
-        return i->second_.memoryUse_;
+        return i->memoryUse_;
     else
         return 0;
 }
@@ -702,8 +703,8 @@ unsigned ResourceCache::GetMemoryUse(StringHash type) const
 unsigned ResourceCache::GetTotalMemoryUse() const
 {
     unsigned total = 0;
-    for (const auto & elem : resourceGroups_)
-        total += elem.second_.memoryUse_;
+    for (const ResourceGroup & elem : resourceGroups_)
+        total += elem.memoryUse_;
     return total;
 }
 
@@ -712,7 +713,7 @@ String ResourceCache::GetResourceFileName(const String& name) const
     MutexLock lock(resourceMutex_);
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (fileSystem->FileExists(resourceDirs_[i] + name))
             return resourceDirs_[i] + name;
@@ -766,11 +767,11 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
 
     // If the path refers to one of the resource directories, normalize the resource name
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    if (resourceDirs_.Size())
+    if (resourceDirs_.size())
     {
         String namePath = GetPath(name);
         String exePath = fileSystem->GetProgramDir();
-        for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+        for (unsigned i = 0; i < resourceDirs_.size(); ++i)
         {
             String relativeResourcePath = resourceDirs_[i];
             if (relativeResourcePath.StartsWith(exePath))
@@ -822,13 +823,13 @@ void ResourceCache::ResetDependencies(Resource* resource)
 
     StringHash nameHash(resource->GetName());
 
-    for (HashMap<StringHash, HashSet<StringHash> >::Iterator i = dependentResources_.begin(); i !=
+    for (QHash<StringHash, HashSet<StringHash> >::Iterator i = dependentResources_.begin(); i !=
         dependentResources_.end();)
     {
-        HashSet<StringHash>& dependents = i->second_;
+        HashSet<StringHash>& dependents = *i;
         dependents.Erase(nameHash);
         if (dependents.Empty())
-            i = dependentResources_.Erase(i);
+            i = dependentResources_.erase(i);
         else
             ++i;
     }
@@ -838,25 +839,25 @@ const SharedPtr<Resource>& ResourceCache::FindResource(StringHash type, StringHa
 {
     MutexLock lock(resourceMutex_);
 
-    HashMap<StringHash, ResourceGroup>::Iterator i = resourceGroups_.Find(type);
+    QHash<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
     if (i == resourceGroups_.end())
         return noResource;
-    HashMap<StringHash, SharedPtr<Resource> >::Iterator j = i->second_.resources_.Find(nameHash);
-    if (j == i->second_.resources_.end())
+    QHash<StringHash, SharedPtr<Resource> >::Iterator j = i->resources_.find(nameHash);
+    if (j == i->resources_.end())
         return noResource;
 
-    return j->second_;
+    return *j;
 }
 
 const SharedPtr<Resource>& ResourceCache::FindResource(StringHash nameHash)
 {
     MutexLock lock(resourceMutex_);
 
-    for (auto & elem : resourceGroups_)
+    for (ResourceGroup & elem : resourceGroups_)
     {
-        HashMap<StringHash, SharedPtr<Resource> >::Iterator j = elem.second_.resources_.Find(nameHash);
-        if (j != elem.second_.resources_.end())
-            return j->second_;
+        QHash<StringHash, SharedPtr<Resource> >::Iterator j = elem.resources_.find(nameHash);
+        if (j != elem.resources_.end())
+            return *j;
     }
 
     return noResource;
@@ -866,22 +867,21 @@ void ResourceCache::ReleasePackageResources(PackageFile* package, bool force)
 {
     HashSet<StringHash> affectedGroups;
 
-    const HashMap<String, PackageEntry>& entries = package->GetEntries();
-    for (const auto & entrie : entries)
+    const QHash<String, PackageEntry>& entries = package->GetEntries();
+    for (auto nameHash : entries.keys())
     {
-        StringHash nameHash(entrie.first_);
-
         // We do not know the actual resource type, so search all type containers
-        for (auto & elem : resourceGroups_)
+        for (auto iter = resourceGroups_.begin(),fin=resourceGroups_.end(); iter!=fin; ++iter)
         {
-            HashMap<StringHash, SharedPtr<Resource> >::Iterator k = elem.second_.resources_.Find(nameHash);
-            if (k != elem.second_.resources_.end())
+            ResourceGroup & elem(*iter);
+            QHash<StringHash, SharedPtr<Resource> >::Iterator k = elem.resources_.find(nameHash);
+            if (k != elem.resources_.end())
             {
                 // If other references exist, do not release, unless forced
-                if ((k->second_.Refs() == 1 && k->second_.WeakRefs() == 0) || force)
+                if (((*k).Refs() == 1 && (*k).WeakRefs() == 0) || force)
                 {
-                    elem.second_.resources_.Erase(k);
-                    affectedGroups.Insert(elem.first_);
+                    elem.resources_.erase(k);
+                    affectedGroups.Insert(iter.key());
                 }
                 break;
             }
@@ -894,7 +894,7 @@ void ResourceCache::ReleasePackageResources(PackageFile* package, bool force)
 
 void ResourceCache::UpdateResourceGroup(StringHash type)
 {
-    HashMap<StringHash, ResourceGroup>::Iterator i = resourceGroups_.Find(type);
+    QHash<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
     if (i == resourceGroups_.end())
         return;
 
@@ -902,13 +902,13 @@ void ResourceCache::UpdateResourceGroup(StringHash type)
     {
         unsigned totalSize = 0;
         unsigned oldestTimer = 0;
-        HashMap<StringHash, SharedPtr<Resource> >::Iterator oldestResource = i->second_.resources_.end();
+        QHash<StringHash, SharedPtr<Resource> >::Iterator oldestResource = i->resources_.end();
 
-        for (HashMap<StringHash, SharedPtr<Resource> >::Iterator j = i->second_.resources_.begin();
-            j != i->second_.resources_.end(); ++j)
+        for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = i->resources_.begin();
+            j != i->resources_.end(); ++j)
         {
-            totalSize += j->second_->GetMemoryUse();
-            unsigned useTimer = j->second_->GetUseTimer();
+            totalSize += (*j)->GetMemoryUse();
+            unsigned useTimer = (*j)->GetUseTimer();
             if (useTimer > oldestTimer)
             {
                 oldestTimer = useTimer;
@@ -916,16 +916,16 @@ void ResourceCache::UpdateResourceGroup(StringHash type)
             }
         }
 
-        i->second_.memoryUse_ = totalSize;
+        i->memoryUse_ = totalSize;
 
         // If memory budget defined and is exceeded, remove the oldest resource and loop again
         // (resources in use always return a zero timer and can not be removed)
-        if (i->second_.memoryBudget_ && i->second_.memoryUse_ > i->second_.memoryBudget_ &&
-            oldestResource != i->second_.resources_.end())
+        if (i->memoryBudget_ && i->memoryUse_ > i->memoryBudget_ &&
+            oldestResource != i->resources_.end())
         {
-            LOGDEBUG("Resource group " + oldestResource->second_->GetTypeName() + " over memory budget, releasing resource " +
-                oldestResource->second_->GetName());
-            i->second_.resources_.Erase(oldestResource);
+            LOGDEBUG("Resource group " + (*oldestResource)->GetTypeName() + " over memory budget, releasing resource " +
+                (*oldestResource)->GetName());
+            i->resources_.erase(oldestResource);
         }
         else
             break;
@@ -934,7 +934,7 @@ void ResourceCache::UpdateResourceGroup(StringHash type)
 
 void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
-    for (unsigned i = 0; i < fileWatchers_.Size(); ++i)
+    for (unsigned i = 0; i < fileWatchers_.size(); ++i)
     {
         String fileName;
         while (fileWatchers_[i]->GetNextChange(fileName))
@@ -961,7 +961,7 @@ void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData
 File* ResourceCache::SearchResourceDirs(const String& nameIn)
 {
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (fileSystem->FileExists(resourceDirs_[i] + nameIn))
         {
@@ -982,7 +982,7 @@ File* ResourceCache::SearchResourceDirs(const String& nameIn)
 
 File* ResourceCache::SearchPackages(const String& nameIn)
 {
-    for (unsigned i = 0; i < packages_.Size(); ++i)
+    for (unsigned i = 0; i < packages_.size(); ++i)
     {
         if (packages_[i]->Exists(nameIn))
             return new File(context_, packages_[i], nameIn);

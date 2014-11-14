@@ -64,7 +64,7 @@ void RenderSurface::SetNumViewports(unsigned num)
 
 void RenderSurface::SetViewport(unsigned index, Viewport* viewport)
 {
-    if (index >= viewports_.Size())
+    if (index >= viewports_.size())
         viewports_.Resize(index + 1);
     
     viewports_[index] = viewport;
@@ -95,7 +95,7 @@ void RenderSurface::QueueUpdate()
         
         // Verify that there is at least 1 non-null viewport, as otherwise Renderer will not accept the surface and the update flag
         // will be left on
-        for (unsigned i = 0; i < viewports_.Size(); ++i)
+        for (unsigned i = 0; i < viewports_.size(); ++i)
         {
             if (viewports_[i])
             {
@@ -195,7 +195,7 @@ TextureUsage RenderSurface::GetUsage() const
 
 Viewport* RenderSurface::GetViewport(unsigned index) const
 {
-    return index < viewports_.Size() ? viewports_[index] : (Viewport*)nullptr;
+    return index < viewports_.size() ? viewports_[index] : (Viewport*)nullptr;
 }
 
 void RenderSurface::SetTarget(unsigned target)

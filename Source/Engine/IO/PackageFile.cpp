@@ -58,11 +58,11 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
         return false;
     }
     #endif
-    
+
     SharedPtr<File> file(new File(context_, fileName));
     if (!file->IsOpen())
         return false;
-    
+
     // Check ID, then read the directory
     file->Seek(startOffset);
     String id = file->ReadFileID();
@@ -82,22 +82,22 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
                 id = file->ReadFileID();
             }
         }
-        
+
         if (id != "UPAK" && id != "ULZ4")
         {
             LOGERROR(fileName + " is not a valid package file");
             return false;
         }
     }
-    
+
     fileName_ = fileName;
     nameHash_ = fileName_;
     totalSize_ = file->GetSize();
     compressed_ = id == "ULZ4";
-    
+
     unsigned numFiles = file->ReadUInt();
     checksum_ = file->ReadUInt();
-    
+
     for (unsigned i = 0; i < numFiles; ++i)
     {
         String entryName = file->ReadString();
@@ -110,20 +110,20 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
         else
             entries_[entryName.ToLower()] = newEntry;
     }
-    
+
     return true;
 }
 
 bool PackageFile::Exists(const String& fileName) const
 {
-    return entries_.Find(fileName.ToLower()) != entries_.end();
+    return entries_.find(fileName.ToLower()) != entries_.end();
 }
 
 const PackageEntry* PackageFile::GetEntry(const String& fileName) const
 {
-    HashMap<String, PackageEntry>::ConstIterator i = entries_.Find(fileName.ToLower());
+    QHash<String, PackageEntry>::ConstIterator i = entries_.find(fileName.ToLower());
     if (i != entries_.end())
-        return &i->second_;
+        return &(*i);
     else
         return nullptr;
 }

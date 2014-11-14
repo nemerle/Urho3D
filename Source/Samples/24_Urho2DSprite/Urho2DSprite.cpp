@@ -212,10 +212,8 @@ void Urho2DSprite::HandleUpdate(StringHash eventType, VariantMap& eventData)
     float halfWidth = (float)graphics->GetWidth() * 0.5f * PIXEL_SIZE;
     float halfHeight = (float)graphics->GetHeight() * 0.5f * PIXEL_SIZE;
 
-    for (unsigned i = 0; i < spriteNodes_.Size(); ++i)
+    for (SharedPtr<Node> &node :  spriteNodes_)
     {
-        SharedPtr<Node> node = spriteNodes_[i];
-
         Vector3 position = node->GetPosition();
         Vector3 moveSpeed = node->GetVar(VAR_MOVESPEED).GetVector3();
         Vector3 newPosition = position + moveSpeed * timeStep;

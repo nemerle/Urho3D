@@ -86,9 +86,9 @@ Scene::~Scene()
 
     // Remove scene reference and owner from all nodes that still exist
     for (auto & elem : replicatedNodes_)
-        elem.second_->ResetScene();
+        elem->ResetScene();
     for (auto & elem : localNodes_)
-        elem.second_->ResetScene();
+        elem->ResetScene();
 }
 
 void Scene::RegisterObject(Context* context)
@@ -190,8 +190,8 @@ void Scene::AddReplicationState(NodeReplicationState* state)
     Node::AddReplicationState(state);
 
     // This is the first update for a new connection. Mark all replicated nodes dirty
-    for (HashMap<unsigned, Node*>::ConstIterator i = replicatedNodes_.begin(); i != replicatedNodes_.end(); ++i)
-        state->sceneState_->dirtyNodes_.Insert(i->first_);
+    for (QHash<unsigned, Node*>::ConstIterator i = replicatedNodes_.begin(); i != replicatedNodes_.end(); ++i)
+        state->sceneState_->dirtyNodes_.Insert(i.key());
 }
 
 bool Scene::LoadXML(Deserializer& source)
@@ -529,29 +529,29 @@ void Scene::RegisterVar(const String& name)
 
 void Scene::UnregisterVar(const String& name)
 {
-    varNames_.Erase(name);
+    varNames_.remove(name);
 }
 
 void Scene::UnregisterAllVars()
 {
-    varNames_.Clear();
+    varNames_.clear();
 }
 
 Node* Scene::GetNode(unsigned id) const
 {
     if (id < FIRST_LOCAL_ID)
     {
-        HashMap<unsigned, Node*>::ConstIterator i = replicatedNodes_.Find(id);
+        QHash<unsigned, Node*>::ConstIterator i = replicatedNodes_.find(id);
         if (i != replicatedNodes_.end())
-            return i->second_;
+            return *i;
         else
             return nullptr;
     }
     else
     {
-        HashMap<unsigned, Node*>::ConstIterator i = localNodes_.Find(id);
+        QHash<unsigned, Node*>::ConstIterator i = localNodes_.find(id);
         if (i != localNodes_.end())
-            return i->second_;
+            return *i;
         else
             return nullptr;
     }
@@ -561,17 +561,17 @@ Component* Scene::GetComponent(unsigned id) const
 {
     if (id < FIRST_LOCAL_ID)
     {
-        HashMap<unsigned, Component*>::ConstIterator i = replicatedComponents_.Find(id);
+        QHash<unsigned, Component*>::ConstIterator i = replicatedComponents_.find(id);
         if (i != replicatedComponents_.end())
-            return i->second_;
+            return *i;
         else
             return nullptr;
     }
     else
     {
-        HashMap<unsigned, Component*>::ConstIterator i = localComponents_.Find(id);
+        QHash<unsigned, Component*>::ConstIterator i = localComponents_.find(id);
         if (i != localComponents_.end())
-            return i->second_;
+            return *i;
         else
             return nullptr;
     }
@@ -590,8 +590,8 @@ float Scene::GetAsyncProgress() const
 
 const String& Scene::GetVarName(StringHash hash) const
 {
-    HashMap<StringHash, String>::ConstIterator i = varNames_.Find(hash);
-    return i != varNames_.end() ? i->second_ : String::EMPTY;
+    QHash<StringHash, String>::ConstIterator i = varNames_.find(hash);
+    return i != varNames_.end() ? *i : String::EMPTY;
 }
 
 void Scene::Update(float timeStep)
@@ -688,7 +688,7 @@ unsigned Scene::GetFreeNodeID(CreateMode mode)
             else
                 replicatedNodeID_ = FIRST_REPLICATED_ID;
 
-            if (!replicatedNodes_.Contains(ret))
+            if (!replicatedNodes_.contains(ret))
                 return ret;
         }
     }
@@ -702,7 +702,7 @@ unsigned Scene::GetFreeNodeID(CreateMode mode)
             else
                 localNodeID_ = FIRST_LOCAL_ID;
 
-            if (!localNodes_.Contains(ret))
+            if (!localNodes_.contains(ret))
                 return ret;
         }
     }
@@ -720,7 +720,7 @@ unsigned Scene::GetFreeComponentID(CreateMode mode)
             else
                 replicatedComponentID_ = FIRST_REPLICATED_ID;
 
-            if (!replicatedComponents_.Contains(ret))
+            if (!replicatedComponents_.contains(ret))
                 return ret;
         }
     }
@@ -734,7 +734,7 @@ unsigned Scene::GetFreeComponentID(CreateMode mode)
             else
                 localComponentID_ = FIRST_LOCAL_ID;
 
-            if (!localComponents_.Contains(ret))
+            if (!localComponents_.contains(ret))
                 return ret;
         }
     }
@@ -767,11 +767,11 @@ void Scene::NodeAdded(Node* node)
     // If node with same ID exists, remove the scene reference from it and overwrite with the new node
     if (id < FIRST_LOCAL_ID)
     {
-        HashMap<unsigned, Node*>::Iterator i = replicatedNodes_.Find(id);
-        if (i != replicatedNodes_.end() && i->second_ != node)
+        QHash<unsigned, Node*>::Iterator i = replicatedNodes_.find(id);
+        if (i != replicatedNodes_.end() && *i != node)
         {
             LOGWARNING("Overwriting node with ID " + String(id));
-            i->second_->ResetScene();
+            (*i)->ResetScene();
         }
 
         replicatedNodes_[id] = node;
@@ -781,11 +781,11 @@ void Scene::NodeAdded(Node* node)
     }
     else
     {
-        HashMap<unsigned, Node*>::Iterator i = localNodes_.Find(id);
-        if (i != localNodes_.end() && i->second_ != node)
+        QHash<unsigned, Node*>::Iterator i = localNodes_.find(id);
+        if (i != localNodes_.end() && *i != node)
         {
             LOGWARNING("Overwriting node with ID " + String(id));
-            i->second_->ResetScene();
+            (*i)->ResetScene();
         }
 
         localNodes_[id] = node;
@@ -800,11 +800,11 @@ void Scene::NodeRemoved(Node* node)
     unsigned id = node->GetID();
     if (id < FIRST_LOCAL_ID)
     {
-        replicatedNodes_.Erase(id);
+        replicatedNodes_.remove(id);
         MarkReplicationDirty(node);
     }
     else
-        localNodes_.Erase(id);
+        localNodes_.remove(id);
 
     node->SetID(0);
     node->SetScene(nullptr);
@@ -818,22 +818,22 @@ void Scene::ComponentAdded(Component* component)
     unsigned id = component->GetID();
     if (id < FIRST_LOCAL_ID)
     {
-        HashMap<unsigned, Component*>::Iterator i = replicatedComponents_.Find(id);
-        if (i != replicatedComponents_.end() && i->second_ != component)
+        QHash<unsigned, Component*>::Iterator i = replicatedComponents_.find(id);
+        if (i != replicatedComponents_.end() && (*i) != component)
         {
             LOGWARNING("Overwriting component with ID " + String(id));
-            i->second_->SetID(0);
+            (*i)->SetID(0);
         }
 
         replicatedComponents_[id] = component;
     }
     else
     {
-        HashMap<unsigned, Component*>::Iterator i = localComponents_.Find(id);
-        if (i != localComponents_.end() && i->second_ != component)
+        QHash<unsigned, Component*>::Iterator i = localComponents_.find(id);
+        if (i != localComponents_.end() && (*i) != component)
         {
             LOGWARNING("Overwriting component with ID " + String(id));
-            i->second_->SetID(0);
+            (*i)->SetID(0);
         }
 
         localComponents_[id] = component;
@@ -847,9 +847,9 @@ void Scene::ComponentRemoved(Component* component)
 
     unsigned id = component->GetID();
     if (id < FIRST_LOCAL_ID)
-        replicatedComponents_.Erase(id);
+        replicatedComponents_.remove(id);
     else
-        localComponents_.Erase(id);
+        localComponents_.remove(id);
 
     component->SetID(0);
 }
@@ -858,7 +858,7 @@ void Scene::SetVarNamesAttr(String value)
 {
     Vector<String> varNames = value.Split(';');
 
-    varNames_.Clear();
+    varNames_.clear();
     for (Vector<String>::ConstIterator i = varNames.begin(); i != varNames.end(); ++i)
         varNames_[*i] = *i;
 }
@@ -867,10 +867,10 @@ String Scene::GetVarNamesAttr() const
 {
     String ret;
 
-    if (!varNames_.Empty())
+    if (!varNames_.empty())
     {
         for (const auto & elem : varNames_)
-            ret += elem.second_ + ';';
+            ret += elem + ';';
 
         ret.Resize(ret.Length() - 1);
     }
@@ -903,10 +903,10 @@ void Scene::CleanupConnection(Connection* connection)
     Node::CleanupConnection(connection);
 
     for (auto & elem : replicatedNodes_)
-        elem.second_->CleanupConnection(connection);
+        elem->CleanupConnection(connection);
 
     for (auto & elem : replicatedComponents_)
-        elem.second_->CleanupConnection(connection);
+        elem->CleanupConnection(connection);
 }
 
 void Scene::MarkNetworkUpdate(Node* node)
@@ -1077,7 +1077,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
     const Vector<AttributeInfo>* attributes = context_->GetAttributes(isSceneFile ? Scene::GetTypeStatic() : Node::GetTypeStatic());
     assert(attributes);
 
-    for (unsigned i = 0; i < attributes->Size(); ++i)
+    for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->At(i);
         if (!(attr.mode_ & AM_FILE))
@@ -1097,7 +1097,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
         attributes = context_->GetAttributes(compType);
         if (attributes)
         {
-            for (unsigned j = 0; j < attributes->Size(); ++j)
+            for (unsigned j = 0; j < attributes->size(); ++j)
             {
                 const AttributeInfo& attr = attributes->At(j);
                 if (!(attr.mode_ & AM_FILE))
@@ -1118,7 +1118,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
                 else if (attr.type_ == VAR_RESOURCEREFLIST)
                 {
                     const ResourceRefList& refList = varValue.GetResourceRefList();
-                    for (unsigned k = 0; k < refList.names_.Size(); ++k)
+                    for (unsigned k = 0; k < refList.names_.size(); ++k)
                     {
                         String name = cache->SanitateResourceName(refList.names_[k]);
                         bool success = cache->BackgroundLoadResource(refList.type_, name);
@@ -1158,7 +1158,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
             {
                 String name = attrElem.GetAttribute("name");
                 unsigned i = startIndex;
-                unsigned attempts = attributes->Size();
+                unsigned attempts = attributes->size();
 
                 while (attempts)
                 {
@@ -1179,7 +1179,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
                         else if (attr.type_ == VAR_RESOURCEREFLIST)
                         {
                             ResourceRefList refList = attrElem.GetVariantValue(attr.type_).GetResourceRefList();
-                            for (unsigned k = 0; k < refList.names_.Size(); ++k)
+                            for (unsigned k = 0; k < refList.names_.size(); ++k)
                             {
                                 String name = cache->SanitateResourceName(refList.names_[k]);
                                 bool success = cache->BackgroundLoadResource(refList.type_, name);
@@ -1191,12 +1191,12 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
                             }
                         }
 
-                        startIndex = (i + 1) % attributes->Size();
+                        startIndex = (i + 1) % attributes->size();
                         break;
                     }
                     else
                     {
-                        i = (i + 1) % attributes->Size();
+                        i = (i + 1) % attributes->size();
                         --attempts;
                     }
                 }

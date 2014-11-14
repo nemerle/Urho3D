@@ -206,7 +206,7 @@ void JSONValue::SetResourceRefList(const String& name, const ResourceRefList& va
 {
     Context* context = file_->GetContext();
     String str(context->GetTypeName(value.type_));
-    for (unsigned i = 0; i < value.names_.Size(); ++i)
+    for (unsigned i = 0; i < value.names_.size(); ++i)
     {
         str += ";";
         str += value.names_[i];
@@ -373,10 +373,10 @@ bool JSONValue::GetBuffer(const String& name, void* dest, unsigned size) const
 {
     Vector<String> bytes = GetString(name).Split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
-    if (size < bytes.Size())
+    if (size < bytes.size())
         return false;
 
-    for (unsigned i = 0; i < bytes.Size(); ++i)
+    for (unsigned i = 0; i < bytes.size(); ++i)
         destBytes[i] = ToInt(bytes[i]);
     return true;
 }
@@ -387,7 +387,7 @@ ResourceRef JSONValue::GetResourceRef(const String& name) const
     ResourceRef ret;
 
     Vector<String> values = GetString(name).Split(';');
-    if (values.Size() == 2)
+    if (values.size() == 2)
     {
         ret.type_ = values[0];
         ret.name_ = values[1];
@@ -401,11 +401,11 @@ ResourceRefList JSONValue::GetResourceRefList(const String& name) const
     ResourceRefList ret;
 
     Vector<String> values = GetString(name).Split(';');
-    if (values.Size() >= 1)
+    if (values.size() >= 1)
     {
         ret.type_ = values[0];
-        ret.names_.Resize(values.Size() - 1);
-        for (unsigned i = 1; i < values.Size(); ++i)
+        ret.names_.Resize(values.size() - 1);
+        for (unsigned i = 1; i < values.size(); ++i)
             ret.names_[i - 1] = values[i];
     }
 
@@ -576,7 +576,7 @@ void JSONValue::AddResourceRefList(const ResourceRefList& value)
 {
     Context* context = file_->GetContext();
     String str(context->GetTypeName(value.type_));
-    for (unsigned i = 0; i < value.names_.Size(); ++i)
+    for (unsigned i = 0; i < value.names_.size(); ++i)
     {
         str += ";";
         str += value.names_[i];
@@ -720,10 +720,10 @@ bool JSONValue::GetBuffer(unsigned index, void* dest, unsigned size) const
 {
     Vector<String> bytes = GetString(index).Split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
-    if (size < bytes.Size())
+    if (size < bytes.size())
         return false;
 
-    for (unsigned i = 0; i < bytes.Size(); ++i)
+    for (unsigned i = 0; i < bytes.size(); ++i)
         destBytes[i] = ToInt(bytes[i]);
     return true;
 }
@@ -733,7 +733,7 @@ ResourceRef JSONValue::GetResourceRef(unsigned index) const
     ResourceRef ret;
 
     Vector<String> values = GetString(index).Split(';');
-    if (values.Size() == 2)
+    if (values.size() == 2)
     {
         ret.type_ = values[0];
         ret.name_ = values[1];
@@ -747,11 +747,11 @@ ResourceRefList JSONValue::GetResourceRefList(unsigned index) const
     ResourceRefList ret;
 
     Vector<String> values = GetString(index).Split(';');
-    if (values.Size() >= 1)
+    if (values.size() >= 1)
     {
         ret.type_ = values[0];
-        ret.names_.Resize(values.Size() - 1);
-        for (unsigned i = 1; i < values.Size(); ++i)
+        ret.names_.Resize(values.size() - 1);
+        for (unsigned i = 1; i < values.size(); ++i)
             ret.names_[i - 1] = values[i];
     }
 

@@ -112,7 +112,7 @@ public:
     /// Return animation value.
     Variant GetAnimationValue(float scaledTime);
     /// Has event frames.
-    bool HasEventFrames() const { return !eventFrames_.Empty(); }
+    bool HasEventFrames() const { return !eventFrames_.empty(); }
     /// Return all event frames between time.
     void GetEventFrames(float beginTime, float endTime, PODVector<const VAnimEventFrame*>& eventFrames) const;
 

@@ -136,7 +136,7 @@ void LineEdit::OnDoubleClick(const IntVector2& position, const IntVector2& scree
 void LineEdit::OnDragBegin(const IntVector2& position, const IntVector2& screenPosition, int buttons, int qualifiers, Cursor* cursor)
 {
     UIElement::OnDragBegin(position, screenPosition, buttons, qualifiers, cursor);
-    
+
     dragBeginCursor_ = GetCharIndex(position);
 }
 
@@ -173,7 +173,7 @@ bool LineEdit::OnDragDropFinish(UIElement* source)
     if (source && editable_)
     {
         // If the UI element in question has a drag-and-drop content string defined, use it instead of element text
-        if (source->GetVars().Contains(VAR_DRAGDROPCONTENT))
+        if (source->GetVars().contains(VAR_DRAGDROPCONTENT))
         {
             SetText(source->GetVar(VAR_DRAGDROPCONTENT).GetString());
             return true;

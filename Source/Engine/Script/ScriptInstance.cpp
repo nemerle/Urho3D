@@ -121,7 +121,7 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
     {
         // If a cached ID value has been stored, return it instead of querying from the actual object
         // (the object handle is likely null at that point)
-        HashMap<AttributeInfo*, unsigned>::ConstIterator i = idAttributes_.Find(attrPtr);
+        HashMap<AttributeInfo*, unsigned>::ConstIterator i = idAttributes_.find(attrPtr);
         if (i != idAttributes_.end())
             dest = i->second_;
         else if (attr.mode_ & AM_NODEID)
@@ -174,7 +174,7 @@ void ScriptInstance::ApplyAttributes()
         }
     }
 
-    idAttributes_.Clear();
+    idAttributes_.clear();
 
     if (scriptObject_ && methods_[METHOD_APPLYATTRIBUTES])
         scriptFile_->Execute(scriptObject_, methods_[METHOD_APPLYATTRIBUTES]);
@@ -372,7 +372,7 @@ void ScriptInstance::SetDelayedCallsAttr(PODVector<unsigned char> value)
         elem.parameters_ = buf.ReadVariantVector();
     }
 
-    if (scriptObject_ && delayedCalls_.Size() && !subscribed_)
+    if (scriptObject_ && delayedCalls_.size() && !subscribed_)
         UpdateEventSubscription();
 }
 
@@ -406,7 +406,7 @@ ResourceRef ScriptInstance::GetScriptFileAttr() const
 PODVector<unsigned char> ScriptInstance::GetDelayedCallsAttr() const
 {
     VectorBuffer buf;
-    buf.WriteVLE(delayedCalls_.Size());
+    buf.WriteVLE(delayedCalls_.size());
     for (const auto & elem : delayedCalls_)
     {
         buf.WriteFloat(elem.period_);
@@ -520,7 +520,7 @@ void ScriptInstance::ClearScriptMethods()
 void ScriptInstance::ClearScriptAttributes()
 {
     attributeInfos_ = *context_->GetAttributes(GetTypeStatic());
-    idAttributes_.Clear();
+    idAttributes_.clear();
 }
 
 void ScriptInstance::GetScriptMethods()
@@ -584,7 +584,7 @@ void ScriptInstance::GetScriptAttributes()
             // For a handle type, check if it's an Object subclass with a registered factory
             StringHash typeHash(typeName);
             const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
-            HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator j = factories.Find(typeHash);
+            HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator j = factories.find(typeHash);
             if (j != factories.end())
             {
                 // Check base class type. Node & Component are supported as ID attributes, Resource as a resource reference
@@ -625,7 +625,7 @@ void ScriptInstance::UpdateEventSubscription()
 
     if (enabled)
     {
-        if (!subscribed_ && (methods_[METHOD_UPDATE] || methods_[METHOD_DELAYEDSTART] || delayedCalls_.Size()))
+        if (!subscribed_ && (methods_[METHOD_UPDATE] || methods_[METHOD_DELAYEDSTART] || delayedCalls_.size()))
         {
             SubscribeToEvent(scene, E_SCENEUPDATE, HANDLER(ScriptInstance, HandleSceneUpdate));
             subscribed_ = true;
@@ -695,7 +695,7 @@ void ScriptInstance::HandleSceneUpdate(StringHash eventType, VariantMap& eventDa
     float timeStep = eventData[P_TIMESTEP].GetFloat();
 
     // Execute delayed calls
-    for (unsigned i = 0; i < delayedCalls_.Size();)
+    for (unsigned i = 0; i < delayedCalls_.size();)
     {
         DelayedCall& call = delayedCalls_[i];
         bool remove = false;

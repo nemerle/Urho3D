@@ -78,7 +78,7 @@ bool Animatable::LoadXML(const XMLElement& source, bool setInstanceDefault)
         return false;
 
     SetObjectAnimation(nullptr);
-    attributeAnimationInfos_.Clear();
+    attributeAnimationInfos_.clear();
 
     XMLElement elem = source.GetChild("objectanimation");
     if (elem)
@@ -231,7 +231,7 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
         if (info->GetAttributeInfo().mode_ & AM_NET)
             animatedNetworkAttributes_.Erase(&info->GetAttributeInfo());
 
-        attributeAnimationInfos_.Erase(name);
+        attributeAnimationInfos_.erase(name);
         OnAttributeAnimationRemoved();
     }
 }
@@ -298,12 +298,11 @@ void Animatable::OnObjectAnimationAdded(ObjectAnimation* objectAnimation)
         return;
 
     // Set all attribute animations from the object animation
-    const HashMap<String, SharedPtr<ValueAnimationInfo> >& attributeAnimationInfos = objectAnimation->GetAttributeAnimationInfos();
-    for (const auto & attributeAnimationInfo : attributeAnimationInfos)
+    const QHash<String, SharedPtr<ValueAnimationInfo> >& attributeAnimationInfos = objectAnimation->GetAttributeAnimationInfos();
+    for (auto info=attributeAnimationInfos.begin(),fin=attributeAnimationInfos.end(); info!=fin; ++info)
     {
-        const String& name = attributeAnimationInfo.first_;
-        ValueAnimationInfo* info = attributeAnimationInfo.second_;
-        SetObjectAttributeAnimation(name, info->GetAnimation(), info->GetWrapMode(), info->GetSpeed());
+        const String& name = info.key();
+        SetObjectAttributeAnimation(name, (*info)->GetAnimation(), (*info)->GetWrapMode(), (*info)->GetSpeed());
     }
 }
 
@@ -320,7 +319,7 @@ void Animatable::OnObjectAnimationRemoved(ObjectAnimation* objectAnimation)
             names.Push(elem.first_);
     }
 
-    for (unsigned i = 0; i < names.Size(); ++i)
+    for (unsigned i = 0; i < names.size(); ++i)
         SetObjectAttributeAnimation(names[i], nullptr, WM_LOOP, 1.0f);
 }
 
@@ -336,7 +335,7 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
             finishedNames.Push(i->second_->GetAttributeInfo().name_);
     }
 
-    for (unsigned i = 0; i < finishedNames.Size(); ++i)
+    for (unsigned i = 0; i < finishedNames.size(); ++i)
         SetAttributeAnimation(finishedNames[i], nullptr);
 }
 
@@ -347,7 +346,7 @@ bool Animatable::IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const
 
 AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const String& name) const
 {
-    HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.Find(name);
+    HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
         return i->second_;
 

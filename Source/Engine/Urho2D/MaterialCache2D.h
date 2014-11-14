@@ -52,7 +52,7 @@ protected:
     Material* CreateMaterial(Texture2D* Texture, BlendMode blendMode);
 
     /// Materials.
-    HashMap<Texture2D*, HashMap<int, SharedPtr<Material> > > materials_;
+    QHash<Texture2D*, QHash<int, SharedPtr<Material> > > materials_;
 };
 
 }

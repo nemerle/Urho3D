@@ -211,7 +211,7 @@ void Console::SetNumRows(unsigned rows)
 void Console::SetNumHistoryRows(unsigned rows)
 {
     historyRows_ = rows;
-    if (history_.Size() > rows)
+    if (history_.size() > rows)
         history_.Resize(rows);
     if (historyPosition_ > rows)
         historyPosition_ = rows;
@@ -256,7 +256,7 @@ void Console::CopySelectedRows() const
 
 const String& Console::GetHistoryRow(unsigned index) const
 {
-    return index < history_.Size() ? history_[index] : String::EMPTY;
+    return index < history_.size() ? history_[index] : String::EMPTY;
 }
 
 bool Console::PopulateInterpreter()
@@ -273,7 +273,7 @@ bool Console::PopulateInterpreter()
     Sort(names.begin(), names.end());
 
     unsigned selection = M_MAX_UNSIGNED;
-    for (unsigned i = 0; i < names.Size(); ++i)
+    for (unsigned i = 0; i < names.size(); ++i)
     {
         const String& name = names[i];
         if (name == commandInterpreter_)
@@ -323,9 +323,9 @@ void Console::HandleTextFinished(StringHash eventType, VariantMap& eventData)
 
         // Store to history, then clear the lineedit
         history_.Push(line);
-        if (history_.Size() > historyRows_)
+        if (history_.size() > historyRows_)
             history_.Erase(history_.begin());
-        historyPosition_ = history_.Size();
+        historyPosition_ = history_.size();
 
         currentRow_.Clear();
         lineEdit_->SetText(currentRow_);
@@ -346,7 +346,7 @@ void Console::HandleLineEditKey(StringHash eventType, VariantMap& eventData)
     case KEY_UP:
         if (historyPosition_ > 0)
         {
-            if (historyPosition_ == history_.Size())
+            if (historyPosition_ == history_.size())
                 currentRow_ = lineEdit_->GetText();
             --historyPosition_;
             changed = true;
@@ -354,7 +354,7 @@ void Console::HandleLineEditKey(StringHash eventType, VariantMap& eventData)
         break;
 
     case KEY_DOWN:
-        if (historyPosition_ < history_.Size())
+        if (historyPosition_ < history_.size())
         {
             ++historyPosition_;
             changed = true;
@@ -364,7 +364,7 @@ void Console::HandleLineEditKey(StringHash eventType, VariantMap& eventData)
 
     if (changed)
     {
-        if (historyPosition_ < history_.Size())
+        if (historyPosition_ < history_.size())
             lineEdit_->SetText(history_[historyPosition_]);
         else
             lineEdit_->SetText(currentRow_);
@@ -393,7 +393,7 @@ void Console::HandleLogMessage(StringHash eventType, VariantMap& eventData)
     // The message may be multi-line, so split to rows in that case
     Vector<String> rows = eventData[P_MESSAGE].GetString().Split('\n');
 
-    for (unsigned i = 0; i < rows.Size(); ++i)
+    for (unsigned i = 0; i < rows.size(); ++i)
         pendingRows_.Push(MakePair(level, rows[i]));
 
     if (autoVisibleOnError_ && level == LOG_ERROR && !IsVisible())
@@ -411,14 +411,14 @@ void Console::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
         uiRoot->AddChild(closeButton_);
     }
 
-    if (!rowContainer_->GetNumItems() || pendingRows_.Empty())
+    if (!rowContainer_->GetNumItems() || pendingRows_.empty())
         return;
 
     printing_ = true;
     rowContainer_->DisableLayoutUpdate();
 
     Text* text;
-    for (unsigned i = 0; i < pendingRows_.Size(); ++i)
+    for (unsigned i = 0; i < pendingRows_.size(); ++i)
     {
         rowContainer_->RemoveItem((unsigned)0);
         text = new Text(context_);

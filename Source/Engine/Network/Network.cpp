@@ -110,7 +110,7 @@ Network::~Network()
     Disconnect(100);
     serverConnection_.Reset();
 
-    clientConnections_.Clear();
+    clientConnections_.clear();
 
     delete network_;
     network_ = nullptr;
@@ -182,10 +182,10 @@ void Network::ClientDisconnected(kNet::MessageConnection* connection)
     connection->Disconnect(0);
 
     // Remove the client connection that corresponds to this MessageConnection
-    HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.Find(connection);
+    QHash<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.find(connection);
     if (i != clientConnections_.end())
     {
-        Connection* connection = i->second_;
+        Connection* connection = *i;
         LOGINFO("Client " + connection->ToString() + " disconnected");
 
         using namespace ClientDisconnected;
@@ -194,7 +194,7 @@ void Network::ClientDisconnected(kNet::MessageConnection* connection)
         eventData[P_CONNECTION] = connection;
         connection->SendEvent(E_CLIENTDISCONNECTED, eventData);
 
-        clientConnections_.Erase(i);
+        clientConnections_.erase(i);
     }
 }
 
@@ -262,7 +262,7 @@ void Network::StopServer()
 
     PROFILE(StopServer);
 
-    clientConnections_.Clear();
+    clientConnections_.clear();
     network_->StopServer();
     LOGINFO("Stopped server");
 }
@@ -291,16 +291,16 @@ void Network::BroadcastMessage(int msgID, bool reliable, bool inOrder, const uns
 
 void Network::BroadcastRemoteEvent(StringHash eventType, bool inOrder, const VariantMap& eventData)
 {
-    for (auto & elem : clientConnections_)
-        elem.second_->SendRemoteEvent(eventType, inOrder, eventData);
+    for (SharedPtr<Connection> & elem : clientConnections_)
+        elem->SendRemoteEvent(eventType, inOrder, eventData);
 }
 
 void Network::BroadcastRemoteEvent(Scene* scene, StringHash eventType, bool inOrder, const VariantMap& eventData)
 {
-    for (auto & elem : clientConnections_)
+    for (SharedPtr<Connection> & elem : clientConnections_)
     {
-        if (elem.second_->GetScene() == scene)
-            elem.second_->SendRemoteEvent(eventType, inOrder, eventData);
+        if (elem->GetScene() == scene)
+            elem->SendRemoteEvent(eventType, inOrder, eventData);
     }
 }
 
@@ -318,10 +318,10 @@ void Network::BroadcastRemoteEvent(Node* node, StringHash eventType, bool inOrde
     }
 
     Scene* scene = node->GetScene();
-    for (auto & elem : clientConnections_)
+    for (SharedPtr<Connection> & elem : clientConnections_)
     {
-        if (elem.second_->GetScene() == scene)
-            elem.second_->SendRemoteEvent(node, eventType, inOrder, eventData);
+        if (elem->GetScene() == scene)
+            elem->SendRemoteEvent(node, eventType, inOrder, eventData);
     }
 }
 
@@ -371,10 +371,10 @@ void Network::SendPackageToClients(Scene* scene, PackageFile* package)
         return;
     }
 
-    for (auto & elem : clientConnections_)
+    for (SharedPtr<Connection> & elem : clientConnections_)
     {
-        if (elem.second_->GetScene() == scene)
-            elem.second_->SendPackageToClient(package);
+        if (elem->GetScene() == scene)
+            elem->SendPackageToClient(package);
     }
 }
 
@@ -393,9 +393,9 @@ Connection* Network::GetConnection(kNet::MessageConnection* connection) const
         return serverConnection_;
     else
     {
-        HashMap<kNet::MessageConnection*, SharedPtr<Connection> >::ConstIterator i = clientConnections_.Find(connection);
+        QHash<kNet::MessageConnection*, SharedPtr<Connection> >::ConstIterator i = clientConnections_.find(connection);
         if (i != clientConnections_.end())
-            return i->second_;
+            return *i;
         else
             return nullptr;
     }
@@ -410,7 +410,7 @@ Vector<SharedPtr<Connection> > Network::GetClientConnections() const
 {
     Vector<SharedPtr<Connection> > ret;
     for (const auto & elem : clientConnections_)
-        ret.Push(elem.second_);
+        ret.Push(elem);
 
     return ret;
 }
@@ -477,9 +477,9 @@ void Network::PostUpdate(float timeStep)
                 PROFILE(PrepareServerUpdate);
 
                 networkScenes_.Clear();
-                for (auto & elem : clientConnections_)
+                for (SharedPtr<Connection> & elem : clientConnections_)
                 {
-                    Scene* scene = elem.second_->GetScene();
+                    Scene* scene = elem->GetScene();
                     if (scene)
                         networkScenes_.Insert(scene);
                 }
@@ -492,11 +492,11 @@ void Network::PostUpdate(float timeStep)
                 PROFILE(SendServerUpdate);
 
                 // Then send server updates for each client connection
-                for (auto & elem : clientConnections_)
+                for (SharedPtr<Connection> & elem : clientConnections_)
                 {
-                    elem.second_->SendServerUpdate();
-                    elem.second_->SendRemoteEvents();
-                    elem.second_->SendPackages();
+                    elem->SendServerUpdate();
+                    elem->SendRemoteEvents();
+                    elem->SendPackages();
                 }
             }
         }

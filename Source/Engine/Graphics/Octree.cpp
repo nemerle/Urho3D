@@ -103,9 +103,9 @@ Octant::~Octant()
     if (root_)
     {
         // Remove the drawables (if any) from this octant to the root octant
-        for (auto & elem : drawables_)
+        for (Drawable* elem : drawables_)
         {
-            (elem)->SetOctant(root_);
+            elem->SetOctant(root_);
             root_->drawables_.Push(elem);
             root_->QueueUpdate(elem);
         }
@@ -215,10 +215,10 @@ void Octant::ResetRoot()
     root_ = nullptr;
 
     // The whole octree is being destroyed, just detach the drawables
-    for (auto & elem : drawables_)
-        (elem)->SetOctant(nullptr);
+    for (Drawable* elem : drawables_)
+        elem->SetOctant(nullptr);
 
-    for (auto & elem : children_)
+    for (Octant* elem : children_)
     {
         if (elem)
             elem->ResetRoot();
@@ -231,7 +231,7 @@ void Octant::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
     {
         debug->AddBoundingBox(worldBoundingBox_, Color(0.25f, 0.25f, 0.25f), depthTest);
 
-        for (auto & elem : children_)
+        for (Octant* elem : children_)
         {
             if (elem)
                 elem->DrawDebugGeometry(debug, depthTest);
@@ -268,7 +268,7 @@ void Octant::GetDrawablesInternal(OctreeQuery& query, bool inside) const
         query.TestDrawables(start, end, inside);
     }
 
-    for (auto & elem : children_)
+    for (Octant* elem : children_)
     {
         if (elem)
             elem->GetDrawablesInternal(query, inside);
@@ -295,7 +295,7 @@ void Octant::GetDrawablesInternal(RayOctreeQuery& query) const
         }
     }
 
-    for (auto & elem : children_)
+    for (Octant * elem : children_)
     {
         if (elem)
             elem->GetDrawablesInternal(query);
@@ -322,7 +322,7 @@ void Octant::GetDrawablesOnlyInternal(RayOctreeQuery& query, PODVector<Drawable*
         }
     }
 
-    for (auto & elem : children_)
+    for (Octant * elem : children_)
     {
         if (elem)
             elem->GetDrawablesOnlyInternal(query, drawables);
@@ -454,7 +454,7 @@ void Octree::Update(const FrameInfo& frame)
 
         for (auto drawable : drawableUpdates_)
         {
-            
+
             drawable->updateQueued_ = false;
             Octant* octant = drawable->GetOctant();
             const BoundingBox& box = drawable->GetWorldBoundingBox();
@@ -528,7 +528,7 @@ void Octree::Raycast(RayOctreeQuery& query) const
         // Check that amount of drawables is large enough to justify threading
         if (rayQueryDrawables_.Size() >= RAYCASTS_PER_WORK_ITEM * 2)
         {
-            for (unsigned i = 0; i < rayQueryResults_.Size(); ++i)
+            for (unsigned i = 0; i < rayQueryResults_.size(); ++i)
                 rayQueryResults_[i].Clear();
 
             PODVector<Drawable*>::Iterator start = rayQueryDrawables_.begin();
@@ -552,12 +552,12 @@ void Octree::Raycast(RayOctreeQuery& query) const
 
             // Merge per-thread results
             queue->Complete(M_MAX_UNSIGNED);
-            for (unsigned i = 0; i < rayQueryResults_.Size(); ++i)
+            for (unsigned i = 0; i < rayQueryResults_.size(); ++i)
                 query.result_.Insert(query.result_.end(), rayQueryResults_[i].begin(), rayQueryResults_[i].end());
         }
         else
         {
-            for (auto & elem : rayQueryDrawables_)
+            for (Drawable* elem : rayQueryDrawables_)
                 (elem)->ProcessRayQuery(query, query.result_);
         }
     }
@@ -576,7 +576,7 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
     // Sort by increasing hit distance to AABB
     for (auto drawable : rayQueryDrawables_)
     {
-        
+
         drawable->SetSortValue(query.ray_.HitDistance(drawable->GetWorldBoundingBox()));
     }
 
@@ -586,7 +586,7 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
     float closestHit = M_INFINITY;
     for (auto drawable : rayQueryDrawables_)
     {
-        
+
         if (drawable->GetSortValue() < Min(closestHit, query.maxDistance_))
         {
             unsigned oldSize = query.result_.Size();

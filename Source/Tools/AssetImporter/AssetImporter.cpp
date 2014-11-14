@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 
 void Run(const Vector<String>& arguments)
 {
-    if (arguments.Size() < 2)
+    if (arguments.size() < 2)
     {
         ErrorExit(
             "Usage: AssetImporter <command> <input file> <output file> [options]\n"
@@ -270,12 +270,12 @@ void Run(const Vector<String>& arguments)
         aiProcess_FindInstances |
         aiProcess_OptimizeMeshes;
 
-    for (unsigned i = 2; i < arguments.Size(); ++i)
+    for (unsigned i = 2; i < arguments.size(); ++i)
     {
         if (arguments[i].Length() > 1 && arguments[i][0] == '-')
         {
             String argument = arguments[i].Substring(1).ToLower();
-            String value = i + 1 < arguments.Size() ? arguments[i + 1] : String::EMPTY;
+            String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
 
             if (argument == "b")
                 saveBinary_ = true;
@@ -350,7 +350,7 @@ void Run(const Vector<String>& arguments)
                 if (value.Length() && (value[0] != '-' || value.Length() > 3))
                 {
                     Vector<String> filters = value.Split(';');
-                    for (unsigned i = 0; i < filters.Size(); ++i)
+                    for (unsigned i = 0; i < filters.size(); ++i)
                     {
                         if (filters[i][0] == '-')
                             nonSkinningBoneExcludes_.Push(filters[i].Substring(1));
@@ -378,7 +378,7 @@ void Run(const Vector<String>& arguments)
     {
         String inFile = arguments[1];
         String outFile;
-        if (arguments.Size() > 2 && arguments[2][0] != '-')
+        if (arguments.size() > 2 && arguments[2][0] != '-')
             outFile = GetInternalPath(arguments[2]);
 
         inputName_ = GetFileName(inFile);
@@ -454,7 +454,7 @@ void Run(const Vector<String>& arguments)
         String outFile;
 
         unsigned numLodArguments = 0;
-        for (unsigned i = 1; i < arguments.Size(); ++i)
+        for (unsigned i = 1; i < arguments.size(); ++i)
         {
             if (arguments[i][0] == '-')
                 break;
@@ -638,11 +638,11 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const HashSet<aiNode*>& necessa
     if (!includeBone && includeNonSkinningBones_)
     {
         // If no includes specified, include by default but check for excludes
-        if (nonSkinningBoneIncludes_.Empty())
+        if (nonSkinningBoneIncludes_.empty())
             includeBone = true;
 
         // Check against includes/excludes
-        for (unsigned i = 0; i < nonSkinningBoneIncludes_.Size(); ++i)
+        for (unsigned i = 0; i < nonSkinningBoneIncludes_.size(); ++i)
         {
             if (boneName.Contains(nonSkinningBoneIncludes_[i], false))
             {
@@ -650,7 +650,7 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const HashSet<aiNode*>& necessa
                 break;
             }
         }
-        for (unsigned i = 0; i < nonSkinningBoneExcludes_.Size(); ++i)
+        for (unsigned i = 0; i < nonSkinningBoneExcludes_.size(); ++i)
         {
             if (boneName.Contains(nonSkinningBoneExcludes_[i], false))
             {
@@ -807,7 +807,7 @@ void BuildAndSaveModel(OutModel& model)
             largeIndices = mesh->mNumVertices > 65535;
 
         // Create new buffers if necessary
-        if (!combineBuffers || vbVector.Empty())
+        if (!combineBuffers || vbVector.empty())
         {
             vb = new VertexBuffer(context_);
             ib = new IndexBuffer(context_);
@@ -946,7 +946,7 @@ void BuildAndSaveModel(OutModel& model)
         for (unsigned i = 1; i < model.bones_.Size(); ++i)
         {
             String parentName = FromAIString(model.bones_[i]->mParent->mName);
-            for (unsigned j = 0; j < bones.Size(); ++j)
+            for (unsigned j = 0; j < bones.size(); ++j)
             {
                 if (bones[j].name_ == parentName)
                 {
@@ -1183,7 +1183,7 @@ void ExportScene(const String& outName, bool asPrefab)
     CollectSceneModels(outScene, rootNode_);
 
     // Save models, their material lists and animations
-    for (unsigned i = 0; i < outScene.models_.Size(); ++i)
+    for (unsigned i = 0; i < outScene.models_.size(); ++i)
         BuildAndSaveModel(outScene.models_[i]);
 
     // Save scene-global animations
@@ -1202,12 +1202,12 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
     Vector<Pair<aiNode*, aiMesh*> > meshes;
     GetMeshesUnderNode(meshes, node);
 
-    if (meshes.Size())
+    if (meshes.size())
     {
         OutModel model;
         model.rootNode_ = node;
         model.outName_ = resourcePath_ + (useSubdirs_ ? "Models/" : "") + SanitateAssetName(FromAIString(node->mName)) + ".mdl";
-        for (unsigned i = 0; i < meshes.Size(); ++i)
+        for (unsigned i = 0; i < meshes.size(); ++i)
         {
             aiMesh* mesh = meshes[i].second_;
             unsigned meshIndex = GetMeshIndex(mesh);
@@ -1222,7 +1222,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
         bool unique = true;
         if (checkUniqueModel_)
         {
-            for (unsigned i = 0; i < scene.models_.Size(); ++i)
+            for (unsigned i = 0; i < scene.models_.size(); ++i)
             {
                 if (scene.models_[i].meshIndices_ == model.meshIndices_)
                 {
@@ -1248,7 +1248,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
 
             scene.models_.Push(model);
             scene.nodes_.Push(node);
-            scene.nodeModelIndices_.Push(scene.models_.Size() - 1);
+            scene.nodeModelIndices_.Push(scene.models_.size() - 1);
         }
     }
 
@@ -1258,7 +1258,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
 
 Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping)
 {
-    if (nodeMapping.Contains(srcNode))
+    if (nodeMapping.contains(srcNode))
         return nodeMapping[srcNode];
     // Flatten hierarchy if requested
     if (noHierarchy_)
@@ -1287,7 +1287,7 @@ Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& no
     else
     {
         // Ensure the existence of the parent chain as in the original file
-        if (!nodeMapping.Contains(srcNode->mParent))
+        if (!nodeMapping.contains(srcNode->mParent))
             CreateSceneNode(scene, srcNode->mParent, nodeMapping);
 
         Node* parent = nodeMapping[srcNode->mParent];
@@ -1706,7 +1706,7 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
 {
     // Load models
     Vector<SharedPtr<Model> > srcModels;
-    for (unsigned i = 0; i < modelNames.Size(); ++i)
+    for (unsigned i = 0; i < modelNames.size(); ++i)
     {
         PrintLine("Reading LOD level " + String(i) + ": model " + modelNames[i] + " distance " + String(lodDistances[i]));
         File srcFile(context_);
@@ -1718,7 +1718,7 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
     }
 
     // Check that none of the models already has LOD levels
-    for (unsigned i = 0; i < srcModels.Size(); ++i)
+    for (unsigned i = 0; i < srcModels.size(); ++i)
     {
         for (unsigned j = 0; j < srcModels[i]->GetNumGeometries(); ++j)
         {
@@ -1728,14 +1728,14 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
     }
 
     // Check for number of geometries (need to have same amount for now)
-    for (unsigned i = 1; i < srcModels.Size(); ++i)
+    for (unsigned i = 1; i < srcModels.size(); ++i)
     {
         if (srcModels[i]->GetNumGeometries() != srcModels[0]->GetNumGeometries())
             ErrorExit(modelNames[i] + " has different amount of geometries than " + modelNames[0]);
     }
 
     // If there are bones, check for compatibility (need to have exact match for now)
-    for (unsigned i = 1; i < srcModels.Size(); ++i)
+    for (unsigned i = 1; i < srcModels.size(); ++i)
     {
         if (srcModels[i]->GetSkeleton().GetNumBones() != srcModels[0]->GetSkeleton().GetNumBones())
             ErrorExit(modelNames[i] + " has different amount of bones than " + modelNames[0]);
@@ -1757,8 +1757,8 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
     outModel->SetNumGeometries(srcModels[0]->GetNumGeometries());
     for (unsigned i = 0; i < srcModels[0]->GetNumGeometries(); ++i)
     {
-        outModel->SetNumGeometryLodLevels(i, srcModels.Size());
-        for (unsigned j = 0; j < srcModels.Size(); ++j)
+        outModel->SetNumGeometryLodLevels(i, srcModels.size());
+        for (unsigned j = 0; j < srcModels.size(); ++j)
         {
             Geometry* geometry = srcModels[j]->GetGeometry(i, 0);
             geometry->SetLodDistance(lodDistances[j]);

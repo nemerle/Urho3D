@@ -31,7 +31,7 @@ namespace Urho3D
 
 void RemoveNamedAttribute(HashMap<StringHash, Vector<AttributeInfo> >& attributes, StringHash objectType, const char* name)
 {
-    HashMap<StringHash, Vector<AttributeInfo> >::Iterator i = attributes.Find(objectType);
+    HashMap<StringHash, Vector<AttributeInfo> >::Iterator i = attributes.find(objectType);
     if (i == attributes.end())
         return;
 
@@ -47,8 +47,8 @@ void RemoveNamedAttribute(HashMap<StringHash, Vector<AttributeInfo> >& attribute
     }
 
     // If the vector became empty, erase the object type from the map
-    if (infos.Empty())
-        attributes.Erase(i);
+    if (infos.empty())
+        attributes.erase(i);
 }
 
 Context::Context() :
@@ -73,8 +73,8 @@ Context::~Context()
     RemoveSubsystem("Renderer");
     RemoveSubsystem("Graphics");
 
-    subsystems_.Clear();
-    factories_.Clear();
+    subsystems_.clear();
+    factories_.clear();
 
     // Delete allocated event data maps
     for (VariantMap* elem : eventDataMaps_)
@@ -84,7 +84,7 @@ Context::~Context()
 
 SharedPtr<Object> Context::CreateObject(StringHash objectType)
 {
-    HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.Find(objectType);
+    HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
     if (i != factories_.end())
         return i->second_->CreateObject();
     else
@@ -119,9 +119,9 @@ void Context::RegisterSubsystem(Object* object)
 
 void Context::RemoveSubsystem(StringHash objectType)
 {
-    HashMap<StringHash, SharedPtr<Object> >::Iterator i = subsystems_.Find(objectType);
+    HashMap<StringHash, SharedPtr<Object> >::Iterator i = subsystems_.find(objectType);
     if (i != subsystems_.end())
-        subsystems_.Erase(i);
+        subsystems_.erase(i);
 }
 
 void Context::RegisterAttribute(StringHash objectType, const AttributeInfo& attr)
@@ -156,7 +156,7 @@ VariantMap& Context::GetEventDataMap()
         eventDataMaps_.Push(new VariantMap());
 
     VariantMap& ret = *eventDataMaps_[nestingLevel];
-    ret.Clear();
+    ret.clear();
     return ret;
 }
 
@@ -166,7 +166,7 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
     const Vector<AttributeInfo>* baseAttributes = GetAttributes(baseType);
     if (baseAttributes)
     {
-        for (unsigned i = 0; i < baseAttributes->Size(); ++i)
+        for (unsigned i = 0; i < baseAttributes->size(); ++i)
         {
             const AttributeInfo& attr = baseAttributes->At(i);
             attributes_[derivedType].Push(attr);
@@ -178,7 +178,7 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
 
 Object* Context::GetSubsystem(StringHash type) const
 {
-    HashMap<StringHash, SharedPtr<Object> >::ConstIterator i = subsystems_.Find(type);
+    HashMap<StringHash, SharedPtr<Object> >::ConstIterator i = subsystems_.find(type);
     if (i != subsystems_.end())
         return i->second_;
     else
@@ -196,13 +196,13 @@ Object* Context::GetEventSender() const
 const String& Context::GetTypeName(StringHash objectType) const
 {
     // Search factories to find the hash-to-name mapping
-    HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.Find(objectType);
+    HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
     return i != factories_.end() ? i->second_->GetTypeName() : String::EMPTY;
 }
 
 AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
 {
-    HashMap<StringHash, Vector<AttributeInfo> >::Iterator i = attributes_.Find(objectType);
+    HashMap<StringHash, Vector<AttributeInfo> >::Iterator i = attributes_.find(objectType);
     if (i == attributes_.end())
         return nullptr;
 
@@ -229,7 +229,7 @@ void Context::AddEventReceiver(Object* receiver, Object* sender, StringHash even
 
 void Context::RemoveEventSender(Object* sender)
 {
-    HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.Find(sender);
+    HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
     if (i == specificEventReceivers_.end())
         return;
     for (auto & elem : i->second_)
@@ -237,7 +237,7 @@ void Context::RemoveEventSender(Object* sender)
         for (Object* k : elem.second_)
             k->RemoveEventSender(sender);
     }
-    specificEventReceivers_.Erase(i);
+    specificEventReceivers_.erase(i);
 }
 
 void Context::RemoveEventReceiver(Object* receiver, StringHash eventType)

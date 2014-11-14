@@ -28,7 +28,7 @@
 #include "HashSet.h"
 #include "Mutex.h"
 #include "Viewport.h"
-
+#include <unordered_map>
 namespace Urho3D
 {
 
@@ -150,13 +150,13 @@ enum DeferredLightPSVariation
 class URHO3D_API Renderer : public Object
 {
     OBJECT(Renderer);
-    
+
 public:
     /// Construct.
     Renderer(Context* context);
     /// Destruct.
     virtual ~Renderer();
-    
+
     /// Set number of backbuffer viewports to render.
     void SetNumViewports(unsigned num);
     /// Set a backbuffer viewport.
@@ -207,9 +207,9 @@ public:
     void SetMobileShadowBiasAdd(float add);
     /// Force reload of shaders.
     void ReloadShaders();
-    
+
     /// Return number of backbuffer viewports.
-    unsigned GetNumViewports() const { return viewports_.Size(); }
+    unsigned GetNumViewports() const { return viewports_.size(); }
     /// Return backbuffer viewport by index.
     Viewport* GetViewport(unsigned index) const;
     /// Return default renderpath.
@@ -255,7 +255,7 @@ public:
     /// Return shadow depth bias addition for mobile platforms.
     float GetMobileShadowBiasAdd() const { return mobileShadowBiasAdd_; }
     /// Return number of views rendered.
-    unsigned GetNumViews() const { return views_.Size(); }
+    unsigned GetNumViews() const { return views_.size(); }
     /// Return number of primitives rendered.
     unsigned GetNumPrimitives() const { return numPrimitives_; }
     /// Return number of batches rendered.
@@ -284,7 +284,7 @@ public:
     VertexBuffer* GetInstancingBuffer() const { return dynamicInstancing_ ? instancingBuffer_ : (VertexBuffer*)0; }
     /// Return the frame update parameters.
     const FrameInfo& GetFrameInfo() const { return frame_; }
-    
+
     /// Update for rendering. Called by HandleRenderUpdate().
     void Update(float timeStep);
     /// Render. Called by Engine.
@@ -295,7 +295,7 @@ public:
     void QueueRenderSurface(RenderSurface* renderTarget);
     /// Queue a viewport for rendering. Null surface means backbuffer.
     void QueueViewport(RenderSurface* renderTarget, Viewport* viewport);
-    
+
     /// Return volume geometry for a light.
     Geometry* GetLightGeometry(Light* light);
     /// Return quad geometry used in postprocessing.
@@ -328,7 +328,7 @@ public:
     void OptimizeLightByStencil(Light* light, Camera* camera);
     /// Return a scissor rectangle for a light.
     const Rect& GetLightScissor(Light* light, Camera* camera);
-    
+
 private:
     /// Initialize when screen mode initially set.
     void Initialize();
@@ -364,7 +364,7 @@ private:
     void HandleGraphicsFeatures(StringHash eventType, VariantMap& eventData);
     /// Handle render update event.
     void HandleRenderUpdate(StringHash eventType, VariantMap& eventData);
-    
+
     /// Graphics subsystem.
     WeakPtr<Graphics> graphics_;
     /// Default renderpath.
@@ -394,17 +394,17 @@ private:
     /// Reusable occlusion buffers.
     Vector<SharedPtr<OcclusionBuffer> > occlusionBuffers_;
     /// Shadow maps by resolution.
-    HashMap<int, Vector<SharedPtr<Texture2D> > > shadowMaps_;
+    QHash<int, Vector<SharedPtr<Texture2D> > > shadowMaps_;
     /// Shadow map dummy color buffers by resolution.
-    HashMap<int, SharedPtr<Texture2D> > colorShadowMaps_;
+    QHash<int, SharedPtr<Texture2D> > colorShadowMaps_;
     /// Shadow map allocations by resolution.
-    HashMap<int, PODVector<Light*> > shadowMapAllocations_;
+    QHash<int, PODVector<Light*> > shadowMapAllocations_;
     /// Screen buffers by resolution and format.
-    HashMap<long long, Vector<SharedPtr<Texture2D> > > screenBuffers_;
+    QHash<long long, Vector<SharedPtr<Texture2D> > > screenBuffers_;
     /// Current screen buffer allocations by resolution and format.
-    HashMap<long long, unsigned> screenBufferAllocations_;
+    QHash<long long, unsigned> screenBufferAllocations_;
     /// Saved status of screen buffer allocations for restoring.
-    HashMap<long long, unsigned> savedScreenBufferAllocations_;
+    QHash<long long, unsigned> savedScreenBufferAllocations_;
     /// Cache for light scissor queries.
     HashMap<Pair<Light*, Camera*>, Rect> lightScissorCache_;
     /// Backbuffer viewports.

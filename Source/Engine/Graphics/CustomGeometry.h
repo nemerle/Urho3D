@@ -94,7 +94,7 @@ public:
     bool SetMaterial(unsigned index, Material* material);
 
     /// Return number of geometries.
-    unsigned GetNumGeometries() const { return geometries_.Size(); }
+    unsigned GetNumGeometries() const { return geometries_.size(); }
     /// Return number of vertices in a geometry.
     unsigned GetNumVertices(unsigned index) const;
     /// Return whether vertex buffer dynamic mode is enabled.

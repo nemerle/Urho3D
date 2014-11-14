@@ -74,7 +74,7 @@ public:
     /// Return usage.
     TextureUsage GetUsage() const;
     /// Return number of viewports.
-    unsigned GetNumViewports() const { return viewports_.Size(); }
+    unsigned GetNumViewports() const { return viewports_.size(); }
     /// Return viewport by index.
     Viewport* GetViewport(unsigned index) const;
     /// Return viewport update mode.

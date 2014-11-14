@@ -342,7 +342,7 @@ void RigidBody2D::CreateBody()
     body_ = physicsWorld_->GetWorld()->CreateBody(&bodyDef_);
     body_->SetUserData(this);
 
-    for (unsigned i = 0; i < collisionShapes_.Size(); ++i)
+    for (unsigned i = 0; i < collisionShapes_.size(); ++i)
     {
         if (collisionShapes_[i])
             collisionShapes_[i]->CreateFixture();
@@ -351,7 +351,7 @@ void RigidBody2D::CreateBody()
     if (!useFixtureMass_)
         body_->SetMassData(&massData_);
 
-    for (unsigned i = 0; i < constraints_.Size(); ++i)
+    for (unsigned i = 0; i < constraints_.size(); ++i)
     {
             if (constraints_[i])
             constraints_[i]->CreateJoint();
@@ -366,13 +366,13 @@ void RigidBody2D::ReleaseBody()
     if (!physicsWorld_ || !physicsWorld_->GetWorld())
         return;
 
-    for (unsigned i = 0; i < constraints_.Size(); ++i)
+    for (unsigned i = 0; i < constraints_.size(); ++i)
     {
         if (constraints_[i])
             constraints_[i]->ReleaseJoint();
     }
 
-    for (unsigned i = 0; i < collisionShapes_.Size(); ++i)
+    for (unsigned i = 0; i < collisionShapes_.size(); ++i)
     {
         if (collisionShapes_[i])
             collisionShapes_[i]->ReleaseFixture();

@@ -340,7 +340,7 @@ private:
     /// Drawables that limit their maximum light count.
     HashSet<Drawable*> maxLightsDrawables_;
     /// Rendertargets defined by the renderpath.
-    HashMap<StringHash, Texture2D*> renderTargets_;
+    QHash<StringHash, Texture2D*> renderTargets_;
     /// Intermediate light processing results.
     Vector<LightQueryResult> lightQueryResults_;
     /// Info for scene render passes defined by the renderpath.
@@ -348,9 +348,9 @@ private:
     /// Per-pixel light queues.
     Vector<LightBatchQueue> lightQueues_;
     /// Per-vertex light queues.
-    HashMap<unsigned long long, LightBatchQueue> vertexLightQueues_;
+    QHash<unsigned long long, LightBatchQueue> vertexLightQueues_;
     /// Batch queues.
-    HashMap<StringHash, BatchQueue> batchQueues_;
+    QHash<StringHash, BatchQueue> batchQueues_;
     /// Hash of the GBuffer pass, or null if none.
     StringHash gBufferPassName_;
     /// Hash of the opaque forward base pass.

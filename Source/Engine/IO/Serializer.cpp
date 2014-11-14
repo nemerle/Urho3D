@@ -105,7 +105,7 @@ bool Serializer::WritePackedVector3(const Vector3& value, float maxAbsCoord)
 {
     short coords[3];
     float v = 32767.0f / maxAbsCoord;
-    
+
     coords[0] = (short)(Clamp(value.x_, -maxAbsCoord, maxAbsCoord) * v + 0.5f);
     coords[1] = (short)(Clamp(value.y_, -maxAbsCoord, maxAbsCoord) * v + 0.5f);
     coords[2] = (short)(Clamp(value.z_, -maxAbsCoord, maxAbsCoord) * v + 0.5f);
@@ -174,7 +174,7 @@ bool Serializer::WriteFileID(const String& value)
 {
     bool success = true;
     unsigned length = Min((int)value.Length(), 4);
-    
+
     success &= Write(value.CString(), length) == length;
     for (unsigned i = value.Length(); i < 4; ++i)
         success &= WriteByte(' ');
@@ -190,7 +190,7 @@ bool Serializer::WriteBuffer(const PODVector<unsigned char>& value)
 {
     bool success = true;
     unsigned size = value.Size();
-    
+
     success &= WriteVLE(size);
     if (size)
         success &= Write(&value[0], size) == size;
@@ -208,12 +208,12 @@ bool Serializer::WriteResourceRef(const ResourceRef& value)
 bool Serializer::WriteResourceRefList(const ResourceRefList& value)
 {
     bool success = true;
-    
+
     success &= WriteStringHash(value.type_);
-    success &= WriteVLE(value.names_.Size());
-    for (unsigned i = 0; i < value.names_.Size(); ++i)
+    success &= WriteVLE(value.names_.size());
+    for (unsigned i = 0; i < value.names_.size(); ++i)
         success &= WriteString(value.names_[i]);
-    
+
     return success;
 }
 
@@ -221,7 +221,7 @@ bool Serializer::WriteVariant(const Variant& value)
 {
     bool success = true;
     VariantType type = value.GetType();
-    
+
     success &= WriteUByte((unsigned char)type);
     success &= WriteVariantData(value);
     return success;
@@ -233,69 +233,69 @@ bool Serializer::WriteVariantData(const Variant& value)
     {
     case VAR_NONE:
         return true;
-        
+
     case VAR_INT:
         return WriteInt(value.GetInt());
-        
+
     case VAR_BOOL:
         return WriteBool(value.GetBool());
-        
+
     case VAR_FLOAT:
         return WriteFloat(value.GetFloat());
-        
+
     case VAR_VECTOR2:
         return WriteVector2(value.GetVector2());
-        
+
     case VAR_VECTOR3:
         return WriteVector3(value.GetVector3());
-        
+
     case VAR_VECTOR4:
         return WriteVector4(value.GetVector4());
-        
+
     case VAR_QUATERNION:
         return WriteQuaternion(value.GetQuaternion());
-        
+
     case VAR_COLOR:
         return WriteColor(value.GetColor());
-        
+
     case VAR_STRING:
         return WriteString(value.GetString());
-        
+
     case VAR_BUFFER:
         return WriteBuffer(value.GetBuffer());
-        
+
         // Serializing pointers is not supported. Write null
     case VAR_VOIDPTR:
     case VAR_PTR:
         return WriteUInt(0);
-        
+
     case VAR_RESOURCEREF:
         return WriteResourceRef(value.GetResourceRef());
-        
+
     case VAR_RESOURCEREFLIST:
         return WriteResourceRefList(value.GetResourceRefList());
-        
+
     case VAR_VARIANTVECTOR:
         return WriteVariantVector(value.GetVariantVector());
-        
+
     case VAR_VARIANTMAP:
         return WriteVariantMap(value.GetVariantMap());
-        
+
     case VAR_INTRECT:
         return WriteIntRect(value.GetIntRect());
-        
+
     case VAR_INTVECTOR2:
         return WriteIntVector2(value.GetIntVector2());
-        
+
     case VAR_MATRIX3:
         return WriteMatrix3(value.GetMatrix3());
-        
+
     case VAR_MATRIX3X4:
         return WriteMatrix3x4(value.GetMatrix3x4());
-        
+
     case VAR_MATRIX4:
         return WriteMatrix4(value.GetMatrix4());
-        
+
     default:
         return false;
     }
@@ -304,7 +304,7 @@ bool Serializer::WriteVariantData(const Variant& value)
 bool Serializer::WriteVariantVector(const VariantVector& value)
 {
     bool success = true;
-    success &= WriteVLE(value.Size());
+    success &= WriteVLE(value.size());
     for (const auto & elem : value)
         success &= WriteVariant(elem);
     return success;
@@ -313,11 +313,11 @@ bool Serializer::WriteVariantVector(const VariantVector& value)
 bool Serializer::WriteVariantMap(const VariantMap& value)
 {
     bool success = true;
-    success &= WriteVLE(value.Size());
-    for (const auto & elem : value)
+    success &= WriteVLE(value.size());
+    for (VariantMap::const_iterator iter=value.begin(),fin=value.end(); iter!=fin; ++iter)
     {
-        WriteStringHash(elem.first_);
-        WriteVariant(elem.second_);
+        WriteStringHash(iter.key());
+        WriteVariant(iter.value());
     }
     return success;
 }
@@ -325,7 +325,7 @@ bool Serializer::WriteVariantMap(const VariantMap& value)
 bool Serializer::WriteVLE(unsigned value)
 {
     unsigned char data[4];
-    
+
     if (value < 0x80)
         return WriteUByte(value);
     else if (value < 0x4000)

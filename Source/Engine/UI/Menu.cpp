@@ -73,11 +73,11 @@ void Menu::RegisterObject(Context* context)
 void Menu::Update(float timeStep)
 {
     Button::Update(timeStep);
-    
+
     if (popup_ && showPopup_)
     {
         const Vector<SharedPtr<UIElement> >& children = popup_->GetChildren();
-        for (unsigned i = 0; i < children.Size(); ++i)
+        for (unsigned i = 0; i < children.size(); ++i)
         {
             Menu* menu = dynamic_cast<Menu*>(children[i].Get());
             if (menu && !menu->autoPopup_ && !menu->IsHovering())
@@ -193,7 +193,7 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
                 child = popup_;
             else
             {
-                for (unsigned i = nextInternalChild; i < children_.Size(); ++i)
+                for (unsigned i = nextInternalChild; i < children_.size(); ++i)
                 {
                     if (children_[i]->IsInternal() && children_[i]->GetTypeName() == typeName)
                     {
@@ -319,7 +319,7 @@ void Menu::ShowPopup(bool enable)
         }
 
         static_cast<Window*>(popup_.Get())->SetModal(false);
-        const_cast<VariantMap&>(popup_->GetVars()).Erase(VAR_ORIGIN);
+        const_cast<VariantMap&>(popup_->GetVars()).remove(VAR_ORIGIN);
 
         popup_->SetVisible(false);
         popup_->Remove();

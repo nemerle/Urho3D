@@ -60,7 +60,7 @@ TextureCube::TextureCube(Context* context) :
     Texture(context)
 {
     target_ = GL_TEXTURE_CUBE_MAP;
-    
+
     // Default to clamp mode addressing
     addressMode_[COORD_U] = ADDRESS_CLAMP;
     addressMode_[COORD_V] = ADDRESS_CLAMP;
@@ -83,11 +83,11 @@ void TextureCube::RegisterObject(Context* context)
 bool TextureCube::BeginLoad(Deserializer& source)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    
+
     // In headless mode, do not actually load the texture, just return success
     if (!graphics_)
         return true;
-    
+
     // If device is lost, retry later
     if (graphics_->IsDeviceLost())
     {
@@ -95,19 +95,19 @@ bool TextureCube::BeginLoad(Deserializer& source)
         dataPending_ = true;
         return true;
     }
-    
+
     cache->ResetDependencies(this);
 
     String texPath, texName, texExt;
     SplitPath(GetName(), texPath, texName, texExt);
-    
+
     loadParameters_ = (new XMLFile(context_));
     if (!loadParameters_->Load(source))
     {
         loadParameters_.Reset();
         return false;
     }
-    
+
     loadImages_.Clear();
 
     XMLElement textureElem = loadParameters_->GetRoot();
@@ -119,15 +119,15 @@ bool TextureCube::BeginLoad(Deserializer& source)
         // If path is empty, add the XML file path
         if (GetPath(name).Empty())
             name = texPath + name;
-        
+
         CubeMapLayout layout = (CubeMapLayout)GetStringListIndex(imageElem.GetAttribute("layout").CString(), cubeMapLayoutNames, CML_HORIZONTAL);
         SharedPtr<Image> image = cache->GetTempResource<Image>(name);
         if (!image)
             return false;
-        
+
         int faceWidth, faceHeight;
         loadImages_.Resize(MAX_CUBEMAP_FACES);
-        
+
         switch (layout)
         {
         case CML_HORIZONTAL:
@@ -140,14 +140,14 @@ bool TextureCube::BeginLoad(Deserializer& source)
             loadImages_[FACE_POSITIVE_Y] = GetTileImage(image, 4, 0, faceWidth, faceHeight);
             loadImages_[FACE_NEGATIVE_Y] = GetTileImage(image, 5, 0, faceWidth, faceHeight);
             break;
-            
+
         case CML_HORIZONTALNVIDIA:
             faceWidth = image->GetWidth() / MAX_CUBEMAP_FACES;
             faceHeight = image->GetHeight();
             for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
                 loadImages_[i] = GetTileImage(image, i, 0, faceWidth, faceHeight);
             break;
-            
+
         case CML_HORIZONTALCROSS:
             faceWidth = image->GetWidth() / 4;
             faceHeight = image->GetHeight() / 3;
@@ -158,7 +158,7 @@ bool TextureCube::BeginLoad(Deserializer& source)
             loadImages_[FACE_NEGATIVE_Z] = GetTileImage(image, 3, 1, faceWidth, faceHeight);
             loadImages_[FACE_NEGATIVE_Y] = GetTileImage(image, 1, 2, faceWidth, faceHeight);
             break;
-            
+
         case CML_VERTICALCROSS:
             faceWidth = image->GetWidth() / 3;
             faceHeight = image->GetHeight() / 4;
@@ -174,7 +174,7 @@ bool TextureCube::BeginLoad(Deserializer& source)
                 loadImages_[FACE_NEGATIVE_Z]->FlipHorizontal();
             }
             break;
-            
+
         case CML_BLENDER:
             faceWidth = image->GetWidth() / 3;
             faceHeight = image->GetHeight() / 2;
@@ -194,22 +194,22 @@ bool TextureCube::BeginLoad(Deserializer& source)
         while (faceElem)
         {
             String name = faceElem.GetAttribute("name");
-            
+
             // If path is empty, add the XML file path
             if (GetPath(name).Empty())
                 name = texPath + name;
-            
+
             loadImages_.Push(cache->GetTempResource<Image>(name));
             cache->StoreResourceDependency(this, name);
-            
+
             faceElem = faceElem.GetNext("face");
         }
     }
-    
+
     // Precalculate mip levels if async loading
     if (GetAsyncLoadState() == ASYNC_LOADING)
     {
-        for (unsigned i = 0; i < loadImages_.Size(); ++i)
+        for (unsigned i = 0; i < loadImages_.size(); ++i)
         {
             if (loadImages_[i])
                 loadImages_[i]->PrecalculateLevels();
@@ -224,18 +224,18 @@ bool TextureCube::EndLoad()
     // In headless mode, do not actually load the texture, just return success
     if (!graphics_ || graphics_->IsDeviceLost())
         return true;
-    
+
     // If over the texture budget, see if materials can be freed to allow textures to be freed
     CheckTextureBudget(GetTypeStatic());
 
     SetParameters(loadParameters_);
-    
-    for (unsigned i = 0; i < loadImages_.Size() && i < MAX_CUBEMAP_FACES; ++i)
+
+    for (unsigned i = 0; i < loadImages_.size() && i < MAX_CUBEMAP_FACES; ++i)
         SetData((CubeMapFace)i, loadImages_[i]);
-    
+
     loadImages_.Clear();
     loadParameters_.Reset();
-    
+
     return true;
 }
 
@@ -243,7 +243,7 @@ void TextureCube::OnDeviceLost()
 {
     GPUObject::OnDeviceLost();
 
-    for (auto & elem : renderSurfaces_)
+    for (SharedPtr<RenderSurface> & elem : renderSurfaces_)
     {
         if (elem)
             elem->OnDeviceLost();
@@ -260,12 +260,12 @@ void TextureCube::OnDeviceReset()
             dataLost_ = !cache->ReloadResource(this);
 
         if (!object_)
-        { 
+        {
             Create();
             dataLost_ = true;
         }
     }
-    
+
     dataPending_ = false;
 }
 
@@ -275,7 +275,7 @@ void TextureCube::Release()
     {
         if (!graphics_)
             return;
-        
+
         if (!graphics_->IsDeviceLost())
         {
             for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
@@ -283,16 +283,16 @@ void TextureCube::Release()
                 if (graphics_->GetTexture(i) == this)
                     graphics_->SetTexture(i, nullptr);
             }
-            
+
             glDeleteTextures(1, &object_);
         }
-        
-        for (auto & elem : renderSurfaces_)
+
+        for (SharedPtr<RenderSurface> & elem : renderSurfaces_)
         {
             if (elem)
                 elem->Release();
         }
-        
+
         object_ = 0;
     }
 }
@@ -309,16 +309,16 @@ bool TextureCube::SetSize(int size, unsigned format, TextureUsage usage)
         LOGERROR("Depth-stencil usage not supported for cube maps");
         return false;
     }
-    
+
     // Delete the old rendersurfaces if any
     for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
     {
         renderSurfaces_[i].Reset();
         faceMemoryUse_[i] = 0;
     }
-    
+
     usage_ = usage;
-    
+
     if (usage == TEXTURE_RENDERTARGET)
     {
         for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
@@ -326,59 +326,59 @@ bool TextureCube::SetSize(int size, unsigned format, TextureUsage usage)
             renderSurfaces_[i] = new RenderSurface(this);
             renderSurfaces_[i]->SetTarget(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
         }
-        
+
         // Nearest filtering and mipmaps disabled by default
         filterMode_ = FILTER_NEAREST;
         requestedLevels_ = 1;
     }
-    
+
     if (usage == TEXTURE_RENDERTARGET)
         SubscribeToEvent(E_RENDERSURFACEUPDATE, HANDLER(TextureCube, HandleRenderSurfaceUpdate));
     else
         UnsubscribeFromEvent(E_RENDERSURFACEUPDATE);
-    
+
     width_ = size;
     height_ = size;
     format_ = format;
-    
+
     return Create();
 }
 
 bool TextureCube::SetData(CubeMapFace face, unsigned level, int x, int y, int width, int height, const void* data)
 {
     PROFILE(SetTextureData);
-    
+
     if (!object_ || !graphics_)
     {
         LOGERROR("No texture created, can not set data");
         return false;
     }
-    
+
     if (!data)
     {
         LOGERROR("Null source for setting data");
         return false;
     }
-    
+
     if (level >= levels_)
     {
         LOGERROR("Illegal mip level for setting data");
         return false;
     }
-    
+
     if (graphics_->IsDeviceLost())
     {
         LOGWARNING("Texture data assignment while device is lost");
         dataPending_ = true;
         return true;
     }
-    
+
     if (IsCompressed())
     {
         x &= ~3;
         y &= ~3;
     }
-    
+
     int levelWidth = GetLevelWidth(level);
     int levelHeight = GetLevelHeight(level);
     if (x < 0 || x + width > levelWidth || y < 0 || y + height > levelHeight || width <= 0 || height <= 0)
@@ -386,12 +386,12 @@ bool TextureCube::SetData(CubeMapFace face, unsigned level, int x, int y, int wi
         LOGERROR("Illegal dimensions for setting data");
         return false;
     }
-    
+
     graphics_->SetTextureForUpdate(this);
-    
+
     bool wholeLevel = x == 0 && y == 0 && width == levelWidth && height == levelHeight;
     unsigned format = GetSRGB() ? GetSRGBFormat(format_) : format_;
-    
+
     if (!IsCompressed())
     {
         if (wholeLevel)
@@ -410,7 +410,7 @@ bool TextureCube::SetData(CubeMapFace face, unsigned level, int x, int y, int wi
             glCompressedTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, x, y, width, height, format,
                 GetDataSize(width, height), data);
     }
-    
+
     graphics_->SetTexture(0, nullptr);
     return true;
 }
@@ -420,7 +420,7 @@ bool TextureCube::SetData(CubeMapFace face, Deserializer& source)
     SharedPtr<Image> image(new Image(context_));
     if (!image->Load(source))
         return false;
-    
+
     return SetData(face, image);
 }
 
@@ -433,12 +433,12 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
     }
 
     unsigned memoryUse = 0;
-    
+
     int quality = QUALITY_HIGH;
     Renderer* renderer = GetSubsystem<Renderer>();
     if (renderer)
         quality = renderer->GetTextureQuality();
-    
+
     if (!image->IsCompressed())
     {
         unsigned char* levelData = image->GetData();
@@ -446,13 +446,13 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
         int levelHeight = image->GetHeight();
         unsigned components = image->GetComponents();
         unsigned format = 0;
-        
+
         if (levelWidth != levelHeight)
         {
             LOGERROR("Cube texture width not equal to height");
             return false;
         }
-        
+
         // Discard unnecessary mip levels
         for (unsigned i = 0; i < mipsToSkip_[quality]; ++i)
         {
@@ -461,26 +461,26 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
             levelWidth = image->GetWidth();
             levelHeight = image->GetHeight();
         }
-        
+
         switch (components)
         {
         case 1:
             format = useAlpha ? Graphics::GetAlphaFormat() : Graphics::GetLuminanceFormat();
             break;
-            
+
         case 2:
             format = Graphics::GetLuminanceAlphaFormat();
             break;
-            
+
         case 3:
             format = Graphics::GetRGBFormat();
             break;
-            
+
         case 4:
             format = Graphics::GetRGBAFormat();
             break;
         }
-        
+
         // Create the texture when face 0 is being loaded, check that rest of the faces are same size & format
         if (!face)
         {
@@ -502,12 +502,12 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
                 return false;
             }
         }
-        
+
         for (unsigned i = 0; i < levels_; ++i)
         {
             SetData(face, i, 0, 0, levelWidth, levelHeight, levelData);
             memoryUse += levelWidth * levelHeight * components;
-            
+
             if (i < levels_ - 1)
             {
                 image = image->GetNextLevel();
@@ -524,19 +524,19 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
         unsigned levels = image->GetNumCompressedLevels();
         unsigned format = graphics_->GetFormat(image->GetCompressedFormat());
         bool needDecompress = false;
-        
+
         if (width != height)
         {
             LOGERROR("Cube texture width not equal to height");
             return false;
         }
-        
+
         if (!format)
         {
             format = Graphics::GetRGBAFormat();
             needDecompress = true;
         }
-        
+
         unsigned mipsToSkip = mipsToSkip_[quality];
         if (mipsToSkip >= levels)
             mipsToSkip = levels - 1;
@@ -544,7 +544,7 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
             --mipsToSkip;
         width /= (1 << mipsToSkip);
         height /= (1 << mipsToSkip);
-        
+
         // Create the texture when face 0 is being loaded, assume rest of the faces are same size & format
         if (!face)
         {
@@ -564,7 +564,7 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
                 return false;
             }
         }
-        
+
         for (unsigned i = 0; i < levels_ && i < levels - mipsToSkip; ++i)
         {
             CompressedLevel level = image->GetCompressedLevel(i + mipsToSkip);
@@ -583,7 +583,7 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
             }
         }
     }
-    
+
     faceMemoryUse_[face] = memoryUse;
     unsigned totalMemoryUse = sizeof(TextureCube);
     for (auto & elem : faceMemoryUse_)
@@ -600,32 +600,32 @@ bool TextureCube::GetData(CubeMapFace face, unsigned level, void* dest) const
         LOGERROR("No texture created, can not get data");
         return false;
     }
-    
+
     if (!dest)
     {
         LOGERROR("Null destination for getting data");
         return false;
     }
-    
+
     if (level >= levels_)
     {
         LOGERROR("Illegal mip level for getting data");
         return false;
     }
-    
+
     if (graphics_->IsDeviceLost())
     {
         LOGWARNING("Getting texture data while device is lost");
         return false;
     }
-    
+
     graphics_->SetTextureForUpdate(const_cast<TextureCube*>(this));
-    
+
     if (!IsCompressed())
         glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, GetExternalFormat(format_), GetDataType(format_), dest);
     else
         glGetCompressedTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, dest);
-    
+
     graphics_->SetTexture(0, nullptr);
     return true;
     #else
@@ -637,26 +637,26 @@ bool TextureCube::GetData(CubeMapFace face, unsigned level, void* dest) const
 bool TextureCube::Create()
 {
     Release();
-    
+
     if (!graphics_ || !width_ || !height_)
         return false;
-    
+
     if (graphics_->IsDeviceLost())
     {
         LOGWARNING("Texture creation while device is lost");
         return true;
     }
-    
+
     glGenTextures(1, &object_);
-    
+
     // Ensure that our texture is bound to OpenGL texture unit 0
     graphics_->SetTextureForUpdate(this);
-    
+
     // If not compressed, create the initial level 0 texture with null data
     unsigned format = GetSRGB() ? GetSRGBFormat(format_) : format_;
     unsigned externalFormat = GetExternalFormat(format_);
     unsigned dataType = GetDataType(format_);
-    
+
     bool success = true;
     if (!IsCompressed())
     {
@@ -670,7 +670,7 @@ bool TextureCube::Create()
     }
     if (!success)
         LOGERROR("Failed to create texture");
-    
+
     // Set mipmapping
     levels_ = requestedLevels_;
     if (!levels_)
@@ -682,22 +682,22 @@ bool TextureCube::Create()
             ++levels_;
         }
     }
-    
+
     #ifndef GL_ES_VERSION_2_0
     glTexParameteri(target_, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(target_, GL_TEXTURE_MAX_LEVEL, levels_ - 1);
     #endif
-    
+
     // Set initial parameters, then unbind the texture
     UpdateParameters();
     graphics_->SetTexture(0, nullptr);
-    
+
     return success;
 }
 
 void TextureCube::HandleRenderSurfaceUpdate(StringHash eventType, VariantMap& eventData)
 {
-    for (auto & elem : renderSurfaces_)
+    for (SharedPtr<RenderSurface> & elem : renderSurfaces_)
     {
         if (elem && elem->GetUpdateMode() == SURFACE_UPDATEALWAYS)
             elem->QueueUpdate();

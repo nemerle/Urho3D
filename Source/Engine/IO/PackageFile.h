@@ -42,7 +42,7 @@ struct PackageEntry
 class URHO3D_API PackageFile : public Object
 {
     OBJECT(PackageFile);
-    
+
 public:
     /// Construct.
     PackageFile(Context* context);
@@ -50,7 +50,7 @@ public:
     PackageFile(Context* context, const String& fileName, unsigned startOffset = 0);
     /// Destruct.
     virtual ~PackageFile();
-    
+
     /// Open the package file. Return true if successful.
     bool Open(const String& fileName, unsigned startOffset = 0);
     /// Check if a file exists within the package file.
@@ -58,13 +58,13 @@ public:
     /// Return the file entry corresponding to the name, or null if not found.
     const PackageEntry* GetEntry(const String& fileName) const;
     /// Return all file entries.
-    const HashMap<String, PackageEntry>& GetEntries() const { return entries_; }
+    const QHash<String, PackageEntry>& GetEntries() const { return entries_; }
     /// Return the package file name.
     const String& GetName() const { return fileName_; }
     /// Return hash of the package file name.
     StringHash GetNameHash() const { return nameHash_; }
     /// Return number of files.
-    unsigned GetNumFiles() const { return entries_.Size(); }
+    unsigned GetNumFiles() const { return entries_.size(); }
     /// Return total size of the package file.
     unsigned GetTotalSize() const { return totalSize_; }
     /// Return checksum of the package file contents.
@@ -72,11 +72,11 @@ public:
     /// Return whether the files are compressed.
     bool IsCompressed() const { return compressed_; }
     /// Return list of entry names
-    const Vector<String> GetEntryNames() const { return entries_.Keys(); }
-    
+    const QList<String> GetEntryNames() const { return entries_.keys(); }
+
 private:
     /// File entries.
-    HashMap<String, PackageEntry> entries_;
+    QHash<String, PackageEntry> entries_;
     /// File name.
     String fileName_;
     /// Package file name hash.

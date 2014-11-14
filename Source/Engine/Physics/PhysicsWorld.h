@@ -67,7 +67,7 @@ struct URHO3D_API PhysicsRaycastResult
 
     /// Test for inequality, added to prevent GCC from complaining.
     bool operator != (const PhysicsRaycastResult& rhs) const { return position_ != rhs.position_ || normal_ != rhs.normal_ || distance_ != rhs.distance_ || body_ != rhs.body_; }
-    
+
     /// Hit worldspace position.
     Vector3 position_;
     /// Hit worldspace normal.
@@ -164,7 +164,7 @@ public:
     void GetRigidBodies(PODVector<RigidBody*>& result, const BoundingBox& box, unsigned collisionMask = M_MAX_UNSIGNED);
     /// Return rigid bodies that have been in collision with a specific body on the last simulation step.
     void GetRigidBodies(PODVector<RigidBody*>& result, const RigidBody* body);
-    
+
     /// Return gravity.
     Vector3 GetGravity() const;
     /// Return maximum number of physics substeps per frame.
@@ -255,7 +255,7 @@ private:
     /// Collision pairs on the previous frame. Used to check if a collision is "new." Manifolds are not guaranteed to exist anymore.
     HashMap<Pair<WeakPtr<RigidBody>, WeakPtr<RigidBody> >, btPersistentManifold* > previousCollisions_;
     /// Delayed (parented) world transform assignments.
-    HashMap<RigidBody*, DelayedWorldTransform> delayedWorldTransforms_;
+    QHash<RigidBody*, DelayedWorldTransform> delayedWorldTransforms_;
     /// Cache for trimesh geometry data by model and LOD level.
     HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> > triMeshCache_;
     /// Cache for convex geometry data by model and LOD level.

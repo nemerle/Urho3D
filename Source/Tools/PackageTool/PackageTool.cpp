@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 
 void Run(const Vector<String>& arguments)
 {
-    if (arguments.Size() < 2)
+    if (arguments.size() < 2)
         ErrorExit(
             "Usage: PackageTool <directory to process> <package name> [basepath] [options]\n"
             "\n"
@@ -95,9 +95,9 @@ void Run(const Vector<String>& arguments)
 
     const String& dirName = arguments[0];
     const String& packageName = arguments[1];
-    if (arguments.Size() > 2)
+    if (arguments.size() > 2)
     {
-        for (unsigned i = 2; i < arguments.Size(); ++i)
+        for (unsigned i = 2; i < arguments.size(); ++i)
         {
             if (arguments[i][0] != '-')
                 basePath_ = AddTrailingSlash(arguments[i]);
@@ -121,11 +121,11 @@ void Run(const Vector<String>& arguments)
    // Get the file list recursively
     Vector<String> fileNames;
     fileSystem_->ScanDir(fileNames, dirName, "*.*", SCAN_FILES, true);
-    if (!fileNames.Size())
+    if (!fileNames.size())
         ErrorExit("No files found");
 
     // Check for extensions to ignore
-    for (unsigned i = fileNames.Size() - 1; i < fileNames.Size(); --i)
+    for (unsigned i = fileNames.size() - 1; i < fileNames.size(); --i)
     {
         String extension = GetExtension(fileNames[i]);
         for (unsigned j = 0; ignoreExtensions_[j].Length(); ++j)
@@ -138,7 +138,7 @@ void Run(const Vector<String>& arguments)
         }
     }
 
-    for (unsigned i = 0; i < fileNames.Size(); ++i)
+    for (unsigned i = 0; i < fileNames.size(); ++i)
         ProcessFile(fileNames[i], dirName);
 
     WritePackageFile(packageName, dirName);
@@ -172,7 +172,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
     // Write ID, number of files & placeholder for checksum
     WriteHeader(dest);
 
-    for (unsigned i = 0; i < entries_.Size(); ++i)
+    for (unsigned i = 0; i < entries_.size(); ++i)
     {
         // Write entry (correct offset is still unknown, will be filled in later)
         dest.WriteString(entries_[i].name_);
@@ -184,7 +184,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
     unsigned totalDataSize = 0;
 
     // Write file data, calculate checksums & correct offsets
-    for (unsigned i = 0; i < entries_.Size(); ++i)
+    for (unsigned i = 0; i < entries_.size(); ++i)
     {
         entries_[i].offset_ = dest.GetSize();
         String fileFullPath = rootDir + "/" + entries_[i].name_;
@@ -249,7 +249,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
     dest.Seek(0);
     WriteHeader(dest);
 
-    for (unsigned i = 0; i < entries_.Size(); ++i)
+    for (unsigned i = 0; i < entries_.size(); ++i)
     {
         dest.WriteString(entries_[i].name_);
         dest.WriteUInt(entries_[i].offset_);
@@ -257,7 +257,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
         dest.WriteUInt(entries_[i].checksum_);
     }
 
-    PrintLine("Number of files " + String(entries_.Size()));
+    PrintLine("Number of files " + String(entries_.size()));
     PrintLine("File data size " + String(totalDataSize));
     PrintLine("Package size " + String(dest.GetSize()));
 }
@@ -268,6 +268,6 @@ void WriteHeader(File& dest)
         dest.WriteFileID("UPAK");
     else
         dest.WriteFileID("ULZ4");
-    dest.WriteUInt(entries_.Size());
+    dest.WriteUInt(entries_.size());
     dest.WriteUInt(checksum_);
 }

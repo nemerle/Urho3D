@@ -26,3 +26,5 @@
 #include "HashSet.h"
 #include "Sort.h"
 #include "Str.h"
+
+#include <unordered_map>

@@ -1066,11 +1066,11 @@ Vector<String> String::Split(const char* str, char separator)
 
 String String::Joined(const Vector<String>& subStrings, String glue)
 {
-    if (subStrings.Empty())
+    if (subStrings.empty())
         return String();
 
     String joinedString(subStrings[0]);
-    for (unsigned i = 1; i < subStrings.Size(); ++i)
+    for (unsigned i = 1; i < subStrings.size(); ++i)
         joinedString.Append(glue).Append(subStrings[i]);
 
     return joinedString;

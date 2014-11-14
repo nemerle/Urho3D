@@ -243,7 +243,7 @@ void DebugHud::SetAppStats(const String& label, const Variant& stats)
 
 void DebugHud::SetAppStats(const String& label, const String& stats)
 {
-    bool newLabel = !appStats_.Contains(label);
+    bool newLabel = !appStats_.contains(label);
     appStats_[label] = stats;
     if (newLabel)
         appStats_.Sort();
@@ -251,12 +251,12 @@ void DebugHud::SetAppStats(const String& label, const String& stats)
 
 bool DebugHud::ResetAppStats(const String& label)
 {
-    return appStats_.Erase(label);
+    return appStats_.erase(label);
 }
 
 void DebugHud::ClearAppStats()
 {
-    appStats_.Clear();
+    appStats_.clear();
 }
 
 void DebugHud::HandlePostUpdate(StringHash eventType, VariantMap& eventData)

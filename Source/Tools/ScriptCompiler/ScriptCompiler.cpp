@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     bool dumpApiMode = false;
     String outputFile;
 
-    if (arguments.Size() < 1)
+    if (arguments.empty())
         ErrorExit("Usage: ScriptCompiler <input file> [resource path for includes]\n"
                   "       ScriptCompiler -dumpapi <Doxygen output file> [C header output file]");
     else
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
         else
         {
             dumpApiMode = true;
-            if (arguments.Size() > 1)
+            if (arguments.size() > 1)
                 outputFile = arguments[1];
         }
     }
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     SharedPtr<Context> context(new Context());
     SharedPtr<Engine> engine(new Engine(context));
     context->RegisterSubsystem(new Script(context));
-    
+
     // In API dumping mode initialize the engine and instantiate LuaScript system if available so that we
     // can dump attributes from as many classes as possible
     if (dumpApiMode)
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
         context->RegisterSubsystem(new LuaScript(context));
     #endif
     }
-    
+
     Log* log = context->GetSubsystem<Log>();
     // Register Log subsystem manually if compiled without logging support
     if (!log)
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
         ResourceCache* cache = context->GetSubsystem<ResourceCache>();
 
         // Add resource path to be able to resolve includes
-        if (arguments.Size() > 1)
+        if (arguments.size() > 1)
             cache->AddResourceDir(arguments[1]);
         else
             cache->AddResourceDir(cache->GetPreferredResourceDir(path));
@@ -118,8 +118,8 @@ int main(int argc, char** argv)
         {
             Vector<String> scriptFiles;
             context->GetSubsystem<FileSystem>()->ScanDir(scriptFiles, path, file + extension, SCAN_FILES, false);
-            for (unsigned i = 0; i < scriptFiles.Size(); ++i)
-                CompileScript(context, path + scriptFiles[i]);
+            for (const String & script : scriptFiles)
+                CompileScript(context, path + script);
         }
     }
     else
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
         context->GetSubsystem<Script>()->DumpAPI(DOXYGEN);
 
         // Only dump API as C Header when an output file name is explicitly given
-        if (arguments.Size() > 2)
+        if (arguments.size() > 2)
         {
             outputFile = arguments[2];
             log->Open(outputFile);

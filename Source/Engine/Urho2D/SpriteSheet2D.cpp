@@ -58,7 +58,7 @@ bool SpriteSheet2D::BeginLoad(Deserializer& source)
         SetName(source.GetName());
 
     loadTextureName_.Clear();
-    spriteMapping_.Clear();
+    spriteMapping_.clear();
 
     String extension = GetExtension(source.GetName());
     if (extension == ".plist")
@@ -84,7 +84,7 @@ bool SpriteSheet2D::EndLoad()
 
 Sprite2D* SpriteSheet2D::GetSprite(const String& name) const
 {
-    HashMap<String, SharedPtr<Sprite2D> >::ConstIterator i = spriteMapping_.Find(name);
+    HashMap<String, SharedPtr<Sprite2D> >::ConstIterator i = spriteMapping_.find(name);
     if (i == spriteMapping_.end())
         return nullptr;
 
@@ -125,7 +125,7 @@ bool SpriteSheet2D::BeginLoadFromPListFile(Deserializer& source)
     const PListValueMap& root = loadPListFile_->GetRoot();
     const PListValueMap& metadata = root["metadata"].GetValueMap();
     const String& textureFileName = metadata["realTextureFileName"].GetString();
-    
+
     // If we're async loading, request the texture now. Finish during EndLoad().
     loadTextureName_ = GetParentPath(GetName()) + textureFileName;
     if (GetAsyncLoadState() == ASYNC_LOADING)
@@ -149,11 +149,11 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     const PListValueMap& root = loadPListFile_->GetRoot();
 
     const PListValueMap& frames = root["frames"].GetValueMap();
-    for (const auto & frame : frames)
+    for (auto frame=frames.begin(),fin=frames.end(); frame!=fin; ++frame)
     {
-        String name = frame.first_.Split('.')[0];
+        String name = frame.key().Split('.')[0];
 
-        const PListValueMap& frameInfo = frame.second_.GetValueMap();
+        const PListValueMap& frameInfo = frame->GetValueMap();
         if (frameInfo["rotated"].GetBool())
         {
             LOGWARNING("Rotated sprite is not support now");

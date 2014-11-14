@@ -28,6 +28,7 @@
 #include "Serializer.h"
 #include "Matrix3x4.h"
 
+#include <unordered_map>
 using namespace Urho3D;
 
 struct Triangle
@@ -117,33 +118,33 @@ struct ModelVertexBuffer
 
     void WriteData(Serializer& dest)
     {
-        dest.WriteUInt(vertices_.Size());
+        dest.WriteUInt(vertices_.size());
         dest.WriteUInt(elementMask_);
         dest.WriteUInt(morphStart_);
         dest.WriteUInt(morphCount_);
 
-        for (unsigned i = 0; i < vertices_.Size(); ++i)
+        for (const ModelVertex & v : vertices_)
         {
             if (elementMask_ & MASK_POSITION)
-                dest.WriteVector3(vertices_[i].position_);
+                dest.WriteVector3(v.position_);
             if (elementMask_ & MASK_NORMAL)
-                dest.WriteVector3(vertices_[i].normal_);
+                dest.WriteVector3(v.normal_);
             if (elementMask_ & MASK_COLOR)
-                dest.WriteUInt(vertices_[i].color_.ToUInt());
+                dest.WriteUInt(v.color_.ToUInt());
             if (elementMask_ & MASK_TEXCOORD1)
-                dest.WriteVector2(vertices_[i].texCoord1_);
+                dest.WriteVector2(v.texCoord1_);
             if (elementMask_ & MASK_TEXCOORD2)
-                dest.WriteVector2(vertices_[i].texCoord2_);
+                dest.WriteVector2(v.texCoord2_);
             if (elementMask_ & MASK_CUBETEXCOORD1)
-                dest.WriteVector3(vertices_[i].cubeTexCoord1_);
+                dest.WriteVector3(v.cubeTexCoord1_);
             if (elementMask_ & MASK_CUBETEXCOORD2)
-                dest.WriteVector3(vertices_[i].cubeTexCoord2_);
+                dest.WriteVector3(v.cubeTexCoord2_);
             if (elementMask_ & MASK_TANGENT)
-                dest.WriteVector4(vertices_[i].tangent_);
+                dest.WriteVector4(v.tangent_);
             if (elementMask_ & MASK_BLENDWEIGHTS)
-                dest.Write(&vertices_[i].blendWeights_[0], 4 * sizeof(float));
+                dest.Write(&v.blendWeights_[0], 4 * sizeof(float));
             if (elementMask_ & MASK_BLENDINDICES)
-                dest.Write(&vertices_[i].blendIndices_[0], 4 * sizeof(unsigned char));
+                dest.Write(&v.blendIndices_[0], 4 * sizeof(unsigned char));
         }
     }
 };
@@ -163,15 +164,15 @@ struct ModelMorph
     void WriteData(Serializer& dest)
     {
         dest.WriteString(name_);
-        dest.WriteUInt(buffers_.Size());
-        for (unsigned i = 0; i < buffers_.Size(); ++i)
+        dest.WriteUInt(buffers_.size());
+        for (const ModelMorphBuffer & b : buffers_)
         {
-            dest.WriteUInt(buffers_[i].vertexBuffer_);
-            dest.WriteUInt(buffers_[i].elementMask_);
-            dest.WriteUInt(buffers_[i].vertices_.Size());
-            unsigned elementMask = buffers_[i].elementMask_;
+            dest.WriteUInt(b.vertexBuffer_);
+            dest.WriteUInt(b.elementMask_);
+            dest.WriteUInt(b.vertices_.size());
+            unsigned elementMask = b.elementMask_;
 
-            for (const Pair<unsigned, ModelVertex> &j : buffers_[i].vertices_)
+            for (const Pair<unsigned, ModelVertex> &j : b.vertices_)
             {
                 dest.WriteUInt(j.first_);
                 if (elementMask & MASK_POSITION)
@@ -218,7 +219,7 @@ struct ModelSubGeometryLodLevel
     unsigned indexBuffer_;
     unsigned indexStart_;
     unsigned indexCount_;
-    HashMap<unsigned, PODVector<BoneWeightAssignment> > boneWeights_;
+    QHash<unsigned, PODVector<BoneWeightAssignment> > boneWeights_;
     PODVector<unsigned> boneMapping_;
 
     ModelSubGeometryLodLevel() :

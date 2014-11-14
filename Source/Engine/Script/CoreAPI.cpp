@@ -113,17 +113,17 @@ static void ResourceRefListResize(unsigned size, ResourceRefList* ptr)
 
 static unsigned ResourceRefListGetSize(ResourceRefList* ptr)
 {
-    return ptr->names_.Size();
+    return ptr->names_.size();
 }
 
 static bool ResourceRefListIsEmpty(ResourceRefList* ptr)
 {
-    return ptr->names_.Size() == 0;
+    return ptr->names_.size() == 0;
 }
 
 static void ResourceRefListSetName(unsigned index, const String& name, ResourceRefList* ptr)
 {
-    if (index >= ptr->names_.Size())
+    if (index >= ptr->names_.size())
     {
         asGetActiveContext()->SetException("Index out of bounds");
         return;
@@ -134,7 +134,7 @@ static void ResourceRefListSetName(unsigned index, const String& name, ResourceR
 
 static const String& ResourceRefListGetName(unsigned index, ResourceRefList* ptr)
 {
-    if (index >= ptr->names_.Size())
+    if (index >= ptr->names_.size())
     {
         asGetActiveContext()->SetException("Index out of bounds");
         return String::EMPTY;
@@ -330,32 +330,32 @@ static Variant& VariantMapAtHash(StringHash key, VariantMap& map)
 
 static bool VariantMapContains(const String& key, VariantMap& map)
 {
-    return map.Contains(key);
+    return map.contains(key);
 }
 
 static bool VariantMapErase(const String& key, VariantMap& map)
 {
-    return map.Erase(key);
+    return map.remove(key);
 }
 
 static bool VariantMapContainsHash(StringHash key, VariantMap& map)
 {
-    return map.Contains(key);
+    return map.contains(key);
 }
 
 static bool VariantMapEraseHash(StringHash key, VariantMap& map)
 {
-    return map.Erase(key);
+    return map.remove(key);
 }
 
 static CScriptArray* VariantMapGetKeys(const VariantMap& map)
 {
-    return VectorToArray<StringHash>(map.Keys(), "Array<StringHash>");
+    return VectorToArray<StringHash>(map.keys(), "Array<StringHash>");
 }
 
 static CScriptArray* VariantMapGetValues(const VariantMap& map)
 {
-    return VectorToArray<Variant>(map.Values(), "Array<Variant>");
+    return VectorToArray<Variant>(map.values(), "Array<Variant>");
 }
 
 static void RegisterVariant(asIScriptEngine* engine)
@@ -407,7 +407,7 @@ static void RegisterVariant(asIScriptEngine* engine)
     engine->RegisterObjectProperty("ResourceRefList", "StringHash type", offsetof(ResourceRef, type_));
 
     RegisterRefCounted<RefCounted>(engine, "RefCounted");
-    
+
     engine->RegisterObjectType("Variant", sizeof(Variant), asOBJ_VALUE | asOBJ_APP_CLASS_CDAK);
     engine->RegisterObjectType("VariantMap", sizeof(VariantMap), asOBJ_VALUE | asOBJ_APP_CLASS_CDAK);
     engine->RegisterObjectBehaviour("Variant", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructVariant), asCALL_CDECL_OBJLAST);
@@ -522,8 +522,8 @@ static void RegisterVariant(asIScriptEngine* engine)
     engine->RegisterObjectMethod("VariantMap", "bool Erase(const String&in)", asFUNCTION(VariantMapErase), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("VariantMap", "bool Contains(StringHash) const", asFUNCTION(VariantMapContainsHash), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("VariantMap", "bool Erase(StringHash)", asFUNCTION(VariantMapEraseHash), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("VariantMap", "void Clear()", asMETHOD(VariantMap, Clear), asCALL_THISCALL);
-    engine->RegisterObjectMethod("VariantMap", "uint get_length() const", asMETHOD(VariantMap, Size), asCALL_THISCALL);
+    engine->RegisterObjectMethod("VariantMap", "void Clear()", asMETHOD(VariantMap, clear), asCALL_THISCALL);
+    engine->RegisterObjectMethod("VariantMap", "uint get_length() const", asMETHOD(VariantMap, size), asCALL_THISCALL);
     engine->RegisterObjectMethod("VariantMap", "Array<StringHash>@ get_keys() const", asFUNCTION(VariantMapGetKeys), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("VariantMap", "Array<Variant>@ get_values() const", asFUNCTION(VariantMapGetValues), asCALL_CDECL_OBJLAST);
 }

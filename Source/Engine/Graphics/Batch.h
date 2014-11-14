@@ -54,7 +54,7 @@ struct Batch
         isBase_(false)
     {
     }
-    
+
     /// Construct from a drawable's source batch.
     Batch(const SourceBatch& rhs) :
         distance_(rhs.distance_),
@@ -68,14 +68,14 @@ struct Batch
         isBase_(false)
     {
     }
-    
+
     /// Calculate state sorting key, which consists of base pass flag, light, pass and geometry.
     void CalculateSortKey();
     /// Prepare for rendering.
     void Prepare(View* view, bool setModelTransform = true) const;
     /// Prepare and draw.
     void Draw(View* view) const;
-    
+
     /// State sorting key.
     unsigned long long sortKey_;
     /// Distance from camera.
@@ -117,14 +117,14 @@ struct InstanceData
     InstanceData()
     {
     }
-    
+
     /// Construct with transform and distance.
     InstanceData(const Matrix3x4* worldTransform, float distance) :
         worldTransform_(worldTransform),
         distance_(distance)
     {
     }
-    
+
     /// World transform.
     const Matrix3x4* worldTransform_;
     /// Distance from camera.
@@ -139,7 +139,7 @@ struct BatchGroup : public Batch
         startIndex_(M_MAX_UNSIGNED)
     {
     }
-    
+
     /// Construct from a batch.
     BatchGroup(const Batch& batch) :
         Batch(batch),
@@ -151,25 +151,25 @@ struct BatchGroup : public Batch
     ~BatchGroup()
     {
     }
-    
+
     /// Add world transform(s) from a batch.
     void AddTransforms(const Batch& batch)
     {
         InstanceData newInstance;
         newInstance.distance_ = batch.distance_;
-        
+
         for (unsigned i = 0; i < batch.numWorldTransforms_; ++i)
         {
             newInstance.worldTransform_ = &batch.worldTransform_[i];
             instances_.Push(newInstance);
         }
     }
-    
+
     /// Pre-set the instance transforms. Buffer must be big enough to hold all transforms.
     void SetTransforms(void* lockedData, unsigned& freeIndex);
     /// Prepare and draw.
     void Draw(View* view) const;
-    
+
     /// Instance data.
     PODVector<InstanceData> instances_;
     /// Instance stream start index, or M_MAX_UNSIGNED if transforms not pre-set.
@@ -183,7 +183,7 @@ struct BatchGroupKey
     BatchGroupKey()
     {
     }
-    
+
     /// Construct from a batch.
     BatchGroupKey(const Batch& batch) :
         zone_(batch.zone_),
@@ -193,7 +193,7 @@ struct BatchGroupKey
         geometry_(batch.geometry_)
     {
     }
-    
+
     /// Zone.
     Zone* zone_;
     /// Light properties.
@@ -204,12 +204,12 @@ struct BatchGroupKey
     Material* material_;
     /// Geometry.
     Geometry* geometry_;
-    
+
     /// Test for equality with another batch group key.
     bool operator == (const BatchGroupKey& rhs) const { return zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
     /// Test for inequality with another batch group key.
     bool operator != (const BatchGroupKey& rhs) const { return zone_ != rhs.zone_ || lightQueue_ != rhs.lightQueue_ || pass_ != rhs.pass_ || material_ != rhs.material_ || geometry_ != rhs.geometry_; }
-    
+
     /// Return hash value.
     unsigned ToHash() const;
 };
@@ -234,16 +234,16 @@ public:
     unsigned GetNumInstances() const;
     /// Return whether the batch group is empty.
     bool IsEmpty() const { return batches_.Empty() && batchGroups_.Empty(); }
-    
+
     /// Instanced draw calls.
     HashMap<BatchGroupKey, BatchGroup> batchGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
-    HashMap<unsigned, unsigned> shaderRemapping_;
+    QHash<unsigned, unsigned> shaderRemapping_;
     /// Material remapping table for 2-pass state and distance sort.
-    HashMap<unsigned short, unsigned short> materialRemapping_;
+    QHash<unsigned short, unsigned short> materialRemapping_;
     /// Geometry remapping table for 2-pass state and distance sort.
-    HashMap<unsigned short, unsigned short> geometryRemapping_;
-    
+    QHash<unsigned short, unsigned short> geometryRemapping_;
+
     /// Unsorted non-instanced draw calls.
     PODVector<Batch> batches_;
     /// Sorted non-instanced draw calls.

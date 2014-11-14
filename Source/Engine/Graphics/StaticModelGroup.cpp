@@ -65,7 +65,7 @@ void StaticModelGroup::ApplyAttributes()
     
     // Remove all old instance nodes before searching for new. Can not call RemoveAllInstances() as that would modify
     // the ID list on its own
-    for (unsigned i = 0; i < instanceNodes_.Size(); ++i)
+    for (unsigned i = 0; i < instanceNodes_.size(); ++i)
     {
         Node* node = instanceNodes_[i];
         if (node)
@@ -79,7 +79,7 @@ void StaticModelGroup::ApplyAttributes()
     if (scene)
     {
         // The first index stores the number of IDs redundantly. This is for editing
-        for (unsigned i = 1; i < nodeIDsAttr_.Size(); ++i)
+        for (unsigned i = 1; i < nodeIDsAttr_.size(); ++i)
         {
             Node* node = scene->GetNode(nodeIDsAttr_[i].GetUInt());
             if (node)
@@ -91,7 +91,7 @@ void StaticModelGroup::ApplyAttributes()
         }
     }
     
-    worldTransforms_.Resize(instanceNodes_.Size());
+    worldTransforms_.Resize(instanceNodes_.size());
     nodeIDsDirty_ = false;
     OnMarkedDirty(GetNode());
 }
@@ -128,7 +128,7 @@ void StaticModelGroup::ProcessRayQuery(const RayOctreeQuery& query, PODVector<Ra
             {
                 distance = M_INFINITY;
                 
-                for (unsigned j = 0; j < batches_.Size(); ++j)
+                for (unsigned j = 0; j < batches_.size(); ++j)
                 {
                     Geometry* geometry = batches_[j].geometry_;
                     if (geometry)
@@ -166,16 +166,16 @@ void StaticModelGroup::UpdateBatches(const FrameInfo& frame)
     const Matrix3x4& worldTransform = node_->GetWorldTransform();
     distance_ = frame.camera_->GetDistance(worldBoundingBox.Center());
     
-    if (batches_.Size() > 1)
+    if (batches_.size() > 1)
     {
-        for (unsigned i = 0; i < batches_.Size(); ++i)
+        for (unsigned i = 0; i < batches_.size(); ++i)
         {
             batches_[i].distance_ = frame.camera_->GetDistance(worldTransform * geometryData_[i].center_);
             batches_[i].worldTransform_ = numWorldTransforms_ ? &worldTransforms_[0] : &Matrix3x4::IDENTITY;
             batches_[i].numWorldTransforms_ = numWorldTransforms_;
         }
     }
-    else if (batches_.Size() == 1)
+    else if (batches_.size() == 1)
     {
         batches_[0].distance_ = distance_;
         batches_[0].worldTransform_ = numWorldTransforms_ ? &worldTransforms_[0] : &Matrix3x4::IDENTITY;
@@ -199,7 +199,7 @@ unsigned StaticModelGroup::GetNumOccluderTriangles()
     
     unsigned triangles = 0;
     
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
         Geometry* geometry = GetLodGeometry(i, occlusionLodLevel_);
         if (!geometry)
@@ -223,7 +223,7 @@ bool StaticModelGroup::DrawOcclusion(OcclusionBuffer* buffer)
     
     for (unsigned i = 0; i < numWorldTransforms_; ++i)
     {
-        for (unsigned j = 0; j < batches_.Size(); ++j)
+        for (unsigned j = 0; j < batches_.size(); ++j)
         {
             Geometry* geometry = GetLodGeometry(j, occlusionLodLevel_);
             if (!geometry)
@@ -297,7 +297,7 @@ void StaticModelGroup::RemoveInstanceNode(Node* node)
 
 void StaticModelGroup::RemoveAllInstanceNodes()
 {
-    for (unsigned i = 0; i < instanceNodes_.Size(); ++i)
+    for (unsigned i = 0; i < instanceNodes_.size(); ++i)
     {
         Node* node = instanceNodes_[i];
         if (node)
@@ -313,14 +313,14 @@ void StaticModelGroup::RemoveAllInstanceNodes()
 
 Node* StaticModelGroup::GetInstanceNode(unsigned index) const
 {
-    return index < instanceNodes_.Size() ? instanceNodes_[index] : (Node*)nullptr;
+    return index < instanceNodes_.size() ? instanceNodes_[index] : (Node*)nullptr;
 }
 
 void StaticModelGroup::SetNodeIDsAttr(const VariantVector& value)
 {
     // Just remember the node IDs. They need to go through the SceneResolver, and we actually find the nodes during
     // ApplyAttributes()
-    if (value.Size())
+    if (value.size())
     {
         nodeIDsAttr_.Clear();
         
@@ -334,7 +334,7 @@ void StaticModelGroup::SetNodeIDsAttr(const VariantVector& value)
         while (numInstances--)
         {
             // If vector contains less IDs than should, fill the rest with zeroes
-            if (index < value.Size())
+            if (index < value.size())
                 nodeIDsAttr_.Push(value[index++].GetUInt());
             else
                 nodeIDsAttr_.Push(0);
@@ -360,7 +360,7 @@ void StaticModelGroup::OnWorldBoundingBoxUpdate()
 
     BoundingBox worldBox;
 
-    for (unsigned i = 0; i < instanceNodes_.Size(); ++i)
+    for (unsigned i = 0; i < instanceNodes_.size(); ++i)
     {
         Node* node = instanceNodes_[i];
         if (!node || !node->IsEnabled())
@@ -380,7 +380,7 @@ void StaticModelGroup::OnWorldBoundingBoxUpdate()
 
 void StaticModelGroup::UpdateNodeIDs()
 {
-    unsigned numInstances = instanceNodes_.Size();
+    unsigned numInstances = instanceNodes_.size();
     
     nodeIDsAttr_.Clear();
     nodeIDsAttr_.Push(numInstances);

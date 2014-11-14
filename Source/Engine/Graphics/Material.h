@@ -28,6 +28,8 @@
 #include "ValueAnimationInfo.h"
 #include "Vector4.h"
 
+#include <unordered_map>
+
 namespace Urho3D
 {
 
@@ -83,7 +85,7 @@ public:
 protected:
     /// Apply new animation value to the target object. Called by Update().
     virtual void ApplyValue(const Variant& newValue);
-    
+
 private:
     /// Shader parameter name.
     String name_;
@@ -151,7 +153,7 @@ public:
     void UpdateShaderParameterAnimations();
 
     /// Return number of techniques.
-    unsigned GetNumTechniques() const { return techniques_.Size(); }
+    unsigned GetNumTechniques() const { return techniques_.size(); }
     /// Return all techniques.
     const Vector<TechniqueEntry>& GetTechniques() const { return techniques_; }
     /// Return technique entry by index.
@@ -173,7 +175,7 @@ public:
     /// Return shader parameter animation speed.
     float GetShaderParameterAnimationSpeed(const String& name) const;
     /// Return all shader parameters.
-    const HashMap<StringHash, MaterialShaderParameter>& GetShaderParameters() const { return shaderParameters_; }
+    const QHash<StringHash, MaterialShaderParameter>& GetShaderParameters() const { return shaderParameters_; }
     /// Return normal culling mode.
     CullMode GetCullMode() const { return cullMode_; }
     /// Return culling mode for shadows.
@@ -207,9 +209,9 @@ private:
     /// Textures.
     SharedPtr<Texture> textures_[MAX_MATERIAL_TEXTURE_UNITS];
     /// %Shader parameters.
-    HashMap<StringHash, MaterialShaderParameter> shaderParameters_;
+    QHash<StringHash, MaterialShaderParameter> shaderParameters_;
     /// %Shader parameters animation infos.
-    HashMap<StringHash, SharedPtr<ShaderParameterAnimationInfo> > shaderParameterAnimationInfos_;
+    QHash<StringHash, SharedPtr<ShaderParameterAnimationInfo> > shaderParameterAnimationInfos_;
     /// Normal culling mode.
     CullMode cullMode_;
     /// Culling mode for shadow rendering.

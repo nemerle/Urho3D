@@ -71,7 +71,7 @@ bool Font::BeginLoad(Deserializer& source)
         return true;
 
     fontType_ = FONT_NONE;
-    faces_.Clear();
+    faces_.clear();
 
     fontDataSize_ = source.GetSize();
     if (fontDataSize_)
@@ -139,15 +139,15 @@ FontFace* Font::GetFace(int pointSize)
     else
         pointSize = Clamp(pointSize, MIN_POINT_SIZE, MAX_POINT_SIZE);
 
-    HashMap<int, SharedPtr<FontFace> >::Iterator i = faces_.Find(pointSize);
+    QHash<int, SharedPtr<FontFace> >::Iterator i = faces_.find(pointSize);
     if (i != faces_.end())
     {
-        if (!i->second_->IsDataLost())
-            return i->second_;
+        if (!(*i)->IsDataLost())
+            return *i;
         else
         {
             // Erase and reload face if texture data lost (OpenGL mode only)
-            faces_.Erase(i);
+            faces_.erase(i);
         }
     }
 
@@ -174,7 +174,7 @@ IntVector2 Font::GetTotalGlyphOffset(int pointSize) const
 
 void Font::ReleaseFaces()
 {
-    faces_.Clear();
+    faces_.clear();
 }
 
 void Font::LoadParameters()
@@ -184,23 +184,23 @@ void Font::LoadParameters()
     SharedPtr<XMLFile> xml = cache->GetTempResource<XMLFile>(xmlName, false);
     if (!xml)
         return;
-    
+
     XMLElement rootElem = xml->GetRoot();
-    
+
     XMLElement absoluteElem = rootElem.GetChild("absoluteoffset");
     if (!absoluteElem)
         absoluteElem = rootElem.GetChild("absolute");
-    
+
     if (absoluteElem)
     {
         absoluteOffset_.x_ = absoluteElem.GetInt("x");
         absoluteOffset_.y_ = absoluteElem.GetInt("y");
     }
-    
+
     XMLElement scaledElem = rootElem.GetChild("scaledoffset");
     if (!scaledElem)
         scaledElem = rootElem.GetChild("scaled");
-    
+
     if (scaledElem)
     {
         scaledOffset_.x_ = scaledElem.GetFloat("x");

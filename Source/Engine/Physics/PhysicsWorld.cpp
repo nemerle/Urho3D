@@ -226,7 +226,7 @@ void PhysicsWorld::drawContactPoint(const btVector3& pointOnB, const btVector3& 
 }
 
 void PhysicsWorld::draw3dText(const btVector3& location, const char* textString)
-{ 
+{
 }
 
 void PhysicsWorld::Update(float timeStep)
@@ -242,8 +242,8 @@ void PhysicsWorld::Update(float timeStep)
     }
     else if (maxSubSteps_ > 0)
         maxSubSteps = Min(maxSubSteps, maxSubSteps_);
-    
-    delayedWorldTransforms_.Clear();
+
+    delayedWorldTransforms_.clear();
 
     if (interpolation_)
         world_->stepSimulation(timeStep, maxSubSteps, internalTimeStep);
@@ -259,18 +259,18 @@ void PhysicsWorld::Update(float timeStep)
     }
 
     // Apply delayed (parented) world transforms now
-    while (!delayedWorldTransforms_.Empty())
+    while (!delayedWorldTransforms_.isEmpty())
     {
-        for (HashMap<RigidBody*, DelayedWorldTransform>::Iterator i = delayedWorldTransforms_.begin();
+        for (QHash<RigidBody*, DelayedWorldTransform>::Iterator i = delayedWorldTransforms_.begin();
             i != delayedWorldTransforms_.end(); ++i)
         {
-            const DelayedWorldTransform& transform = i->second_;
+            const DelayedWorldTransform& transform = *i;
 
             // If parent's transform has already been assigned, can proceed
-            if (!delayedWorldTransforms_.Contains(transform.parentRigidBody_))
+            if (!delayedWorldTransforms_.contains(transform.parentRigidBody_))
             {
                 transform.rigidBody_->ApplyWorldTransform(transform.worldPosition_, transform.worldRotation_);
-                delayedWorldTransforms_.Erase(i);
+                delayedWorldTransforms_.erase(i);
             }
         }
     }
@@ -284,14 +284,14 @@ void PhysicsWorld::UpdateCollisions()
 void PhysicsWorld::SetFps(int fps)
 {
     fps_ = Clamp(fps, 1, 1000);
-    
+
     MarkNetworkUpdate();
 }
 
 void PhysicsWorld::SetGravity(Vector3 gravity)
 {
     world_->setGravity(ToBtVector3(gravity));
-    
+
     MarkNetworkUpdate();
 }
 
@@ -305,7 +305,7 @@ void PhysicsWorld::SetNumIterations(int num)
 {
     num = Clamp(num, 1, MAX_SOLVER_ITERATIONS);
     world_->getSolverInfo().m_numIterations = num;
-    
+
     MarkNetworkUpdate();
 }
 
@@ -317,21 +317,21 @@ void PhysicsWorld::SetInterpolation(bool enable)
 void PhysicsWorld::SetInternalEdge(bool enable)
 {
     internalEdge_ = enable;
-    
+
     MarkNetworkUpdate();
 }
 
 void PhysicsWorld::SetSplitImpulse(bool enable)
 {
     world_->getSolverInfo().m_splitImpulse = enable;
-    
+
     MarkNetworkUpdate();
 }
 
 void PhysicsWorld::SetMaxNetworkAngularVelocity(float velocity)
 {
     maxNetworkAngularVelocity_ = Clamp(velocity, 1.0f, 32767.0f);
-    
+
     MarkNetworkUpdate();
 }
 
@@ -427,7 +427,7 @@ void PhysicsWorld::ConvexCast(PhysicsRaycastResult& result, CollisionShape* shap
         result.distance_ = M_INFINITY;
         return;
     }
-    
+
     // If shape is attached in a rigidbody, set its collision group temporarily to 0 to make sure it is not returned in the sweep result
     RigidBody* bodyComp = shape->GetComponent<RigidBody>();
     btRigidBody* body = bodyComp ? bodyComp->GetBody() : (btRigidBody*)nullptr;
@@ -457,7 +457,7 @@ void PhysicsWorld::ConvexCast(PhysicsRaycastResult& result, btCollisionShape* sh
         result.distance_ = M_INFINITY;
         return;
     }
-    
+
     if (!shape->isConvex())
     {
         LOGERROR("Can not use non-convex collision shape for convex cast");
@@ -467,7 +467,7 @@ void PhysicsWorld::ConvexCast(PhysicsRaycastResult& result, btCollisionShape* sh
         result.distance_ = M_INFINITY;
         return;
     }
-    
+
     PROFILE(PhysicsConvexCast);
 
     btCollisionWorld::ClosestConvexResultCallback convexCallback(ToBtVector3(startPos), ToBtVector3(endPos));
@@ -501,14 +501,14 @@ void PhysicsWorld::RemoveCachedGeometry(Model* model)
     {
         HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
         if (current->first_.first_ == model)
-            triMeshCache_.Erase(current);
+            triMeshCache_.erase(current);
     }
     for (HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
         i != convexCache_.end();)
     {
         HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
         if (current->first_.first_ == model)
-            convexCache_.Erase(current);
+            convexCache_.erase(current);
     }
 }
 
@@ -590,7 +590,7 @@ void PhysicsWorld::RemoveRigidBody(RigidBody* body)
 {
     rigidBodies_.Remove(body);
     // Remove possible dangling pointer from the delayedWorldTransforms structure
-    delayedWorldTransforms_.Erase(body);
+    delayedWorldTransforms_.remove(body);
 }
 
 void PhysicsWorld::AddCollisionShape(CollisionShape* shape)
@@ -642,14 +642,14 @@ void PhysicsWorld::CleanupGeometryCache()
     {
         HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
         if (current->second_.Refs() == 1)
-            triMeshCache_.Erase(current);
+            triMeshCache_.erase(current);
     }
     for (HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
         i != convexCache_.end();)
     {
         HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
         if (current->second_.Refs() == 1)
-            convexCache_.Erase(current);
+            convexCache_.erase(current);
     }
 }
 
@@ -711,10 +711,10 @@ void PhysicsWorld::SendCollisionEvents()
 {
     PROFILE(SendCollisionEvents);
 
-    currentCollisions_.Clear();
-    physicsCollisionData_.Clear();
-    nodeCollisionData_.Clear();
-    
+    currentCollisions_.clear();
+    physicsCollisionData_.clear();
+    nodeCollisionData_.clear();
+
     int numManifolds = collisionDispatcher_->getNumManifolds();
 
     if (numManifolds)
@@ -775,7 +775,7 @@ void PhysicsWorld::SendCollisionEvents()
             WeakPtr<Node> nodeWeakB(nodeB);
 
             bool trigger = bodyA->IsTrigger() || bodyB->IsTrigger();
-            bool newCollision = !previousCollisions_.Contains(elem.first_);
+            bool newCollision = !previousCollisions_.contains(elem.first_);
 
             physicsCollisionData_[PhysicsCollision::P_NODEA] = nodeA;
             physicsCollisionData_[PhysicsCollision::P_NODEB] = nodeB;
@@ -859,7 +859,7 @@ void PhysicsWorld::SendCollisionEvents()
 
         for (auto & elem : previousCollisions_)
         {
-            if (!currentCollisions_.Contains(elem.first_))
+            if (!currentCollisions_.contains(elem.first_))
             {
                 RigidBody* bodyA = elem.first_.first_;
                 RigidBody* bodyB = elem.first_.second_;

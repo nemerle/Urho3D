@@ -371,7 +371,7 @@ void Batch::Prepare(View* view, bool setModelTransform) const
             case LIGHT_DIRECTIONAL:
                 {
                     Matrix4 shadowMatrices[MAX_CASCADE_SPLITS];
-                    unsigned numSplits = lightQueue_->shadowSplits_.Size();
+                    unsigned numSplits = lightQueue_->shadowSplits_.size();
                     for (unsigned i = 0; i < numSplits; ++i)
                         CalculateShadowMatrix(shadowMatrices[i], lightQueue_, i, renderer, Vector3::ZERO);
 
@@ -429,7 +429,7 @@ void Batch::Prepare(View* view, bool setModelTransform) const
             case LIGHT_DIRECTIONAL:
                 {
                     Matrix4 shadowMatrices[MAX_CASCADE_SPLITS];
-                    unsigned numSplits = lightQueue_->shadowSplits_.Size();
+                    unsigned numSplits = lightQueue_->shadowSplits_.size();
                     for (unsigned i = 0; i < numSplits; ++i)
                     {
                         CalculateShadowMatrix(shadowMatrices[i], lightQueue_, i, renderer, isLightVolume ? cameraEffectivePos :
@@ -535,11 +535,11 @@ void Batch::Prepare(View* view, bool setModelTransform) const
             graphics->SetShaderParameter(PSP_SHADOWMAPINVSIZE, Vector4(sizeX, sizeY, 0.0f, 0.0f));
 
             Vector4 lightSplits(M_LARGE_VALUE, M_LARGE_VALUE, M_LARGE_VALUE, M_LARGE_VALUE);
-            if (lightQueue_->shadowSplits_.Size() > 1)
+            if (lightQueue_->shadowSplits_.size() > 1)
                 lightSplits.x_ = lightQueue_->shadowSplits_[0].farSplit_ / camera_->GetFarClip();
-            if (lightQueue_->shadowSplits_.Size() > 2)
+            if (lightQueue_->shadowSplits_.size() > 2)
                 lightSplits.y_ = lightQueue_->shadowSplits_[1].farSplit_ / camera_->GetFarClip();
-            if (lightQueue_->shadowSplits_.Size() > 3)
+            if (lightQueue_->shadowSplits_.size() > 3)
                 lightSplits.z_ = lightQueue_->shadowSplits_[2].farSplit_ / camera_->GetFarClip();
 
             graphics->SetShaderParameter(PSP_SHADOWSPLITS, lightSplits);
@@ -553,10 +553,9 @@ void Batch::Prepare(View* view, bool setModelTransform) const
         {
             // Update shader parameter animations
             material_->UpdateShaderParameterAnimations();
-
-            const HashMap<StringHash, MaterialShaderParameter>& parameters = material_->GetShaderParameters();
-            for (const auto & parameter : parameters)
-                graphics->SetShaderParameter(parameter.first_, parameter.second_.value_);
+            const QHash<StringHash, MaterialShaderParameter> & params(material_->GetShaderParameters());
+            for (auto iter= params.begin(), fin=params.end(); iter!=fin; ++iter)
+                graphics->SetShaderParameter(iter.key(), iter->value_);
         }
 
         const SharedPtr<Texture>* textures = material_->GetTextures();
@@ -712,7 +711,7 @@ void BatchQueue::Clear(int maxSortedInstances)
 {
     batches_.Clear();
     sortedBatches_.Clear();
-    batchGroups_.Clear();
+    batchGroups_.clear();
     maxSortedInstances_ = maxSortedInstances;
 }
 
@@ -788,9 +787,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
 
         unsigned shaderID = (batch->sortKey_ >> 32);
-        HashMap<unsigned, unsigned>::ConstIterator j = shaderRemapping_.Find(shaderID);
+        QHash<unsigned, unsigned>::ConstIterator j = shaderRemapping_.find(shaderID);
         if (j != shaderRemapping_.end())
-            shaderID = j->second_;
+            shaderID = j.value();
         else
         {
             shaderID = shaderRemapping_[shaderID] = freeShaderID | (shaderID & 0xc0000000);
@@ -798,9 +797,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         }
 
         unsigned short materialID = (unsigned short)(batch->sortKey_ & 0xffff0000);
-        HashMap<unsigned short, unsigned short>::ConstIterator k = materialRemapping_.Find(materialID);
+        QHash<unsigned short, unsigned short>::ConstIterator k = materialRemapping_.find(materialID);
         if (k != materialRemapping_.end())
-            materialID = k->second_;
+            materialID = k.value();
         else
         {
             materialID = materialRemapping_[materialID] = freeMaterialID;
@@ -808,9 +807,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         }
 
         unsigned short geometryID = (unsigned short)(batch->sortKey_ & 0xffff);
-        HashMap<unsigned short, unsigned short>::ConstIterator l = geometryRemapping_.Find(geometryID);
+        QHash<unsigned short, unsigned short>::ConstIterator l = geometryRemapping_.find(geometryID);
         if (l != geometryRemapping_.end())
-            geometryID = l->second_;
+            geometryID = l.value();
         else
         {
             geometryID = geometryRemapping_[geometryID] = freeGeometryID;
@@ -820,9 +819,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         batch->sortKey_ = (((unsigned long long)shaderID) << 32) || (((unsigned long long)materialID) << 16) | geometryID;
     }
 
-    shaderRemapping_.Clear();
-    materialRemapping_.Clear();
-    geometryRemapping_.Clear();
+    shaderRemapping_.clear();
+    materialRemapping_.clear();
+    geometryRemapping_.clear();
 
     // Finally sort again with the rewritten ID's
     Sort(batches.begin(), batches.end(), CompareBatchesState);

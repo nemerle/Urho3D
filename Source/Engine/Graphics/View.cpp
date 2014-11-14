@@ -281,7 +281,7 @@ void SortLightQueueWork(const WorkItem* item, unsigned threadIndex)
 void SortShadowQueueWork(const WorkItem* item, unsigned threadIndex)
 {
     LightBatchQueue* start = reinterpret_cast<LightBatchQueue*>(item->start_);
-    for (unsigned i = 0; i < start->shadowSplits_.Size(); ++i)
+    for (unsigned i = 0; i < start->shadowSplits_.size(); ++i)
         start->shadowSplits_[i].shadowBatches_.SortFrontToBack();
 }
 
@@ -319,7 +319,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
 
     // Make sure that all necessary batch queues exist
     scenePasses_.Clear();
-    for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+    for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
     {
         const RenderPathCommand& command = renderPath_->commands_[i];
         if (!command.enabled_)
@@ -352,10 +352,10 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
                 }
             }
 
-            HashMap<StringHash, BatchQueue>::Iterator j = batchQueues_.Find(command.pass_);
+            QHash<StringHash, BatchQueue>::Iterator j = batchQueues_.find(command.pass_);
             if (j == batchQueues_.end())
-                j = batchQueues_.Insert(Pair<StringHash, BatchQueue>(command.pass_, BatchQueue()));
-            info.batchQueue_ = &j->second_;
+                j = batchQueues_.insert(command.pass_, BatchQueue());
+            info.batchQueue_ = &(*j);
 
             scenePasses_.Push(info);
         }
@@ -405,14 +405,14 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     deferredAmbient_ = false;
     useLitBase_ = false;
 
-    for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+    for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
     {
         const RenderPathCommand& command = renderPath_->commands_[i];
         if (!command.enabled_)
             continue;
 
         // Check if ambient pass and G-buffer rendering happens at the same time
-        if (command.type_ == CMD_SCENEPASS && command.outputNames_.Size() > 1)
+        if (command.type_ == CMD_SCENEPASS && command.outputNames_.size() > 1)
         {
             if (CheckViewportWrite(command))
                 deferredAmbient_ = true;
@@ -485,15 +485,15 @@ void View::Update(const FrameInfo& frame)
     int maxSortedInstances = renderer_->GetMaxSortedInstances();
 
     // Clear buffers, geometry, light, occluder & batch list
-    renderTargets_.Clear();
+    renderTargets_.clear();
     geometries_.Clear();
     shadowGeometries_.Clear();
     lights_.Clear();
     zones_.Clear();
     occluders_.Clear();
-    vertexLightQueues_.Clear();
+    vertexLightQueues_.clear();
     for (auto & elem : batchQueues_)
-        elem.second_.Clear(maxSortedInstances);
+        elem.Clear(maxSortedInstances);
 
     if (hasScenePasses_ && (!camera_ || !octree_))
         return;
@@ -795,7 +795,7 @@ void View::GetDrawables()
 
     // Check drawable occlusion, find zones for moved drawables and collect geometries & lights in worker threads
     {
-        for (unsigned i = 0; i < sceneResults_.Size(); ++i)
+        for (unsigned i = 0; i < sceneResults_.size(); ++i)
         {
             PerThreadSceneResult& result = sceneResults_[i];
 
@@ -839,9 +839,9 @@ void View::GetDrawables()
     minZ_ = M_INFINITY;
     maxZ_ = 0.0f;
 
-    if (sceneResults_.Size() > 1)
+    if (sceneResults_.size() > 1)
     {
-        for (unsigned i = 0; i < sceneResults_.Size(); ++i)
+        for (unsigned i = 0; i < sceneResults_.size(); ++i)
         {
             PerThreadSceneResult& result = sceneResults_[i];
             geometries_.Push(result.geometries_);
@@ -881,7 +881,7 @@ void View::GetBatches()
 
     WorkQueue* queue = GetSubsystem<WorkQueue>();
     PODVector<Light*> vertexLights;
-    BatchQueue* alphaQueue = batchQueues_.Contains(alphaPassName_) ? &batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
+    BatchQueue* alphaQueue = batchQueues_.contains(alphaPassName_) ? &batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
 
     // Process lit geometries and shadow casters for each light
     {
@@ -889,7 +889,7 @@ void View::GetBatches()
 
         lightQueryResults_.Resize(lights_.Size());
 
-        for (unsigned i = 0; i < lightQueryResults_.Size(); ++i)
+        for (unsigned i = 0; i < lightQueryResults_.size(); ++i)
         {
             SharedPtr<WorkItem> item = queue->GetFreeItem();
             item->priority_ = M_MAX_UNSIGNED;
@@ -986,7 +986,7 @@ void View::GetBatches()
                         Zone* zone = GetZone(drawable);
                         const Vector<SourceBatch>& batches = drawable->GetBatches();
 
-                        for (unsigned l = 0; l < batches.Size(); ++l)
+                        for (unsigned l = 0; l < batches.size(); ++l)
                         {
                             const SourceBatch& srcBatch = batches[l];
 
@@ -1090,7 +1090,7 @@ void View::GetBatches()
             if (!drawableVertexLights.Empty())
                 drawable->LimitVertexLights();
 
-            for (unsigned j = 0; j < batches.Size(); ++j)
+            for (unsigned j = 0; j < batches.size(); ++j)
             {
                 const SourceBatch& srcBatch = batches[j];
 
@@ -1111,7 +1111,7 @@ void View::GetBatches()
                 destBatch.lightMask_ = GetLightMask(drawable);
 
                 // Check each of the scene passes
-                for (unsigned k = 0; k < scenePasses_.Size(); ++k)
+                for (unsigned k = 0; k < scenePasses_.size(); ++k)
                 {
                     ScenePassInfo& info = scenePasses_[k];
                     destBatch.pass_ = tech->GetSupportedPass(info.pass_);
@@ -1142,16 +1142,16 @@ void View::GetBatches()
                         {
                             // Find a vertex light queue. If not found, create new
                             unsigned long long hash = GetVertexLightQueueHash(vertexLights);
-                            HashMap<unsigned long long, LightBatchQueue>::Iterator i = vertexLightQueues_.Find(hash);
+                            QHash<unsigned long long, LightBatchQueue>::Iterator i = vertexLightQueues_.find(hash);
                             if (i == vertexLightQueues_.end())
                             {
-                                i = vertexLightQueues_.Insert(MakePair(hash, LightBatchQueue()));
-                                i->second_.light_ = nullptr;
-                                i->second_.shadowMap_ = nullptr;
-                                i->second_.vertexLights_ = vertexLights;
+                                i = vertexLightQueues_.insert(hash, LightBatchQueue());
+                                i->light_ = nullptr;
+                                i->shadowMap_ = nullptr;
+                                i->vertexLights_ = vertexLights;
                             }
 
-                            destBatch.lightQueue_ = &(i->second_);
+                            destBatch.lightQueue_ = &(*i);
                         }
                     }
                     else
@@ -1177,7 +1177,7 @@ void View::UpdateGeometries()
     // Sort batches
     {
 
-        for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+        for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
         {
             const RenderPathCommand& command = renderPath_->commands_[i];
             if (!IsNecessary(command))
@@ -1193,7 +1193,7 @@ void View::UpdateGeometries()
             }
         }
 
-        for (auto & elem : lightQueues_)
+        for (LightBatchQueue & elem : lightQueues_)
         {
             SharedPtr<WorkItem> lightItem = queue->GetFreeItem();
             lightItem->priority_ = M_MAX_UNSIGNED;
@@ -1201,7 +1201,7 @@ void View::UpdateGeometries()
             lightItem->start_ = &(elem);
             queue->AddWorkItem(lightItem);
 
-            if (elem.shadowSplits_.Size())
+            if (elem.shadowSplits_.size())
             {
                 SharedPtr<WorkItem> shadowItem = queue->GetFreeItem();
                 shadowItem->priority_ = M_MAX_UNSIGNED;
@@ -1279,7 +1279,7 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
     bool allowLitBase = useLitBase_ && !light->IsNegative() && light == drawable->GetFirstLight() &&
         drawable->GetVertexLights().Empty() && !hasAmbientGradient;
 
-    for (unsigned i = 0; i < batches.Size(); ++i)
+    for (unsigned i = 0; i < batches.size(); ++i)
     {
         const SourceBatch& srcBatch = batches[i];
 
@@ -1343,11 +1343,11 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
 void View::ExecuteRenderPathCommands()
 {
     // If not reusing shadowmaps, render all of them first
-    if (!renderer_->GetReuseShadowMaps() && renderer_->GetDrawShadows() && !lightQueues_.Empty())
+    if (!renderer_->GetReuseShadowMaps() && renderer_->GetDrawShadows() && !lightQueues_.empty())
     {
         PROFILE(RenderShadowMaps);
 
-        for (auto & elem : lightQueues_)
+        for (LightBatchQueue & elem : lightQueues_)
         {
             if (elem.shadowMap_)
                 RenderShadowMap(elem);
@@ -1365,14 +1365,14 @@ void View::ExecuteRenderPathCommands()
         bool isPingponging = false;
 
         unsigned lastCommandIndex = 0;
-        for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+        for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
         {
             RenderPathCommand& command = renderPath_->commands_[i];
             if (IsNecessary(command))
                 lastCommandIndex = i;
         }
 
-        for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+        for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
         {
             RenderPathCommand& command = renderPath_->commands_[i];
             if (!IsNecessary(command))
@@ -1484,13 +1484,13 @@ void View::ExecuteRenderPathCommands()
 
             case CMD_FORWARDLIGHTS:
                 // Render shadow maps + opaque objects' additive lighting
-                if (!lightQueues_.Empty())
+                if (!lightQueues_.empty())
                 {
                     PROFILE(RenderLights);
 
                     SetRenderTargets(command);
 
-                    for (auto & elem : lightQueues_)
+                    for (LightBatchQueue & elem : lightQueues_)
                     {
                         // If reusing shadowmaps, render each of them before the lit batches
                         if (renderer_->GetReuseShadowMaps() && elem.shadowMap_)
@@ -1523,12 +1523,12 @@ void View::ExecuteRenderPathCommands()
 
             case CMD_LIGHTVOLUMES:
                 // Render shadow maps + light volumes
-                if (!lightQueues_.Empty())
+                if (!lightQueues_.empty())
                 {
                     PROFILE(RenderLightVolumes);
 
                     SetRenderTargets(command);
-                    for (auto & elem : lightQueues_)
+                    for (LightBatchQueue & elem : lightQueues_)
                     {
                         // If reusing shadowmaps, render each of them before the lit batches
                         if (renderer_->GetReuseShadowMaps() && elem.shadowMap_)
@@ -1566,14 +1566,14 @@ void View::SetRenderTargets(RenderPathCommand& command)
 {
     unsigned index = 0;
 
-    while (index < command.outputNames_.Size())
+    while (index < command.outputNames_.size())
     {
         if (!command.outputNames_[index].Compare("viewport", false))
             graphics_->SetRenderTarget(index, currentRenderTarget_);
         else
         {
             StringHash nameHash(command.outputNames_[index]);
-            if (renderTargets_.Contains(nameHash))
+            if (renderTargets_.contains(nameHash))
             {
                 Texture2D* texture = renderTargets_[nameHash];
                 graphics_->SetRenderTarget(index, texture);
@@ -1619,10 +1619,10 @@ void View::SetTextures(RenderPathCommand& command)
         }
 
         // Bind a rendertarget
-        HashMap<StringHash, Texture2D*>::ConstIterator j = renderTargets_.Find(command.textureNames_[i]);
+        QHash<StringHash, Texture2D*>::ConstIterator j = renderTargets_.find(command.textureNames_[i]);
         if (j != renderTargets_.end())
         {
-            graphics_->SetTexture(i, j->second_);
+            graphics_->SetTexture(i, *j);
             continue;
         }
 
@@ -1667,9 +1667,9 @@ void View::RenderQuad(RenderPathCommand& command)
     // Set shaders & shader parameters and textures
     graphics_->SetShaders(vs, ps);
 
-    const HashMap<StringHash, Variant>& parameters = command.shaderParameters_;
-    for (const auto & parameter : parameters)
-        graphics_->SetShaderParameter(parameter.first_, parameter.second_);
+    const VariantMap& parameters = command.shaderParameters_;
+    for (VariantMap::ConstIterator parameter=parameters.begin(),fin=parameters.end(); parameter!=fin; ++parameter)
+        graphics_->SetShaderParameter(parameter.key(), parameter.value());
 
     SetGlobalShaderParameters();
     SetCameraShaderParameters(camera_, false, false);
@@ -1680,14 +1680,14 @@ void View::RenderQuad(RenderPathCommand& command)
     SetGBufferShaderParameters(viewSize, IntRect(0, 0, viewSize.x_, viewSize.y_));
 
     // Set per-rendertarget inverse size / offset shader parameters as necessary
-    for (unsigned i = 0; i < renderPath_->renderTargets_.Size(); ++i)
+    for (unsigned i = 0; i < renderPath_->renderTargets_.size(); ++i)
     {
         const RenderTargetInfo& rtInfo = renderPath_->renderTargets_[i];
         if (!rtInfo.enabled_)
             continue;
 
         StringHash nameHash(rtInfo.name_);
-        if (!renderTargets_.Contains(nameHash))
+        if (!renderTargets_.contains(nameHash))
             continue;
 
         String invSizeName = rtInfo.name_ + "InvSize";
@@ -1717,7 +1717,7 @@ void View::RenderQuad(RenderPathCommand& command)
 
 bool View::IsNecessary(const RenderPathCommand& command)
 {
-    return command.enabled_ && command.outputNames_.Size() && (command.type_ != CMD_SCENEPASS ||
+    return command.enabled_ && command.outputNames_.size() && (command.type_ != CMD_SCENEPASS ||
         !batchQueues_[command.pass_].IsEmpty());
 }
 
@@ -1734,7 +1734,7 @@ bool View::CheckViewportRead(const RenderPathCommand& command)
 
 bool View::CheckViewportWrite(const RenderPathCommand& command)
 {
-    for (unsigned i = 0; i < command.outputNames_.Size(); ++i)
+    for (unsigned i = 0; i < command.outputNames_.size(); ++i)
     {
         if (!command.outputNames_[i].Compare("viewport", false))
             return true;
@@ -1753,7 +1753,7 @@ bool View::CheckPingpong(unsigned index)
 
     // If there are commands other than quads that target the viewport, we must keep rendering to the final target and resolving
     // to a viewport texture when necessary instead of pingponging, as a scene pass is not guaranteed to fill the entire viewport
-    for (unsigned i = index + 1; i < renderPath_->commands_.Size(); ++i)
+    for (unsigned i = index + 1; i < renderPath_->commands_.size(); ++i)
     {
         RenderPathCommand& command = renderPath_->commands_[i];
         if (!IsNecessary(command))
@@ -1792,14 +1792,14 @@ void View::AllocateScreenBuffers()
         else
         {
             // Check also if using MRT without deferred rendering and rendering to the viewport and another texture
-            for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+            for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
             {
                 const RenderPathCommand& command = renderPath_->commands_[i];
                 if (!IsNecessary(command))
                     continue;
-                if (command.outputNames_.Size() > 1)
+                if (command.outputNames_.size() > 1)
                 {
-                    for (unsigned j = 0; j < command.outputNames_.Size(); ++j)
+                    for (unsigned j = 0; j < command.outputNames_.size(); ++j)
                     {
                         if (!command.outputNames_[j].Compare("viewport", false))
                         {
@@ -1835,7 +1835,7 @@ void View::AllocateScreenBuffers()
     bool hasViewportRead = false;
     bool hasPingpong = false;
 
-    for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+    for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
     {
         const RenderPathCommand& command = renderPath_->commands_[i];
         if (!IsNecessary(command))
@@ -1886,7 +1886,7 @@ void View::AllocateScreenBuffers()
         viewportTextures_[1] = static_cast<Texture2D*>(substituteRenderTarget_->GetParentTexture());
 
     // Allocate extra render targets defined by the rendering path
-    for (unsigned i = 0; i < renderPath_->renderTargets_.Size(); ++i)
+    for (unsigned i = 0; i < renderPath_->renderTargets_.size(); ++i)
     {
         const RenderTargetInfo& rtInfo = renderPath_->renderTargets_[i];
         if (!rtInfo.enabled_)
@@ -2597,12 +2597,12 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
     if (!material)
     {
         const Vector<TechniqueEntry>& techniques = renderer_->GetDefaultMaterial()->GetTechniques();
-        return techniques.Size() ? techniques[0].technique_ : (Technique*)nullptr;
+        return techniques.size() ? techniques[0].technique_ : (Technique*)nullptr;
     }
 
     const Vector<TechniqueEntry>& techniques = material->GetTechniques();
     // If only one technique, no choice
-    if (techniques.Size() == 1)
+    if (techniques.size() == 1)
         return techniques[0].technique_;
     else
     {
@@ -2613,7 +2613,7 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
         // Most distant & lowest quality
         // Second most distant & highest quality
         // ...
-        for (unsigned i = 0; i < techniques.Size(); ++i)
+        for (unsigned i = 0; i < techniques.size(); ++i)
         {
             const TechniqueEntry& entry = techniques[i];
             Technique* tech = entry.technique_;
@@ -2625,7 +2625,7 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
         }
 
         // If no suitable technique found, fallback to the last
-        return techniques.Size() ? techniques.Back().technique_ : (Technique*)nullptr;
+        return techniques.size() ? techniques.Back().technique_ : (Technique*)nullptr;
     }
 }
 
@@ -2676,7 +2676,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
     {
         BatchGroupKey key(batch);
 
-        HashMap<BatchGroupKey, BatchGroup>::Iterator i = batchQueue.batchGroups_.Find(key);
+        HashMap<BatchGroupKey, BatchGroup>::Iterator i = batchQueue.batchGroups_.find(key);
         if (i == batchQueue.batchGroups_.end())
         {
             // Create a new group based on the batch
@@ -2685,7 +2685,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
             newGroup.geometryType_ = GEOM_STATIC;
             renderer_->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
-            i = batchQueue.batchGroups_.Insert(MakePair(key, newGroup));
+            i = batchQueue.batchGroups_.insert(MakePair(key, newGroup));
         }
 
         int oldSize = i->second_.instances_.Size();
@@ -2712,12 +2712,12 @@ void View::PrepareInstancingBuffer()
 
     unsigned totalInstances = 0;
 
-    for (auto & elem : batchQueues_)
-        totalInstances += elem.second_.GetNumInstances();
+    for (const BatchQueue & elem : batchQueues_)
+        totalInstances += elem.GetNumInstances();
 
-    for (auto & elem : lightQueues_)
+    for (const LightBatchQueue & elem : lightQueues_)
     {
-        for (unsigned j = 0; j < elem.shadowSplits_.Size(); ++j)
+        for (unsigned j = 0; j < elem.shadowSplits_.size(); ++j)
             totalInstances += elem.shadowSplits_[j].shadowBatches_.GetNumInstances();
         totalInstances += elem.litBaseBatches_.GetNumInstances();
         totalInstances += elem.litBatches_.GetNumInstances();
@@ -2732,12 +2732,12 @@ void View::PrepareInstancingBuffer()
         if (!dest)
             return;
 
-        for (auto & elem : batchQueues_)
-            elem.second_.SetTransforms(dest, freeIndex);
+        for (BatchQueue & elem : batchQueues_)
+            elem.SetTransforms(dest, freeIndex);
 
-        for (auto & elem : lightQueues_)
+        for (LightBatchQueue & elem : lightQueues_)
         {
-            for (unsigned j = 0; j < elem.shadowSplits_.Size(); ++j)
+            for (unsigned j = 0; j < elem.shadowSplits_.size(); ++j)
                 elem.shadowSplits_[j].shadowBatches_.SetTransforms(dest, freeIndex);
             elem.litBaseBatches_.SetTransforms(dest, freeIndex);
             elem.litBatches_.SetTransforms(dest, freeIndex);
@@ -2815,7 +2815,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     const BiasParameters& parameters = queue.light_->GetShadowBias();
 
     // Render each of the splits
-    for (unsigned i = 0; i < queue.shadowSplits_.Size(); ++i)
+    for (unsigned i = 0; i < queue.shadowSplits_.size(); ++i)
     {
         float multiplier = 1.0f;
         // For directional light cascade splits, adjust depth bias according to the far clip ratio of the splits

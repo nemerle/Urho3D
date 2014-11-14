@@ -42,8 +42,8 @@ SceneResolver::~SceneResolver()
 
 void SceneResolver::Reset()
 {
-    nodes_.Clear();
-    components_.Clear();
+    nodes_.clear();
+    components_.clear();
 }
 
 void SceneResolver::AddNode(unsigned oldID, Node* node)
@@ -62,12 +62,12 @@ void SceneResolver::Resolve()
 {
     // Nodes do not have component or node ID attributes, so only have to go through components
     HashSet<StringHash> noIDAttributes;
-    for (HashMap<unsigned, WeakPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
+    for (QHash<unsigned, WeakPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
     {
-        Component* component = i->second_;
+        Component* component = *i;
         if (!component || noIDAttributes.Contains(component->GetType()))
             continue;
-        
+
         bool hasIDAttributes = false;
         const Vector<AttributeInfo>* attributes = component->GetAttributes();
         if (!attributes)
@@ -75,22 +75,22 @@ void SceneResolver::Resolve()
             noIDAttributes.Insert(component->GetType());
             continue;
         }
-        
-        for (unsigned j = 0; j < attributes->Size(); ++j)
+
+        for (unsigned j = 0; j < attributes->size(); ++j)
         {
             const AttributeInfo& info = attributes->At(j);
             if (info.mode_ & AM_NODEID)
             {
                 hasIDAttributes = true;
                 unsigned oldNodeID = component->GetAttribute(j).GetUInt();
-                
+
                 if (oldNodeID)
                 {
-                    HashMap<unsigned, WeakPtr<Node> >::ConstIterator k = nodes_.Find(oldNodeID);
-                    
-                    if (k != nodes_.end() && k->second_)
+                    QHash<unsigned, WeakPtr<Node> >::ConstIterator k = nodes_.find(oldNodeID);
+
+                    if (k != nodes_.end() && *k)
                     {
-                        unsigned newNodeID = k->second_->GetID();
+                        unsigned newNodeID = (*k)->GetID();
                         component->SetAttribute(j, Variant(newNodeID));
                     }
                     else
@@ -104,11 +104,11 @@ void SceneResolver::Resolve()
 
                 if (oldComponentID)
                 {
-                    HashMap<unsigned, WeakPtr<Component> >::ConstIterator k = components_.Find(oldComponentID);
-                    
-                    if (k != components_.end() && k->second_)
+                    QHash<unsigned, WeakPtr<Component> >::ConstIterator k = components_.find(oldComponentID);
+
+                    if (k != components_.end() && *k)
                     {
-                        unsigned newComponentID = k->second_->GetID();
+                        unsigned newComponentID = (*k)->GetID();
                         component->SetAttribute(j, Variant(newComponentID));
                     }
                     else
@@ -119,21 +119,21 @@ void SceneResolver::Resolve()
             {
                 hasIDAttributes = true;
                 const VariantVector& oldNodeIDs = component->GetAttribute(j).GetVariantVector();
-                
-                if (oldNodeIDs.Size())
+
+                if (oldNodeIDs.size())
                 {
                     // The first index stores the number of IDs redundantly. This is for editing
                     unsigned numIDs = oldNodeIDs[0].GetUInt();
                     VariantVector newIDs;
                     newIDs.Push(numIDs);
-                    
-                    for (unsigned k = 1; k < oldNodeIDs.Size(); ++k)
+
+                    for (unsigned k = 1; k < oldNodeIDs.size(); ++k)
                     {
                         unsigned oldNodeID = oldNodeIDs[k].GetUInt();
-                        HashMap<unsigned, WeakPtr<Node> >::ConstIterator l = nodes_.Find(oldNodeID);
-                    
-                        if (l != nodes_.end() && l->second_)
-                            newIDs.Push(l->second_->GetID());
+                        QHash<unsigned, WeakPtr<Node> >::ConstIterator l = nodes_.find(oldNodeID);
+
+                        if (l != nodes_.end() && (*l))
+                            newIDs.Push((*l)->GetID());
                         else
                         {
                             // If node was not found, retain number of elements, just store ID 0
@@ -141,17 +141,17 @@ void SceneResolver::Resolve()
                             LOGWARNING("Could not resolve node ID " + String(oldNodeID));
                         }
                     }
-                    
+
                     component->SetAttribute(j, newIDs);
                 }
             }
         }
-        
+
         // If component type had no ID attributes, cache this fact for optimization
         if (!hasIDAttributes)
             noIDAttributes.Insert(component->GetType());
     }
-    
+
     // Attributes have been resolved, so no need to remember the nodes after this
     Reset();
 }

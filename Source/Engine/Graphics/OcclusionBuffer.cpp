@@ -97,7 +97,7 @@ bool OcclusionBuffer::SetSize(int width, int height)
     }
     
     LOGDEBUG("Set occlusion buffer size " + String(width_) + "x" + String(height_) + " with " + 
-        String(mipBuffers_.Size()) + " mip levels");
+        String(mipBuffers_.size()) + " mip levels");
     
     CalculateViewport();
     return true;
@@ -255,7 +255,7 @@ void OcclusionBuffer::BuildDepthHierarchy()
     // Build the first mip level from the pixel-level data
     int width = (width_ + 1) / 2;
     int height = (height_ + 1) / 2;
-    if (mipBuffers_.Size())
+    if (mipBuffers_.size())
     {
         for (int y = 0; y < height; ++y)
         {
@@ -295,7 +295,7 @@ void OcclusionBuffer::BuildDepthHierarchy()
     }
     
     // Build the rest of the mip levels
-    for (unsigned i = 1; i < mipBuffers_.Size(); ++i)
+    for (unsigned i = 1; i < mipBuffers_.size(); ++i)
     {
         int prevWidth = width;
         int prevHeight = height;
@@ -421,7 +421,7 @@ bool OcclusionBuffer::IsVisible(const BoundingBox& worldSpaceBox) const
     if (!depthHierarchyDirty_)
     {
         // Start from lowest mip level and check if a conclusive result can be found
-        for (int i = mipBuffers_.Size() - 1; i >= 0; --i)
+        for (int i = mipBuffers_.size() - 1; i >= 0; --i)
         {
             int shift = i + 1;
             int width = width_ >> shift;

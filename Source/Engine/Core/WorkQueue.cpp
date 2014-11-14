@@ -42,7 +42,7 @@ public:
         index_(index)
     {
     }
-    
+
     /// Process work items until stopped.
     virtual void ThreadFunction() override
     {
@@ -50,10 +50,10 @@ public:
         InitFPU();
         owner_->ProcessItems(index_);
     }
-    
+
     /// Return thread index.
     unsigned GetIndex() const { return index_; }
-    
+
 private:
     /// Work queue.
     WorkQueue* owner_;
@@ -78,8 +78,8 @@ WorkQueue::~WorkQueue()
     // Stop the worker threads. First make sure they are not waiting for work items
     shutDown_ = true;
     Resume();
-    
-    for (unsigned i = 0; i < threads_.Size(); ++i)
+
+    for (unsigned i = 0; i < threads_.size(); ++i)
         threads_[i]->Stop();
 }
 
@@ -87,12 +87,12 @@ void WorkQueue::CreateThreads(unsigned numThreads)
 {
     // Other subsystems may initialize themselves according to the number of threads.
     // Therefore allow creating the threads only once, after which the amount is fixed
-    if (!threads_.Empty())
+    if (!threads_.empty())
         return;
-    
+
     // Start threads in paused mode
     Pause();
-    
+
     for (unsigned i = 0; i < numThreads; ++i)
     {
         SharedPtr<WorkerThread> thread(new WorkerThread(this, i + 1));
@@ -125,19 +125,19 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
         LOGERROR("Null work item submitted to the work queue");
         return;
     }
-    
+
     // Check for duplicate items.
     assert(!workItems_.Contains(item));
-    
+
     // Push to the main thread list to keep item alive
     // Clear completed flag in case item is reused
     workItems_.Push(item);
     item->completed_ = false;
 
     // Make sure worker threads' list is safe to modify
-    if (threads_.Size() && !paused_)
+    if (threads_.size() && !paused_)
         queueMutex_.Acquire();
-    
+
     // Find position for new item
     if (queue_.Empty())
         queue_.Push(item);
@@ -152,8 +152,8 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
             }
         }
     }
-    
-    if (threads_.Size())
+
+    if (threads_.size())
     {
         queueMutex_.Release();
         paused_ = false;
@@ -165,10 +165,10 @@ void WorkQueue::Pause()
     if (!paused_)
     {
         pausing_ = true;
-        
+
         queueMutex_.Acquire();
         paused_ = true;
-        
+
         pausing_ = false;
     }
 }
@@ -185,10 +185,10 @@ void WorkQueue::Resume()
 
 void WorkQueue::Complete(unsigned priority)
 {
-    if (threads_.Size())
+    if (threads_.size())
     {
         Resume();
-        
+
         // Take work items also in the main thread until queue empty or no high-priority items anymore
         while (!queue_.Empty())
         {
@@ -207,12 +207,12 @@ void WorkQueue::Complete(unsigned priority)
                 break;
             }
         }
-        
+
         // Wait for threaded work to complete
         while (!IsCompleted(priority))
         {
         }
-        
+
         // If no work at all remaining, pause worker threads by leaving the mutex locked
         if (queue_.Empty())
             Pause();
@@ -228,30 +228,30 @@ void WorkQueue::Complete(unsigned priority)
             item->completed_ = true;
         }
     }
-    
+
     PurgeCompleted(priority);
 }
 
 bool WorkQueue::IsCompleted(unsigned priority) const
 {
-    for (const auto & elem : workItems_)
+    for (const SharedPtr<WorkItem> & elem : workItems_)
     {
         if ((elem)->priority_ >= priority && !(elem)->completed_)
             return false;
     }
-    
+
     return true;
 }
 
 void WorkQueue::ProcessItems(unsigned threadIndex)
 {
     bool wasActive = false;
-    
+
     for (;;)
     {
         if (shutDown_)
             return;
-        
+
         if (pausing_ && !wasActive)
             Time::Sleep(0);
         else
@@ -260,7 +260,7 @@ void WorkQueue::ProcessItems(unsigned threadIndex)
             if (!queue_.Empty())
             {
                 wasActive = true;
-                
+
                 WorkItem* item = queue_.Front();
                 queue_.PopFront();
                 queueMutex_.Release();
@@ -270,7 +270,7 @@ void WorkQueue::ProcessItems(unsigned threadIndex)
             else
             {
                 wasActive = false;
-                
+
                 queueMutex_.Release();
                 Time::Sleep(0);
             }
@@ -290,7 +290,7 @@ void WorkQueue::PurgeCompleted(unsigned priority)
             if ((*i)->sendEvent_)
             {
                 using namespace WorkItemCompleted;
-                
+
                 VariantMap& eventData = GetEventDataMap();
                 eventData[P_ITEM] = i->Get();
                 SendEvent(E_WORKITEMCOMPLETED, eventData);
@@ -299,9 +299,9 @@ void WorkQueue::PurgeCompleted(unsigned priority)
             // Check if this was a pooled item and set it to usable
             if ((*i)->pooled_)
             {
-                // Reset the values to their defaults. This should 
-                // be safe to do here as the completed event has 
-                // already been handled and this is part of the 
+                // Reset the values to their defaults. This should
+                // be safe to do here as the completed event has
+                // already been handled and this is part of the
                 // internal pool.
                 (*i)->start_ = nullptr;
                 (*i)->end_ = nullptr;
@@ -336,12 +336,12 @@ void WorkQueue::PurgePool()
 void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
     // If no worker threads, complete low-priority work here
-    if (threads_.Empty() && !queue_.Empty())
+    if (threads_.empty() && !queue_.Empty())
     {
         PROFILE(CompleteWorkNonthreaded);
-        
+
         HiresTimer timer;
-        
+
         while (!queue_.Empty() && timer.GetUSec(false) < maxNonThreadedWorkMs_ * 1000)
         {
             WorkItem* item = queue_.Front();
@@ -350,7 +350,7 @@ void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
             item->completed_ = true;
         }
     }
-    
+
     // Complete and signal items down to the lowest priority
     PurgeCompleted(0);
     PurgePool();

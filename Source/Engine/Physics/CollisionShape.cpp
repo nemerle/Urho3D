@@ -133,7 +133,7 @@ public:
         const Vector<PODVector<CustomGeometryVertex> >& srcVertices = custom->GetVertices();
         unsigned totalVertexCount = 0;
         
-        for (unsigned i = 0; i < srcVertices.Size(); ++i)
+        for (unsigned i = 0; i < srcVertices.size(); ++i)
             totalVertexCount += srcVertices[i].Size();
 
         if (totalVertexCount)
@@ -148,7 +148,7 @@ public:
             unsigned* destIndex = reinterpret_cast<unsigned*>(&indexData[0]);
             unsigned k = 0;
             
-            for (unsigned i = 0; i < srcVertices.Size(); ++i)
+            for (unsigned i = 0; i < srcVertices.size(); ++i)
             {
                 for (unsigned j = 0; j < srcVertices[i].Size(); ++j)
                 {
@@ -257,7 +257,7 @@ ConvexData::ConvexData(CustomGeometry* custom)
     const Vector<PODVector<CustomGeometryVertex> >& srcVertices = custom->GetVertices();
     PODVector<Vector3> vertices;
 
-    for (unsigned i = 0; i < srcVertices.Size(); ++i)
+    for (unsigned i = 0; i < srcVertices.size(); ++i)
     {
         for (unsigned j = 0; j < srcVertices[i].Size(); ++j)
             vertices.Push(srcVertices[i][j].position_);
@@ -1003,7 +1003,7 @@ void CollisionShape::UpdateShape()
                 // Check the geometry cache
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
                 HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetTriMeshCache();
-                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.Find(id);
+                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
                 if (j != cache.end())
                     geometry_ = j->second_;
                 else
@@ -1042,7 +1042,7 @@ void CollisionShape::UpdateShape()
                 // Check the geometry cache
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
                 HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetConvexCache();
-                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.Find(id);
+                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
                 if (j != cache.end())
                     geometry_ = j->second_;
                 else

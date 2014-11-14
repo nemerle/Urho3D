@@ -24,7 +24,6 @@
 
 #include "LinkedList.h"
 #include "Variant.h"
-#include <QtCore/QObject>
 
 namespace Urho3D
 {

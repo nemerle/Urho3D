@@ -64,7 +64,7 @@ struct PackageDownload
 {
     /// Construct with defaults.
     PackageDownload();
-    
+
     /// Destination file.
     SharedPtr<File> file_;
     /// Already received fragments.
@@ -84,7 +84,7 @@ struct PackageUpload
 {
     /// Construct with defaults.
     PackageUpload();
-    
+
     /// Source file.
     SharedPtr<File> file_;
     /// Current fragment index.
@@ -105,13 +105,13 @@ enum ObserverPositionSendMode
 class URHO3D_API Connection : public Object
 {
     OBJECT(Connection);
-    
+
 public:
     /// Construct with context and kNet message connection pointers.
     Connection(Context* context, bool isClient, kNet::SharedPtr<kNet::MessageConnection> connection);
     /// Destruct.
     ~Connection();
-    
+
     /// Send a message.
     void SendMessage(int msgID, bool reliable, bool inOrder, const VectorBuffer& msg, unsigned contentID = 0);
     /// Send a message.
@@ -148,7 +148,7 @@ public:
     void ProcessPendingLatestData();
     /// Process a message from the server or client. Called by Network.
     bool ProcessMessage(int msgID, MemoryBuffer& msg);
-    
+
     /// Return the kNet message connection.
     kNet::MessageConnection* GetMessageConnection() const;
     /// Return client identity.
@@ -190,7 +190,7 @@ public:
     Controls controls_;
     /// Identity map.
     VariantMap identity_;
-    
+
 private:
     /// Handle scene loaded event.
     void HandleAsyncLoadFinished(StringHash eventType, VariantMap& eventData);
@@ -230,7 +230,7 @@ private:
     void OnPackageDownloadFailed(const String& name);
     /// Handle all packages loaded successfully. Also called directly on MSG_LOADSCENE if there are none.
     void OnPackagesReady();
-    
+
     /// kNet message connection.
     kNet::SharedPtr<kNet::MessageConnection> connection_;
     /// Scene.
@@ -238,13 +238,13 @@ private:
     /// Network replication state of the scene.
     SceneReplicationState sceneState_;
     /// Waiting or ongoing package file receive transfers.
-    HashMap<StringHash, PackageDownload> downloads_;
+    QHash<StringHash, PackageDownload> downloads_;
     /// Ongoing package send transfers.
-    HashMap<StringHash, PackageUpload> uploads_;
+    QHash<StringHash, PackageUpload> uploads_;
     /// Pending latest data for not yet received nodes.
-    HashMap<unsigned, PODVector<unsigned char> > nodeLatestData_;
+    QHash<unsigned, PODVector<unsigned char> > nodeLatestData_;
     /// Pending latest data for not yet received components.
-    HashMap<unsigned, PODVector<unsigned char> > componentLatestData_;
+    QHash<unsigned, PODVector<unsigned char> > componentLatestData_;
     /// Node ID's to process during a replication update.
     HashSet<unsigned> nodesToProcess_;
     /// Reusable message buffer.

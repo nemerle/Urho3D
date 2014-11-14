@@ -106,7 +106,7 @@ public:
     /// Load from XML element.
     bool Load(const XMLElement& element, const TileMapInfo2D& info);
     /// Return number of objects.
-    unsigned GetNumObjects() const { return objects_.Size(); }
+    unsigned GetNumObjects() const { return objects_.size(); }
     /// Return tile map object at index.
     TileMapObject2D* GetObject(unsigned index) const;
 
@@ -164,7 +164,7 @@ public:
     /// Return tile property set by gid, if not exist return 0.
     PropertySet2D* GetTilePropertySet(int gid) const;
     /// Return number of layers.
-    unsigned GetNumLayers() const { return layers_.Size(); }
+    unsigned GetNumLayers() const { return layers_.size(); }
     /// Return layer at index.
     const TmxLayer2D* GetLayer(unsigned index) const;
 
@@ -183,9 +183,9 @@ private:
     /// Tile set textures.
     Vector<SharedPtr<Texture2D> > tileSetTextures_;
     /// Gid to tile sprite mapping.
-    HashMap<int, SharedPtr<Sprite2D> > gidToSpriteMapping_;
+    QHash<int, SharedPtr<Sprite2D> > gidToSpriteMapping_;
     /// Gid to tile property set mapping.
-    HashMap<int, SharedPtr<PropertySet2D> > gidToPropertySetMapping_;
+    QHash<int, SharedPtr<PropertySet2D> > gidToPropertySetMapping_;
     /// Layers.
     Vector<TmxLayer2D*> layers_;
 };

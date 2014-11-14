@@ -62,18 +62,18 @@ void Skybox::UpdateBatches(const FrameInfo& frame)
 
     if (frame.frameNumber_ != lastFrame_)
     {
-        customWorldTransforms_.Clear();
+        customWorldTransforms_.clear();
         lastFrame_ = frame.frameNumber_;
     }
 
     // Add camera position to fix the skybox in space. Use effective world transform to take reflection into account
     Matrix3x4 customWorldTransform = node_->GetWorldTransform();
     customWorldTransform.SetTranslation(node_->GetWorldPosition() + frame.camera_->GetEffectiveWorldTransform().Translation());
-    HashMap<Camera*, Matrix3x4>::Iterator it = customWorldTransforms_.Insert(MakePair(frame.camera_, customWorldTransform));
+    QHash<Camera*, Matrix3x4>::Iterator it = customWorldTransforms_.insert(frame.camera_, customWorldTransform);
 
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
-        batches_[i].worldTransform_ = &it->second_;
+        batches_[i].worldTransform_ = &(*it);
         batches_[i].distance_ = 0.0f;
     }
 }

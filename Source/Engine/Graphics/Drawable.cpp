@@ -134,7 +134,7 @@ void Drawable::UpdateBatches(const FrameInfo& frame)
     const Matrix3x4& worldTransform = node_->GetWorldTransform();
     distance_ = frame.camera_->GetDistance(worldBoundingBox.Center());
 
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
         batches_[i].distance_ = distance_;
         batches_[i].worldTransform_ = &worldTransform;
@@ -154,7 +154,7 @@ void Drawable::UpdateGeometry(const FrameInfo& frame)
 Geometry* Drawable::GetLodGeometry(unsigned batchIndex, unsigned level)
 {
     // By default return the visible batch geometry
-    if (batchIndex < batches_.Size())
+    if (batchIndex < batches_.size())
         return batches_[batchIndex].geometry_;
     else
         return nullptr;

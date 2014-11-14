@@ -54,14 +54,14 @@ struct URHO3D_API DirtyBits
     {
         memset(data_, 0, MAX_NETWORK_ATTRIBUTES / 8);
     }
-    
+
     /// Copy-construct.
     DirtyBits(const DirtyBits& bits) :
         count_(bits.count_)
     {
         memcpy(data_, bits.data_, MAX_NETWORK_ATTRIBUTES / 8);
     }
-    
+
     /// Set a bit.
     void Set(unsigned index)
     {
@@ -76,7 +76,7 @@ struct URHO3D_API DirtyBits
             }
         }
     }
-    
+
     /// Clear a bit.
     void Clear(unsigned index)
     {
@@ -91,14 +91,14 @@ struct URHO3D_API DirtyBits
             }
         }
     }
-    
+
     /// Clear all bits.
     void ClearAll()
     {
         memset(data_, 0, MAX_NETWORK_ATTRIBUTES / 8);
         count_ = 0;
     }
-    
+
     /// Return if bit is set.
     bool IsSet(unsigned index) const
     {
@@ -111,10 +111,10 @@ struct URHO3D_API DirtyBits
         else
             return false;
     }
-    
+
     /// Return number of set bits.
     unsigned Count() const { return count_; }
-    
+
     /// Bit data.
     unsigned char data_[MAX_NETWORK_ATTRIBUTES / 8];
     /// Number of set bits.
@@ -164,7 +164,7 @@ struct URHO3D_API NodeReplicationState : public ReplicationState
         markedDirty_(false)
     {
     }
-    
+
     /// Parent scene replication state.
     SceneReplicationState* sceneState_;
     /// Link to the actual node.
@@ -174,7 +174,7 @@ struct URHO3D_API NodeReplicationState : public ReplicationState
     /// Dirty user vars.
     HashSet<StringHash> dirtyVars_;
     /// Components by ID.
-    HashMap<unsigned, ComponentReplicationState> componentStates_;
+    QHash<unsigned, ComponentReplicationState> componentStates_;
     /// Interest management priority accumulator.
     float priorityAcc_;
     /// Whether exists in the SceneState's dirty set.
@@ -185,13 +185,13 @@ struct URHO3D_API NodeReplicationState : public ReplicationState
 struct URHO3D_API SceneReplicationState : public ReplicationState
 {
     /// Nodes by ID.
-    HashMap<unsigned, NodeReplicationState> nodeStates_;
+    QHash<unsigned, NodeReplicationState> nodeStates_;
     /// Dirty node IDs.
     HashSet<unsigned> dirtyNodes_;
-    
+
     void Clear()
     {
-        nodeStates_.Clear();
+        nodeStates_.clear();
         dirtyNodes_.Clear();
     }
 };

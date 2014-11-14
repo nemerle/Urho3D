@@ -98,7 +98,7 @@ void CustomGeometry::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQ
         {
             distance = M_INFINITY;
             
-            for (unsigned i = 0; i < batches_.Size(); ++i)
+            for (unsigned i = 0; i < batches_.size(); ++i)
             {
                 Geometry* geometry = batches_[i].geometry_;
                 if (geometry)
@@ -131,14 +131,14 @@ void CustomGeometry::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQ
 
 Geometry* CustomGeometry::GetLodGeometry(unsigned batchIndex, unsigned level)
 {
-    return batchIndex < geometries_.Size() ? geometries_[batchIndex] : (Geometry*)nullptr;
+    return batchIndex < geometries_.size() ? geometries_[batchIndex] : (Geometry*)nullptr;
 }
 
 unsigned CustomGeometry::GetNumOccluderTriangles()
 {
     unsigned triangles = 0;
     
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
         Geometry* geometry = GetLodGeometry(i, 0);
         if (!geometry)
@@ -159,7 +159,7 @@ bool CustomGeometry::DrawOcclusion(OcclusionBuffer* buffer)
 {
     bool success = true;
     
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
     {
         Geometry* geometry = GetLodGeometry(i, 0);
         if (!geometry)
@@ -213,7 +213,7 @@ void CustomGeometry::SetNumGeometries(unsigned num)
     primitiveTypes_.Resize(num);
     vertices_.Resize(num);
     
-    for (unsigned i = 0; i < geometries_.Size(); ++i)
+    for (unsigned i = 0; i < geometries_.size(); ++i)
     {
         if (!geometries_[i])
             geometries_[i] = new Geometry(context_);
@@ -231,7 +231,7 @@ void CustomGeometry::SetDynamic(bool enable)
 
 void CustomGeometry::BeginGeometry(unsigned index, PrimitiveType type)
 {
-    if (index > geometries_.Size())
+    if (index > geometries_.size())
     {
         LOGERROR("Geometry index out of bounds");
         return;
@@ -248,7 +248,7 @@ void CustomGeometry::BeginGeometry(unsigned index, PrimitiveType type)
 
 void CustomGeometry::DefineVertex(const Vector3& position)
 {
-    if (vertices_.Size() < geometryIndex_)
+    if (vertices_.size() < geometryIndex_)
         return;
     
     vertices_[geometryIndex_].Resize(vertices_[geometryIndex_].Size() + 1);
@@ -257,7 +257,7 @@ void CustomGeometry::DefineVertex(const Vector3& position)
 
 void CustomGeometry::DefineNormal(const Vector3& normal)
 {
-    if (vertices_.Size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
         return;
     
     vertices_[geometryIndex_].Back().normal_ = normal;
@@ -266,7 +266,7 @@ void CustomGeometry::DefineNormal(const Vector3& normal)
 
 void CustomGeometry::DefineColor(const Color& color)
 {
-    if (vertices_.Size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
         return;
     
     vertices_[geometryIndex_].Back().color_ = color.ToUInt();
@@ -275,7 +275,7 @@ void CustomGeometry::DefineColor(const Color& color)
 
 void CustomGeometry::DefineTexCoord(const Vector2& texCoord)
 {
-    if (vertices_.Size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
         return;
     
     vertices_[geometryIndex_].Back().texCoord_ = texCoord;
@@ -284,7 +284,7 @@ void CustomGeometry::DefineTexCoord(const Vector2& texCoord)
 
 void CustomGeometry::DefineTangent(const Vector4& tangent)
 {
-    if (vertices_.Size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
         return;
     
     vertices_[geometryIndex_].Back().tangent_ = tangent;
@@ -293,7 +293,7 @@ void CustomGeometry::DefineTangent(const Vector4& tangent)
 
 void CustomGeometry::DefineGeometry(unsigned index, PrimitiveType type, unsigned numVertices, bool hasNormals, bool hasColors, bool hasTexCoords, bool hasTangents)
 {
-    if (index > geometries_.Size())
+    if (index > geometries_.size())
     {
         LOGERROR("Geometry index out of bounds");
         return;
@@ -323,7 +323,7 @@ void CustomGeometry::Commit()
     unsigned totalVertices = 0;
     boundingBox_.Clear();
     
-    for (unsigned i = 0; i < vertices_.Size(); ++i)
+    for (unsigned i = 0; i < vertices_.size(); ++i)
     {
         totalVertices += vertices_[i].Size();
         
@@ -343,7 +343,7 @@ void CustomGeometry::Commit()
         {
             unsigned vertexStart = 0;
             
-            for (unsigned i = 0; i < vertices_.Size(); ++i)
+            for (unsigned i = 0; i < vertices_.size(); ++i)
             {
                 unsigned vertexCount = 0;
                 
@@ -388,7 +388,7 @@ void CustomGeometry::Commit()
     }
     else
     {
-        for (unsigned i = 0; i < geometries_.Size(); ++i)
+        for (unsigned i = 0; i < geometries_.size(); ++i)
         {
             geometries_[i]->SetVertexBuffer(0, vertexBuffer_, elementMask_);
             geometries_[i]->SetDrawRange(primitiveTypes_[i], 0, 0, 0, 0);
@@ -400,7 +400,7 @@ void CustomGeometry::Commit()
 
 void CustomGeometry::SetMaterial(Material* material)
 {
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
         batches_[i].material_ = material;
     
     MarkNetworkUpdate();
@@ -408,7 +408,7 @@ void CustomGeometry::SetMaterial(Material* material)
 
 bool CustomGeometry::SetMaterial(unsigned index, Material* material)
 {
-    if (index >= batches_.Size())
+    if (index >= batches_.size())
     {
         LOGERROR("Material index out of bounds");
         return false;
@@ -421,17 +421,17 @@ bool CustomGeometry::SetMaterial(unsigned index, Material* material)
 
 unsigned CustomGeometry::GetNumVertices(unsigned index) const
 {
-    return index < vertices_.Size() ? vertices_[index].Size() : 0;
+    return index < vertices_.size() ? vertices_[index].Size() : 0;
 }
 
 Material* CustomGeometry::GetMaterial(unsigned index) const
 {
-    return index < batches_.Size() ? batches_[index].material_ : (Material*)nullptr;
+    return index < batches_.size() ? batches_[index].material_ : (Material*)nullptr;
 }
 
 CustomGeometryVertex* CustomGeometry::GetVertex(unsigned geometryIndex, unsigned vertexNum)
 {
-    return (geometryIndex < vertices_.Size() && vertexNum < vertices_[geometryIndex].Size()) ?
+    return (geometryIndex < vertices_.size() && vertexNum < vertices_[geometryIndex].Size()) ?
         &vertices_[geometryIndex][vertexNum] : (CustomGeometryVertex*)nullptr;
 }
 
@@ -445,7 +445,7 @@ void CustomGeometry::SetGeometryDataAttr(PODVector<unsigned char> value)
     SetNumGeometries(buffer.ReadVLE());
     elementMask_ = buffer.ReadUInt();
     
-    for (unsigned i = 0; i < geometries_.Size(); ++i)
+    for (unsigned i = 0; i < geometries_.size(); ++i)
     {
         unsigned numVertices = buffer.ReadVLE();
         vertices_[i].Resize(numVertices);
@@ -472,7 +472,7 @@ void CustomGeometry::SetGeometryDataAttr(PODVector<unsigned char> value)
 void CustomGeometry::SetMaterialsAttr(const ResourceRefList& value)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    for (unsigned i = 0; i < value.names_.Size(); ++i)
+    for (unsigned i = 0; i < value.names_.size(); ++i)
         SetMaterial(i, cache->GetResource<Material>(value.names_[i]));
 }
 
@@ -480,10 +480,10 @@ PODVector<unsigned char> CustomGeometry::GetGeometryDataAttr() const
 {
     VectorBuffer ret;
     
-    ret.WriteVLE(geometries_.Size());
+    ret.WriteVLE(geometries_.size());
     ret.WriteUInt(elementMask_);
     
-    for (unsigned i = 0; i < geometries_.Size(); ++i)
+    for (unsigned i = 0; i < geometries_.size(); ++i)
     {
         unsigned numVertices = vertices_[i].Size();
         ret.WriteVLE(numVertices);
@@ -509,8 +509,8 @@ PODVector<unsigned char> CustomGeometry::GetGeometryDataAttr() const
 
 const ResourceRefList& CustomGeometry::GetMaterialsAttr() const
 {
-    materialsAttr_.names_.Resize(batches_.Size());
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    materialsAttr_.names_.Resize(batches_.size());
+    for (unsigned i = 0; i < batches_.size(); ++i)
         materialsAttr_.names_[i] = GetResourceName(batches_[i].material_);
     
     return materialsAttr_;

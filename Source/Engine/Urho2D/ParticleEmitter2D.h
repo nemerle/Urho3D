@@ -96,7 +96,7 @@ public:
     /// Return particle effect.
     ParticleEffect2D* GetEffect() const;
     /// Return max particles.
-    unsigned GetMaxParticles() const { return particles_.Size(); }
+    unsigned GetMaxParticles() const { return particles_.size(); }
 
     /// Set particle model attr.
     void SetParticleEffectAttr(ResourceRef value);

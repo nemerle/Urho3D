@@ -106,7 +106,7 @@ Script::~Script()
         immediateContext_ = nullptr;
     }
 
-    for (unsigned i = 0 ; i < scriptFileContexts_.Size(); ++i)
+    for (unsigned i = 0 ; i < scriptFileContexts_.size(); ++i)
         scriptFileContexts_[i]->Release();
 
     if (scriptEngine_)
@@ -237,12 +237,12 @@ Scene* Script::GetDefaultScene() const
 
 void Script::ClearObjectTypeCache()
 {
-    objectTypes_.Clear();
+    objectTypes_.clear();
 }
 
 asIObjectType* Script::GetObjectType(const char* declaration)
 {
-    HashMap<const char*, asIObjectType*>::ConstIterator i = objectTypes_.Find(declaration);
+    HashMap<const char*, asIObjectType*>::ConstIterator i = objectTypes_.find(declaration);
     if (i != objectTypes_.end())
         return i->second_;
 
@@ -253,7 +253,7 @@ asIObjectType* Script::GetObjectType(const char* declaration)
 
 asIScriptContext* Script::GetScriptFileContext()
 {
-    while (scriptNestingLevel_ >= scriptFileContexts_.Size())
+    while (scriptNestingLevel_ >= scriptFileContexts_.size())
     {
         asIScriptContext* newContext = scriptEngine_->CreateContext();
         newContext->SetExceptionCallback(asMETHOD(Script, ExceptionCallback), this, asCALL_THISCALL);

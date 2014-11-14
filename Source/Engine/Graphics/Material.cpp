@@ -255,7 +255,7 @@ bool Material::Load(const XMLElement& source)
 
     XMLElement techniqueElem = source.GetChild("technique");
     techniques_.Clear();
-    
+
     while (techniqueElem)
     {
         Technique* tech = cache->GetResource<Technique>(techniqueElem.GetAttribute("name"));
@@ -357,7 +357,7 @@ bool Material::Save(XMLElement& dest) const
     }
 
     // Write techniques
-    for (unsigned i = 0; i < techniques_.Size(); ++i)
+    for (unsigned i = 0; i < techniques_.size(); ++i)
     {
         const TechniqueEntry& entry = techniques_[i];
         if (!entry.technique_)
@@ -382,17 +382,16 @@ bool Material::Save(XMLElement& dest) const
     }
 
     // Write shader parameters
-    for (const auto & elem : shaderParameters_)
+    for (const MaterialShaderParameter & param : shaderParameters_)
     {
         XMLElement parameterElem = dest.CreateChild("parameter");
-        parameterElem.SetString("name", elem.second_.name_);
-        parameterElem.SetVectorVariant("value", elem.second_.value_);
+        parameterElem.SetString("name", param.name_);
+        parameterElem.SetVectorVariant("value", param.value_);
     }
 
     // Write shader parameter animations
-    for (const auto & elem : shaderParameterAnimationInfos_)
+    for (ShaderParameterAnimationInfo* info: shaderParameterAnimationInfos_)
     {
-        ShaderParameterAnimationInfo* info = elem.second_;
         XMLElement parameterAnimationElem = dest.CreateChild("parameteranimation");
         parameterAnimationElem.SetString("name", info->GetName());
         if (!info->GetAnimation()->SaveXML(parameterAnimationElem))
@@ -428,7 +427,7 @@ void Material::SetNumTechniques(unsigned num)
 
 void Material::SetTechnique(unsigned index, Technique* tech, unsigned qualityLevel, float lodDistance)
 {
-    if (index >= techniques_.Size())
+    if (index >= techniques_.size())
         return;
 
     techniques_[index] = TechniqueEntry(tech, qualityLevel, lodDistance);
@@ -474,12 +473,12 @@ void Material::SetShaderParameterAnimation(const String& name, ValueAnimation* a
             return;
         }
 
-        if (shaderParameters_.Find(name) == shaderParameters_.end())
+        if (shaderParameters_.find(name) == shaderParameters_.end())
         {
             LOGERROR(GetName() + " has no shader parameter: " + name);
             return;
         }
-        
+
         StringHash nameHash(name);
         shaderParameterAnimationInfos_[nameHash] = new ShaderParameterAnimationInfo(this, name, animation, wrapMode, speed);
     }
@@ -488,7 +487,7 @@ void Material::SetShaderParameterAnimation(const String& name, ValueAnimation* a
         if (info)
         {
             StringHash nameHash(name);
-            shaderParameterAnimationInfos_.Erase(nameHash);
+            shaderParameterAnimationInfos_.remove(nameHash);
         }
     }
 }
@@ -565,7 +564,7 @@ void Material::SetDepthBias(const BiasParameters& parameters)
 void Material::RemoveShaderParameter(const String& name)
 {
     StringHash nameHash(name);
-    shaderParameters_.Erase(nameHash);
+    shaderParameters_.remove(nameHash);
 
     if (nameHash == PSP_MATSPECCOLOR)
         specular_ = false;
@@ -575,7 +574,7 @@ void Material::RemoveShaderParameter(const String& name)
 
 void Material::ReleaseShaders()
 {
-    for (unsigned i = 0; i < techniques_.Size(); ++i)
+    for (unsigned i = 0; i < techniques_.size(); ++i)
     {
         Technique* tech = techniques_[i].technique_;
         if (tech)
@@ -613,7 +612,7 @@ void Material::MarkForAuxView(unsigned frameNumber)
 
 void Material::UpdateShaderParameterAnimations()
 {
-    if (shaderParameterAnimationInfos_.Empty())
+    if (shaderParameterAnimationInfos_.empty())
         return;
 
     Time* time = GetSubsystem<Time>();
@@ -624,30 +623,30 @@ void Material::UpdateShaderParameterAnimations()
     float timeStep = time->GetTimeStep();
 
     Vector<String> finishedNames;
-    for (HashMap<StringHash, SharedPtr<ShaderParameterAnimationInfo> >::ConstIterator i = shaderParameterAnimationInfos_.begin(); i != shaderParameterAnimationInfos_.end(); ++i)
+    for (SharedPtr<ShaderParameterAnimationInfo> &i : shaderParameterAnimationInfos_)
     {
-        if (i->second_->Update(timeStep))
-            finishedNames.Push(i->second_->GetName());
+        if (i->Update(timeStep))
+            finishedNames.Push(i->GetName());
     }
 
     // Remove finished animation
-    for (unsigned i = 0; i < finishedNames.Size(); ++i)
+    for (unsigned i = 0; i < finishedNames.size(); ++i)
         SetShaderParameterAnimation(finishedNames[i], nullptr);
 }
 
 const TechniqueEntry& Material::GetTechniqueEntry(unsigned index) const
 {
-    return index < techniques_.Size() ? techniques_[index] : noEntry;
+    return index < techniques_.size() ? techniques_[index] : noEntry;
 }
 
 Technique* Material::GetTechnique(unsigned index) const
 {
-    return index < techniques_.Size() ? techniques_[index].technique_ : (Technique*)nullptr;
+    return index < techniques_.size() ? techniques_[index].technique_ : (Technique*)nullptr;
 }
 
 Pass* Material::GetPass(unsigned index, StringHash passType) const
 {
-    Technique* tech = index < techniques_.Size() ? techniques_[index].technique_ : (Technique*)nullptr;
+    Technique* tech = index < techniques_.size() ? techniques_[index].technique_ : (Technique*)nullptr;
     return tech ? tech->GetPass(passType) : nullptr;
 }
 
@@ -658,8 +657,8 @@ Texture* Material::GetTexture(TextureUnit unit) const
 
 const Variant& Material::GetShaderParameter(const String& name) const
 {
-    HashMap<StringHash, MaterialShaderParameter>::ConstIterator i = shaderParameters_.Find(name);
-    return i != shaderParameters_.end() ? i->second_.value_ : Variant::EMPTY;
+    auto i = shaderParameters_.find(name);
+    return i != shaderParameters_.end() ? i->value_ : Variant::EMPTY;
 }
 
 ValueAnimation* Material::GetShaderParameterAnimation(const String& name) const
@@ -698,7 +697,7 @@ void Material::CheckOcclusion()
 {
     // Determine occlusion by checking the base pass of each technique
     occlusion_ = false;
-    for (unsigned i = 0; i < techniques_.Size(); ++i)
+    for (unsigned i = 0; i < techniques_.size(); ++i)
     {
         Technique* tech = techniques_[i].technique_;
         if (tech)
@@ -719,10 +718,10 @@ void Material::ResetToDefaults()
     SetNumTechniques(1);
     SetTechnique(0, GetSubsystem<ResourceCache>()->GetResource<Technique>("Techniques/NoTexture.xml"));
 
-    for (auto & elem : textures_)
-        elem = nullptr;
+    for (auto & tex : textures_)
+        tex = nullptr;
 
-    shaderParameters_.Clear();
+    shaderParameters_.clear();
 
     SetShaderParameter("UOffset", Vector4(1.0f, 0.0f, 0.0f, 0.0f));
     SetShaderParameter("VOffset", Vector4(0.0f, 1.0f, 0.0f, 0.0f));
@@ -742,9 +741,9 @@ void Material::RefreshMemoryUse()
 {
     unsigned memoryUse = sizeof(Material);
 
-    memoryUse += techniques_.Size() * sizeof(TechniqueEntry);
+    memoryUse += techniques_.size() * sizeof(TechniqueEntry);
     memoryUse += MAX_MATERIAL_TEXTURE_UNITS * sizeof(SharedPtr<Texture>);
-    memoryUse += shaderParameters_.Size() * sizeof(MaterialShaderParameter);
+    memoryUse += shaderParameters_.size() * sizeof(MaterialShaderParameter);
 
     SetMemoryUse(memoryUse);
 }
@@ -752,10 +751,10 @@ void Material::RefreshMemoryUse()
 ShaderParameterAnimationInfo* Material::GetShaderParameterAnimationInfo(const String& name) const
 {
     StringHash nameHash(name);
-    HashMap<StringHash, SharedPtr<ShaderParameterAnimationInfo> >::ConstIterator i = shaderParameterAnimationInfos_.Find(nameHash);
+    auto i = shaderParameterAnimationInfos_.find(nameHash);
     if (i == shaderParameterAnimationInfos_.end())
         return nullptr;
-    return i->second_;
+    return *i;
 }
 
 }

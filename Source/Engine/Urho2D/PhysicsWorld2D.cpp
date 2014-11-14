@@ -71,7 +71,7 @@ PhysicsWorld2D::PhysicsWorld2D(Context* context) :
 
 PhysicsWorld2D::~PhysicsWorld2D()
 {
-    for (unsigned i = 0; i < rigidBodies_.Size(); ++i)
+    for (unsigned i = 0; i < rigidBodies_.size(); ++i)
         if (rigidBodies_[i])
             rigidBodies_[i]->ReleaseBody();
 
@@ -236,7 +236,7 @@ void PhysicsWorld2D::Update(float timeStep)
     world_->Step(timeStep, velocityIterations_, positionIterations_);
     physicsSteping_ = false;
 
-    for (unsigned i = 0; i < rigidBodies_.Size(); ++i)
+    for (unsigned i = 0; i < rigidBodies_.size(); ++i)
         rigidBodies_[i]->ApplyWorldTransform();
 
     SendBeginContactEvents();
@@ -621,14 +621,14 @@ void PhysicsWorld2D::HandleSceneSubsystemUpdate(StringHash eventType, VariantMap
 
 void PhysicsWorld2D::SendBeginContactEvents()
 {
-    if (beginContactInfos_.Empty())
+    if (beginContactInfos_.empty())
         return;
 
     using namespace PhysicsBeginContact2D;
     VariantMap& eventData = GetEventDataMap();
     eventData[P_WORLD] = this;
 
-    for (unsigned i = 0; i < beginContactInfos_.Size(); ++i)
+    for (unsigned i = 0; i < beginContactInfos_.size(); ++i)
     {
         ContactInfo& contactInfo = beginContactInfos_[i];
         eventData[P_BODYA] = contactInfo.bodyA_.Get();
@@ -644,14 +644,14 @@ void PhysicsWorld2D::SendBeginContactEvents()
 
 void PhysicsWorld2D::SendEndContactEvents()
 {
-   if (endContactInfos_.Empty())
+   if (endContactInfos_.empty())
         return;
 
     using namespace PhysicsEndContact2D;
     VariantMap& eventData = GetEventDataMap();
     eventData[P_WORLD] = this;
 
-    for (unsigned i = 0; i < endContactInfos_.Size(); ++i)
+    for (unsigned i = 0; i < endContactInfos_.size(); ++i)
     {
         ContactInfo& contactInfo = endContactInfos_[i];
         eventData[P_BODYA] = contactInfo.bodyA_.Get();

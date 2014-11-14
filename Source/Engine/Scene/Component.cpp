@@ -142,9 +142,9 @@ void Component::PrepareNetworkUpdate()
     if (!attributes)
         return;
 
-    unsigned numAttributes = attributes->Size();
+    unsigned numAttributes = attributes->size();
 
-    if (networkState_->currentValues_.Size() != numAttributes)
+    if (networkState_->currentValues_.size() != numAttributes)
     {
         networkState_->currentValues_.Resize(numAttributes);
         networkState_->previousValues_.Resize(numAttributes);

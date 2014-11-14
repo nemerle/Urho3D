@@ -270,7 +270,7 @@ bool UIElement::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setIn
             child = CreateChild(typeName, String::EMPTY, index);
         else
         {
-            for (unsigned i = nextInternalChild; i < children_.Size(); ++i)
+            for (unsigned i = nextInternalChild; i < children_.size(); ++i)
             {
                 if (children_[i]->IsInternal() && children_[i]->GetTypeName() == typeName)
                 {
@@ -359,7 +359,7 @@ bool UIElement::SaveXML(XMLElement& dest) const
         return false;
 
     // Write child elements
-    for (unsigned i = 0; i < children_.Size(); ++i)
+    for (unsigned i = 0; i < children_.size(); ++i)
     {
         UIElement* element = children_[i];
         if (element->IsTemporary())
@@ -1041,7 +1041,7 @@ void UIElement::UpdateLayout()
     {
         int minChildHeight = 0;
 
-        for (unsigned i = 0; i < children_.Size(); ++i)
+        for (unsigned i = 0; i < children_.size(); ++i)
         {
             if (!children_[i]->IsVisible())
                 continue;
@@ -1070,7 +1070,7 @@ void UIElement::UpdateLayout()
         height = size_.y_;
 
         unsigned j = 0;
-        for (unsigned i = 0; i < children_.Size(); ++i)
+        for (unsigned i = 0; i < children_.size(); ++i)
         {
             if (!children_[i]->IsVisible())
                 continue;
@@ -1083,7 +1083,7 @@ void UIElement::UpdateLayout()
     {
         int minChildWidth = 0;
 
-        for (unsigned i = 0; i < children_.Size(); ++i)
+        for (unsigned i = 0; i < children_.size(); ++i)
         {
             if (!children_[i]->IsVisible())
                 continue;
@@ -1109,7 +1109,7 @@ void UIElement::UpdateLayout()
         height = size_.y_;
 
         unsigned j = 0;
-        for (unsigned i = 0; i < children_.Size(); ++i)
+        for (unsigned i = 0; i < children_.size(); ++i)
         {
             if (!children_[i]->IsVisible())
                 continue;
@@ -1229,7 +1229,7 @@ void UIElement::InsertChild(unsigned index, UIElement* element)
     }
 
     // Add first, then remove from old parent, to ensure the element does not get deleted
-    if (index >= children_.Size())
+    if (index >= children_.size())
         children_.Push(SharedPtr<UIElement>(element));
     else
         children_.Insert(children_.begin() + index, SharedPtr<UIElement>(element));
@@ -1269,7 +1269,7 @@ void UIElement::InsertChild(unsigned index, UIElement* element)
 
 void UIElement::RemoveChild(UIElement* element, unsigned index)
 {
-    for (unsigned i = index; i < children_.Size(); ++i)
+    for (unsigned i = index; i < children_.size(); ++i)
     {
         if (children_[i] == element)
         {
@@ -1297,7 +1297,7 @@ void UIElement::RemoveChild(UIElement* element, unsigned index)
 
 void UIElement::RemoveChildAtIndex(unsigned index)
 {
-    if (index >= children_.Size())
+    if (index >= children_.size())
         return;
 
     // Send change event if not already being destroyed
@@ -1438,7 +1438,7 @@ void UIElement::GetChildren(PODVector<UIElement*>& dest, bool recursive) const
 
     if (!recursive)
     {
-        dest.Reserve(children_.Size());
+        dest.Reserve(children_.size());
         for (const auto & elem : children_)
             dest.Push(elem);
     }
@@ -1449,10 +1449,10 @@ void UIElement::GetChildren(PODVector<UIElement*>& dest, bool recursive) const
 unsigned UIElement::GetNumChildren(bool recursive) const
 {
     if (!recursive)
-        return children_.Size();
+        return children_.size();
     else
     {
-        unsigned allChildren = children_.Size();
+        unsigned allChildren = children_.size();
         for (const auto & elem : children_)
             allChildren += (elem)->GetNumChildren(true);
 
@@ -1462,7 +1462,7 @@ unsigned UIElement::GetNumChildren(bool recursive) const
 
 UIElement* UIElement::GetChild(unsigned index) const
 {
-    return index < children_.Size() ? children_[index] : (UIElement*)nullptr;
+    return index < children_.size() ? children_[index] : (UIElement*)nullptr;
 }
 
 UIElement* UIElement::GetChild(const String& name, bool recursive) const
@@ -1526,8 +1526,8 @@ const Color& UIElement::GetDerivedColor() const
 
 const Variant& UIElement::GetVar(const StringHash& key) const
 {
-    VariantMap::ConstIterator i = vars_.Find(key);
-    return i != vars_.end() ? i->second_ : Variant::EMPTY;
+    auto i = vars_.find(key);
+    return i != vars_.end() ? *i : Variant::EMPTY;
 }
 
 IntVector2 UIElement::ScreenToElement(const IntVector2& screenPosition)
@@ -1683,13 +1683,13 @@ void UIElement::SetObjectAttributeAnimation(const String& name, ValueAnimation* 
 {
     Vector<String> names = name.Split('/');
     // Only attribute name
-    if (names.Size() == 1)
+    if (names.size() == 1)
         SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
     else
     {
         // Name must in following format: "#0/#1/attribute"
         UIElement* element = this;
-        for (unsigned i = 0; i < names.Size() - 1; ++i)
+        for (unsigned i = 0; i < names.size() - 1; ++i)
         {
             if (names[i].Front() != '#')
             {
@@ -1820,7 +1820,7 @@ void UIElement::GetChildrenRecursive(PODVector<UIElement*>& dest) const
     {
         UIElement* element = elem;
         dest.Push(element);
-        if (!element->children_.Empty())
+        if (!element->children_.empty())
             element->GetChildrenRecursive(dest);
     }
 }

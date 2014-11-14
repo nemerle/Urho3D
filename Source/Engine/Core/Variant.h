@@ -30,6 +30,8 @@
 #include "Rect.h"
 #include "StringHash.h"
 
+#include <QtCore/QHash>
+
 namespace Urho3D
 {
 
@@ -170,7 +172,7 @@ class Variant;
 typedef Vector<Variant> VariantVector;
 
 /// Map of variants.
-typedef HashMap<StringHash, Variant> VariantMap;
+typedef QHash<StringHash, Variant> VariantMap;
 
 /// Variable that supports a fixed set of types.
 class URHO3D_API Variant

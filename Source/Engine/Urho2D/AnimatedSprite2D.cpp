@@ -109,7 +109,7 @@ void AnimatedSprite2D::SetLayer(int layer)
 
     layer_ = layer;
 
-    for (unsigned i = 0; i < timelineNodes_.Size(); ++i)
+    for (unsigned i = 0; i < timelineNodes_.size(); ++i)
     {
         if (!timelineNodes_[i])
             continue;
@@ -131,7 +131,7 @@ void AnimatedSprite2D::SetBlendMode(BlendMode blendMode)
 
     blendMode_ = blendMode;
 
-    for (unsigned i = 0; i < timelineNodes_.Size(); ++i)
+    for (unsigned i = 0; i < timelineNodes_.size(); ++i)
     {
         if (!timelineNodes_[i])
             continue;
@@ -149,7 +149,7 @@ void AnimatedSprite2D::SetFlip(bool flipX, bool flipY)
     flipX_ = flipX;
     flipY_ = flipY;
 
-    for (unsigned i = 0; i < timelineNodes_.Size(); ++i)
+    for (unsigned i = 0; i < timelineNodes_.size(); ++i)
     {
         if (!timelineNodes_[i])
             continue;
@@ -288,7 +288,7 @@ void AnimatedSprite2D::OnWorldBoundingBoxUpdate()
     boundingBox_.Clear();
     worldBoundingBox_.Clear();
 
-    for (unsigned i = 0; i < timelineNodes_.Size(); ++i)
+    for (unsigned i = 0; i < timelineNodes_.size(); ++i)
     {
         if (!timelineNodes_[i])
             continue;
@@ -312,7 +312,7 @@ void AnimatedSprite2D::SetAnimation(Animation2D* animation, LoopMode2D loopMode)
         return;
     }
 
-    for (unsigned i = 0; i < timelineNodes_.Size(); ++i)
+    for (unsigned i = 0; i < timelineNodes_.size(); ++i)
     {
         if (timelineNodes_[i])
             timelineNodes_[i]->SetEnabled(false);
@@ -399,13 +399,13 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
         time = Clamp(currentTime_, 0.0f, animtationLength);
 
     // Update timeline's local transform
-    for (unsigned i = 0; i < timelineTransformInfos_.Size(); ++i)
+    for (unsigned i = 0; i < timelineTransformInfos_.size(); ++i)
     {
         const Timeline2D& timeline = animation_->GetTimeline(i);
 
         const Vector<TimelineKey2D>& objectKeys = timeline.timelineKeys_;
-        unsigned index = objectKeys.Size() - 1;
-        for (unsigned j = 0; j < objectKeys.Size() - 1; ++j)
+        unsigned index = objectKeys.size() - 1;
+        for (unsigned j = 0; j < objectKeys.size() - 1; ++j)
         {
             if (time <= objectKeys[j + 1].time_)
             {
@@ -415,7 +415,7 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
         }
 
         const TimelineKey2D& currKey = objectKeys[index];
-        if (index < objectKeys.Size() - 1)
+        if (index < objectKeys.size() - 1)
         {
             const TimelineKey2D& nextKey = objectKeys[index + 1];
             float t = (time - currKey.time_)  / (nextKey.time_ - currKey.time_);
@@ -455,13 +455,13 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
     }
 
     // Calculate timeline world transform.
-    for (unsigned i = 0; i < timelineTransformInfos_.Size(); ++i)
+    for (unsigned i = 0; i < timelineTransformInfos_.size(); ++i)
         CalculateTimelineWorldTransform(i);
 
     // Get mainline key
     const Vector<MainlineKey2D>& mainlineKeys = animation_->GetMainlineKeys();
     const MainlineKey2D* mainlineKey = nullptr;
-    for (unsigned i = 1; i < mainlineKeys.Size(); ++i)
+    for (unsigned i = 1; i < mainlineKeys.size(); ++i)
     {
         if (time < mainlineKeys[i].time_)
         {
@@ -474,7 +474,7 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
         mainlineKey = &mainlineKeys.Back();
 
     // Update node's transform and sprite's z order
-    for (unsigned i = 0; i < timelineNodes_.Size(); ++i)
+    for (unsigned i = 0; i < timelineNodes_.size(); ++i)
     {
         Node* timelineNode = timelineNodes_[i];
         if (!timelineNode)

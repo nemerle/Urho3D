@@ -100,14 +100,14 @@ public:
     /// Return attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetAttributes(StringHash type) const
     {
-        HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes_.Find(type);
+        HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes_.find(type);
         return i != attributes_.end() ? &i->second_ : 0;
     }
 
     /// Return network replication attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetNetworkAttributes(StringHash type) const
     {
-        HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = networkAttributes_.Find(type);
+        HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = networkAttributes_.find(type);
         return i != networkAttributes_.end() ? &i->second_ : 0;
     }
 
@@ -117,10 +117,10 @@ public:
     /// Return event receivers for a sender and event type, or null if they do not exist.
     HashSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
     {
-        HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.Find(sender);
+        HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
         if (i != specificEventReceivers_.end())
         {
-            HashMap<StringHash, HashSet<Object*> >::Iterator j = i->second_.Find(eventType);
+            HashMap<StringHash, HashSet<Object*> >::Iterator j = i->second_.find(eventType);
             return j != i->second_.end() ? &j->second_ : 0;
         }
         else
@@ -130,7 +130,7 @@ public:
     /// Return event receivers for an event type, or null if they do not exist.
     HashSet<Object*>* GetEventReceivers(StringHash eventType)
     {
-        HashMap<StringHash, HashSet<Object*> >::Iterator i = eventReceivers_.Find(eventType);
+        HashMap<StringHash, HashSet<Object*> >::Iterator i = eventReceivers_.find(eventType);
         return i != eventReceivers_.end() ? &i->second_ : 0;
     }
 

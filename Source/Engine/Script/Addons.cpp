@@ -1832,9 +1832,9 @@ CScriptDictValue *CScriptDictionary::operator[](const String &key)
 {
     // Return the existing value if it exists, else insert an empty value
     HashMap<String, CScriptDictValue>::Iterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it == dict.end() )
-        it = dict.Insert(MakePair(key, CScriptDictValue()));
+        it = dict.insert(MakePair(key, CScriptDictValue()));
 
     return &it->second_;
 }
@@ -1843,7 +1843,7 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 {
     // Return the existing value if it exists
     HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it != dict.end() )
         return &it->second_;
 
@@ -1858,9 +1858,9 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 void CScriptDictionary::Set(const String &key, void *value, int typeId)
 {
     HashMap<String, CScriptDictValue>::Iterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it == dict.end() )
-        it = dict.Insert(MakePair(key, CScriptDictValue()));
+        it = dict.insert(MakePair(key, CScriptDictValue()));
 
     it->second_.Set(engine, value, typeId);
 }
@@ -1888,7 +1888,7 @@ void CScriptDictionary::Set(const String &key, const double &value)
 bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 {
     HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it != dict.end() )
         return it->second_.Get(engine, value, typeId);
 
@@ -1903,7 +1903,7 @@ bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 int CScriptDictionary::GetTypeId(const String &key) const
 {
     HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it != dict.end() )
         return it->second_.m_typeId;
 
@@ -1923,7 +1923,7 @@ bool CScriptDictionary::Get(const String &key, double &value) const
 bool CScriptDictionary::Exists(const String &key) const
 {
     HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it != dict.end() )
         return true;
 
@@ -1946,11 +1946,11 @@ asUINT CScriptDictionary::GetSize() const
 void CScriptDictionary::Delete(const String &key)
 {
     HashMap<String, CScriptDictValue>::Iterator it;
-    it = dict.Find(key);
+    it = dict.find(key);
     if( it != dict.end() )
     {
         it->second_.FreeValue(engine);
-        dict.Erase(it);
+        dict.erase(it);
     }
 }
 
@@ -1960,7 +1960,7 @@ void CScriptDictionary::DeleteAll()
     for( it = dict.begin(); it != dict.end(); it++ )
         it->second_.FreeValue(engine);
 
-    dict.Clear();
+    dict.clear();
 }
 
 CScriptArray* CScriptDictionary::GetKeys() const

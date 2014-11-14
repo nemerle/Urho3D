@@ -60,7 +60,7 @@ struct ModelMorph
     /// Current morph weight.
     float weight_;
     /// Morph data per vertex buffer.
-    HashMap<unsigned, VertexBufferMorph> buffers_;
+    QHash<unsigned, VertexBufferMorph> buffers_;
 };
 
 /// Description of vertex buffer data for asynchronous loading.
@@ -108,7 +108,7 @@ struct GeometryDesc
 class URHO3D_API Model : public Resource
 {
     OBJECT(Model);
-    
+
 public:
     /// Construct.
     Model(Context* context);
@@ -116,14 +116,14 @@ public:
     virtual ~Model();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
     virtual bool BeginLoad(Deserializer& source);
     /// Finish resource loading. Always called from the main thread. Return true if successful.
     virtual bool EndLoad();
     /// Save resource. Return true if successful.
     virtual bool Save(Serializer& dest) const;
-    
+
     /// Set local-space bounding box.
     void SetBoundingBox(const BoundingBox& box);
     /// Set vertex buffers and their morph ranges.
@@ -146,7 +146,7 @@ public:
     void SetMorphs(const Vector<ModelMorph>& morphs);
     /// Clone the model. The geometry data is deep-copied and can be modified in the clone without affecting the original.
     SharedPtr<Model> Clone(const String& cloneName = String::EMPTY) const;
-    
+
     /// Return bounding box.
     const BoundingBox& GetBoundingBox() const { return boundingBox_; }
     /// Return skeleton.
@@ -156,7 +156,7 @@ public:
     /// Return index buffers.
     const Vector<SharedPtr<IndexBuffer> >& GetIndexBuffers() const { return indexBuffers_; }
     /// Return number of geometries.
-    unsigned GetNumGeometries() const { return geometries_.Size(); }
+    unsigned GetNumGeometries() const { return geometries_.size(); }
     /// Return number of LOD levels in geometry.
     unsigned GetNumGeometryLodLevels(unsigned index) const;
     /// Return geometry pointers.
@@ -170,7 +170,7 @@ public:
     /// Return vertex morphs.
     const Vector<ModelMorph>& GetMorphs() const { return morphs_; }
     /// Return number of vertex morphs.
-    unsigned GetNumMorphs() const { return morphs_.Size(); }
+    unsigned GetNumMorphs() const { return morphs_.size(); }
     /// Return vertex morph by index.
     const ModelMorph* GetMorph(unsigned index) const;
     /// Return vertex morph by name.
@@ -181,7 +181,7 @@ public:
     unsigned GetMorphRangeStart(unsigned bufferIndex) const;
     /// Return vertex buffer morph range vertex count.
     unsigned GetMorphRangeCount(unsigned bufferIndex) const;
-    
+
 private:
     /// Bounding box.
     BoundingBox boundingBox_;
