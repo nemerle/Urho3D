@@ -44,76 +44,76 @@ false_wrapper<T> make_false_wrapper(const T& value) {
 
 template <class T>
 Urho3D::RandomAccessIterator<T> Begin(Urho3D::Vector<T> &v) {
-    return v.Begin();
+    return v.begin();
 }
 template <class T>
 Urho3D::RandomAccessIterator<T> Begin(Urho3D::Vector<T> *v) {
-    return v->Begin();
+    return v->begin();
 }
 
 template <class T>
 Urho3D::RandomAccessConstIterator<T> Begin(const Urho3D::Vector<T> &v) {
-    return v.Begin();
+    return v.begin();
 }
 template <class T>
 Urho3D::RandomAccessConstIterator<T> Begin(const Urho3D::Vector<T> *v) {
-    return v->Begin();
+    return v->begin();
 }
 
 template <class T>
 Urho3D::RandomAccessIterator<T> End(Urho3D::Vector<T> &v) {
-    return v.End();
+    return v.end();
 }
 template <class T>
 Urho3D::RandomAccessIterator<T> End(Urho3D::Vector<T> *v) {
-    return v->End();
+    return v->end();
 }
 
 template <class T>
 Urho3D::RandomAccessConstIterator<T> End(const Urho3D::Vector<T> &v) {
-    return v.End();
+    return v.end();
 }
 template <class T>
 Urho3D::RandomAccessConstIterator<T> End(const Urho3D::Vector<T> *v) {
-    return v->End();
+    return v->end();
 }
 
 // podvector support functions
 
 template <class T>
 Urho3D::RandomAccessIterator<T> Begin(Urho3D::PODVector<T> &v) {
-    return v.Begin();
+    return v.begin();
 }
 template <class T>
 Urho3D::RandomAccessIterator<T> Begin(Urho3D::PODVector<T> *v) {
-    return v->Begin();
+    return v->begin();
 }
 
 template <class T>
 Urho3D::RandomAccessConstIterator<T> Begin(const Urho3D::PODVector<T> &v) {
-    return v.Begin();
+    return v.begin();
 }
 template <class T>
 Urho3D::RandomAccessConstIterator<T> Begin(const Urho3D::PODVector<T> *v) {
-    return v->Begin();
+    return v->begin();
 }
 
 template <class T>
 Urho3D::RandomAccessIterator<T> End(Urho3D::PODVector<T> &v) {
-    return v.End();
+    return v.end();
 }
 template <class T>
 Urho3D::RandomAccessIterator<T> End(Urho3D::PODVector<T> *v) {
-    return v->End();
+    return v->end();
 }
 
 template <class T>
 Urho3D::RandomAccessConstIterator<T> End(const Urho3D::PODVector<T> &v) {
-    return v.End();
+    return v.end();
 }
 template <class T>
 Urho3D::RandomAccessConstIterator<T> End(const Urho3D::PODVector<T> *v) {
-    return v->End();
+    return v->end();
 }
 
 } // namespace Urho3D

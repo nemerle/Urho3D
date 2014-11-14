@@ -59,14 +59,14 @@ FontFace::~FontFace()
 const FontGlyph* FontFace::GetGlyph(unsigned c)
 {
     HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.Find(c);
-    if (i != glyphMapping_.End())
+    if (i != glyphMapping_.end())
     {
         FontGlyph& glyph = i->second_;
         glyph.used_ = true;
         return &glyph;
     }
     else
-        return 0;
+        return nullptr;
 }
 
 short FontFace::GetKerning(unsigned c, unsigned d) const
@@ -83,7 +83,7 @@ short FontFace::GetKerning(unsigned c, unsigned d) const
     unsigned value = (c << 16) + d;
 
     HashMap<unsigned, short>::ConstIterator i = kerningMapping_.Find(value);
-    if (i != kerningMapping_.End())
+    if (i != kerningMapping_.end())
         return i->second_;
 
     return 0;
@@ -107,7 +107,7 @@ SharedPtr<Texture2D> FontFace::CreateFaceTexture()
     texture->SetNumLevels(1); // No mipmaps
     texture->SetAddressMode(COORD_U, ADDRESS_BORDER);
     texture->SetAddressMode(COORD_V, ADDRESS_BORDER),
-        texture->SetBorderColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
+    texture->SetBorderColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
     return texture;
 }
 

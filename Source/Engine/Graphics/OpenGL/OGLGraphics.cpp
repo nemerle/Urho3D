@@ -188,7 +188,7 @@ static void GetGLPrimitiveType(unsigned elementCount, PrimitiveType type, unsign
         primitiveCount = elementCount / 3;
         glPrimitiveType = GL_TRIANGLES;
         break;
-        
+
     case LINE_LIST:
         primitiveCount = elementCount / 2;
         glPrimitiveType = GL_LINES;
@@ -198,17 +198,17 @@ static void GetGLPrimitiveType(unsigned elementCount, PrimitiveType type, unsign
         primitiveCount = elementCount;
         glPrimitiveType = GL_POINTS;
         break;
-        
+
     case TRIANGLE_STRIP:
         primitiveCount = elementCount - 2;
         glPrimitiveType = GL_TRIANGLE_STRIP;
         break;
-        
+
     case LINE_STRIP:
         primitiveCount = elementCount - 1;
         glPrimitiveType = GL_LINE_STRIP;
         break;
-        
+
     case TRIANGLE_FAN:
         primitiveCount = elementCount - 2;
         glPrimitiveType = GL_TRIANGLE_FAN;
@@ -218,8 +218,8 @@ static void GetGLPrimitiveType(unsigned elementCount, PrimitiveType type, unsign
 Graphics::Graphics(Context* context_) :
     Object(context_),
     impl_(new GraphicsImpl()),
-    windowIcon_(0),
-    externalWindow_(0),
+    windowIcon_(nullptr),
+    externalWindow_(nullptr),
     width_(0),
     height_(0),
     position_(SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED),
@@ -235,8 +235,10 @@ Graphics::Graphics(Context* context_) :
     deferredSupport_(false),
     anisotropySupport_(false),
     dxtTextureSupport_(false),
+#ifdef GL_ES_VERSION_2_0
     etcTextureSupport_(false),
     pvrtcTextureSupport_(false),
+#endif
     sRGBSupport_(false),
     sRGBWriteSupport_(false),
     numPrimitives_(0),
@@ -253,10 +255,10 @@ Graphics::Graphics(Context* context_) :
 {
     SetTextureUnitMappings();
     ResetCachedState();
-    
+
     // Initialize SDL now. Graphics should be the first SDL-using subsystem to be created
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_NOPARACHUTE);
-    
+
     // Register Graphics library object factories
     RegisterGraphicsLibrary(context_);
 }
@@ -264,10 +266,10 @@ Graphics::Graphics(Context* context_) :
 Graphics::~Graphics()
 {
     Close();
-    
+
     delete impl_;
-    impl_ = 0;
-    
+    impl_ = nullptr;
+
     // Shut down SDL now. Graphics should be the last SDL-using subsystem to be destroyed
     SDL_Quit();
 }
@@ -312,7 +314,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     PROFILE(SetScreenMode);
 
     bool maximize = false;
-    
+
     // Fullscreen or Borderless can not be resizable
     if (fullscreen || borderless)
         resizable = false;
@@ -322,11 +324,11 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
         fullscreen = false;
 
     multiSample = Clamp(multiSample, 1, 16);
-    
+
     if (IsInitialized() && width == width_ && height == height_ && fullscreen == fullscreen_ && borderless == borderless_ && resizable == resizable_ &&
         vsync == vsync_ && tripleBuffer == tripleBuffer_ && multiSample == multiSample_)
         return true;
-    
+
     // If only vsync changes, do not destroy/recreate the context
     if (IsInitialized() && width == width_ && height == height_ && fullscreen == fullscreen_ && borderless == borderless_ && resizable == resizable_ &&
         tripleBuffer == tripleBuffer_ && multiSample == multiSample_ && vsync != vsync_)
@@ -335,7 +337,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
         vsync_ = vsync;
         return true;
     }
-    
+
     // If zero dimensions in windowed mode, set windowed mode to maximize and set a predefined default restored window size. If zero in fullscreen, use desktop mode
     if (!width || !height)
     {
@@ -353,7 +355,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
             height = 768;
         }
     }
-    
+
     // Check fullscreen mode validity (desktop only). Use a closest match if not found
     #if !defined(ANDROID) && !defined(IOS) && !defined(RASPI)
     if (fullscreen)
@@ -375,15 +377,15 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
                     bestError = error;
                 }
             }
-            
+
             width = resolutions[best].x_;
             height = resolutions[best].y_;
         }
     }
     #endif
-    
+
     String extensions;
-    
+
     // With an external window, only the size can change after initial setup, so do not recreate context
     if (!externalWindow_ || !impl_->context_)
     {
@@ -411,7 +413,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
         #endif
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-        
+
         if (multiSample > 1)
         {
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -422,7 +424,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
         }
-        
+
         int x = fullscreen ? 0 : position_.x_;
         int y = fullscreen ? 0 : position_.y_;
 
@@ -446,7 +448,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
                     impl_->window_ = SDL_CreateWindowFrom(externalWindow_, SDL_WINDOW_OPENGL);
                 fullscreen = false;
             }
-            
+
             if (impl_->window_)
                 break;
             else
@@ -473,16 +475,16 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
             Maximize();
             SDL_GetWindowSize(impl_->window_, &width, &height);
         }
-        
+
         // Create/restore context and GPU objects and set initial renderstate
         Restore();
-        
+
         if (!impl_->context_)
         {
             LOGERROR("Could not create OpenGL context");
             return false;
         }
-        
+
         // If OpenGL extensions not yet initialized, initialize now
         #ifndef GL_ES_VERSION_2_0
         GLenum err = glewInit();
@@ -492,27 +494,27 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
             Release(true, true);
             return false;
         }
-        
+
         if (!GLEW_VERSION_2_0)
         {
             LOGERROR("OpenGL 2.0 is required");
             Release(true, true);
             return false;
         }
-        
+
         if (!GLEW_EXT_framebuffer_object || !GLEW_EXT_packed_depth_stencil)
         {
             LOGERROR("EXT_framebuffer_object and EXT_packed_depth_stencil OpenGL extensions are required");
             Release(true, true);
             return false;
         }
-        
+
         instancingSupport_ = GLEW_ARB_instanced_arrays != 0;
         dxtTextureSupport_ = GLEW_EXT_texture_compression_s3tc != 0;
         anisotropySupport_ = GLEW_EXT_texture_filter_anisotropic != 0;
         sRGBSupport_ = GLEW_EXT_texture_sRGB != 0;
         sRGBWriteSupport_ = GLEW_EXT_framebuffer_sRGB != 0;
-        
+
         // Set up instancing divisors if supported
         if (instancingSupport_)
         {
@@ -520,41 +522,41 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
             glVertexAttribDivisorARB(ELEMENT_INSTANCEMATRIX2, 1);
             glVertexAttribDivisorARB(ELEMENT_INSTANCEMATRIX3, 1);
         }
-        
+
         #else
         dxtTextureSupport_ = CheckExtension(extensions, "EXT_texture_compression_dxt1");
         etcTextureSupport_ = CheckExtension(extensions, "OES_compressed_ETC1_RGB8_texture");
         pvrtcTextureSupport_ = CheckExtension(extensions, "IMG_texture_compression_pvrtc");
         #endif
     }
-    
+
     // Set vsync
     SDL_GL_SetSwapInterval(vsync ? 1 : 0);
-    
+
     // Store the system FBO on IOS now
     #ifdef IOS
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&impl_->systemFbo_);
     #endif
-    
+
     fullscreen_ = fullscreen;
     resizable_ = resizable;
     borderless_ = borderless;
     vsync_ = vsync;
     tripleBuffer_ = tripleBuffer;
     multiSample_ = multiSample;
-    
+
     SDL_GetWindowSize(impl_->window_, &width_, &height_);
     SDL_GetWindowPosition(impl_->window_, &position_.x_, &position_.y_);
-    
+
     // Reset rendertargets and viewport for the new screen mode
     ResetRenderTargets();
-    
+
     // Clear the initial window contents to black
     Clear(CLEAR_COLOR);
     SDL_GL_SwapWindow(impl_->window_);
-    
+
     CheckFeatureSupport(extensions);
-    
+
     #ifdef URHO3D_LOGGING
     String msg;
     msg.AppendWithFormat("Set screen mode %dx%d %s", width_, height_, (fullscreen_ ? "fullscreen" : "windowed"));
@@ -568,7 +570,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     #endif
 
     using namespace ScreenMode;
-    
+
     VariantMap& eventData = GetEventDataMap();
     eventData[P_WIDTH] = width_;
     eventData[P_HEIGHT] = height_;
@@ -576,7 +578,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     eventData[P_RESIZABLE] = resizable_;
     eventData[P_BORDERLESS] = borderless_;
     SendEvent(E_SCREENMODE, eventData);
-    
+
     return true;
 }
 
@@ -588,7 +590,7 @@ bool Graphics::SetMode(int width, int height)
 void Graphics::SetSRGB(bool enable)
 {
     enable &= sRGBWriteSupport_;
-    
+
     if (enable != sRGB_)
     {
         sRGB_ = enable;
@@ -615,7 +617,7 @@ void Graphics::Close()
 {
     if (!IsInitialized())
         return;
-    
+
     // Actually close the window
     Release(true, true);
 }
@@ -623,14 +625,14 @@ void Graphics::Close()
 bool Graphics::TakeScreenShot(Image& destImage)
 {
     PROFILE(TakeScreenShot);
-    
+
     ResetRenderTargets();
-    
+
     destImage.SetSize(width_, height_, 3);
     glReadPixels(0, 0, width_, height_, GL_RGB, GL_UNSIGNED_BYTE, destImage.GetData());
     // On OpenGL we need to flip the image vertically after reading
     destImage.FlipVertical();
-    
+
     return true;
 }
 
@@ -638,12 +640,12 @@ bool Graphics::BeginFrame()
 {
     if (!IsInitialized() || IsDeviceLost())
         return false;
-    
+
     // If using an external window, check it for size changes, and reset screen mode if necessary
     if (externalWindow_)
     {
         int width, height;
-        
+
         SDL_GetWindowSize(impl_->window_, &width, &height);
         if (width != width_ || height != height_)
             SetMode(width, height);
@@ -651,20 +653,20 @@ bool Graphics::BeginFrame()
 
     // Set default rendertarget and depth buffer
     ResetRenderTargets();
-    
+
     // Cleanup textures from previous frame
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        SetTexture(i, 0);
-    
+        SetTexture(i, nullptr);
+
     // Enable color and depth write
     SetColorWrite(true);
     SetDepthWrite(true);
-    
+
     numPrimitives_ = 0;
     numBatches_ = 0;
-    
+
     SendEvent(E_BEGINRENDERING);
-    
+
     return true;
 }
 
@@ -672,13 +674,13 @@ void Graphics::EndFrame()
 {
     if (!IsInitialized())
         return;
-    
+
     PROFILE(Present);
-    
+
     SendEvent(E_ENDRENDERING);
-    
+
     SDL_GL_SwapWindow(impl_->window_);
-    
+
     // Clean up FBO's that have not been used for a long time, and too large scratch buffers
     CleanupFramebuffers();
     CleanupScratchBuffers();
@@ -688,21 +690,21 @@ void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned s
 {
     if (impl_->fboDirty_)
         CommitFramebuffer();
-    
+
     #ifdef GL_ES_VERSION_2_0
     flags &= ~CLEAR_STENCIL;
     #endif
-    
+
     bool oldColorWrite = colorWrite_;
     bool oldDepthWrite = depthWrite_;
-    
+
     if (flags & CLEAR_COLOR && !oldColorWrite)
         SetColorWrite(true);
     if (flags & CLEAR_DEPTH && !oldDepthWrite)
         SetDepthWrite(true);
     if (flags & CLEAR_STENCIL && stencilWriteMask_ != M_MAX_UNSIGNED)
         glStencilMask(M_MAX_UNSIGNED);
-    
+
     unsigned glFlags = 0;
     if (flags & CLEAR_COLOR)
     {
@@ -719,7 +721,7 @@ void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned s
         glFlags |= GL_STENCIL_BUFFER_BIT;
         glClearStencil(stencil);
     }
-    
+
     // If viewport is less than full screen, set a scissor to limit the clear
     /// \todo Any user-set scissor test will be lost
     IntVector2 viewSize = GetRenderTargetDimensions();
@@ -727,9 +729,9 @@ void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned s
         SetScissorTest(true, IntRect(0, 0, viewport_.Width(), viewport_.Height()));
     else
         SetScissorTest(false);
-    
+
     glClear(glFlags);
-    
+
     SetScissorTest(false);
     SetColorWrite(oldColorWrite);
     SetDepthWrite(oldDepthWrite);
@@ -741,9 +743,9 @@ bool Graphics::ResolveToTexture(Texture2D* destination, const IntRect& viewport)
 {
     if (!destination || !destination->GetRenderSurface())
         return false;
-    
+
     PROFILE(ResolveToTexture);
-    
+
     IntRect vpCopy = viewport;
     if (vpCopy.right_ <= vpCopy.left_)
         vpCopy.right_ = vpCopy.left_ + 1;
@@ -753,14 +755,14 @@ bool Graphics::ResolveToTexture(Texture2D* destination, const IntRect& viewport)
     vpCopy.top_ = Clamp(vpCopy.top_, 0, height_);
     vpCopy.right_ = Clamp(vpCopy.right_, 0, width_);
     vpCopy.bottom_ = Clamp(vpCopy.bottom_, 0, height_);
-    
+
     // Make sure the FBO is not in use
     ResetRenderTargets();
-    
+
     // Use Direct3D convention with the vertical coordinates ie. 0 is top
     SetTextureForUpdate(destination);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, vpCopy.left_, height_ - vpCopy.bottom_, vpCopy.Width(), vpCopy.Height());
-    SetTexture(0, 0);
+    SetTexture(0, nullptr);
 
     return true;
 }
@@ -769,16 +771,16 @@ void Graphics::Draw(PrimitiveType type, unsigned vertexStart, unsigned vertexCou
 {
     if (!vertexCount)
         return;
-    
+
     if (impl_->fboDirty_)
         CommitFramebuffer();
-    
+
     unsigned primitiveCount;
     GLenum glPrimitiveType;
-    
+
     GetGLPrimitiveType(vertexCount, type, primitiveCount, glPrimitiveType);
     glDrawArrays(glPrimitiveType, vertexStart, vertexCount);
-    
+
     numPrimitives_ += primitiveCount;
     ++numBatches_;
 }
@@ -787,20 +789,20 @@ void Graphics::Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount
 {
     if (!indexCount || !indexBuffer_ || !indexBuffer_->GetGPUObject())
         return;
-    
+
     if (impl_->fboDirty_)
         CommitFramebuffer();
-    
+
     unsigned indexSize = indexBuffer_->GetIndexSize();
     unsigned primitiveCount;
     GLenum glPrimitiveType;
-    
+
     GetGLPrimitiveType(indexCount, type, primitiveCount, glPrimitiveType);
     if (indexSize == sizeof(unsigned short))
         glDrawElements(glPrimitiveType, indexCount, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid*>(indexStart * indexSize));
     else
         glDrawElements(glPrimitiveType, indexCount, GL_UNSIGNED_INT, reinterpret_cast<const GLvoid*>(indexStart * indexSize));
-    
+
     numPrimitives_ += primitiveCount;
     ++numBatches_;
 }
@@ -810,14 +812,14 @@ void Graphics::DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned i
     #ifndef GL_ES_VERSION_2_0
     if (!indexCount || !indexBuffer_ || !indexBuffer_->GetGPUObject() || !instancingSupport_)
         return;
-    
+
     if (impl_->fboDirty_)
         CommitFramebuffer();
-    
+
     unsigned indexSize = indexBuffer_->GetIndexSize();
     unsigned primitiveCount;
     GLenum glPrimitiveType;
-    
+
     GetGLPrimitiveType(indexCount, type, primitiveCount, glPrimitiveType);
     if (indexSize == sizeof(unsigned short))
     {
@@ -829,7 +831,7 @@ void Graphics::DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned i
         glDrawElementsInstancedARB(glPrimitiveType, indexCount, GL_UNSIGNED_INT, reinterpret_cast<const GLvoid*>(indexStart * indexSize),
             instanceCount);
     }
-    
+
     numPrimitives_ += instanceCount * primitiveCount;
     ++numBatches_;
     #endif
@@ -858,15 +860,15 @@ bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const P
         LOGERROR("Amount of element masks and vertex buffers does not match");
         return false;
     }
-    
+
     bool changed = false;
     unsigned newAttributes = 0;
-    
+
     for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
     {
-        VertexBuffer* buffer = 0;
+        VertexBuffer* buffer = nullptr;
         unsigned elementMask = 0;
-        
+
         if (i < buffers.Size() && buffers[i])
         {
             buffer = buffers[i];
@@ -875,42 +877,42 @@ bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const P
             else
                 elementMask = buffer->GetElementMask() & elementMasks[i];
         }
-        
+
         // If buffer and element mask have stayed the same, skip to the next buffer
         if (buffer == vertexBuffers_[i] && elementMask == elementMasks_[i] && instanceOffset == lastInstanceOffset_ && !changed)
         {
             newAttributes |= elementMask;
             continue;
         }
-        
+
         vertexBuffers_[i] = buffer;
         elementMasks_[i] = elementMask;
         changed = true;
-        
+
         // Beware buffers with missing OpenGL objects, as binding a zero buffer object means accessing CPU memory for vertex data,
         // in which case the pointer will be invalid and cause a crash
         if (!buffer || !buffer->GetGPUObject())
             continue;
-        
+
         glBindBuffer(GL_ARRAY_BUFFER, buffer->GetGPUObject());
         unsigned vertexSize = buffer->GetVertexSize();
-        
+
         for (unsigned j = 0; j < MAX_VERTEX_ELEMENTS; ++j)
         {
             unsigned attrIndex = glVertexAttrIndex[j];
             unsigned elementBit = 1 << j;
-            
+
             if (elementMask & elementBit)
             {
                 newAttributes |= elementBit;
-                
+
                 // Enable attribute if not enabled yet
                 if ((impl_->enabledAttributes_ & elementBit) == 0)
                 {
                     glEnableVertexAttribArray(attrIndex);
                     impl_->enabledAttributes_ |= elementBit;
                 }
-                
+
                 // Set the attribute pointer. Add instance offset for the instance matrix pointers
                 unsigned offset = j >= ELEMENT_INSTANCEMATRIX1 ? instanceOffset * vertexSize : 0;
                 glVertexAttribPointer(attrIndex, VertexBuffer::elementComponents[j], VertexBuffer::elementType[j],
@@ -919,16 +921,16 @@ bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const P
             }
         }
     }
-    
+
     if (!changed)
         return true;
-    
+
     lastInstanceOffset_ = instanceOffset;
-    
+
     // Now check which vertex attributes should be disabled
     unsigned disableAttributes = impl_->enabledAttributes_ & (~newAttributes);
     unsigned disableIndex = 0;
-    
+
     while (disableAttributes)
     {
         if (disableAttributes & 1)
@@ -939,7 +941,7 @@ bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const P
         disableAttributes >>= 1;
         ++disableIndex;
     }
-    
+
     return true;
 }
 
@@ -956,15 +958,15 @@ bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers,
         LOGERROR("Amount of element masks and vertex buffers does not match");
         return false;
     }
-    
+
     bool changed = false;
     unsigned newAttributes = 0;
-    
+
     for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
     {
-        VertexBuffer* buffer = 0;
+        VertexBuffer* buffer = nullptr;
         unsigned elementMask = 0;
-        
+
         if (i < buffers.Size() && buffers[i])
         {
             buffer = buffers[i];
@@ -973,42 +975,42 @@ bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers,
             else
                 elementMask = buffer->GetElementMask() & elementMasks[i];
         }
-        
+
         // If buffer and element mask have stayed the same, skip to the next buffer
         if (buffer == vertexBuffers_[i] && elementMask == elementMasks_[i] && instanceOffset == lastInstanceOffset_ && !changed)
         {
             newAttributes |= elementMask;
             continue;
         }
-        
+
         vertexBuffers_[i] = buffer;
         elementMasks_[i] = elementMask;
         changed = true;
-        
+
         // Beware buffers with missing OpenGL objects, as binding a zero buffer object means accessing CPU memory for vertex data,
         // in which case the pointer will be invalid and cause a crash
         if (!buffer || !buffer->GetGPUObject())
             continue;
-        
+
         glBindBuffer(GL_ARRAY_BUFFER, buffer->GetGPUObject());
         unsigned vertexSize = buffer->GetVertexSize();
-        
+
         for (unsigned j = 0; j < MAX_VERTEX_ELEMENTS; ++j)
         {
             unsigned attrIndex = glVertexAttrIndex[j];
             unsigned elementBit = 1 << j;
-            
+
             if (elementMask & elementBit)
             {
                 newAttributes |= elementBit;
-                
+
                 // Enable attribute if not enabled yet
                 if ((impl_->enabledAttributes_ & elementBit) == 0)
                 {
                     glEnableVertexAttribArray(attrIndex);
                     impl_->enabledAttributes_ |= elementBit;
                 }
-                
+
                 // Set the attribute pointer. Add instance offset for the instance matrix pointers
                 unsigned offset = j >= ELEMENT_INSTANCEMATRIX1 ? instanceOffset * vertexSize : 0;
                 glVertexAttribPointer(attrIndex, VertexBuffer::elementComponents[j], VertexBuffer::elementType[j],
@@ -1017,16 +1019,16 @@ bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers,
             }
         }
     }
-    
+
     if (!changed)
         return true;
-    
+
     lastInstanceOffset_ = instanceOffset;
-    
+
     // Now check which vertex attributes should be disabled
     unsigned disableAttributes = impl_->enabledAttributes_ & (~newAttributes);
     unsigned disableIndex = 0;
-    
+
     while (disableAttributes)
     {
         if (disableAttributes & 1)
@@ -1037,7 +1039,7 @@ bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers,
         disableAttributes >>= 1;
         ++disableIndex;
     }
-    
+
     return true;
 }
 
@@ -1045,12 +1047,12 @@ void Graphics::SetIndexBuffer(IndexBuffer* buffer)
 {
     if (indexBuffer_ == buffer)
         return;
-    
+
     if (buffer)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->GetGPUObject());
     else
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    
+
     indexBuffer_ = buffer;
 }
 
@@ -1058,7 +1060,7 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
 {
     if (vs == vertexShader_ && ps == pixelShader_)
         return;
-    
+
     ClearParameterSources();
 
     // Compile the shaders now if not yet compiled. If already attempted, do not retry
@@ -1067,55 +1069,55 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
         if (vs->GetCompilerOutput().Empty())
         {
             PROFILE(CompileVertexShader);
-            
+
             bool success = vs->Create();
             if (success)
                 LOGDEBUG("Compiled vertex shader " + vs->GetFullName());
             else
             {
                 LOGERROR("Failed to compile vertex shader " + vs->GetFullName() + ":\n" + vs->GetCompilerOutput());
-                vs = 0;
+                vs = nullptr;
             }
         }
         else
-            vs = 0;
+            vs = nullptr;
     }
-    
+
     if (ps && !ps->GetGPUObject())
     {
         if (ps->GetCompilerOutput().Empty())
         {
             PROFILE(CompilePixelShader);
-            
+
             bool success = ps->Create();
             if (success)
                 LOGDEBUG("Compiled pixel shader " + ps->GetFullName());
             else
             {
                 LOGERROR("Failed to compile pixel shader " + ps->GetFullName() + ":\n" + ps->GetCompilerOutput());
-                ps = 0;
+                ps = nullptr;
             }
         }
         else
-            ps = 0;
+            ps = nullptr;
     }
-    
+
     if (!vs || !ps)
     {
         glUseProgram(0);
-        vertexShader_ = 0;
-        pixelShader_ = 0;
-        shaderProgram_ = 0;
+        vertexShader_ = nullptr;
+        pixelShader_ = nullptr;
+        shaderProgram_ = nullptr;
     }
     else
     {
         vertexShader_ = vs;
         pixelShader_ = ps;
-        
+
         Pair<ShaderVariation*, ShaderVariation*> combination(vs, ps);
         ShaderProgramMap::Iterator i = shaderPrograms_.Find(combination);
-        
-        if (i != shaderPrograms_.End())
+
+        if (i != shaderPrograms_.end())
         {
             // Use the existing linked program
             if (i->second_->GetGPUObject())
@@ -1126,14 +1128,14 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
             else
             {
                 glUseProgram(0);
-                shaderProgram_ = 0;
+                shaderProgram_ = nullptr;
             }
         }
         else
         {
             // Link a new combination
             PROFILE(LinkShaders);
-            
+
             SharedPtr<ShaderProgram> newProgram(new ShaderProgram(this, vs, ps));
             if (newProgram->Link())
             {
@@ -1147,13 +1149,13 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
                 LOGERROR("Failed to link vertex shader " + vs->GetFullName() + " and pixel shader " + ps->GetFullName() + ":\n" +
                     newProgram->GetLinkerOutput());
                 glUseProgram(0);
-                shaderProgram_ = 0;
+                shaderProgram_ = nullptr;
             }
-            
+
             shaderPrograms_[combination] = newProgram;
         }
     }
-    
+
 
     // Store shader combination if shader dumping in progress
     if (shaderPrecache_)
@@ -1375,11 +1377,11 @@ void Graphics::SetShaderParameter(StringHash param, const Variant& value)
     case VAR_MATRIX3:
         SetShaderParameter(param, value.GetMatrix3());
         break;
-        
+
     case VAR_MATRIX3X4:
         SetShaderParameter(param, value.GetMatrix3x4());
         break;
-        
+
     case VAR_MATRIX4:
         SetShaderParameter(param, value.GetMatrix4());
         break;
@@ -1418,8 +1420,8 @@ void Graphics::ClearParameterSource(ShaderParameterGroup group)
 
 void Graphics::ClearParameterSources()
 {
-    for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
-        shaderParameterSources_[i] = (const void*)M_MAX_UNSIGNED;
+    for (auto & elem : shaderParameterSources_)
+        elem = (const void*)M_MAX_UNSIGNED;
 }
 
 void Graphics::ClearTransformSources()
@@ -1435,12 +1437,12 @@ void Graphics::CleanupShaderPrograms()
     // will eventually erase all the shader programs afterward as part of the release process.
     if (releasingGPUObjects_)
         return;
-    
-    for (ShaderProgramMap::Iterator i = shaderPrograms_.Begin(); i != shaderPrograms_.End();)
+
+    for (ShaderProgramMap::Iterator i = shaderPrograms_.begin(); i != shaderPrograms_.end();)
     {
         ShaderVariation* vs = i->second_->GetVertexShader();
         ShaderVariation* ps = i->second_->GetPixelShader();
-        
+
         if (!vs || !ps || !vs->GetGPUObject() || !ps->GetGPUObject())
             i = shaderPrograms_.Erase(i);
         else
@@ -1452,14 +1454,14 @@ void Graphics::SetTexture(unsigned index, Texture* texture)
 {
     if (index >= MAX_TEXTURE_UNITS)
         return;
-    
+
     // Check if texture is currently bound as a rendertarget. In that case, use its backup texture, or blank if not defined
     if (texture)
     {
         if (renderTargets_[0] && renderTargets_[0]->GetParentTexture() == texture)
             texture = texture->GetBackupTexture();
     }
-    
+
     if (textures_[index] != texture)
     {
         if (impl_->activeTexture_ != index)
@@ -1467,7 +1469,7 @@ void Graphics::SetTexture(unsigned index, Texture* texture)
             glActiveTexture(GL_TEXTURE0 + index);
             impl_->activeTexture_ = index;
         }
-        
+
         if (texture)
         {
             unsigned glType = texture->GetTarget();
@@ -1475,13 +1477,13 @@ void Graphics::SetTexture(unsigned index, Texture* texture)
             {
                 if (textureTypes_[index])
                     glDisable(textureTypes_[index]);
-                
+
                 glEnable(glType);
                 textureTypes_[index] = glType;
             }
-            
+
             glBindTexture(glType, texture->GetGPUObject());
-            
+
             if (texture->GetParametersDirty())
                 texture->UpdateParameters();
         }
@@ -1490,7 +1492,7 @@ void Graphics::SetTexture(unsigned index, Texture* texture)
             if (textureTypes_[index])
                 glBindTexture(textureTypes_[index], 0);
         }
-        
+
         textures_[index] = texture;
     }
     else
@@ -1502,7 +1504,7 @@ void Graphics::SetTexture(unsigned index, Texture* texture)
                 glActiveTexture(GL_TEXTURE0 + index);
                 impl_->activeTexture_ = index;
             }
-            
+
             glBindTexture(texture->GetTarget(), texture->GetGPUObject());
             texture->UpdateParameters();
         }
@@ -1516,7 +1518,7 @@ void Graphics::SetTextureForUpdate(Texture* texture)
         glActiveTexture(GL_TEXTURE0);
         impl_->activeTexture_ = 0;
     }
-    
+
     glBindTexture(texture->GetTarget(), texture->GetGPUObject());
     textures_[0] = texture;
 }
@@ -1542,10 +1544,10 @@ void Graphics::SetTextureAnisotropy(unsigned level)
 void Graphics::SetTextureParametersDirty()
 {
     MutexLock lock(gpuObjectMutex_);
-    
-    for (Vector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
+
+    for (auto & elem : gpuObjects_)
     {
-        Texture* texture = dynamic_cast<Texture*>(*i);
+        Texture* texture = dynamic_cast<Texture*>(elem);
         if (texture)
             texture->SetParametersDirty();
     }
@@ -1554,52 +1556,52 @@ void Graphics::SetTextureParametersDirty()
 void Graphics::ResetRenderTargets()
 {
     for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-        SetRenderTarget(i, (RenderSurface*)0);
-    SetDepthStencil((RenderSurface*)0);
+        SetRenderTarget(i, (RenderSurface*)nullptr);
+    SetDepthStencil((RenderSurface*)nullptr);
     SetViewport(IntRect(0, 0, width_, height_));
 }
 
 void Graphics::ResetRenderTarget(unsigned index)
 {
-    SetRenderTarget(index, (RenderSurface*)0);
+    SetRenderTarget(index, (RenderSurface*)nullptr);
 }
 
 void Graphics::ResetDepthStencil()
 {
-    SetDepthStencil((RenderSurface*)0);
+    SetDepthStencil((RenderSurface*)nullptr);
 }
 
 void Graphics::SetRenderTarget(unsigned index, RenderSurface* renderTarget)
 {
     if (index >= MAX_RENDERTARGETS)
         return;
-    
+
     if (renderTarget != renderTargets_[index])
     {
         renderTargets_[index] = renderTarget;
-        
+
         // If the rendertarget is also bound as a texture, replace with backup texture or null
         if (renderTarget)
         {
             Texture* parentTexture = renderTarget->GetParentTexture();
-            
+
             for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
             {
                 if (textures_[i] == parentTexture)
                     SetTexture(i, textures_[i]->GetBackupTexture());
             }
         }
-        
+
         impl_->fboDirty_ = true;
     }
 }
 
 void Graphics::SetRenderTarget(unsigned index, Texture2D* texture)
 {
-    RenderSurface* renderTarget = 0;
+    RenderSurface* renderTarget = nullptr;
     if (texture)
         renderTarget = texture->GetRenderSurface();
-    
+
     SetRenderTarget(index, renderTarget);
 }
 
@@ -1611,14 +1613,14 @@ void Graphics::SetDepthStencil(RenderSurface* depthStencil)
     {
         int width = renderTargets_[0]->GetWidth();
         int height = renderTargets_[0]->GetHeight();
-        
+
         // Direct3D9 default depth-stencil can not be used when rendertarget is larger than the window.
         // Check size similarly
         if (width <= width_ && height <= height_)
         {
             int searchKey = (width << 16) | height;
             HashMap<int, SharedPtr<Texture2D> >::Iterator i = depthTextures_.Find(searchKey);
-            if (i != depthTextures_.End())
+            if (i != depthTextures_.end())
                 depthStencil = i->second_->GetRenderSurface();
             else
             {
@@ -1629,7 +1631,7 @@ void Graphics::SetDepthStencil(RenderSurface* depthStencil)
             }
         }
     }
-    
+
     if (depthStencil != depthStencil_)
     {
         depthStencil_ = depthStencil;
@@ -1639,10 +1641,10 @@ void Graphics::SetDepthStencil(RenderSurface* depthStencil)
 
 void Graphics::SetDepthStencil(Texture2D* texture)
 {
-    RenderSurface* depthStencil = 0;
+    RenderSurface* depthStencil = nullptr;
     if (texture)
         depthStencil = texture->GetRenderSurface();
-    
+
     SetDepthStencil(depthStencil);
 }
 
@@ -1650,11 +1652,11 @@ void Graphics::SetViewport(const IntRect& rect)
 {
     if (impl_->fboDirty_)
         CommitFramebuffer();
-    
+
     IntVector2 rtSize = GetRenderTargetDimensions();
-    
+
     IntRect rectCopy = rect;
-    
+
     if (rectCopy.right_ <= rectCopy.left_)
         rectCopy.right_ = rectCopy.left_ + 1;
     if (rectCopy.bottom_ <= rectCopy.top_)
@@ -1663,11 +1665,11 @@ void Graphics::SetViewport(const IntRect& rect)
     rectCopy.top_ = Clamp(rectCopy.top_, 0, rtSize.y_);
     rectCopy.right_ = Clamp(rectCopy.right_, 0, rtSize.x_);
     rectCopy.bottom_ = Clamp(rectCopy.bottom_, 0, rtSize.y_);
-    
+
     // Use Direct3D convention with the vertical coordinates ie. 0 is top
     glViewport(rectCopy.left_, rtSize.y_ - rectCopy.bottom_, rectCopy.Width(), rectCopy.Height());
     viewport_ = rectCopy;
-    
+
     // Disable scissor test, needs to be re-enabled by the user
     SetScissorTest(false);
 }
@@ -1684,7 +1686,7 @@ void Graphics::SetBlendMode(BlendMode mode)
             glBlendFunc(glSrcBlend[mode], glDestBlend[mode]);
             glBlendEquation(glBlendOp[mode]);
         }
-        
+
         blendMode_ = mode;
     }
 }
@@ -1697,7 +1699,7 @@ void Graphics::SetColorWrite(bool enable)
             glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         else
             glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        
+
         colorWrite_ = enable;
     }
 }
@@ -1714,7 +1716,7 @@ void Graphics::SetCullMode(CullMode mode)
             glEnable(GL_CULL_FACE);
             glCullFace(mode == CULL_CCW ? GL_FRONT : GL_BACK);
         }
-        
+
         cullMode_ = mode;
     }
 }
@@ -1734,7 +1736,7 @@ void Graphics::SetDepthBias(float constantBias, float slopeScaledBias)
         else
             glDisable(GL_POLYGON_OFFSET_FILL);
         #endif
-        
+
         constantDepthBias_ = constantBias;
         slopeScaledDepthBias_ = slopeScaledBias;
         shaderParameterSources_[SP_CAMERA] = (const void*)M_MAX_UNSIGNED;
@@ -1790,7 +1792,7 @@ void Graphics::SetScissorTest(bool enable, const Rect& rect, bool borderInclusiv
     // Disable scissor in that case to reduce state changes
     if (rect.min_.x_ <= 0.0f && rect.min_.y_ <= 0.0f && rect.max_.x_ >= 1.0f && rect.max_.y_ >= 1.0f)
         enable = false;
-    
+
     if (enable)
     {
         IntVector2 rtSize(GetRenderTargetDimensions());
@@ -1798,20 +1800,20 @@ void Graphics::SetScissorTest(bool enable, const Rect& rect, bool borderInclusiv
         IntVector2 viewPos(viewport_.left_, viewport_.top_);
         IntRect intRect;
         int expand = borderInclusive ? 1 : 0;
-        
+
         intRect.left_ = Clamp((int)((rect.min_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_, 0, rtSize.x_ - 1);
         intRect.top_ = Clamp((int)((-rect.max_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_, 0, rtSize.y_ - 1);
         intRect.right_ = Clamp((int)((rect.max_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_ + expand, 0, rtSize.x_);
         intRect.bottom_ = Clamp((int)((-rect.min_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_ + expand, 0, rtSize.y_);
-        
+
         if (intRect.right_ == intRect.left_)
             intRect.right_++;
         if (intRect.bottom_ == intRect.top_)
             intRect.bottom_++;
-        
+
         if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
             enable = false;
-        
+
         if (enable && scissorRect_ != intRect)
         {
             // Use Direct3D convention with the vertical coordinates ie. 0 is top
@@ -1821,7 +1823,7 @@ void Graphics::SetScissorTest(bool enable, const Rect& rect, bool borderInclusiv
     }
     else
         scissorRect_ = IntRect::ZERO;
-    
+
     if (enable != scissorTest_)
     {
         if (enable)
@@ -1836,7 +1838,7 @@ void Graphics::SetScissorTest(bool enable, const IntRect& rect)
 {
     IntVector2 rtSize(GetRenderTargetDimensions());
     IntVector2 viewPos(viewport_.left_, viewport_.top_);
-    
+
     if (enable)
     {
         IntRect intRect;
@@ -1844,15 +1846,15 @@ void Graphics::SetScissorTest(bool enable, const IntRect& rect)
         intRect.top_ = Clamp(rect.top_ + viewPos.y_, 0, rtSize.y_ - 1);
         intRect.right_ = Clamp(rect.right_ + viewPos.x_, 0, rtSize.x_);
         intRect.bottom_ = Clamp(rect.bottom_ + viewPos.y_, 0, rtSize.y_);
-        
+
         if (intRect.right_ == intRect.left_)
             intRect.right_++;
         if (intRect.bottom_ == intRect.top_)
             intRect.bottom_++;
-        
+
         if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
             enable = false;
-        
+
         if (enable && scissorRect_ != intRect)
         {
             // Use Direct3D convention with the vertical coordinates ie. 0 is top
@@ -1862,7 +1864,7 @@ void Graphics::SetScissorTest(bool enable, const IntRect& rect)
     }
     else
         scissorRect_ = IntRect::ZERO;
-    
+
     if (enable != scissorTest_)
     {
         if (enable)
@@ -1884,18 +1886,18 @@ void Graphics::SetClipPlane(bool enable, const Plane& clipPlane, const Matrix3x4
             glDisable(GL_CLIP_PLANE0);
         useClipPlane_ = enable;
     }
-    
+
     if (enable)
     {
         Matrix4 viewProj = projection * view;
         Vector4 planeVec =  clipPlane.Transformed(viewProj).ToVector4();
-        
+
         GLdouble planeData[4];
         planeData[0] = planeVec.x_;
         planeData[1] = planeVec.y_;
         planeData[2] = planeVec.z_;
         planeData[3] = planeVec.w_;
-        
+
         glClipPlane(GL_CLIP_PLANE0, &planeData[0]);
     }
     #endif
@@ -1920,7 +1922,7 @@ void Graphics::SetStencilTest(bool enable, CompareMode mode, StencilOp pass, Ste
             glDisable(GL_STENCIL_TEST);
         stencilTest_ = enable;
     }
-    
+
     if (enable)
     {
         if (mode != stencilTestMode_ || stencilRef != stencilRef_ || compareMask != stencilCompareMask_)
@@ -1963,13 +1965,13 @@ void Graphics::EndDumpShaders()
 void Graphics::PrecacheShaders(Deserializer& source)
 {
     PROFILE(PrecacheShaders);
-    
+
     ShaderPrecache::LoadShaders(this, source);
 }
 
 bool Graphics::IsInitialized() const
 {
-    return impl_->window_ != 0;
+    return impl_->window_ != nullptr;
 }
 
 bool Graphics::IsDeviceLost() const
@@ -1980,7 +1982,7 @@ bool Graphics::IsDeviceLost() const
         return true;
     #endif
 
-    return impl_->context_ == 0;
+    return impl_->context_ == nullptr;
 }
 
 IntVector2 Graphics::GetWindowPosition() const
@@ -1994,14 +1996,14 @@ PODVector<IntVector2> Graphics::GetResolutions() const
 {
     PODVector<IntVector2> ret;
     unsigned numModes = SDL_GetNumDisplayModes(0);
-    
+
     for (unsigned i = 0; i < numModes; ++i)
     {
         SDL_DisplayMode mode;
         SDL_GetDisplayMode(0, i, &mode);
         int width = mode.w;
         int height  = mode.h;
-        
+
         // Store mode if unique
         bool unique = true;
         for (unsigned j = 0; j < ret.Size(); ++j)
@@ -2012,11 +2014,11 @@ PODVector<IntVector2> Graphics::GetResolutions() const
                 break;
             }
         }
-        
+
         if (unique)
             ret.Push(IntVector2(width, height));
     }
-    
+
     return ret;
 }
 
@@ -2026,7 +2028,7 @@ PODVector<int> Graphics::GetMultiSampleLevels() const
     // No multisampling always supported
     ret.Push(1);
     /// \todo Implement properly, if possible
-    
+
     return ret;
 }
 
@@ -2052,26 +2054,26 @@ unsigned Graphics::GetFormat(CompressedFormat format) const
     #ifndef GL_ES_VERSION_2_0
     case CF_DXT3:
         return dxtTextureSupport_ ? GL_COMPRESSED_RGBA_S3TC_DXT3_EXT : 0;
-        
+
     case CF_DXT5:
         return dxtTextureSupport_ ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : 0;
     #else
     case CF_ETC1:
         return etcTextureSupport_ ? GL_ETC1_RGB8_OES : 0;
-        
+
     case CF_PVRTC_RGB_2BPP:
         return pvrtcTextureSupport_ ? COMPRESSED_RGB_PVRTC_2BPPV1_IMG : 0;
-        
+
     case CF_PVRTC_RGB_4BPP:
         return pvrtcTextureSupport_ ? COMPRESSED_RGB_PVRTC_4BPPV1_IMG : 0;
-        
+
     case CF_PVRTC_RGBA_2BPP:
         return pvrtcTextureSupport_ ? COMPRESSED_RGBA_PVRTC_2BPPV1_IMG : 0;
-        
+
     case CF_PVRTC_RGBA_4BPP:
         return pvrtcTextureSupport_ ? COMPRESSED_RGBA_PVRTC_4BPPV1_IMG : 0;
     #endif
-    
+
     default:
         return 0;
     }
@@ -2087,28 +2089,28 @@ ShaderVariation* Graphics::GetShader(ShaderType type, const char* name, const ch
     if (lastShaderName_ != name || !lastShader_)
     {
         ResourceCache* cache = GetSubsystem<ResourceCache>();
-        
+
         String fullShaderName = shaderPath_ + name + shaderExtension_;
         // Try to reduce repeated error log prints because of missing shaders
         if (lastShaderName_ == name && !cache->Exists(fullShaderName))
-            return 0;
-        
+            return nullptr;
+
         lastShader_ = cache->GetResource<Shader>(fullShaderName);
         lastShaderName_ = name;
     }
-    
-    return lastShader_ ? lastShader_->GetVariation(type, defines) : (ShaderVariation*)0;
+
+    return lastShader_ ? lastShader_->GetVariation(type, defines) : (ShaderVariation*)nullptr;
 }
 
 VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
 {
-    return index < MAX_VERTEX_STREAMS ? vertexBuffers_[index] : 0;
+    return index < MAX_VERTEX_STREAMS ? vertexBuffers_[index] : nullptr;
 }
 
 TextureUnit Graphics::GetTextureUnit(const String& name)
 {
     HashMap<String, TextureUnit>::Iterator i = textureUnits_.Find(name);
-    if (i != textureUnits_.End())
+    if (i != textureUnits_.end())
         return i->second_;
     else
         return MAX_TEXTURE_UNITS;
@@ -2116,22 +2118,22 @@ TextureUnit Graphics::GetTextureUnit(const String& name)
 
 const String& Graphics::GetTextureUnitName(TextureUnit unit)
 {
-    for (HashMap<String, TextureUnit>::Iterator i = textureUnits_.Begin(); i != textureUnits_.End(); ++i)
+    for (auto & elem : textureUnits_)
     {
-        if (i->second_ == unit)
-            return i->first_;
+        if (elem.second_ == unit)
+            return elem.first_;
     }
     return String::EMPTY;
 }
 
 Texture* Graphics::GetTexture(unsigned index) const
 {
-    return index < MAX_TEXTURE_UNITS ? textures_[index] : 0;
+    return index < MAX_TEXTURE_UNITS ? textures_[index] : nullptr;
 }
 
 RenderSurface* Graphics::GetRenderTarget(unsigned index) const
 {
-    return index < MAX_RENDERTARGETS ? renderTargets_[index] : 0;
+    return index < MAX_RENDERTARGETS ? renderTargets_[index] : nullptr;
 }
 
 unsigned Graphics::GetStreamFrequency(unsigned index) const
@@ -2142,7 +2144,7 @@ unsigned Graphics::GetStreamFrequency(unsigned index) const
 IntVector2 Graphics::GetRenderTargetDimensions() const
 {
     int width, height;
-    
+
     if (renderTargets_[0])
     {
         width = renderTargets_[0]->GetWidth();
@@ -2158,7 +2160,7 @@ IntVector2 Graphics::GetRenderTargetDimensions() const
         width = width_;
         height = height_;
     }
-    
+
     return IntVector2(width, height);
 }
 
@@ -2168,21 +2170,21 @@ void Graphics::WindowResized()
         return;
 
     int newWidth, newHeight;
-    
+
     SDL_GetWindowSize(impl_->window_, &newWidth, &newHeight);
     if (newWidth == width_ && newHeight == height_)
         return;
 
     width_ = newWidth;
     height_ = newHeight;
-    
+
     // Reset rendertargets and viewport for the new screen size
     ResetRenderTargets();
-    
+
     LOGDEBUGF("Window was resized to %dx%d", width_, height_);
-    
+
     using namespace ScreenMode;
-    
+
     VariantMap& eventData = GetEventDataMap();
     eventData[P_WIDTH] = width_;
     eventData[P_HEIGHT] = height_;
@@ -2219,47 +2221,47 @@ void Graphics::WindowMoved()
 void Graphics::AddGPUObject(GPUObject* object)
 {
     MutexLock lock(gpuObjectMutex_);
-    
+
     gpuObjects_.Push(object);
 }
 
 void Graphics::RemoveGPUObject(GPUObject* object)
 {
     MutexLock lock(gpuObjectMutex_);
-    
+
     gpuObjects_.Remove(object);
 }
 
 void* Graphics::ReserveScratchBuffer(unsigned size)
 {
     if (!size)
-        return 0;
-    
+        return nullptr;
+
     if (size > maxScratchBufferRequest_)
         maxScratchBufferRequest_ = size;
-    
+
     // First check for a free buffer that is large enough
-    for (Vector<ScratchBuffer>::Iterator i = scratchBuffers_.Begin(); i != scratchBuffers_.End(); ++i)
+    for (auto & elem : scratchBuffers_)
     {
-        if (!i->reserved_ && i->size_ >= size)
+        if (!elem.reserved_ && elem.size_ >= size)
         {
-            i->reserved_ = true;
-            return i->data_.Get();
+            elem.reserved_ = true;
+            return elem.data_.Get();
         }
     }
-    
+
     // Then check if a free buffer can be resized
-    for (Vector<ScratchBuffer>::Iterator i = scratchBuffers_.Begin(); i != scratchBuffers_.End(); ++i)
+    for (auto & elem : scratchBuffers_)
     {
-        if (!i->reserved_)
+        if (!elem.reserved_)
         {
-            i->data_ = new unsigned char[size];
-            i->size_ = size;
-            i->reserved_ = true;
-            return i->data_.Get();
+            elem.data_ = new unsigned char[size];
+            elem.size_ = size;
+            elem.reserved_ = true;
+            return elem.data_.Get();
         }
     }
-    
+
     // Finally allocate a new buffer
     ScratchBuffer newBuffer;
     newBuffer.data_ = new unsigned char[size];
@@ -2273,30 +2275,30 @@ void Graphics::FreeScratchBuffer(void* buffer)
 {
     if (!buffer)
         return;
-    
-    for (Vector<ScratchBuffer>::Iterator i = scratchBuffers_.Begin(); i != scratchBuffers_.End(); ++i)
+
+    for (auto & elem : scratchBuffers_)
     {
-        if (i->reserved_ && i->data_.Get() == buffer)
+        if (elem.reserved_ && elem.data_.Get() == buffer)
         {
-            i->reserved_ = false;
+            elem.reserved_ = false;
             return;
         }
     }
-    
+
     LOGWARNING("Reserved scratch buffer " + ToStringHex((unsigned)(size_t)buffer) + " not found");
 }
 
 void Graphics::CleanupScratchBuffers()
 {
-    for (Vector<ScratchBuffer>::Iterator i = scratchBuffers_.Begin(); i != scratchBuffers_.End(); ++i)
+    for (auto & elem : scratchBuffers_)
     {
-        if (!i->reserved_ && i->size_ > maxScratchBufferRequest_ * 2)
+        if (!elem.reserved_ && elem.size_ > maxScratchBufferRequest_ * 2)
         {
-            i->data_ = maxScratchBufferRequest_ > 0 ? new unsigned char[maxScratchBufferRequest_] : 0;
-            i->size_ = maxScratchBufferRequest_;
+            elem.data_ = maxScratchBufferRequest_ > 0 ? new unsigned char[maxScratchBufferRequest_] : nullptr;
+            elem.size_ = maxScratchBufferRequest_;
         }
     }
-    
+
     maxScratchBufferRequest_ = 0;
 }
 
@@ -2304,33 +2306,33 @@ void Graphics::Release(bool clearGPUObjects, bool closeWindow)
 {
     if (!impl_->window_)
         return;
-    
+
     releasingGPUObjects_ = true;
-    
+
     {
         MutexLock lock(gpuObjectMutex_);
-        
+
         if (clearGPUObjects)
         {
             // Shutting down: release all GPU objects that still exist
-            for (Vector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-                (*i)->Release();
+            for (auto & elem : gpuObjects_)
+                (elem)->Release();
             gpuObjects_.Clear();
         }
         else
         {
             // We are not shutting down, but recreating the context: mark GPU objects lost
-            for (Vector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-                (*i)->OnDeviceLost();
+            for (auto & elem : gpuObjects_)
+                (elem)->OnDeviceLost();
         }
     }
-    
+
     releasingGPUObjects_ = false;
-    
+
     CleanupFramebuffers(true);
     depthTextures_.Clear();
     shaderPrograms_.Clear();
-    
+
     // End fullscreen mode first to counteract transition and getting stuck problems on OS X
     #if defined(__APPLE__) && !defined(IOS)
     if (closeWindow && fullscreen_ && !externalWindow_)
@@ -2342,20 +2344,20 @@ void Graphics::Release(bool clearGPUObjects, bool closeWindow)
         // Do not log this message if we are exiting
         if (!clearGPUObjects)
             LOGINFO("OpenGL context lost");
-        
+
         SDL_GL_DeleteContext(impl_->context_);
-        impl_->context_ = 0;
+        impl_->context_ = nullptr;
     }
-    
+
     if (closeWindow)
     {
         SDL_ShowCursor(SDL_TRUE);
-        
+
         // Do not destroy external window except when shutting down
         if (!externalWindow_ || clearGPUObjects)
         {
             SDL_DestroyWindow(impl_->window_);
-            impl_->window_ = 0;
+            impl_->window_ = nullptr;
         }
     }
 }
@@ -2364,7 +2366,7 @@ void Graphics::Restore()
 {
     if (!impl_->window_)
         return;
-    
+
     #ifdef ANDROID
     // On Android the context may be lost behind the scenes as the application is minimized
     if (impl_->context_ && !SDL_GL_GetCurrentContext())
@@ -2375,7 +2377,7 @@ void Graphics::Restore()
         Release(false, false);
     }
     #endif
-    
+
     // Ensure first that the context exists
     if (!impl_->context_)
     {
@@ -2383,21 +2385,21 @@ void Graphics::Restore()
         #ifdef IOS
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&impl_->systemFbo_);
         #endif
-        
+
         ResetCachedState();
     }
     if (!impl_->context_)
         return;
-    
+
     // Set up texture data read/write alignment. It is important that this is done before uploading any texture data
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    
+
     {
         MutexLock lock(gpuObjectMutex_);
-        
-        for (Vector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-            (*i)->OnDeviceReset();
+
+        for (auto & elem : gpuObjects_)
+            (elem)->OnDeviceReset();
     }
 }
 
@@ -2421,44 +2423,43 @@ void Graphics::CleanupRenderSurface(RenderSurface* surface)
 {
     if (!surface)
         return;
-    
+
     // Flush pending FBO changes first if any
     CommitFramebuffer();
-    
+
     unsigned currentFbo = impl_->boundFbo_;
-    
+
     // Go through all FBOs and clean up the surface from them
-    for (HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.Begin();
-        i != impl_->frameBuffers_.End(); ++i)
+    for (auto & elem : impl_->frameBuffers_)
     {
         for (unsigned j = 0; j < MAX_RENDERTARGETS; ++j)
         {
-            if (i->second_.colorAttachments_[j] == surface)
+            if (elem.second_.colorAttachments_[j] == surface)
             {
-                if (currentFbo != i->second_.fbo_)
+                if (currentFbo != elem.second_.fbo_)
                 {
-                    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, i->second_.fbo_);
-                    currentFbo = i->second_.fbo_;
+                    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, elem.second_.fbo_);
+                    currentFbo = elem.second_.fbo_;
                 }
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, 0, 0);
-                i->second_.colorAttachments_[j] = 0;
+                elem.second_.colorAttachments_[j] = nullptr;
                 // Mark drawbuffer bits to need recalculation
-                i->second_.drawBuffers_ = M_MAX_UNSIGNED;
+                elem.second_.drawBuffers_ = M_MAX_UNSIGNED;
             }
         }
-        if (i->second_.depthAttachment_ == surface)
+        if (elem.second_.depthAttachment_ == surface)
         {
-            if (currentFbo != i->second_.fbo_)
+            if (currentFbo != elem.second_.fbo_)
             {
-                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, i->second_.fbo_);
-                currentFbo = i->second_.fbo_;
+                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, elem.second_.fbo_);
+                currentFbo = elem.second_.fbo_;
             }
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-            i->second_.depthAttachment_ = 0;
+            elem.second_.depthAttachment_ = nullptr;
         }
     }
-    
+
     // Restore previously bound FBO now if needed
     if (currentFbo != impl_->boundFbo_)
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, impl_->boundFbo_);
@@ -2585,7 +2586,7 @@ unsigned Graphics::GetDepthStencilFormat()
 unsigned Graphics::GetFormat(const String& formatName)
 {
     String nameLower = formatName.ToLower().Trimmed();
-    
+
     if (nameLower == "a")
         return GetAlphaFormat();
     if (nameLower == "l")
@@ -2616,7 +2617,7 @@ unsigned Graphics::GetFormat(const String& formatName)
         return GetLinearDepthFormat();
     if (nameLower == "d24s8")
         return GetDepthStencilFormat();
-    
+
     return GetRGBFormat();
 }
 
@@ -2638,18 +2639,18 @@ void Graphics::CheckFeatureSupport(String& extensions)
     // Check supported features: light pre-pass, deferred rendering and hardware depth texture
     lightPrepassSupport_ = false;
     deferredSupport_ = false;
-    
+
     int numSupportedRTs = 1;
-    
+
     #ifndef GL_ES_VERSION_2_0
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &numSupportedRTs);
-    
+
     // If hardware depth is not supported, must support 2 rendertargets for light pre-pass, and 4 for deferred
     if (numSupportedRTs >= 2)
         lightPrepassSupport_ = true;
     if (numSupportedRTs >= 4)
         deferredSupport_ = true;
-    
+
     #if defined(__APPLE__) && !defined(IOS)
     // On OS X check for an Intel driver and use shadow map RGBA dummy color textures, because mixing
     // depth-only FBO rendering and backbuffer rendering will bug, resulting in a black screen in full
@@ -2658,7 +2659,7 @@ void Graphics::CheckFeatureSupport(String& extensions)
     if (renderer.Contains("Intel", false))
         dummyColorFormat_ = GetRGBAFormat();
     #endif
-    
+
     #else
     // Check for best supported depth renderbuffer format for GLES2
     if (CheckExtension(extensions, "GL_OES_depth24"))
@@ -2687,23 +2688,23 @@ void Graphics::CommitFramebuffer()
 {
     if (!impl_->fboDirty_)
         return;
-    
+
     impl_->fboDirty_ = false;
-    
+
     // First check if no framebuffer is needed. In that case simply return to backbuffer rendering
     bool noFbo = !depthStencil_;
     if (noFbo)
     {
-        for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
+        for (auto & elem : renderTargets_)
         {
-            if (renderTargets_[i])
+            if (elem)
             {
                 noFbo = false;
                 break;
             }
         }
     }
-    
+
     if (noFbo)
     {
         if (impl_->boundFbo_ != impl_->systemFbo_)
@@ -2711,7 +2712,7 @@ void Graphics::CommitFramebuffer()
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, impl_->systemFbo_);
             impl_->boundFbo_ = impl_->systemFbo_;
         }
-        
+
         #ifndef GL_ES_VERSION_2_0
         // Disable/enable sRGB write
         if (sRGBWriteSupport_)
@@ -2727,10 +2728,10 @@ void Graphics::CommitFramebuffer()
             }
         }
         #endif
-        
+
         return;
     }
-    
+
     // Search for a new framebuffer based on format & size, or create new
     IntVector2 rtSize = Graphics::GetRenderTargetDimensions();
     unsigned format = 0;
@@ -2738,25 +2739,25 @@ void Graphics::CommitFramebuffer()
         format = renderTargets_[0]->GetParentTexture()->GetFormat();
     else if (depthStencil_)
         format = depthStencil_->GetParentTexture()->GetFormat();
-    
+
     unsigned long long fboKey = (rtSize.x_ << 16 | rtSize.y_) | (((unsigned long long)format) << 32);
-    
+
     HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.Find(fboKey);
-    if (i == impl_->frameBuffers_.End())
+    if (i == impl_->frameBuffers_.end())
     {
         FrameBufferObject newFbo;
         glGenFramebuffersEXT(1, &newFbo.fbo_);
         i = impl_->frameBuffers_.Insert(MakePair(fboKey, newFbo));
     }
-    
+
     i->second_.useTimer_.Reset();
-    
+
     if (impl_->boundFbo_ != i->second_.fbo_)
     {
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, i->second_.fbo_);
         impl_->boundFbo_ = i->second_.fbo_;
     }
-    
+
     #ifndef GL_ES_VERSION_2_0
     // Setup readbuffers & drawbuffers if needed
     if (i->second_.readBuffers_ != GL_NONE)
@@ -2764,7 +2765,7 @@ void Graphics::CommitFramebuffer()
         glReadBuffer(GL_NONE);
         i->second_.readBuffers_ = GL_NONE;
     }
-    
+
     // Calculate the bit combination of non-zero color rendertargets to first check if the combination changed
     unsigned newDrawBuffers = 0;
     for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
@@ -2772,7 +2773,7 @@ void Graphics::CommitFramebuffer()
         if (renderTargets_[i])
             newDrawBuffers |= 1 << i;
     }
-    
+
     if (newDrawBuffers != i->second_.drawBuffers_)
     {
         // Check for no color rendertargets (depth rendering only)
@@ -2782,7 +2783,7 @@ void Graphics::CommitFramebuffer()
         {
             int drawBufferIds[MAX_RENDERTARGETS];
             unsigned drawBufferCount = 0;
-            
+
             for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
             {
                 if (renderTargets_[i])
@@ -2790,25 +2791,25 @@ void Graphics::CommitFramebuffer()
             }
             glDrawBuffers(drawBufferCount, (const GLenum*)drawBufferIds);
         }
-        
+
         i->second_.drawBuffers_ = newDrawBuffers;
     }
     #endif
-    
+
     for (unsigned j = 0; j < MAX_RENDERTARGETS; ++j)
     {
         if (renderTargets_[j])
         {
             Texture* texture = renderTargets_[j]->GetParentTexture();
-            
+
             // If texture's parameters are dirty, update before attaching
             if (texture->GetParametersDirty())
             {
                 SetTextureForUpdate(texture);
                 texture->UpdateParameters();
-                SetTexture(0, 0);
+                SetTexture(0, nullptr);
             }
-            
+
             if (i->second_.colorAttachments_[j] != renderTargets_[j])
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, renderTargets_[j]->GetTarget(),
@@ -2821,11 +2822,11 @@ void Graphics::CommitFramebuffer()
             if (i->second_.colorAttachments_[j])
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, 0, 0);
-                i->second_.colorAttachments_[j] = 0;
+                i->second_.colorAttachments_[j] = nullptr;
             }
         }
     }
-    
+
     if (depthStencil_)
     {
         // Bind either a renderbuffer or a depth texture, depending on what is available
@@ -2843,7 +2844,7 @@ void Graphics::CommitFramebuffer()
             {
                 SetTextureForUpdate(texture);
                 texture->UpdateParameters();
-                SetTexture(0, 0);
+                SetTexture(0, nullptr);
             }
 
             if (i->second_.depthAttachment_ != depthStencil_)
@@ -2856,7 +2857,7 @@ void Graphics::CommitFramebuffer()
                 }
                 else
                     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-                
+
                 i->second_.depthAttachment_ = depthStencil_;
             }
         }
@@ -2872,7 +2873,7 @@ void Graphics::CommitFramebuffer()
                 }
                 else
                     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-                
+
                 i->second_.depthAttachment_ = depthStencil_;
             }
         }
@@ -2883,10 +2884,10 @@ void Graphics::CommitFramebuffer()
         {
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-            i->second_.depthAttachment_ = 0;
+            i->second_.depthAttachment_ = nullptr;
         }
     }
-    
+
     #ifndef GL_ES_VERSION_2_0
     // Disable/enable sRGB write
     if (sRGBWriteSupport_)
@@ -2913,8 +2914,8 @@ void Graphics::CleanupFramebuffers(bool force)
 {
     if (!IsDeviceLost())
     {
-        for (HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.Begin();
-            i != impl_->frameBuffers_.End();)
+        for (HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.begin();
+            i != impl_->frameBuffers_.end();)
         {
             if (i->second_.fbo_ != impl_->boundFbo_ && (force || i->second_.useTimer_.GetMSec(false) >
                 MAX_FRAMEBUFFER_AGE))
@@ -2937,25 +2938,25 @@ void Graphics::ResetCachedState()
 {
     for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
     {
-        vertexBuffers_[i] = 0;
+        vertexBuffers_[i] = nullptr;
         elementMasks_[i] = 0;
     }
-    
+
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
     {
-        textures_[i] = 0;
+        textures_[i] = nullptr;
         textureTypes_[i] = 0;
     }
-    
-    for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-        renderTargets_[i] = 0;
-    
-    depthStencil_ = 0;
+
+    for (auto & elem : renderTargets_)
+        elem = nullptr;
+
+    depthStencil_ = nullptr;
     viewport_ = IntRect(0, 0, 0, 0);
-    indexBuffer_ = 0;
-    vertexShader_ = 0;
-    pixelShader_ = 0;
-    shaderProgram_ = 0;
+    indexBuffer_ = nullptr;
+    vertexShader_ = nullptr;
+    pixelShader_ = nullptr;
+    shaderProgram_ = nullptr;
     blendMode_ = BLEND_REPLACE;
     textureAnisotropy_ = 1;
     colorWrite_ = true;
@@ -2982,7 +2983,7 @@ void Graphics::ResetCachedState()
     impl_->enabledAttributes_ = 0;
     impl_->boundFbo_ = impl_->systemFbo_;
     impl_->sRGBWrite_ = false;
-    
+
     // Set initial state to match Direct3D
     if (impl_->context_)
     {

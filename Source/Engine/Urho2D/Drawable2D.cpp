@@ -206,7 +206,7 @@ void Drawable2D::SetSpriteAttr(ResourceRef value)
 
 ResourceRef Drawable2D::GetSpriteAttr() const
 {
-    SpriteSheet2D* spriteSheet = 0;
+    SpriteSheet2D* spriteSheet = nullptr;
     if (sprite_)
         spriteSheet = sprite_->GetSpriteSheet();
 

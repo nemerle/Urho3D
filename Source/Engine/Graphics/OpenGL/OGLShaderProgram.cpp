@@ -36,8 +36,8 @@ ShaderProgram::ShaderProgram(Graphics* graphics, ShaderVariation* vertexShader, 
     vertexShader_(vertexShader),
     pixelShader_(pixelShader)
 {
-    for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        useTextureUnit_[i] = false;
+    for (auto & elem : useTextureUnit_)
+        elem = false;
 }
 
 ShaderProgram::~ShaderProgram()
@@ -50,7 +50,7 @@ void ShaderProgram::OnDeviceLost()
     GPUObject::OnDeviceLost();
     
     if (graphics_ && graphics_->GetShaderProgram() == this)
-        graphics_->SetShaders(0, 0);
+        graphics_->SetShaders(nullptr, nullptr);
     
 
     linkerOutput_.Clear();
@@ -66,7 +66,7 @@ void ShaderProgram::Release()
         if (!graphics_->IsDeviceLost())
         {
             if (graphics_->GetShaderProgram() == this)
-                graphics_->SetShaders(0, 0);
+                graphics_->SetShaders(nullptr, nullptr);
             
             glDeleteProgram(object_);
         }
@@ -75,8 +75,8 @@ void ShaderProgram::Release()
         linkerOutput_.Clear();
         shaderParameters_.Clear();
         
-        for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-            useTextureUnit_[i] = false;
+        for (auto & elem : useTextureUnit_)
+            elem = false;
     }
 }
 
@@ -147,7 +147,7 @@ bool ShaderProgram::Link()
         unsigned type;
         int count;
         
-        glGetActiveUniform(object_, i, MAX_PARAMETER_NAME_LENGTH, 0, &count, &type, uniformName);
+        glGetActiveUniform(object_, i, MAX_PARAMETER_NAME_LENGTH, nullptr, &count, &type, uniformName);
         int location = glGetUniformLocation(object_, uniformName);
         
         // Skip inbuilt or disabled uniforms
@@ -218,16 +218,16 @@ ShaderVariation* ShaderProgram::GetPixelShader() const
 
 bool ShaderProgram::HasParameter(StringHash param) const
 {
-    return shaderParameters_.Find(param) != shaderParameters_.End();
+    return shaderParameters_.Find(param) != shaderParameters_.end();
 }
 
 const ShaderParameter* ShaderProgram::GetParameter(StringHash param) const
 {
     HashMap<StringHash, ShaderParameter>::ConstIterator i = shaderParameters_.Find(param);
-    if (i != shaderParameters_.End())
+    if (i != shaderParameters_.end())
         return &i->second_;
     else
-        return 0;
+        return nullptr;
 }
 
 }

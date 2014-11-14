@@ -133,7 +133,7 @@ void DebugHud::Update()
         if (!appStats_.Empty())
         {
             stats.Append("\n");
-            for (HashMap<String, String>::ConstIterator i = appStats_.Begin(); i != appStats_.End(); ++i)
+            for (HashMap<String, String>::ConstIterator i = appStats_.begin(); i != appStats_.end(); ++i)
                 stats.AppendWithFormat("\n%s %s", i->first_.CString(), i->second_.CString());
         }
 

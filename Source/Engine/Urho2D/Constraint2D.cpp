@@ -39,7 +39,7 @@ extern const char* URHO2D_CATEGORY;
 
 Constraint2D::Constraint2D(Context* context) :
     Component(context),
-    joint_(0),
+    joint_(nullptr),
     collideConnected_(false)
 {
 
@@ -91,7 +91,7 @@ void Constraint2D::ReleaseJoint()
     if (physicsWorld_)
         physicsWorld_->GetWorld()->DestroyJoint(joint_);
 
-    joint_ = 0;
+    joint_ = nullptr;
 }
 
 void Constraint2D::SetOtherBody(RigidBody2D* body)

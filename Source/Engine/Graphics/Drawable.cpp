@@ -42,7 +42,7 @@ const char* GEOMETRY_CATEGORY = "Geometry";
 
 SourceBatch::SourceBatch() :
     distance_(0.0f),
-    geometry_(0),
+    geometry_(nullptr),
     worldTransform_(&Matrix3x4::IDENTITY),
     numWorldTransforms_(1),
     geometryType_(GEOM_STATIC),
@@ -77,9 +77,9 @@ Drawable::Drawable(Context* context, unsigned char drawableFlags) :
     lodBias_(1.0f),
     basePassFlags_(0),
     maxLights_(0),
-    octant_(0),
-    firstLight_(0),
-    zone_(0),
+    octant_(nullptr),
+    firstLight_(nullptr),
+    zone_(nullptr),
     zoneDirty_(false)
 {
 }
@@ -157,7 +157,7 @@ Geometry* Drawable::GetLodGeometry(unsigned batchIndex, unsigned level)
     if (batchIndex < batches_.Size())
         return batches_[batchIndex].geometry_;
     else
-        return 0;
+        return nullptr;
 }
 
 bool Drawable::DrawOcclusion(OcclusionBuffer* buffer)
@@ -334,8 +334,8 @@ void Drawable::LimitLights()
     for (unsigned i = 0; i < lights_.Size(); ++i)
         lights_[i]->SetIntensitySortValue(box);
 
-    Sort(lights_.Begin(), lights_.End(), CompareDrawables);
-    vertexLights_.Insert(vertexLights_.End(), lights_.Begin() + maxLights_, lights_.End());
+    Sort(lights_.begin(), lights_.end(), CompareDrawables);
+    vertexLights_.Insert(vertexLights_.end(), lights_.begin() + maxLights_, lights_.end());
     lights_.Resize(maxLights_);
 }
 
@@ -348,7 +348,7 @@ void Drawable::LimitVertexLights()
     for (unsigned i = vertexLights_.Size() - 1; i < vertexLights_.Size(); --i)
         vertexLights_[i]->SetIntensitySortValue(box);
 
-    Sort(vertexLights_.Begin(), vertexLights_.End(), CompareDrawables);
+    Sort(vertexLights_.begin(), vertexLights_.end(), CompareDrawables);
     vertexLights_.Resize(MAX_VERTEX_LIGHTS);
 }
 

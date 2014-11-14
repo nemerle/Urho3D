@@ -282,8 +282,8 @@ void Zone::UpdateAmbientGradient()
 
         // Gradient start position: get the highest priority zone that is not this zone
         int bestPriority = M_MIN_INT;
-        Zone* bestZone = 0;
-        for (PODVector<Zone*>::ConstIterator i = result.Begin(); i != result.End(); ++i)
+        Zone* bestZone = nullptr;
+        for (PODVector<Zone*>::ConstIterator i = result.begin(); i != result.end(); ++i)
         {
             Zone* zone = *i;
             int priority = zone->GetPriority();
@@ -306,9 +306,9 @@ void Zone::UpdateAmbientGradient()
             octant_->GetRoot()->GetDrawables(query);
         }
         bestPriority = M_MIN_INT;
-        bestZone = 0;
+        bestZone = nullptr;
 
-        for (PODVector<Zone*>::ConstIterator i = result.Begin(); i != result.End(); ++i)
+        for (PODVector<Zone*>::ConstIterator i = result.begin(); i != result.end(); ++i)
         {
             Zone* zone = *i;
             int priority = zone->GetPriority();
@@ -340,12 +340,12 @@ void Zone::ClearDrawablesZone()
         BoxOctreeQuery query(result, lastWorldBoundingBox_, DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY | DRAWABLE_ZONE);
         octant_->GetRoot()->GetDrawables(query);
 
-        for (PODVector<Drawable*>::Iterator i = result.Begin(); i != result.End(); ++i)
+        for (auto drawable : result)
         {
-            Drawable* drawable = *i;
+            
             unsigned drawableFlags = drawable->GetDrawableFlags();
             if (drawableFlags & (DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY))
-                drawable->SetZone(0);
+                drawable->SetZone(nullptr);
             else if (drawableFlags & DRAWABLE_ZONE)
             {
                 Zone* zone = static_cast<Zone*>(drawable);

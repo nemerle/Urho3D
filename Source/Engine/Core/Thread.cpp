@@ -46,15 +46,15 @@ void* ThreadFunctionStatic(void* data)
 {
     Thread* thread = static_cast<Thread*>(data);
     thread->ThreadFunction();
-    pthread_exit((void*)0);
-    return 0;
+    pthread_exit((void*)nullptr);
+    return nullptr;
 }
 #endif
 
 ThreadID Thread::mainThreadID;
 
 Thread::Thread() :
-    handle_(0),
+    handle_(nullptr),
     shouldRun_(false)
 {
 }
@@ -80,7 +80,7 @@ bool Thread::Run()
     pthread_attr_setdetachstate(&type, PTHREAD_CREATE_JOINABLE);
     pthread_create((pthread_t*)handle_, &type, ThreadFunctionStatic, this);
     #endif
-    return handle_ != 0;
+    return handle_ != nullptr;
 }
 
 void Thread::Stop()
@@ -96,10 +96,10 @@ void Thread::Stop()
     #else
     pthread_t* thread = (pthread_t*)handle_;
     if (thread)
-        pthread_join(*thread, 0);
+        pthread_join(*thread, nullptr);
     delete thread;
     #endif
-    handle_ = 0;
+    handle_ = nullptr;
 }
 
 void Thread::SetPriority(int priority)

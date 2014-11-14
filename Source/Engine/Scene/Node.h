@@ -549,7 +549,7 @@ template <class T> bool Node::HasComponent() const { return HasComponent(T::GetT
 
 template <class T> T* Node::GetDerivedComponent() const
 {
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.Begin(); i != components_.End(); ++i)
+    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
     {
         T* component = dynamic_cast<T*>(i->Get());
         if (component)
@@ -563,7 +563,7 @@ template <class T> void Node::GetDerivedComponents(PODVector<T*>& dest) const
 {
     dest.Clear();
 
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.Begin(); i != components_.End(); ++i)
+    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
     {
         T* component = dynamic_cast<T*>(i->Get());
         if (component)

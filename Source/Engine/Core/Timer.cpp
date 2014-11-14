@@ -130,7 +130,7 @@ unsigned Time::GetSystemTime()
     unsigned currentTime = timeGetTime();
     #else
     struct timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, nullptr);
     unsigned currentTime = time.tv_sec * 1000 + time.tv_usec / 1000;
     #endif
     
@@ -139,7 +139,7 @@ unsigned Time::GetSystemTime()
 
 unsigned Time::GetTimeSinceEpoch()
 {
-    return (unsigned)time(NULL);
+    return (unsigned)time(nullptr);
 }
 
 String Time::GetTimeStamp()
@@ -170,7 +170,7 @@ unsigned Timer::GetMSec(bool reset)
     unsigned currentTime = timeGetTime();
     #else
     struct timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, nullptr);
     unsigned currentTime = time.tv_sec * 1000 + time.tv_usec / 1000;
     #endif
     
@@ -187,7 +187,7 @@ void Timer::Reset()
     startTime_ = timeGetTime();
     #else
     struct timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, nullptr);
     startTime_ = time.tv_sec * 1000 + time.tv_usec / 1000;
     #endif
 }
@@ -212,7 +212,7 @@ long long HiresTimer::GetUSec(bool reset)
         currentTime = timeGetTime();
     #else
     struct timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, nullptr);
     currentTime = time.tv_sec * 1000000LL + time.tv_usec;
     #endif
     
@@ -241,7 +241,7 @@ void HiresTimer::Reset()
         startTime_ = timeGetTime();
     #else
     struct timeval time;
-    gettimeofday(&time, NULL);
+    gettimeofday(&time, nullptr);
     startTime_ = time.tv_sec * 1000000LL + time.tv_usec;
     #endif
 }

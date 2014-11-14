@@ -109,7 +109,7 @@ VertexBuffer::VertexBuffer(Context* context) :
     lockState_(LOCK_NONE),
     lockStart_(0),
     lockCount_(0),
-    lockScratchData_(0),
+    lockScratchData_(nullptr),
     shadowed_(false),
     dynamic_(false)
 {
@@ -152,7 +152,7 @@ void VertexBuffer::Release()
             for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
             {
                 if (graphics_->GetVertexBuffer(i) == this)
-                    graphics_->SetVertexBuffer(0);
+                    graphics_->SetVertexBuffer(nullptr);
             }
             
             glDeleteBuffers(1, &object_);
@@ -286,23 +286,23 @@ void* VertexBuffer::Lock(unsigned start, unsigned count, bool discard)
     if (lockState_ != LOCK_NONE)
     {
         LOGERROR("Vertex buffer already locked");
-        return 0;
+        return nullptr;
     }
     
     if (!vertexSize_)
     {
         LOGERROR("Vertex elements not defined, can not lock vertex buffer");
-        return 0;
+        return nullptr;
     }
     
     if (start + count > vertexCount_)
     {
         LOGERROR("Illegal range for locking vertex buffer");
-        return 0;
+        return nullptr;
     }
     
     if (!count)
-        return 0;
+        return nullptr;
     
     lockStart_ = start;
     lockCount_ = count;
@@ -319,7 +319,7 @@ void* VertexBuffer::Lock(unsigned start, unsigned count, bool discard)
         return lockScratchData_;
     }
     else
-        return 0;
+        return nullptr;
 }
 
 void VertexBuffer::Unlock()
@@ -335,7 +335,7 @@ void VertexBuffer::Unlock()
         SetDataRange(lockScratchData_, lockStart_, lockCount_);
         if (graphics_)
             graphics_->FreeScratchBuffer(lockScratchData_);
-        lockScratchData_ = 0;
+        lockScratchData_ = nullptr;
         lockState_ = LOCK_NONE;
         break;
     
@@ -411,7 +411,7 @@ bool VertexBuffer::Create()
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, object_);
-        glBufferData(GL_ARRAY_BUFFER, vertexCount_ * vertexSize_, 0, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertexCount_ * vertexSize_, nullptr, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
     
     return true;

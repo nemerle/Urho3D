@@ -131,7 +131,7 @@ void CustomGeometry::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQ
 
 Geometry* CustomGeometry::GetLodGeometry(unsigned batchIndex, unsigned level)
 {
-    return batchIndex < geometries_.Size() ? geometries_[batchIndex] : (Geometry*)0;
+    return batchIndex < geometries_.Size() ? geometries_[batchIndex] : (Geometry*)nullptr;
 }
 
 unsigned CustomGeometry::GetNumOccluderTriangles()
@@ -426,13 +426,13 @@ unsigned CustomGeometry::GetNumVertices(unsigned index) const
 
 Material* CustomGeometry::GetMaterial(unsigned index) const
 {
-    return index < batches_.Size() ? batches_[index].material_ : (Material*)0;
+    return index < batches_.Size() ? batches_[index].material_ : (Material*)nullptr;
 }
 
 CustomGeometryVertex* CustomGeometry::GetVertex(unsigned geometryIndex, unsigned vertexNum)
 {
     return (geometryIndex < vertices_.Size() && vertexNum < vertices_[geometryIndex].Size()) ?
-        &vertices_[geometryIndex][vertexNum] : (CustomGeometryVertex*)0;
+        &vertices_[geometryIndex][vertexNum] : (CustomGeometryVertex*)nullptr;
 }
 
 void CustomGeometry::SetGeometryDataAttr(PODVector<unsigned char> value)

@@ -75,11 +75,11 @@ struct NavigationBuildData
     /// Construct.
     NavigationBuildData() :
         ctx_(new rcContext(false)),
-        heightField_(0),
-        compactHeightField_(0),
-        contourSet_(0),
-        polyMesh_(0),
-        polyMeshDetail_(0)
+        heightField_(nullptr),
+        compactHeightField_(nullptr),
+        contourSet_(nullptr),
+        polyMesh_(nullptr),
+        polyMeshDetail_(nullptr)
     {
     }
     
@@ -93,12 +93,12 @@ struct NavigationBuildData
         rcFreePolyMesh(polyMesh_);
         rcFreePolyMeshDetail(polyMeshDetail_);
         
-        ctx_ = 0;
-        heightField_ = 0;
-        compactHeightField_ = 0;
-        contourSet_ = 0;
-        polyMesh_ = 0;
-        polyMeshDetail_ = 0;
+        ctx_ = nullptr;
+        heightField_ = nullptr;
+        compactHeightField_ = nullptr;
+        contourSet_ = nullptr;
+        polyMesh_ = nullptr;
+        polyMeshDetail_ = nullptr;
     }
     
     /// World-space bounding box of the navigation mesh tile.
@@ -146,8 +146,8 @@ struct FindPathData
 
 NavigationMesh::NavigationMesh(Context* context) :
     Component(context),
-    navMesh_(0),
-    navMeshQuery_(0),
+    navMesh_(nullptr),
+    navMeshQuery_(nullptr),
     queryFilter_(new dtQueryFilter()),
     pathData_(new FindPathData()),
     tileSize_(DEFAULT_TILE_SIZE),
@@ -174,10 +174,10 @@ NavigationMesh::~NavigationMesh()
     ReleaseNavigationMesh();
     
     delete queryFilter_;
-    queryFilter_ = 0;
+    queryFilter_ = nullptr;
     
     delete pathData_;
-    pathData_ = 0;
+    pathData_ = nullptr;
 }
 
 void NavigationMesh::RegisterObject(Context* context)
@@ -494,7 +494,7 @@ Vector3 NavigationMesh::MoveAlongSurface(const Vector3& start, const Vector3& en
     Vector3 localEnd = inverse * end;
     
     dtPolyRef startRef;
-    navMeshQuery_->findNearestPoly(&localStart.x_, &extents.x_, queryFilter_, &startRef, 0);
+    navMeshQuery_->findNearestPoly(&localStart.x_, &extents.x_, queryFilter_, &startRef, nullptr);
     if (!startRef)
         return end;
     
@@ -503,7 +503,7 @@ Vector3 NavigationMesh::MoveAlongSurface(const Vector3& start, const Vector3& en
     maxVisited = Max(maxVisited, 0);
     PODVector<dtPolyRef> visited(maxVisited);
     navMeshQuery_->moveAlongSurface(startRef, &localStart.x_, &localEnd.x_, queryFilter_, &resultPos.x_, maxVisited ?
-        &visited[0] : (dtPolyRef*)0, &visitedCount, maxVisited);
+        &visited[0] : (dtPolyRef*)nullptr, &visitedCount, maxVisited);
     return transform * resultPos;
 }
 
@@ -525,8 +525,8 @@ void NavigationMesh::FindPath(PODVector<Vector3>& dest, const Vector3& start, co
     
     dtPolyRef startRef;
     dtPolyRef endRef;
-    navMeshQuery_->findNearestPoly(&localStart.x_, &extents.x_, queryFilter_, &startRef, 0);
-    navMeshQuery_->findNearestPoly(&localEnd.x_, &extents.x_, queryFilter_, &endRef, 0);
+    navMeshQuery_->findNearestPoly(&localStart.x_, &extents.x_, queryFilter_, &startRef, nullptr);
+    navMeshQuery_->findNearestPoly(&localEnd.x_, &extents.x_, queryFilter_, &endRef, nullptr);
     
     if (!startRef || !endRef)
         return;
@@ -543,7 +543,7 @@ void NavigationMesh::FindPath(PODVector<Vector3>& dest, const Vector3& start, co
     
     // If full path was not found, clamp end point to the end polygon
     if (pathData_->polys_[numPolys - 1] != endRef)
-        navMeshQuery_->closestPointOnPoly(pathData_->polys_[numPolys - 1], &localEnd.x_, &actualLocalEnd.x_, 0);
+        navMeshQuery_->closestPointOnPoly(pathData_->polys_[numPolys - 1], &localEnd.x_, &actualLocalEnd.x_, nullptr);
     
     navMeshQuery_->findStraightPath(&localStart.x_, &actualLocalEnd.x_, pathData_->polys_, numPolys,
         &pathData_->pathPoints_[0].x_, pathData_->pathFlags_, pathData_->pathPolys_, &numPathPoints, MAX_POLYS);
@@ -576,7 +576,7 @@ Vector3 NavigationMesh::GetRandomPointInCircle(const Vector3& center, float radi
     Vector3 localCenter = inverse * center;
     
     dtPolyRef startRef;
-    navMeshQuery_->findNearestPoly(&localCenter.x_, &extents.x_, queryFilter_, &startRef, 0);
+    navMeshQuery_->findNearestPoly(&localCenter.x_, &extents.x_, queryFilter_, &startRef, nullptr);
     if (!startRef)
         return center;
     
@@ -598,7 +598,7 @@ float NavigationMesh::GetDistanceToWall(const Vector3& point, float radius, cons
     Vector3 localPoint = inverse * point;
     
     dtPolyRef startRef;
-    navMeshQuery_->findNearestPoly(&localPoint.x_, &extents.x_, queryFilter_, &startRef, 0);
+    navMeshQuery_->findNearestPoly(&localPoint.x_, &extents.x_, queryFilter_, &startRef, nullptr);
     if (!startRef)
         return radius;
     
@@ -622,7 +622,7 @@ Vector3 NavigationMesh::Raycast(const Vector3& start, const Vector3& end, const 
     Vector3 localEnd = inverse * end;
     
     dtPolyRef startRef;
-    navMeshQuery_->findNearestPoly(&localStart.x_, &extents.x_, queryFilter_, &startRef, 0);
+    navMeshQuery_->findNearestPoly(&localStart.x_, &extents.x_, queryFilter_, &startRef, nullptr);
     if (!startRef)
         return end;
     
@@ -704,7 +704,7 @@ void NavigationMesh::SetNavigationDataAttr(PODVector<unsigned char> value)
         }
         
         buffer.Read(navData, navDataSize);
-        if (dtStatusFailed(navMesh_->addTile(navData, navDataSize, DT_TILE_FREE_DATA, 0, 0)))
+        if (dtStatusFailed(navMesh_->addTile(navData, navDataSize, DT_TILE_FREE_DATA, 0, nullptr)))
         {
             LOGERROR("Failed to add navigation mesh tile");
             dtFree(navData);
@@ -947,8 +947,8 @@ void NavigationMesh::GetTileGeometry(NavigationBuildData& build, Vector<Navigati
                             4, 0, 3, 4, 3, 7, 1, 0, 4, 1, 4, 5
                         };
                         
-                        for (unsigned j = 0; j < 36; ++j)
-                            build.indices_.Push(indices[j] + destVertexStart);
+                        for (auto & indice : indices)
+                            build.indices_.Push(indice + destVertexStart);
                     }
                     break;
                         
@@ -1032,7 +1032,7 @@ bool NavigationMesh::BuildTile(Vector<NavigationGeometryInfo>& geometryList, int
     PROFILE(BuildNavigationMeshTile);
     
     // Remove previous tile (if any)
-    navMesh_->removeTile(navMesh_->getTileRefAt(x, z, 0), 0, 0);
+    navMesh_->removeTile(navMesh_->getTileRefAt(x, z, 0), nullptr, nullptr);
     
     float tileEdgeLength = (float)tileSize_ * cellSize_;
     
@@ -1183,7 +1183,7 @@ bool NavigationMesh::BuildTile(Vector<NavigationGeometryInfo>& geometryList, int
             build.polyMesh_->flags[i] = 0x1;
     }
     
-    unsigned char* navData = 0;
+    unsigned char* navData = nullptr;
     int navDataSize = 0;
     
     dtNavMeshCreateParams params;
@@ -1228,7 +1228,7 @@ bool NavigationMesh::BuildTile(Vector<NavigationGeometryInfo>& geometryList, int
         return false;
     }
     
-    if (dtStatusFailed(navMesh_->addTile(navData, navDataSize, DT_TILE_FREE_DATA, 0, 0)))
+    if (dtStatusFailed(navMesh_->addTile(navData, navDataSize, DT_TILE_FREE_DATA, 0, nullptr)))
     {
         LOGERROR("Failed to add navigation mesh tile");
         dtFree(navData);
@@ -1265,10 +1265,10 @@ bool NavigationMesh::InitializeQuery()
 void NavigationMesh::ReleaseNavigationMesh()
 {
     dtFreeNavMesh(navMesh_);
-    navMesh_ = 0;
+    navMesh_ = nullptr;
     
     dtFreeNavMeshQuery(navMeshQuery_);
-    navMeshQuery_ = 0;
+    navMeshQuery_ = nullptr;
     
     numTilesX_ = 0;
     numTilesZ_ = 0;

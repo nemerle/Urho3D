@@ -85,10 +85,10 @@ Scene::~Scene()
     RemoveAllChildren();
 
     // Remove scene reference and owner from all nodes that still exist
-    for (HashMap<unsigned, Node*>::Iterator i = replicatedNodes_.Begin(); i != replicatedNodes_.End(); ++i)
-        i->second_->ResetScene();
-    for (HashMap<unsigned, Node*>::Iterator i = localNodes_.Begin(); i != localNodes_.End(); ++i)
-        i->second_->ResetScene();
+    for (auto & elem : replicatedNodes_)
+        elem.second_->ResetScene();
+    for (auto & elem : localNodes_)
+        elem.second_->ResetScene();
 }
 
 void Scene::RegisterObject(Context* context)
@@ -169,7 +169,7 @@ bool Scene::LoadXML(const XMLElement& source, bool setInstanceDefault)
     // Note: the scene filename and checksum can not be set, as we only used an XML element
     if (Node::LoadXML(source, setInstanceDefault))
     {
-        FinishLoading(0);
+        FinishLoading(nullptr);
         return true;
     }
     else
@@ -190,7 +190,7 @@ void Scene::AddReplicationState(NodeReplicationState* state)
     Node::AddReplicationState(state);
 
     // This is the first update for a new connection. Mark all replicated nodes dirty
-    for (HashMap<unsigned, Node*>::ConstIterator i = replicatedNodes_.Begin(); i != replicatedNodes_.End(); ++i)
+    for (HashMap<unsigned, Node*>::ConstIterator i = replicatedNodes_.begin(); i != replicatedNodes_.end(); ++i)
         state->sceneState_->dirtyNodes_.Insert(i->first_);
 }
 
@@ -268,25 +268,25 @@ bool Scene::LoadAsync(File* file, LoadMode mode)
         LOGINFO("Loading scene from " + file->GetName());
         Clear();
     }
-    
+
     asyncLoading_ = true;
     asyncProgress_.file_ = file;
     asyncProgress_.mode_ = mode;
     asyncProgress_.loadedNodes_ = asyncProgress_.totalNodes_ = asyncProgress_.loadedResources_ = asyncProgress_.totalResources_ = 0;
     asyncProgress_.resources_.Clear();
-    
+
     if (mode > LOAD_RESOURCES_ONLY)
     {
         // Preload resources if appropriate, then return to the original position for loading the scene content
         if (mode != LOAD_SCENE)
         {
             PROFILE(FindResourcesToPreload);
-            
+
             unsigned currentPos = file->GetPosition();
             PreloadResources(file, isSceneFile);
             file->Seek(currentPos);
         }
-        
+
         // Store own old ID for resolving possible root node references
         unsigned nodeID = file->ReadUInt();
         resolver_.AddNode(nodeID, this);
@@ -297,14 +297,14 @@ bool Scene::LoadAsync(File* file, LoadMode mode)
             StopAsyncLoading();
             return false;
         }
-        
+
         // Then prepare to load child nodes in the async updates
         asyncProgress_.totalNodes_ = file->ReadVLE();
     }
     else
     {
         PROFILE(FindResourcesToPreload);
-        
+
         LOGINFO("Preloading resources from " + file->GetName());
         PreloadResources(file, isSceneFile);
     }
@@ -331,26 +331,26 @@ bool Scene::LoadAsyncXML(File* file, LoadMode mode)
         LOGINFO("Loading scene from " + file->GetName());
         Clear();
     }
-    
+
     asyncLoading_ = true;
     asyncProgress_.xmlFile_ = xml;
     asyncProgress_.file_ = file;
     asyncProgress_.mode_ = mode;
     asyncProgress_.loadedNodes_ = asyncProgress_.totalNodes_ = asyncProgress_.loadedResources_ = asyncProgress_.totalResources_ = 0;
     asyncProgress_.resources_.Clear();
-    
+
     if (mode > LOAD_RESOURCES_ONLY)
     {
         XMLElement rootElement = xml->GetRoot();
-        
+
         // Preload resources if appropriate
         if (mode != LOAD_SCENE)
         {
             PROFILE(FindResourcesToPreload);
-            
+
             PreloadResourcesXML(rootElement);
         }
-        
+
         // Store own old ID for resolving possible root node references
         unsigned nodeID = rootElement.GetInt("id");
         resolver_.AddNode(nodeID, this);
@@ -373,11 +373,11 @@ bool Scene::LoadAsyncXML(File* file, LoadMode mode)
     else
     {
         PROFILE(FindResourcesToPreload);
-        
+
         LOGINFO("Preloading resources from " + file->GetName());
         PreloadResourcesXML(xml->GetRoot());
     }
-    
+
     return true;
 }
 
@@ -410,7 +410,7 @@ Node* Scene::Instantiate(Deserializer& source, const Vector3& position, const Qu
     else
     {
         node->Remove();
-        return 0;
+        return nullptr;
     }
 }
 
@@ -433,7 +433,7 @@ Node* Scene::InstantiateXML(const XMLElement& source, const Vector3& position, c
     else
     {
         node->Remove();
-        return 0;
+        return nullptr;
     }
 }
 
@@ -441,7 +441,7 @@ Node* Scene::InstantiateXML(Deserializer& source, const Vector3& position, const
 {
     SharedPtr<XMLFile> xml(new XMLFile(context_));
     if (!xml->Load(source))
-        return 0;
+        return nullptr;
 
     return InstantiateXML(xml->GetRoot(), position, rotation, mode);
 }
@@ -542,18 +542,18 @@ Node* Scene::GetNode(unsigned id) const
     if (id < FIRST_LOCAL_ID)
     {
         HashMap<unsigned, Node*>::ConstIterator i = replicatedNodes_.Find(id);
-        if (i != replicatedNodes_.End())
+        if (i != replicatedNodes_.end())
             return i->second_;
         else
-            return 0;
+            return nullptr;
     }
     else
     {
         HashMap<unsigned, Node*>::ConstIterator i = localNodes_.Find(id);
-        if (i != localNodes_.End())
+        if (i != localNodes_.end())
             return i->second_;
         else
-            return 0;
+            return nullptr;
     }
 }
 
@@ -562,18 +562,18 @@ Component* Scene::GetComponent(unsigned id) const
     if (id < FIRST_LOCAL_ID)
     {
         HashMap<unsigned, Component*>::ConstIterator i = replicatedComponents_.Find(id);
-        if (i != replicatedComponents_.End())
+        if (i != replicatedComponents_.end())
             return i->second_;
         else
-            return 0;
+            return nullptr;
     }
     else
     {
         HashMap<unsigned, Component*>::ConstIterator i = localComponents_.Find(id);
-        if (i != localComponents_.End())
+        if (i != localComponents_.end())
             return i->second_;
         else
-            return 0;
+            return nullptr;
     }
 }
 
@@ -583,7 +583,7 @@ float Scene::GetAsyncProgress() const
         return 1.0f;
     else
     {
-        return (float)(asyncProgress_.loadedNodes_ + asyncProgress_.loadedResources_) / (float)(asyncProgress_.totalNodes_ + 
+        return (float)(asyncProgress_.loadedNodes_ + asyncProgress_.loadedResources_) / (float)(asyncProgress_.totalNodes_ +
             asyncProgress_.totalResources_);
     }
 }
@@ -591,7 +591,7 @@ float Scene::GetAsyncProgress() const
 const String& Scene::GetVarName(StringHash hash) const
 {
     HashMap<StringHash, String>::ConstIterator i = varNames_.Find(hash);
-    return i != varNames_.End() ? i->second_ : String::EMPTY;
+    return i != varNames_.end() ? i->second_ : String::EMPTY;
 }
 
 void Scene::Update(float timeStep)
@@ -664,7 +664,7 @@ void Scene::EndThreadedUpdate()
     {
         PROFILE(EndThreadedUpdate);
 
-        for (PODVector<Component*>::ConstIterator i = delayedDirtyComponents_.Begin(); i != delayedDirtyComponents_.End(); ++i)
+        for (PODVector<Component*>::ConstIterator i = delayedDirtyComponents_.begin(); i != delayedDirtyComponents_.end(); ++i)
             (*i)->OnMarkedDirty((*i)->GetNode());
         delayedDirtyComponents_.Clear();
     }
@@ -768,7 +768,7 @@ void Scene::NodeAdded(Node* node)
     if (id < FIRST_LOCAL_ID)
     {
         HashMap<unsigned, Node*>::Iterator i = replicatedNodes_.Find(id);
-        if (i != replicatedNodes_.End() && i->second_ != node)
+        if (i != replicatedNodes_.end() && i->second_ != node)
         {
             LOGWARNING("Overwriting node with ID " + String(id));
             i->second_->ResetScene();
@@ -782,7 +782,7 @@ void Scene::NodeAdded(Node* node)
     else
     {
         HashMap<unsigned, Node*>::Iterator i = localNodes_.Find(id);
-        if (i != localNodes_.End() && i->second_ != node)
+        if (i != localNodes_.end() && i->second_ != node)
         {
             LOGWARNING("Overwriting node with ID " + String(id));
             i->second_->ResetScene();
@@ -807,7 +807,7 @@ void Scene::NodeRemoved(Node* node)
         localNodes_.Erase(id);
 
     node->SetID(0);
-    node->SetScene(0);
+    node->SetScene(nullptr);
 }
 
 void Scene::ComponentAdded(Component* component)
@@ -819,7 +819,7 @@ void Scene::ComponentAdded(Component* component)
     if (id < FIRST_LOCAL_ID)
     {
         HashMap<unsigned, Component*>::Iterator i = replicatedComponents_.Find(id);
-        if (i != replicatedComponents_.End() && i->second_ != component)
+        if (i != replicatedComponents_.end() && i->second_ != component)
         {
             LOGWARNING("Overwriting component with ID " + String(id));
             i->second_->SetID(0);
@@ -830,7 +830,7 @@ void Scene::ComponentAdded(Component* component)
     else
     {
         HashMap<unsigned, Component*>::Iterator i = localComponents_.Find(id);
-        if (i != localComponents_.End() && i->second_ != component)
+        if (i != localComponents_.end() && i->second_ != component)
         {
             LOGWARNING("Overwriting component with ID " + String(id));
             i->second_->SetID(0);
@@ -859,7 +859,7 @@ void Scene::SetVarNamesAttr(String value)
     Vector<String> varNames = value.Split(';');
 
     varNames_.Clear();
-    for (Vector<String>::ConstIterator i = varNames.Begin(); i != varNames.End(); ++i)
+    for (Vector<String>::ConstIterator i = varNames.begin(); i != varNames.end(); ++i)
         varNames_[*i] = *i;
 }
 
@@ -869,8 +869,8 @@ String Scene::GetVarNamesAttr() const
 
     if (!varNames_.Empty())
     {
-        for (HashMap<StringHash, String>::ConstIterator i = varNames_.Begin(); i != varNames_.End(); ++i)
-            ret += i->second_ + ';';
+        for (const auto & elem : varNames_)
+            ret += elem.second_ + ';';
 
         ret.Resize(ret.Length() - 1);
     }
@@ -880,16 +880,16 @@ String Scene::GetVarNamesAttr() const
 
 void Scene::PrepareNetworkUpdate()
 {
-    for (HashSet<unsigned>::Iterator i = networkUpdateNodes_.Begin(); i != networkUpdateNodes_.End(); ++i)
+    for (unsigned node_id : networkUpdateNodes_)
     {
-        Node* node = GetNode(*i);
+        Node* node = GetNode(node_id);
         if (node)
             node->PrepareNetworkUpdate();
     }
 
-    for (HashSet<unsigned>::Iterator i = networkUpdateComponents_.Begin(); i != networkUpdateComponents_.End(); ++i)
+    for (unsigned component_id : networkUpdateComponents_)
     {
-        Component* component = GetComponent(*i);
+        Component* component = GetComponent(component_id);
         if (component)
             component->PrepareNetworkUpdate();
     }
@@ -902,11 +902,11 @@ void Scene::CleanupConnection(Connection* connection)
 {
     Node::CleanupConnection(connection);
 
-    for (HashMap<unsigned, Node*>::Iterator i = replicatedNodes_.Begin(); i != replicatedNodes_.End(); ++i)
-        i->second_->CleanupConnection(connection);
+    for (auto & elem : replicatedNodes_)
+        elem.second_->CleanupConnection(connection);
 
-    for (HashMap<unsigned, Component*>::Iterator i = replicatedComponents_.Begin(); i != replicatedComponents_.End(); ++i)
-        i->second_->CleanupConnection(connection);
+    for (auto & elem : replicatedComponents_)
+        elem.second_->CleanupConnection(connection);
 }
 
 void Scene::MarkNetworkUpdate(Node* node)
@@ -943,10 +943,9 @@ void Scene::MarkReplicationDirty(Node* node)
 
     if (id < FIRST_LOCAL_ID && networkState_)
     {
-        for (PODVector<ReplicationState*>::Iterator i = networkState_->replicationStates_.Begin(); i !=
-            networkState_->replicationStates_.End(); ++i)
+        for (auto & elem : networkState_->replicationStates_)
         {
-            NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(*i);
+            NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
             nodeState->sceneState_->dirtyNodes_.Insert(id);
         }
     }
@@ -963,7 +962,7 @@ void Scene::HandleUpdate(StringHash eventType, VariantMap& eventData)
 void Scene::HandleResourceBackgroundLoaded(StringHash eventType, VariantMap& eventData)
 {
     using namespace ResourceBackgroundLoaded;
-    
+
     if (asyncLoading_)
     {
         Resource* resource = static_cast<Resource*>(eventData[P_RESOURCE].GetPtr());
@@ -982,7 +981,7 @@ void Scene::UpdateAsyncLoading()
     // If resources left to load, do not load nodes yet
     if (asyncProgress_.loadedResources_ < asyncProgress_.totalResources_)
         return;
-    
+
     HiresTimer asyncLoadTimer;
 
     for (;;)
@@ -1070,14 +1069,14 @@ void Scene::FinishSaving(Serializer* dest) const
 void Scene::PreloadResources(File* file, bool isSceneFile)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    
+
     // Read node ID (not needed)
     /*unsigned nodeID = */file->ReadUInt();
 
     // Read Node or Scene attributes; these do not include any resources
     const Vector<AttributeInfo>* attributes = context_->GetAttributes(isSceneFile ? Scene::GetTypeStatic() : Node::GetTypeStatic());
     assert(attributes);
-    
+
     for (unsigned i = 0; i < attributes->Size(); ++i)
     {
         const AttributeInfo& attr = attributes->At(i);
@@ -1085,7 +1084,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
             continue;
         Variant varValue = file->ReadVariant(attr.type_);
     }
-    
+
     // Read component attributes
     unsigned numComponents = file->ReadVLE();
     for (unsigned i = 0; i < numComponents; ++i)
@@ -1094,7 +1093,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
         StringHash compType = compBuffer.ReadStringHash();
         // Read component ID (not needed)
         /*unsigned compID = */compBuffer.ReadUInt();
-        
+
         attributes = context_->GetAttributes(compType);
         if (attributes)
         {
@@ -1133,7 +1132,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
              }
         }
     }
-    
+
     // Read child nodes
     unsigned numChildren = file->ReadVLE();
     for (unsigned i = 0; i < numChildren; ++i)
@@ -1143,7 +1142,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
 void Scene::PreloadResourcesXML(const XMLElement& element)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    
+
     // Node or Scene attributes do not include any resources; therefore skip to the components
     XMLElement compElem = element.GetChild("component");
     while (compElem)
@@ -1191,7 +1190,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
                                 }
                             }
                         }
-                        
+
                         startIndex = (i + 1) % attributes->Size();
                         break;
                     }
@@ -1201,7 +1200,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
                         --attempts;
                     }
                 }
-                
+
                 attrElem = attrElem.GetNext("attribute");
             }
         }

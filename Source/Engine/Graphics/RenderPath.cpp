@@ -41,14 +41,14 @@ static const char* commandTypeNames[] =
     "quad",
     "forwardlights",
     "lightvolumes",
-    0
+    nullptr
 };
 
 static const char* sortModeNames[] =
 {
     "fronttoback",
     "backtofront",
-    0
+    nullptr
 };
 
 TextureUnit ParseTextureUnitName(String name);
@@ -240,7 +240,7 @@ const String& RenderPathCommand::GetTextureName(TextureUnit unit) const
 const Variant& RenderPathCommand::GetShaderParameter(const String& name) const
 {
     HashMap<StringHash, Variant>::ConstIterator i = shaderParameters_.Find(name);
-    return i != shaderParameters_.End() ? i->second_ : Variant::EMPTY;
+    return i != shaderParameters_.end() ? i->second_ : Variant::EMPTY;
 }
 
 const String& RenderPathCommand::GetOutputName(unsigned index) const
@@ -414,7 +414,7 @@ void RenderPath::SetShaderParameter(const String& name, const Variant& value)
     for (unsigned i = 0; i < commands_.Size(); ++i)
     {
         HashMap<StringHash, Variant>::Iterator j = commands_[i].shaderParameters_.Find(nameHash);
-        if (j != commands_[i].shaderParameters_.End())
+        if (j != commands_[i].shaderParameters_.end())
             j->second_ = value;
     }
 }
@@ -426,7 +426,7 @@ const Variant& RenderPath::GetShaderParameter(const String& name) const
     for (unsigned i = 0; i < commands_.Size(); ++i)
     {
         HashMap<StringHash, Variant>::ConstIterator j = commands_[i].shaderParameters_.Find(nameHash);
-        if (j != commands_[i].shaderParameters_.End())
+        if (j != commands_[i].shaderParameters_.end())
             return j->second_;
     }
     

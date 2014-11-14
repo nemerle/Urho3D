@@ -97,7 +97,7 @@ static const char* typeNames[] =
     "Ambient",
     "Voice",
     "Music",
-    0
+    nullptr
 };
 
 static const float AUTOREMOVE_DELAY = 0.25f;
@@ -115,7 +115,7 @@ SoundSource::SoundSource(Context* context) :
     panning_(0.0f),
     autoRemoveTimer_(0.0f),
     autoRemove_(false),
-    position_(0),
+    position_(nullptr),
     fractPosition_(0),
     timePosition_(0.0f),
     unusedStreamSize_(0)
@@ -275,7 +275,7 @@ void SoundSource::SetAutoRemove(bool enable)
 
 bool SoundSource::IsPlaying() const
 {
-    return (sound_ || soundStream_) && position_ != 0;
+    return (sound_ || soundStream_) && position_ != nullptr;
 }
 
 void SoundSource::SetPlayPosition(signed char* pos)
@@ -405,7 +405,7 @@ void SoundSource::Mix(int* dest, unsigned samples, int mixRate, bool stereo, boo
         // If stream did not produce any data, stop if applicable
         if (!outBytes && soundStream_->GetStopAtEnd())
         {
-            position_ = 0;
+            position_ = nullptr;
             return;
         }
     }
@@ -523,7 +523,7 @@ void SoundSource::PlayLockless(SharedPtr<SoundStream> stream)
 
 void SoundSource::StopLockless()
 {
-    position_ = 0;
+    position_ = nullptr;
     timePosition_ = 0.0f;
     
     // Free the sound stream and decode buffer if a stream was playing
@@ -1205,7 +1205,7 @@ void SoundSource::MixZeroVolume(Sound* sound, unsigned samples, int mixRate)
             }
         }
         else
-            position_ = 0;
+            position_ = nullptr;
     }
 }
 
@@ -1227,7 +1227,7 @@ void SoundSource::MixNull(float timeStep)
     {
         if (timePosition_ >= sound_->GetLength())
         {
-            position_ = 0;
+            position_ = nullptr;
             timePosition_ = 0.0f;
         }
     }

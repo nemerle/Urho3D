@@ -127,7 +127,7 @@ Engine::Engine(Context* context) :
 #ifdef URHO3D_PHYSICS
     RegisterPhysicsLibrary(context_);
 #endif
-    
+
 #ifdef URHO3D_NAVIGATION
     RegisterNavigationLibrary(context_);
 #endif
@@ -261,7 +261,7 @@ bool Engine::Initialize(const VariantMap& parameters)
             return false;
         }
     }
-    
+
     // Add auto load folders. Prioritize these (if exist) before the default folders
     for (unsigned i = 0; i < autoloadFolders.Size(); ++i)
     {
@@ -361,7 +361,7 @@ bool Engine::Initialize(const VariantMap& parameters)
         renderer->SetTextureQuality(GetParameter(parameters, "TextureQuality", QUALITY_HIGH).GetInt());
         renderer->SetTextureFilterMode((TextureFilterMode)GetParameter(parameters, "TextureFilterMode", FILTER_TRILINEAR).GetInt());
         renderer->SetTextureAnisotropy(GetParameter(parameters, "TextureAnisotropy", 4).GetInt());
-        
+
         if (GetParameter(parameters, "Sound", true).GetBool())
         {
             GetSubsystem<Audio>()->SetMode(
@@ -388,8 +388,8 @@ bool Engine::Initialize(const VariantMap& parameters)
     // In debug mode, check now that all factory created objects can be created without crashing
     #ifdef _DEBUG
     const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
-    for (HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories.Begin(); i != factories.End(); ++i)
-        SharedPtr<Object> object = i->second_->CreateObject();
+    for (const auto & factorie : factories)
+        SharedPtr<Object> object = factorie.second_->CreateObject();
     #endif
 
     frameTimer_.Reset();
@@ -448,7 +448,7 @@ void Engine::RunFrame()
 Console* Engine::CreateConsole()
 {
     if (headless_ || !initialized_)
-        return 0;
+        return nullptr;
 
     // Return existing console if possible
     Console* console = GetSubsystem<Console>();
@@ -464,7 +464,7 @@ Console* Engine::CreateConsole()
 DebugHud* Engine::CreateDebugHud()
 {
     if (headless_ || !initialized_)
-        return 0;
+        return nullptr;
 
      // Return existing debug HUD if possible
     DebugHud* debugHud = GetSubsystem<DebugHud>();
@@ -538,20 +538,19 @@ void Engine::DumpResources(bool dumpFileName)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     const HashMap<StringHash, ResourceGroup>& resourceGroups = cache->GetAllResources();
     LOGRAW("\n");
-    
+
     if (dumpFileName)
     {
         LOGRAW("Used resources:\n");
     }
-    
-    for (HashMap<StringHash, ResourceGroup>::ConstIterator i = resourceGroups.Begin();
-        i != resourceGroups.End(); ++i)
+
+    for (const auto & resourceGroup : resourceGroups)
     {
-        const HashMap<StringHash, SharedPtr<Resource> >& resources = i->second_.resources_;
+        const HashMap<StringHash, SharedPtr<Resource> >& resources = resourceGroup.second_.resources_;
         if (dumpFileName)
         {
-            for (HashMap<StringHash, SharedPtr<Resource> >::ConstIterator j = resources.Begin();
-                j != resources.End(); ++j)
+            for (HashMap<StringHash, SharedPtr<Resource> >::ConstIterator j = resources.begin();
+                j != resources.end(); ++j)
             {
                 LOGRAW(j->second_->GetName() + "\n");
             }
@@ -560,11 +559,11 @@ void Engine::DumpResources(bool dumpFileName)
         else
         {
             unsigned num = resources.Size();
-            unsigned memoryUse = i->second_.memoryUse_;
+            unsigned memoryUse = resourceGroup.second_.memoryUse_;
 
             if (num)
             {
-                LOGRAW("Resource type " + resources.Begin()->second_->GetTypeName() +
+                LOGRAW("Resource type " + resources.begin()->second_->GetTypeName() +
                     ": count " + String(num) + " memory use " + String(memoryUse) + "\n");
             }
         }
@@ -861,14 +860,14 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
 bool Engine::HasParameter(const VariantMap& parameters, const String& parameter)
 {
     StringHash nameHash(parameter);
-    return parameters.Find(nameHash) != parameters.End();
+    return parameters.Find(nameHash) != parameters.end();
 }
 
 const Variant& Engine::GetParameter(const VariantMap& parameters, const String& parameter, const Variant& defaultValue)
 {
     StringHash nameHash(parameter);
     VariantMap::ConstIterator i = parameters.Find(nameHash);
-    return i != parameters.End() ? i->second_ : defaultValue;
+    return i != parameters.end() ? i->second_ : defaultValue;
 }
 
 void Engine::HandleExitRequested(StringHash eventType, VariantMap& eventData)

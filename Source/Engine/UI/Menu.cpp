@@ -167,7 +167,7 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
         if (typeName.Empty())
             typeName = "UIElement";
         unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
-        UIElement* child = 0;
+        UIElement* child = nullptr;
 
         if (!internalElem)
         {
@@ -311,7 +311,7 @@ void Menu::ShowPopup(bool enable)
         // If the popup has child menus, hide their popups as well
         PODVector<UIElement*> children;
         popup_->GetChildren(children, true);
-        for (PODVector<UIElement*>::ConstIterator i = children.Begin(); i != children.End(); ++i)
+        for (PODVector<UIElement*>::ConstIterator i = children.begin(); i != children.end(); ++i)
         {
             Menu* menu = dynamic_cast<Menu*>(*i);
             if (menu)

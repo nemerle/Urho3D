@@ -127,7 +127,7 @@ Animation2D* AnimationSet2D::GetAnimation(unsigned index) const
 {
     if (index < animations_.Size())
         return animations_[index];
-    return 0;
+    return nullptr;
 }
 
 Animation2D* AnimationSet2D::GetAnimation(const String& name) const
@@ -137,7 +137,7 @@ Animation2D* AnimationSet2D::GetAnimation(const String& name) const
         if (animations_[i]->GetName() == name)
             return animations_[i];
     }
-    return 0;
+    return nullptr;
 }
 
 bool AnimationSet2D::LoadFolders(const XMLElement& rootElem)
@@ -149,7 +149,7 @@ bool AnimationSet2D::LoadFolders(const XMLElement& rootElem)
     String parentPath = GetParentPath(GetName());
     String spriteSheetFilePathPList = parentPath + GetFileName(GetName()) + ".plist";
     String spriteSheetFilePathXML = parentPath + GetFileName(GetName()) + ".xml";
-    SpriteSheet2D* spriteSheet = 0;
+    SpriteSheet2D* spriteSheet = nullptr;
     bool hasSpriteSheet = false;
 
     // When async loading, request the sprite sheet for background loading but do not actually get it
@@ -234,9 +234,9 @@ Sprite2D* AnimationSet2D::GetSprite(unsigned folderId, unsigned fileId) const
 {
     unsigned key = (folderId << 16) + fileId;
     HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator i = sprites_.Find(key);
-    if (i != sprites_.End())
+    if (i != sprites_.end())
         return i->second_;
-    return 0;
+    return nullptr;
 }
 
 bool AnimationSet2D::LoadAnimation(const XMLElement& animationElem)

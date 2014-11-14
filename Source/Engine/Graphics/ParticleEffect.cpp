@@ -37,7 +37,7 @@ static const char* emitterTypeNames[] =
 {
     "Sphere",
     "Box",
-    0
+    nullptr
 };
 
 static const Vector2 DEFAULT_PARTICLE_SIZE(0.1f, 0.1f);
@@ -566,12 +566,12 @@ void ParticleEffect::SetTextureFrame(unsigned index, const TextureFrame& texture
 
 const ColorFrame* ParticleEffect::GetColorFrame(unsigned index) const
 {
-    return index < colorFrames_.Size() ? &colorFrames_[index] : (ColorFrame*)0;
+    return index < colorFrames_.Size() ? &colorFrames_[index] : (ColorFrame*)nullptr;
 }
 
 const TextureFrame* ParticleEffect::GetTextureFrame(unsigned index) const
 {
-    return index < colorFrames_.Size() ? &textureFrames_[index] : (TextureFrame*)0;
+    return index < colorFrames_.Size() ? &textureFrames_[index] : (TextureFrame*)nullptr;
 }
 
 Vector3 ParticleEffect::GetRandomDirection() const

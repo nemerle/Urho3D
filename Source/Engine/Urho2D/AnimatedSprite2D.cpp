@@ -45,7 +45,7 @@ const char* loopModeNames[] =
     "Default",
     "ForceLooped",
     "ForceClamped",
-    0
+    nullptr
 };
 
 template<> LoopMode2D Variant::Get<LoopMode2D>() const
@@ -270,7 +270,7 @@ void AnimatedSprite2D::OnNodeSet(Node* node)
         if (rootNode_)
             rootNode_->Remove();
 
-        rootNode_ = 0;
+        rootNode_ = nullptr;
         timelineNodes_.Clear();
     }
 }
@@ -341,7 +341,7 @@ void AnimatedSprite2D::SetAnimation(Animation2D* animation, LoopMode2D loopMode)
         const Timeline2D& timeline = animation->GetTimeline(i);
         SharedPtr<Node> timelineNode(rootNode_->GetChild(timeline.name_));
 
-        StaticSprite2D* staticSprite = 0;
+        StaticSprite2D* staticSprite = nullptr;
 
         if (timelineNode)
         {
@@ -460,7 +460,7 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
 
     // Get mainline key
     const Vector<MainlineKey2D>& mainlineKeys = animation_->GetMainlineKeys();
-    const MainlineKey2D* mainlineKey = 0;
+    const MainlineKey2D* mainlineKey = nullptr;
     for (unsigned i = 1; i < mainlineKeys.Size(); ++i)
     {
         if (time < mainlineKeys[i].time_)

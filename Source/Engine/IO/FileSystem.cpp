@@ -131,7 +131,7 @@ int DoSystemRun(const String& fileName, const Vector<String>& arguments)
     // Add .exe extension if no extension defined
     if (GetExtension(fixedFileName).Empty())
         fixedFileName += ".exe";
-    
+
     String commandLine = "\"" + fixedFileName + "\"";
     for (unsigned i = 0; i < arguments.Size(); ++i)
         commandLine += " " + arguments[i];
@@ -161,7 +161,7 @@ int DoSystemRun(const String& fileName, const Vector<String>& arguments)
         argPtrs.Push(fixedFileName.CString());
         for (unsigned i = 0; i < arguments.Size(); ++i)
             argPtrs.Push(arguments[i].CString());
-        argPtrs.Push(0);
+        argPtrs.Push(nullptr);
 
         execvp(argPtrs[0], (char**)&argPtrs[0]);
         return -1; // Return -1 if we could not spawn the process
@@ -191,14 +191,14 @@ public:
         if (requestID == M_MAX_UNSIGNED)
             requestID = 1;
     }
-    
+
     /// Return request ID.
     unsigned GetRequestID() const { return requestID_; }
     /// Return exit code. Valid when IsCompleted() is true.
     int GetExitCode() const { return exitCode_; }
     /// Return completion status.
     bool IsCompleted() const { return completed_; }
-    
+
 protected:
     /// Request ID.
     unsigned requestID_;
@@ -219,14 +219,14 @@ public:
     {
         Run();
     }
-    
+
     /// The function to run in the thread.
-    virtual void ThreadFunction()
+    virtual void ThreadFunction() override
     {
-        exitCode_ = DoSystemCommand(commandLine_, false, 0);
+        exitCode_ = DoSystemCommand(commandLine_, false, nullptr);
         completed_ = true;
     }
-    
+
 private:
     /// Command line.
     String commandLine_;
@@ -244,14 +244,14 @@ public:
     {
         Run();
     }
-    
+
     /// The function to run in the thread.
-    virtual void ThreadFunction()
+    virtual void ThreadFunction() override
     {
         exitCode_ = DoSystemRun(fileName_, arguments_);
         completed_ = true;
     }
-    
+
 private:
     /// File to run.
     String fileName_;
@@ -275,9 +275,9 @@ FileSystem::~FileSystem()
     // If any async exec items pending, delete them
     if (asyncExecQueue_.Size())
     {
-        for (List<AsyncExecRequest*>::Iterator i = asyncExecQueue_.Begin(); i != asyncExecQueue_.End(); ++i)
-            delete(*i);
-        
+        for (auto & elem : asyncExecQueue_)
+            delete(elem);
+
         asyncExecQueue_.Clear();
     }
 }
@@ -521,9 +521,9 @@ bool FileSystem::CheckAccess(const String& pathName) const
         return false;
 
     // Check if the path is a partial match of any of the allowed directories
-    for (HashSet<String>::ConstIterator i = allowedPaths_.Begin(); i != allowedPaths_.End(); ++i)
+    for (const String &i : allowedPaths_)
     {
-        if (fixedPath.Find(*i) == 0)
+        if (fixedPath.Find(i) == 0)
             return true;
     }
 
@@ -633,7 +633,7 @@ String FileSystem::GetProgramDir() const
     // Return cached value if possible
     if (!programDir_.Empty())
         return programDir_;
-    
+
     #if defined(ANDROID)
     // This is an internal directory specifier pointing to the assets in the .apk
     // Files from this directory will be opened using special handling
@@ -661,7 +661,7 @@ String FileSystem::GetProgramDir() const
     readlink(link.CString(), exeName, MAX_PATH);
     programDir_ = GetPath(String(exeName));
     #endif
-    
+
     // If the executable directory does not contain CoreData & Data directories, but the current working directory does, use the
     // current working directory instead
     /// \todo Should not rely on such fixed convention
@@ -669,10 +669,10 @@ String FileSystem::GetProgramDir() const
     if (!DirExists(programDir_ + "CoreData") && !DirExists(programDir_ + "Data") && (DirExists(currentDir + "CoreData") ||
         DirExists(currentDir + "Data")))
         programDir_ = currentDir;
-    
+
     // Sanitate /./ construct away
     programDir_.Replace("/./", "/");
-    
+
     return programDir_;
 }
 
@@ -823,18 +823,18 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
 void FileSystem::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
     /// Go through the execution queue and post + remove completed requests
-    for (List<AsyncExecRequest*>::Iterator i = asyncExecQueue_.Begin(); i != asyncExecQueue_.End();)
+    for (List<AsyncExecRequest*>::Iterator i = asyncExecQueue_.begin(); i != asyncExecQueue_.end();)
     {
         AsyncExecRequest* request = *i;
         if (request->IsCompleted())
         {
             using namespace AsyncExecFinished;
-            
+
             VariantMap& eventData = GetEventDataMap();
             eventData[P_REQUESTID] = request->GetRequestID();
             eventData[P_EXITCODE] = request->GetExitCode();
             SendEvent(E_ASYNCEXECFINISHED, eventData);
-            
+
             delete request;
             i = asyncExecQueue_.Erase(i);
         }
@@ -969,12 +969,12 @@ bool IsAbsolutePath(const String& pathName)
 {
     if (pathName.Empty())
         return false;
-    
+
     String path = GetInternalPath(pathName);
-    
+
     if (path[0] == '/')
         return true;
-    
+
 #ifdef WIN32
     if (path.Length() > 1 && IsAlpha(path[0]) && path[1] == ':')
         return true;

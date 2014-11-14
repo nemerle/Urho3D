@@ -48,7 +48,7 @@ static const char* cubeMapLayoutNames[] = {
     "horizontalcross",
     "verticalcross",
     "blender",
-    0
+    nullptr
 };
 
 static SharedPtr<Image> GetTileImage(Image* src, int tileX, int tileY, int tileWidth, int tileHeight)
@@ -66,8 +66,8 @@ TextureCube::TextureCube(Context* context) :
     addressMode_[COORD_V] = ADDRESS_CLAMP;
     addressMode_[COORD_W] = ADDRESS_CLAMP;
 
-    for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
-        faceMemoryUse_[i] = 0;
+    for (auto & elem : faceMemoryUse_)
+        elem = 0;
 }
 
 TextureCube::~TextureCube()
@@ -243,10 +243,10 @@ void TextureCube::OnDeviceLost()
 {
     GPUObject::OnDeviceLost();
 
-    for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
+    for (auto & elem : renderSurfaces_)
     {
-        if (renderSurfaces_[i])
-            renderSurfaces_[i]->OnDeviceLost();
+        if (elem)
+            elem->OnDeviceLost();
     }
 }
 
@@ -281,16 +281,16 @@ void TextureCube::Release()
             for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
             {
                 if (graphics_->GetTexture(i) == this)
-                    graphics_->SetTexture(i, 0);
+                    graphics_->SetTexture(i, nullptr);
             }
             
             glDeleteTextures(1, &object_);
         }
         
-        for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
+        for (auto & elem : renderSurfaces_)
         {
-            if (renderSurfaces_[i])
-                renderSurfaces_[i]->Release();
+            if (elem)
+                elem->Release();
         }
         
         object_ = 0;
@@ -411,7 +411,7 @@ bool TextureCube::SetData(CubeMapFace face, unsigned level, int x, int y, int wi
                 GetDataSize(width, height), data);
     }
     
-    graphics_->SetTexture(0, 0);
+    graphics_->SetTexture(0, nullptr);
     return true;
 }
 
@@ -586,8 +586,8 @@ bool TextureCube::SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlph
     
     faceMemoryUse_[face] = memoryUse;
     unsigned totalMemoryUse = sizeof(TextureCube);
-    for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
-        totalMemoryUse += faceMemoryUse_[i];
+    for (auto & elem : faceMemoryUse_)
+        totalMemoryUse += elem;
     SetMemoryUse(totalMemoryUse);
     return true;
 }
@@ -626,7 +626,7 @@ bool TextureCube::GetData(CubeMapFace face, unsigned level, void* dest) const
     else
         glGetCompressedTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, dest);
     
-    graphics_->SetTexture(0, 0);
+    graphics_->SetTexture(0, nullptr);
     return true;
     #else
     LOGERROR("Getting texture data not supported");
@@ -663,7 +663,7 @@ bool TextureCube::Create()
         glGetError();
         for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width_, height_, 0, externalFormat, dataType, 0);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width_, height_, 0, externalFormat, dataType, nullptr);
             if (glGetError())
                 success = false;
         }
@@ -690,17 +690,17 @@ bool TextureCube::Create()
     
     // Set initial parameters, then unbind the texture
     UpdateParameters();
-    graphics_->SetTexture(0, 0);
+    graphics_->SetTexture(0, nullptr);
     
     return success;
 }
 
 void TextureCube::HandleRenderSurfaceUpdate(StringHash eventType, VariantMap& eventData)
 {
-    for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
+    for (auto & elem : renderSurfaces_)
     {
-        if (renderSurfaces_[i] && renderSurfaces_[i]->GetUpdateMode() == SURFACE_UPDATEALWAYS)
-            renderSurfaces_[i]->QueueUpdate();
+        if (elem && elem->GetUpdateMode() == SURFACE_UPDATEALWAYS)
+            elem->QueueUpdate();
     }
 }
 

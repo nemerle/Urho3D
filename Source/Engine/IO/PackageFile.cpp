@@ -116,16 +116,16 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
 
 bool PackageFile::Exists(const String& fileName) const
 {
-    return entries_.Find(fileName.ToLower()) != entries_.End();
+    return entries_.Find(fileName.ToLower()) != entries_.end();
 }
 
 const PackageEntry* PackageFile::GetEntry(const String& fileName) const
 {
     HashMap<String, PackageEntry>::ConstIterator i = entries_.Find(fileName.ToLower());
-    if (i != entries_.End())
+    if (i != entries_.end())
         return &i->second_;
     else
-        return 0;
+        return nullptr;
 }
 
 }

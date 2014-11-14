@@ -53,7 +53,7 @@ const char* faceCameraModeNames[] =
     "Rotate Y",
     "LookAt XYZ",
     "LookAt Y",
-    0
+    nullptr
 };
 
 inline bool CompareBillboards(Billboard* lhs, Billboard* rhs)
@@ -286,7 +286,7 @@ Material* BillboardSet::GetMaterial() const
 
 Billboard* BillboardSet::GetBillboard(unsigned index)
 {
-    return index < billboards_.Size() ? &billboards_[index] : (Billboard*)0;
+    return index < billboards_.Size() ? &billboards_[index] : (Billboard*)nullptr;
 }
 
 void BillboardSet::SetMaterialAttr(ResourceRef value)
@@ -301,7 +301,7 @@ void BillboardSet::SetBillboardsAttr(VariantVector value)
     unsigned numBillboards = index < value.Size() ? value[index++].GetUInt() : 0;
     SetNumBillboards(numBillboards);
     
-    for (PODVector<Billboard>::Iterator i = billboards_.Begin(); i != billboards_.End() && index < value.Size(); ++i)
+    for (PODVector<Billboard>::Iterator i = billboards_.begin(); i != billboards_.end() && index < value.Size(); ++i)
     {
         i->position_ = value[index++].GetVector3();
         i->size_ = value[index++].GetVector2();
@@ -321,14 +321,14 @@ void BillboardSet::SetNetBillboardsAttr(const PODVector<unsigned char>& value)
     unsigned numBillboards = buf.ReadVLE();
     SetNumBillboards(numBillboards);
     
-    for (PODVector<Billboard>::Iterator i = billboards_.Begin(); i != billboards_.End(); ++i)
+    for (auto & elem : billboards_)
     {
-        i->position_ = buf.ReadVector3();
-        i->size_ = buf.ReadVector2();
-        i->uv_ = buf.ReadRect();
-        i->color_ = buf.ReadColor();
-        i->rotation_ = buf.ReadFloat();
-        i->enabled_ = buf.ReadBool();
+        elem.position_ = buf.ReadVector3();
+        elem.size_ = buf.ReadVector2();
+        elem.uv_ = buf.ReadRect();
+        elem.color_ = buf.ReadColor();
+        elem.rotation_ = buf.ReadFloat();
+        elem.enabled_ = buf.ReadBool();
     }
     
     Commit();
@@ -345,14 +345,14 @@ VariantVector BillboardSet::GetBillboardsAttr() const
     ret.Reserve(billboards_.Size() * 6 + 1);
     ret.Push(billboards_.Size());
     
-    for (PODVector<Billboard>::ConstIterator i = billboards_.Begin(); i != billboards_.End(); ++i)
+    for (const auto & elem : billboards_)
     {
-        ret.Push(i->position_);
-        ret.Push(i->size_);
-        ret.Push(Vector4(i->uv_.min_.x_, i->uv_.min_.y_, i->uv_.max_.x_, i->uv_.max_.y_));
-        ret.Push(i->color_);
-        ret.Push(i->rotation_);
-        ret.Push(i->enabled_);
+        ret.Push(elem.position_);
+        ret.Push(elem.size_);
+        ret.Push(Vector4(elem.uv_.min_.x_, elem.uv_.min_.y_, elem.uv_.max_.x_, elem.uv_.max_.y_));
+        ret.Push(elem.color_);
+        ret.Push(elem.rotation_);
+        ret.Push(elem.enabled_);
     }
     
     return ret;
@@ -363,14 +363,14 @@ const PODVector<unsigned char>& BillboardSet::GetNetBillboardsAttr() const
     attrBuffer_.Clear();
     attrBuffer_.WriteVLE(billboards_.Size());
     
-    for (PODVector<Billboard>::ConstIterator i = billboards_.Begin(); i != billboards_.End(); ++i)
+    for (const auto & elem : billboards_)
     {
-        attrBuffer_.WriteVector3(i->position_);
-        attrBuffer_.WriteVector2(i->size_);
-        attrBuffer_.WriteRect(i->uv_);
-        attrBuffer_.WriteColor(i->color_);
-        attrBuffer_.WriteFloat(i->rotation_);
-        attrBuffer_.WriteBool(i->enabled_);
+        attrBuffer_.WriteVector3(elem.position_);
+        attrBuffer_.WriteVector2(elem.size_);
+        attrBuffer_.WriteRect(elem.uv_);
+        attrBuffer_.WriteColor(elem.color_);
+        attrBuffer_.WriteFloat(elem.rotation_);
+        attrBuffer_.WriteBool(elem.enabled_);
     }
     
     return attrBuffer_.GetBuffer();
@@ -490,7 +490,7 @@ void BillboardSet::UpdateVertexBuffer(const FrameInfo& frame)
         return;
     
     if (sorted_)
-        Sort(sortedBillboards_.Begin(), sortedBillboards_.End(), CompareBillboards);
+        Sort(sortedBillboards_.begin(), sortedBillboards_.end(), CompareBillboards);
     
     float* dest = (float*)vertexBuffer_->Lock(0, enabledBillboards * 4, true);
     if (!dest)

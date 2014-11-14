@@ -67,12 +67,12 @@ void ShaderVariation::Release()
             if (type_ == VS)
             {
                 if (graphics_->GetVertexShader() == this)
-                    graphics_->SetShaders(0, 0);
+                    graphics_->SetShaders(nullptr, nullptr);
             }
             else
             {
                 if (graphics_->GetPixelShader() == this)
-                    graphics_->SetShaders(0, 0);
+                    graphics_->SetShaders(nullptr, nullptr);
             }
             
             glDeleteShader(object_);
@@ -157,7 +157,7 @@ bool ShaderVariation::Create()
         shaderCode += originalShaderCode;
     
     const char* shaderCStr = shaderCode.CString();
-    glShaderSource(object_, 1, &shaderCStr, 0);
+    glShaderSource(object_, 1, &shaderCStr, nullptr);
     glCompileShader(object_);
     
     int compiled, length;

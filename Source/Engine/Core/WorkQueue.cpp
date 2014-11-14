@@ -44,7 +44,7 @@ public:
     }
     
     /// Process work items until stopped.
-    virtual void ThreadFunction()
+    virtual void ThreadFunction() override
     {
         // Init FPU state first
         InitFPU();
@@ -143,7 +143,7 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
         queue_.Push(item);
     else
     {
-        for (List<WorkItem*>::Iterator i = queue_.Begin(); i != queue_.End(); ++i)
+        for (List<WorkItem*>::Iterator i = queue_.begin(); i != queue_.end(); ++i)
         {
             if ((*i)->priority_ <= item->priority_)
             {
@@ -234,9 +234,9 @@ void WorkQueue::Complete(unsigned priority)
 
 bool WorkQueue::IsCompleted(unsigned priority) const
 {
-    for (List<SharedPtr<WorkItem> >::ConstIterator i = workItems_.Begin(); i != workItems_.End(); ++i)
+    for (const auto & elem : workItems_)
     {
-        if ((*i)->priority_ >= priority && !(*i)->completed_)
+        if ((elem)->priority_ >= priority && !(elem)->completed_)
             return false;
     }
     
@@ -283,7 +283,7 @@ void WorkQueue::PurgeCompleted(unsigned priority)
     // Purge completed work items and send completion events. Do not signal items lower than priority threshold,
     // as those may be user submitted and lead to eg. scene manipulation that could happen in the middle of the
     // render update, which is not allowed
-    for (List<SharedPtr<WorkItem> >::Iterator i = workItems_.Begin(); i != workItems_.End();)
+    for (List<SharedPtr<WorkItem> >::Iterator i = workItems_.begin(); i != workItems_.end();)
     {
         if ((*i)->completed_ && (*i)->priority_ >= priority)
         {
@@ -303,10 +303,10 @@ void WorkQueue::PurgeCompleted(unsigned priority)
                 // be safe to do here as the completed event has 
                 // already been handled and this is part of the 
                 // internal pool.
-                (*i)->start_ = NULL;
-                (*i)->end_ = NULL;
-                (*i)->aux_ = NULL;
-                (*i)->workFunction_ = NULL;
+                (*i)->start_ = nullptr;
+                (*i)->end_ = nullptr;
+                (*i)->aux_ = nullptr;
+                (*i)->workFunction_ = nullptr;
                 (*i)->priority_ = M_MAX_UNSIGNED;
                 (*i)->sendEvent_ = false;
                 (*i)->completed_ = false;

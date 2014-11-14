@@ -47,7 +47,7 @@ const char* blendModeNames[] =
     "invdestalpha",
     "subtract",
     "subtractalpha",
-    0
+    nullptr
 };
 
 static const char* compareModeNames[] =
@@ -59,7 +59,7 @@ static const char* compareModeNames[] =
     "lessequal",
     "greater",
     "greaterequal",
-    0
+    nullptr
 };
 
 static const char* lightingModeNames[] =
@@ -67,7 +67,7 @@ static const char* lightingModeNames[] =
     "unlit",
     "pervertex",
     "perpixel",
-    0
+    nullptr
 };
 
 static bool desktopSupportChecked = false;

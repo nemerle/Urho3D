@@ -165,7 +165,7 @@ static bool SceneSaveXMLVectorBuffer(VectorBuffer& buffer, Scene* ptr)
 
 static Node* SceneInstantiate(File* file, const Vector3& position, const Quaternion& rotation, CreateMode mode, Scene* ptr)
 {
-    return file ? ptr->Instantiate(*file, position, rotation, mode) : 0;
+    return file ? ptr->Instantiate(*file, position, rotation, mode) : nullptr;
 }
 
 static Node* SceneInstantiateVectorBuffer(VectorBuffer& buffer, const Vector3& position, const Quaternion& rotation, CreateMode mode, Scene* ptr)
@@ -175,7 +175,7 @@ static Node* SceneInstantiateVectorBuffer(VectorBuffer& buffer, const Vector3& p
 
 static Node* SceneInstantiateXML(File* file, const Vector3& position, const Quaternion& rotation, CreateMode mode, Scene* ptr)
 {
-    return file ? ptr->InstantiateXML(*file, position, rotation, mode) : 0;
+    return file ? ptr->InstantiateXML(*file, position, rotation, mode) : nullptr;
 }
 
 static Node* SceneInstantiateXMLVectorBuffer(VectorBuffer& buffer, const Vector3& position, const Quaternion& rotation, CreateMode mode, Scene* ptr)
@@ -185,7 +185,7 @@ static Node* SceneInstantiateXMLVectorBuffer(VectorBuffer& buffer, const Vector3
 
 static Node* SceneInstantiateXMLFile(XMLFile* xml, const Vector3& position, const Quaternion& rotation, CreateMode mode, Scene* ptr)
 {
-    return xml ? ptr->InstantiateXML(xml->GetRoot(), position, rotation, mode) : 0;
+    return xml ? ptr->InstantiateXML(xml->GetRoot(), position, rotation, mode) : nullptr;
 }
 
 static CScriptArray* SceneGetRequiredPackageFiles(Scene* ptr)
@@ -196,7 +196,7 @@ static CScriptArray* SceneGetRequiredPackageFiles(Scene* ptr)
 static CScriptArray* GetObjectCategories()
 {
     Vector<String> categories = GetScriptContext()->GetObjectCategories().Keys();
-    Sort(categories.Begin(), categories.End());
+    Sort(categories.begin(), categories.end());
     return VectorToArray<String>(categories, "Array<String>");
 }
 
@@ -206,7 +206,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
     Vector<String> components;
 
     HashMap<String, Vector<StringHash> >::ConstIterator i = categories.Find(category);
-    if (i != categories.End())
+    if (i != categories.end())
     {
         const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
         const Vector<StringHash>& factoryHashes = i->second_;
@@ -215,12 +215,12 @@ static CScriptArray* GetObjectsByCategory(const String& category)
         for (unsigned j = 0; j < factoryHashes.Size(); ++j)
         {
             HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator k = factories.Find(factoryHashes[j]);
-            if (k != factories.End())
+            if (k != factories.end())
                 components.Push(k->second_->GetTypeName());
         }
     }
 
-    Sort(components.Begin(), components.End());
+    Sort(components.begin(), components.end());
     return VectorToArray<String>(components, "Array<String>");
 }
 

@@ -131,7 +131,7 @@ FontFace* Font::GetFace(int pointSize)
     // In headless mode, always return null
     Graphics* graphics = GetSubsystem<Graphics>();
     if (!graphics)
-        return 0;
+        return nullptr;
 
     // For bitmap font type, always return the same font face provided by the font's bitmap file regardless of the actual requested point size
     if (fontType_ == FONT_BITMAP)
@@ -140,7 +140,7 @@ FontFace* Font::GetFace(int pointSize)
         pointSize = Clamp(pointSize, MIN_POINT_SIZE, MAX_POINT_SIZE);
 
     HashMap<int, SharedPtr<FontFace> >::Iterator i = faces_.Find(pointSize);
-    if (i != faces_.End())
+    if (i != faces_.end())
     {
         if (!i->second_->IsDataLost())
             return i->second_;
@@ -162,7 +162,7 @@ FontFace* Font::GetFace(int pointSize)
         return GetFaceBitmap(pointSize);
 
     default:
-        return 0;
+        return nullptr;
     }
 }
 
@@ -212,7 +212,7 @@ FontFace* Font::GetFaceFreeType(int pointSize)
 {
     SharedPtr<FontFace> newFace(new FontFaceFreeType(this));
     if (!newFace->Load(&fontData_[0], fontDataSize_, pointSize))
-        return 0;
+        return nullptr;
 
     faces_[pointSize] = newFace;
     return newFace;
@@ -222,7 +222,7 @@ FontFace* Font::GetFaceBitmap(int pointSize)
 {
     SharedPtr<FontFace> newFace(new FontFaceBitmap(this));
     if (!newFace->Load(&fontData_[0], fontDataSize_, pointSize))
-        return 0;
+        return nullptr;
 
     faces_[pointSize] = newFace;
     return newFace;

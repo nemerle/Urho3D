@@ -38,9 +38,9 @@ namespace Urho3D
 
 MessageBox::MessageBox(Context* context, const String& messageString, const String& titleString, XMLFile* layoutFile, XMLFile* styleFile) :
     Object(context),
-    titleText_(0),
-    messageText_(0),
-    okButton_(0)
+    titleText_(nullptr),
+    messageText_(nullptr),
+    okButton_(nullptr)
 {
     // If layout file is not given, use the default message box layout
     if (!layoutFile)

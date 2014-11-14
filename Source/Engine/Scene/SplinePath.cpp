@@ -40,7 +40,7 @@ SplinePath::SplinePath(Context* context) :
     traveled_(0.f),
     length_(0.f),
     dirty_(false),
-    controlledNode_(NULL),
+    controlledNode_(nullptr),
     controlledIdAttr_(0)
 {
     UpdateNodeIds();
@@ -119,7 +119,7 @@ void SplinePath::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
             }
         }
 
-        for (Vector<WeakPtr<Node> >::ConstIterator i = controlPoints_.Begin(); i != controlPoints_.End(); ++i)
+        for (Vector<WeakPtr<Node> >::ConstIterator i = controlPoints_.begin(); i != controlPoints_.end(); ++i)
             debug->AddNode(*i);
 
         if (controlledNode_)

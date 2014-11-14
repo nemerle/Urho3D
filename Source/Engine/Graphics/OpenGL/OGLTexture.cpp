@@ -55,7 +55,7 @@ static const char* addressModeNames[] =
     "mirror",
     "clamp",
     "border",
-    0
+    nullptr
 };
 
 static const char* filterModeNames[] =
@@ -65,7 +65,7 @@ static const char* filterModeNames[] =
     "trilinear",
     "anisotropic",
     "default",
-    0
+    nullptr
 };
 
 Texture::Texture(Context* context) :
@@ -83,8 +83,8 @@ Texture::Texture(Context* context) :
     filterMode_(FILTER_DEFAULT),
     sRGB_(false)
 {
-    for (int i = 0; i < MAX_COORDS; ++i)
-        addressMode_[i] = ADDRESS_WRAP;
+    for (auto & elem : addressMode_)
+        elem = ADDRESS_WRAP;
     for (int i = 0; i < MAX_TEXTURE_QUALITY_LEVELS; ++i)
         mipsToSkip_[i] = MAX_TEXTURE_QUALITY_LEVELS - 1 - i;
 }

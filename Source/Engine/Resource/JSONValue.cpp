@@ -46,8 +46,8 @@ static rapidjson::Type ToRapidJsonType(JSONValueType valueType)
 }
 
 JSONValue::JSONValue() :
-    file_(0),
-    value_(0)
+    file_(nullptr),
+    value_(nullptr)
 {
 }
 
@@ -76,12 +76,12 @@ JSONValue& JSONValue::operator = (const JSONValue& rhs)
 
 bool JSONValue::IsNull() const
 {
-    return value_ == 0;
+    return value_ == nullptr;
 }
 
 bool JSONValue::NotNull() const
 {
-    return value_ != 0;
+    return value_ != nullptr;
 }
 
 JSONValue::operator bool() const

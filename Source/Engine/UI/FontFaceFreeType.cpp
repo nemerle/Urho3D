@@ -71,7 +71,7 @@ private:
 
 FontFaceFreeType::FontFaceFreeType(Font* font) :
 FontFace(font),
-    face_(0)
+    face_(nullptr)
 {
 
 }
@@ -81,7 +81,7 @@ FontFaceFreeType::~FontFaceFreeType()
     if (face_)
     {
         FT_Done_Face((FT_Face)face_);
-        face_ = 0;
+        face_ = nullptr;
     }
 }
 
@@ -197,7 +197,7 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
         // are 29354 glyphs in msyh.ttf
         FT_ULong tag = FT_MAKE_TAG('k', 'e', 'r', 'n');
         FT_ULong kerningTableSize = 0;
-        FT_Error error = FT_Load_Sfnt_Table(face, tag, 0, NULL, &kerningTableSize);
+        FT_Error error = FT_Load_Sfnt_Table(face, tag, 0, nullptr, &kerningTableSize);
         if (error)
         {
             LOGERROR("Could not get kerning table length");
@@ -241,7 +241,7 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
 
                         HashMap<unsigned, unsigned>::ConstIterator leftIter = indexToCharMapping.Find(leftIndex);
                         HashMap<unsigned, unsigned>::ConstIterator rightIter = indexToCharMapping.Find(rightIndex);
-                        if (leftIter != indexToCharMapping.End() && rightIter != indexToCharMapping.End())
+                        if (leftIter != indexToCharMapping.end() && rightIter != indexToCharMapping.end())
                         {
                             unsigned value = (leftIter->second_ << 16) + rightIter->second_;
                             kerningMapping_[value] = amount;
@@ -264,7 +264,7 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
     if (loadAllGlyphs)
     {
         FT_Done_Face(face);
-        face_ = 0;
+        face_ = nullptr;
         hasMutableGlyph_ = false;
     }
     else
@@ -276,7 +276,7 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
 const FontGlyph* FontFaceFreeType::GetGlyph(unsigned c)
 {
     HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.Find(c);
-    if (i != glyphMapping_.End())
+    if (i != glyphMapping_.end())
     {
         FontGlyph& glyph = i->second_;
         glyph.used_ = true;
@@ -286,7 +286,7 @@ const FontGlyph* FontFaceFreeType::GetGlyph(unsigned c)
     if (LoadCharGlyph(c))
     {
         HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.Find(c);
-        if (i != glyphMapping_.End())
+        if (i != glyphMapping_.end())
         {
             FontGlyph& glyph = i->second_;
             glyph.used_ = true;
@@ -294,7 +294,7 @@ const FontGlyph* FontFaceFreeType::GetGlyph(unsigned c)
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 bool FontFaceFreeType::CanLoadAllGlyphs(unsigned numGlyphs, int loadMode, int& textureWidth, int& textureHeight) const
@@ -378,7 +378,7 @@ bool FontFaceFreeType::LoadCharGlyph(unsigned charCode, Image* image)
             fontGlyph.x_ = x;
             fontGlyph.y_ = y;
 
-            unsigned char* dest = 0;
+            unsigned char* dest = nullptr;
             unsigned pitch = 0;
             if (image)
             {

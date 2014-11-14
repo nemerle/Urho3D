@@ -195,7 +195,7 @@ TextureUsage RenderSurface::GetUsage() const
 
 Viewport* RenderSurface::GetViewport(unsigned index) const
 {
-    return index < viewports_.Size() ? viewports_[index] : (Viewport*)0;
+    return index < viewports_.Size() ? viewports_[index] : (Viewport*)nullptr;
 }
 
 void RenderSurface::SetTarget(unsigned target)

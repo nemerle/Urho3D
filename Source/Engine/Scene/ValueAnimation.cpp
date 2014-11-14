@@ -39,12 +39,12 @@ const char* interpMethodNames[] =
 {
     "Linear",
     "Spline",
-    0
+    nullptr
 };
 
 ValueAnimation::ValueAnimation(Context* context) :
     Resource(context),
-    owner_(0),
+    owner_(nullptr),
     interpolationMethod_(IM_LINEAR),
     splineTension_(0.5f),
     valueType_(VAR_NONE),

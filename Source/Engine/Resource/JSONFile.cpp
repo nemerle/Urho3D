@@ -49,7 +49,7 @@ JSONFile::JSONFile(Context* context) :
 JSONFile::~JSONFile()
 {
     delete document_;
-    document_ = 0;
+    document_ = nullptr;
 }
 
 void JSONFile::RegisterObject(Context* context)

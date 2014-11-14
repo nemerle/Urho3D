@@ -94,7 +94,7 @@ void GetCPUData(host_basic_info_data_t* data)
 #elif !defined(ANDROID) && !defined(RASPI)
 void GetCPUData(struct cpu_id_t* data)
 {
-    if (cpu_identify(0, data) < 0)
+    if (cpu_identify(nullptr, data) < 0)
     {
         data->num_logical_cpus = 1;
         data->num_cores = 1;

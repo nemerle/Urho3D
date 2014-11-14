@@ -113,10 +113,10 @@ bool Shader::BeginLoad(Deserializer& source)
 bool Shader::EndLoad()
 {
     // If variations had already been created, release them and require recompile
-    for (HashMap<StringHash, SharedPtr<ShaderVariation> >::Iterator i = vsVariations_.Begin(); i != vsVariations_.End(); ++i)
-        i->second_->Release();
-    for (HashMap<StringHash, SharedPtr<ShaderVariation> >::Iterator i = psVariations_.Begin(); i != psVariations_.End(); ++i)
-        i->second_->Release();
+    for (auto & elem : vsVariations_)
+        elem.second_->Release();
+    for (auto & elem : psVariations_)
+        elem.second_->Release();
     
     return true;
 }
@@ -133,7 +133,7 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
     if (type == VS)
     {
         HashMap<StringHash, SharedPtr<ShaderVariation> >::Iterator i = vsVariations_.Find(definesHash);
-        if (i == vsVariations_.End())
+        if (i == vsVariations_.end())
         {
             // If shader not found, normalize the defines (to prevent duplicates) and check again. In that case make an alias
             // so that further queries are faster
@@ -141,7 +141,7 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
             StringHash normalizedHash(normalizedDefines);
             
             i = vsVariations_.Find(normalizedHash);
-            if (i != vsVariations_.End())
+            if (i != vsVariations_.end())
                 vsVariations_.Insert(MakePair(definesHash, i->second_));
             else
             {
@@ -162,13 +162,13 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
     else
     {
         HashMap<StringHash, SharedPtr<ShaderVariation> >::Iterator i = psVariations_.Find(definesHash);
-        if (i == psVariations_.End())
+        if (i == psVariations_.end())
         {
             String normalizedDefines = NormalizeDefines(defines);
             StringHash normalizedHash(normalizedDefines);
             
             i = psVariations_.Find(normalizedHash);
-            if (i != psVariations_.End())
+            if (i != psVariations_.end())
                 psVariations_.Insert(MakePair(definesHash, i->second_));
             else
             {
@@ -238,7 +238,7 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
 String Shader::NormalizeDefines(const String& defines)
 {
     Vector<String> definesVec = defines.ToUpper().Split(' ');
-    Sort(definesVec.Begin(), definesVec.End());
+    Sort(definesVec.begin(), definesVec.end());
     return String::Joined(definesVec, " ");
 }
 

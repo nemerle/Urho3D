@@ -345,13 +345,13 @@ Material* Terrain::GetMaterial() const
 
 TerrainPatch* Terrain::GetPatch(unsigned index) const
 {
-    return index < patches_.Size() ? patches_[index] : (TerrainPatch*)0;
+    return index < patches_.Size() ? patches_[index] : (TerrainPatch*)nullptr;
 }
 
 TerrainPatch* Terrain::GetPatch(int x, int z) const
 {
     if (x < 0 || x >= numPatches_.x_ || z < 0 || z >= numPatches_.y_)
-        return 0;
+        return nullptr;
     else
         return GetPatch(z * numPatches_.x_ + x);
 }
@@ -654,10 +654,10 @@ void Terrain::CreateGeometry()
         
         PODVector<Node*> oldPatchNodes;
         node_->GetChildrenWithComponent<TerrainPatch>(oldPatchNodes);
-        for (PODVector<Node*>::Iterator i = oldPatchNodes.Begin(); i != oldPatchNodes.End(); ++i)
+        for (auto & oldPatchNode : oldPatchNodes)
         {
             bool nodeOk = false;
-            Vector<String> coords = (*i)->GetName().Substring(6).Split('_');
+            Vector<String> coords = (oldPatchNode)->GetName().Substring(6).Split('_');
             if (coords.Size() == 2)
             {
                 int x = ToInt(coords[0]);
@@ -667,7 +667,7 @@ void Terrain::CreateGeometry()
             }
 
             if (!nodeOk)
-                node_->RemoveChild(*i);
+                node_->RemoveChild(oldPatchNode);
         }
     }
 

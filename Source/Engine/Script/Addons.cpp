@@ -86,12 +86,12 @@ CScriptArray* CScriptArray::Create(asIObjectType *ot, asUINT length)
 
     // Allocate the memory
     void *mem = userAlloc(sizeof(CScriptArray));
-    if( mem == 0 )
+    if( mem == nullptr )
     {
         if( ctx )
             ctx->SetException("Out of memory");
 
-        return 0;
+        return nullptr;
     }
 
     // Initialize the object
@@ -102,7 +102,7 @@ CScriptArray* CScriptArray::Create(asIObjectType *ot, asUINT length)
     if( ctx && ctx->GetState() == asEXECUTION_EXCEPTION )
     {
         a->Release();
-        return 0;
+        return nullptr;
     }
 
     return a;
@@ -114,12 +114,12 @@ CScriptArray* CScriptArray::Create(asIObjectType *ot, void *initList)
 
     // Allocate the memory
     void *mem = userAlloc(sizeof(CScriptArray));
-    if( mem == 0 )
+    if( mem == nullptr )
     {
         if( ctx )
             ctx->SetException("Out of memory");
 
-        return 0;
+        return nullptr;
     }
 
     // Initialize the object
@@ -130,7 +130,7 @@ CScriptArray* CScriptArray::Create(asIObjectType *ot, void *initList)
     if( ctx && ctx->GetState() == asEXECUTION_EXCEPTION )
     {
         a->Release();
-        return 0;
+        return nullptr;
     }
 
     return a;
@@ -142,12 +142,12 @@ CScriptArray* CScriptArray::Create(asIObjectType *ot, asUINT length, void *defVa
 
     // Allocate the memory
     void *mem = userAlloc(sizeof(CScriptArray));
-    if( mem == 0 )
+    if( mem == nullptr )
     {
         if( ctx )
             ctx->SetException("Out of memory");
 
-        return 0;
+        return nullptr;
     }
 
     // Initialize the object
@@ -158,7 +158,7 @@ CScriptArray* CScriptArray::Create(asIObjectType *ot, asUINT length, void *defVa
     if( ctx && ctx->GetState() == asEXECUTION_EXCEPTION )
     {
         a->Release();
-        return 0;
+        return nullptr;
     }
 
     return a;
@@ -276,7 +276,7 @@ CScriptArray::CScriptArray(asIObjectType *ot, void *buf)
     gcFlag = false;
     objType = ot;
     objType->AddRef();
-    buffer = 0;
+    buffer = nullptr;
 
     Precache();
 
@@ -366,7 +366,7 @@ CScriptArray::CScriptArray(asUINT length, asIObjectType *ot)
     gcFlag = false;
     objType = ot;
     objType->AddRef();
-    buffer = 0;
+    buffer = nullptr;
 
     Precache();
 
@@ -399,7 +399,7 @@ CScriptArray::CScriptArray(const CScriptArray &other)
     gcFlag = false;
     objType = other.objType;
     objType->AddRef();
-    buffer = 0;
+    buffer = nullptr;
 
     Precache();
 
@@ -410,7 +410,7 @@ CScriptArray::CScriptArray(const CScriptArray &other)
     if( objType->GetFlags() & asOBJ_GC )
         objType->GetEngine()->NotifyGarbageCollectorOfNewObject(this, objType);
     */
-    
+
     CreateBuffer(&buffer, 0);
 
     // Copy the content
@@ -423,7 +423,7 @@ CScriptArray::CScriptArray(asUINT length, void *defVal, asIObjectType *ot)
     gcFlag = false;
     objType = ot;
     objType->AddRef();
-    buffer = 0;
+    buffer = nullptr;
 
     Precache();
 
@@ -448,7 +448,7 @@ CScriptArray::CScriptArray(asUINT length, void *defVal, asIObjectType *ot)
     if( objType->GetFlags() & asOBJ_GC )
         objType->GetEngine()->NotifyGarbageCollectorOfNewObject(this, objType);
     */
-    
+
     // Initialize the elements with the default value
     for( asUINT n = 0; n < GetSize(); n++ )
         SetValue(n, defVal);
@@ -459,7 +459,7 @@ void CScriptArray::SetValue(asUINT index, void *value)
     // At() will take care of the out-of-bounds checking, though
     // if called from the application then nothing will be done
     void *ptr = At(index);
-    if( ptr == 0 ) return;
+    if( ptr == nullptr ) return;
 
     if( (subTypeId & ~asTYPEID_MASK_SEQNBR) && !(subTypeId & asTYPEID_OBJHANDLE) )
         objType->GetEngine()->AssignScriptObject(ptr, value, objType->GetSubType());
@@ -494,7 +494,7 @@ CScriptArray::~CScriptArray()
     if( buffer )
     {
         DeleteBuffer(buffer);
-        buffer = 0;
+        buffer = nullptr;
     }
     if( objType ) objType->Release();
 }
@@ -711,13 +711,13 @@ void CScriptArray::RemoveLast()
 // Return a pointer to the array element. Returns 0 if the index is out of bounds
 const void *CScriptArray::At(asUINT index) const
 {
-    if( buffer == 0 || index >= buffer->numElements )
+    if( buffer == nullptr || index >= buffer->numElements )
     {
         // If this is called from a script we raise a script exception
         asIScriptContext *ctx = asGetActiveContext();
         if( ctx )
             ctx->SetException("Index out of bounds");
-        return 0;
+        return nullptr;
     }
 
     if( (subTypeId & asTYPEID_MASK_OBJECT) && !(subTypeId & asTYPEID_OBJHANDLE) )
@@ -775,9 +775,9 @@ void CScriptArray::Construct(SArrayBuffer *buf, asUINT start, asUINT end)
         for( ; d < max; d++ )
         {
             *d = (void*)engine->CreateScriptObject(subType);
-            if( *d == 0 )
+            if( *d == nullptr )
             {
-                // Set the remaining entries to null so the destructor 
+                // Set the remaining entries to null so the destructor
                 // won't attempt to destroy invalid objects later
                 memset(d, 0, sizeof(void*)*(max-d));
 
@@ -851,8 +851,8 @@ bool CScriptArray::Less(const void *a, const void *b, bool asc, asIScriptContext
         if( subTypeId & asTYPEID_OBJHANDLE )
         {
             // Allow sort to work even if the array contains null handles
-            if( *(void**)a == 0 ) return true;
-            if( *(void**)b == 0 ) return false;
+            if( *(void**)a == nullptr ) return true;
+            if( *(void**)b == nullptr ) return false;
         }
 
         // Execute object opCmp
@@ -909,7 +909,7 @@ bool CScriptArray::operator==(const CScriptArray &other) const
     if( GetSize() != other.GetSize() )
         return false;
 
-    asIScriptContext *cmpContext = 0;
+    asIScriptContext *cmpContext = nullptr;
     bool isNested = false;
 
     if( subTypeId & ~asTYPEID_MASK_SEQNBR )
@@ -921,9 +921,9 @@ bool CScriptArray::operator==(const CScriptArray &other) const
             if( cmpContext->GetEngine() == objType->GetEngine() && cmpContext->PushState() >= 0 )
                 isNested = true;
             else
-                cmpContext = 0;
+                cmpContext = nullptr;
         }
-        if( cmpContext == 0 )
+        if( cmpContext == nullptr )
         {
             // TODO: Ideally this context would be retrieved from a pool, so we don't have to
             //       create a new one everytime. We could keep a context with the array object
@@ -1085,11 +1085,11 @@ int CScriptArray::Find(asUINT startAt, void *value) const
 {
     // Check if the subtype really supports find()
     // TODO: Can't this be done at compile time too by the template callback
-    SArrayCache *cache = 0;
+    SArrayCache *cache = nullptr;
     if( subTypeId & ~asTYPEID_MASK_SEQNBR )
     {
         cache = reinterpret_cast<SArrayCache*>(objType->GetUserData(ARRAY_CACHE));
-        if( !cache || (cache->cmpFunc == 0 && cache->eqFunc == 0) )
+        if( !cache || (cache->cmpFunc == nullptr && cache->eqFunc == nullptr) )
         {
             asIScriptContext *ctx = asGetActiveContext();
             asIObjectType* subType = objType->GetEngine()->GetObjectTypeById(subTypeId);
@@ -1118,7 +1118,7 @@ int CScriptArray::Find(asUINT startAt, void *value) const
         }
     }
 
-    asIScriptContext *cmpContext = 0;
+    asIScriptContext *cmpContext = nullptr;
     bool isNested = false;
 
     if( subTypeId & ~asTYPEID_MASK_SEQNBR )
@@ -1130,9 +1130,9 @@ int CScriptArray::Find(asUINT startAt, void *value) const
             if( cmpContext->GetEngine() == objType->GetEngine() && cmpContext->PushState() >= 0 )
                 isNested = true;
             else
-                cmpContext = 0;
+                cmpContext = nullptr;
         }
-        if( cmpContext == 0 )
+        if( cmpContext == nullptr )
         {
             // TODO: Ideally this context would be retrieved from a pool, so we don't have to
             //       create a new one everytime. We could keep a context with the array object
@@ -1237,7 +1237,7 @@ void CScriptArray::Sort(asUINT startAt, asUINT count, bool asc)
     SArrayCache *cache = reinterpret_cast<SArrayCache*>(objType->GetUserData(ARRAY_CACHE));
     if( subTypeId & ~asTYPEID_MASK_SEQNBR )
     {
-        if( !cache || cache->cmpFunc == 0 )
+        if( !cache || cache->cmpFunc == nullptr )
         {
             asIScriptContext *ctx = asGetActiveContext();
             asIObjectType* subType = objType->GetEngine()->GetObjectTypeById(subTypeId);
@@ -1291,7 +1291,7 @@ void CScriptArray::Sort(asUINT startAt, asUINT count, bool asc)
     }
 
     asBYTE tmp[16];
-    asIScriptContext *cmpContext = 0;
+    asIScriptContext *cmpContext = nullptr;
     bool isNested = false;
 
     if( subTypeId & ~asTYPEID_MASK_SEQNBR )
@@ -1303,9 +1303,9 @@ void CScriptArray::Sort(asUINT startAt, asUINT count, bool asc)
             if( cmpContext->GetEngine() == objType->GetEngine() && cmpContext->PushState() >= 0 )
                 isNested = true;
             else
-                cmpContext = 0;
+                cmpContext = nullptr;
         }
-        if( cmpContext == 0 )
+        if( cmpContext == nullptr )
         {
             // TODO: Ideally this context would be retrieved from a pool, so we don't have to
             //       create a new one everytime. We could keep a context with the array object
@@ -1484,7 +1484,7 @@ void CScriptArray::Precache()
                 {
                     if( cache->cmpFunc || cache->cmpFuncReturnCode )
                     {
-                        cache->cmpFunc = 0;
+                        cache->cmpFunc = nullptr;
                         cache->cmpFuncReturnCode = asMULTIPLE_FUNCTIONS;
                     }
                     else
@@ -1494,7 +1494,7 @@ void CScriptArray::Precache()
                 {
                     if( cache->eqFunc || cache->eqFuncReturnCode )
                     {
-                        cache->eqFunc = 0;
+                        cache->eqFunc = nullptr;
                         cache->eqFuncReturnCode = asMULTIPLE_FUNCTIONS;
                     }
                     else
@@ -1504,9 +1504,9 @@ void CScriptArray::Precache()
         }
     }
 
-    if( cache->eqFunc == 0 && cache->eqFuncReturnCode == 0 )
+    if( cache->eqFunc == nullptr && cache->eqFuncReturnCode == 0 )
         cache->eqFuncReturnCode = asNO_FUNCTION;
-    if( cache->cmpFunc == 0 && cache->cmpFuncReturnCode == 0 )
+    if( cache->cmpFunc == nullptr && cache->cmpFuncReturnCode == 0 )
         cache->cmpFuncReturnCode = asNO_FUNCTION;
 
     // Set the user data only at the end so others that retrieve it will know it is complete
@@ -1641,8 +1641,8 @@ CScriptDictionary::CScriptDictionary(asIScriptEngine *engine)
     gcFlag = false;
 
     // Keep a reference to the engine for as long as we live
-    // We don't increment the reference counter, because the 
-    // engine will hold a pointer to the object. 
+    // We don't increment the reference counter, because the
+    // engine will hold a pointer to the object.
     this->engine = engine;
 
     // Urho3D: garbage collection disabled
@@ -1677,7 +1677,7 @@ CScriptDictionary::CScriptDictionary(asBYTE *buffer)
 
     while( length-- )
     {
-        // Align the buffer pointer on a 4 byte boundary in 
+        // Align the buffer pointer on a 4 byte boundary in
         // case previous value was smaller than 4 bytes
         if( asPWORD(buffer) & 0x3 )
             buffer += 4 - (asPWORD(buffer) & 0x3);
@@ -1711,7 +1711,7 @@ CScriptDictionary::CScriptDictionary(asBYTE *buffer)
             case asTYPEID_FLOAT: d = *(float*)ref; break;
             case asTYPEID_DOUBLE: d = *(double*)ref; break;
             }
-            
+
             if( typeId >= asTYPEID_FLOAT )
                 Set(name, d);
             else
@@ -1719,8 +1719,8 @@ CScriptDictionary::CScriptDictionary(asBYTE *buffer)
         }
         else
         {
-            if( (typeId & asTYPEID_MASK_OBJECT) && 
-                !(typeId & asTYPEID_OBJHANDLE) && 
+            if( (typeId & asTYPEID_MASK_OBJECT) &&
+                !(typeId & asTYPEID_OBJHANDLE) &&
                 (engine->GetObjectTypeById(typeId)->GetFlags() & asOBJ_REF) )
             {
                 // Dereference the pointer to get the reference to the actual object
@@ -1794,7 +1794,7 @@ void CScriptDictionary::EnumReferences(asIScriptEngine *engine)
 {
     // Call the gc enum callback for each of the objects
     HashMap<String, CScriptDictValue>::Iterator it;
-    for( it = dict.Begin(); it != dict.End(); it++ )
+    for( it = dict.begin(); it != dict.end(); it++ )
     {
         if( it->second_.m_typeId & asTYPEID_MASK_OBJECT )
             engine->GCEnumCallback(it->second_.m_valueObj);
@@ -1803,7 +1803,7 @@ void CScriptDictionary::EnumReferences(asIScriptEngine *engine)
 
 void CScriptDictionary::ReleaseAllReferences(asIScriptEngine * /*engine*/)
 {
-    // We're being told to release all references in 
+    // We're being told to release all references in
     // order to break circular references for dead objects
     DeleteAll();
 }
@@ -1815,7 +1815,7 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
 
     // Do a shallow copy of the dictionary
     HashMap<String, CScriptDictValue>::ConstIterator it;
-    for( it = other.dict.Begin(); it != other.dict.End(); it++ )
+    for( it = other.dict.begin(); it != other.dict.end(); it++ )
     {
         if( it->second_.m_typeId & asTYPEID_OBJHANDLE )
             Set(it->first_, (void*)&it->second_.m_valueObj, it->second_.m_typeId);
@@ -1833,9 +1833,9 @@ CScriptDictValue *CScriptDictionary::operator[](const String &key)
     // Return the existing value if it exists, else insert an empty value
     HashMap<String, CScriptDictValue>::Iterator it;
     it = dict.Find(key);
-    if( it == dict.End() )
+    if( it == dict.end() )
         it = dict.Insert(MakePair(key, CScriptDictValue()));
-    
+
     return &it->second_;
 }
 
@@ -1844,7 +1844,7 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
     // Return the existing value if it exists
     HashMap<String, CScriptDictValue>::ConstIterator it;
     it = dict.Find(key);
-    if( it != dict.End() )
+    if( it != dict.end() )
         return &it->second_;
 
     // Else raise an exception
@@ -1852,14 +1852,14 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
     if( ctx )
         ctx->SetException("Invalid access to non-existing value");
 
-    return 0;
+    return nullptr;
 }
 
 void CScriptDictionary::Set(const String &key, void *value, int typeId)
 {
     HashMap<String, CScriptDictValue>::Iterator it;
     it = dict.Find(key);
-    if( it == dict.End() )
+    if( it == dict.end() )
         it = dict.Insert(MakePair(key, CScriptDictValue()));
 
     it->second_.Set(engine, value, typeId);
@@ -1868,16 +1868,16 @@ void CScriptDictionary::Set(const String &key, void *value, int typeId)
 // This overloaded method is implemented so that all integer and
 // unsigned integers types will be stored in the dictionary as int64
 // through implicit conversions. This simplifies the management of the
-// numeric types when the script retrieves the stored value using a 
+// numeric types when the script retrieves the stored value using a
 // different type.
 void CScriptDictionary::Set(const String &key, const asINT64 &value)
 {
     Set(key, const_cast<asINT64*>(&value), asTYPEID_INT64);
 }
 
-// This overloaded method is implemented so that all floating point types 
-// will be stored in the dictionary as double through implicit conversions. 
-// This simplifies the management of the numeric types when the script 
+// This overloaded method is implemented so that all floating point types
+// will be stored in the dictionary as double through implicit conversions.
+// This simplifies the management of the numeric types when the script
 // retrieves the stored value using a different type.
 void CScriptDictionary::Set(const String &key, const double &value)
 {
@@ -1889,11 +1889,11 @@ bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 {
     HashMap<String, CScriptDictValue>::ConstIterator it;
     it = dict.Find(key);
-    if( it != dict.End() )
+    if( it != dict.end() )
         return it->second_.Get(engine, value, typeId);
 
     // AngelScript has already initialized the value with a default value,
-    // so we don't have to do anything if we don't find the element, or if 
+    // so we don't have to do anything if we don't find the element, or if
     // the element is incompatible with the requested type.
 
     return false;
@@ -1904,7 +1904,7 @@ int CScriptDictionary::GetTypeId(const String &key) const
 {
     HashMap<String, CScriptDictValue>::ConstIterator it;
     it = dict.Find(key);
-    if( it != dict.End() )
+    if( it != dict.end() )
         return it->second_.m_typeId;
 
     return -1;
@@ -1924,7 +1924,7 @@ bool CScriptDictionary::Exists(const String &key) const
 {
     HashMap<String, CScriptDictValue>::ConstIterator it;
     it = dict.Find(key);
-    if( it != dict.End() )
+    if( it != dict.end() )
         return true;
 
     return false;
@@ -1947,7 +1947,7 @@ void CScriptDictionary::Delete(const String &key)
 {
     HashMap<String, CScriptDictValue>::Iterator it;
     it = dict.Find(key);
-    if( it != dict.End() )
+    if( it != dict.end() )
     {
         it->second_.FreeValue(engine);
         dict.Erase(it);
@@ -1957,7 +1957,7 @@ void CScriptDictionary::Delete(const String &key)
 void CScriptDictionary::DeleteAll()
 {
     HashMap<String, CScriptDictValue>::Iterator it;
-    for( it = dict.Begin(); it != dict.End(); it++ )
+    for( it = dict.begin(); it != dict.end(); it++ )
         it->second_.FreeValue(engine);
 
     dict.Clear();
@@ -1965,10 +1965,10 @@ void CScriptDictionary::DeleteAll()
 
 CScriptArray* CScriptDictionary::GetKeys() const
 {
-    // TODO: optimize: The string array type should only be determined once. 
+    // TODO: optimize: The string array type should only be determined once.
     //                 It should be recomputed when registering the dictionary class.
     //                 Only problem is if multiple engines are used, as they may not
-    //                 share the same type id. Alternatively it can be stored in the 
+    //                 share the same type id. Alternatively it can be stored in the
     //                 user data for the dictionary type.
     asIObjectType *ot = engine->GetObjectTypeByDecl("Array<String>");
 
@@ -1976,7 +1976,7 @@ CScriptArray* CScriptDictionary::GetKeys() const
     CScriptArray *array = CScriptArray::Create(ot, asUINT(dict.Size()));
     long current = -1;
     HashMap<String, CScriptDictValue>::ConstIterator it;
-    for( it = dict.Begin(); it != dict.End(); it++ )
+    for( it = dict.begin(); it != dict.end(); it++ )
     {
         current++;
         *(String*)array->At(current) = it->first_;
@@ -1998,13 +1998,13 @@ void ScriptDictionaryListFactory_Generic(asIScriptGeneric *gen)
 
 CScriptDictValue::CScriptDictValue()
 {
-    m_valueObj = 0;
+    m_valueObj = nullptr;
     m_typeId   = 0;
 }
 
 CScriptDictValue::CScriptDictValue(asIScriptEngine *engine, void *value, int typeId)
 {
-    m_valueObj = 0;
+    m_valueObj = nullptr;
     m_typeId   = 0;
     Set(engine, value, typeId);
 }
@@ -2022,7 +2022,7 @@ void CScriptDictValue::FreeValue(asIScriptEngine *engine)
     {
         // Let the engine release the object
         engine->ReleaseScriptObject(m_valueObj, engine->GetObjectTypeById(m_typeId));
-        m_valueObj = 0;
+        m_valueObj = nullptr;
         m_typeId = 0;
     }
 
@@ -2057,16 +2057,16 @@ void CScriptDictValue::Set(asIScriptEngine *engine, void *value, int typeId)
 // This overloaded method is implemented so that all integer and
 // unsigned integers types will be stored in the dictionary as int64
 // through implicit conversions. This simplifies the management of the
-// numeric types when the script retrieves the stored value using a 
+// numeric types when the script retrieves the stored value using a
 // different type.
 void CScriptDictValue::Set(asIScriptEngine *engine, const asINT64 &value)
 {
     Set(engine, const_cast<asINT64*>(&value), asTYPEID_INT64);
 }
 
-// This overloaded method is implemented so that all floating point types 
-// will be stored in the dictionary as double through implicit conversions. 
-// This simplifies the management of the numeric types when the script 
+// This overloaded method is implemented so that all floating point types
+// will be stored in the dictionary as double through implicit conversions.
+// This simplifies the management of the numeric types when the script
 // retrieves the stored value using a different type.
 void CScriptDictValue::Set(asIScriptEngine *engine, const double &value)
 {
@@ -2080,7 +2080,7 @@ bool CScriptDictValue::Get(asIScriptEngine *engine, void *value, int typeId) con
     {
         // A handle can be retrieved if the stored type is a handle of same or compatible type
         // or if the stored type is an object that implements the interface that the handle refer to.
-        if( (m_typeId & asTYPEID_MASK_OBJECT) && 
+        if( (m_typeId & asTYPEID_MASK_OBJECT) &&
             engine->IsHandleCompatibleWithObject(m_valueObj, m_typeId, typeId) )
         {
             engine->AddRefScriptObject(m_valueObj, engine->GetObjectTypeById(m_typeId));
@@ -2269,7 +2269,7 @@ static char* StringCharAt(unsigned i, String& str)
         asIScriptContext* context = asGetActiveContext();
         if (context)
             context->SetException("Index out of bounds");
-        return 0;
+        return nullptr;
     }
     return &str[i];
 }
@@ -2450,7 +2450,7 @@ void RegisterString(asIScriptEngine *engine)
     engine->RegisterObjectMethod("String", "bool Contains(const String&in, bool caseSensitive = true) const", asMETHODPR(String, Contains, (const String&, bool) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "bool Contains(uint8, bool caseSensitive = true) const", asMETHODPR(String, Contains, (char, bool) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "void Clear()", asMETHOD(String, Clear), asCALL_THISCALL);
-    
+
     // Register automatic conversion functions for convenience
     engine->RegisterObjectBehaviour("String", asBEHAVE_CONSTRUCT, "void f(int)", asFUNCTION(ConstructStringInt), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("String", asBEHAVE_CONSTRUCT, "void f(uint)", asFUNCTION(ConstructStringUInt), asCALL_CDECL_OBJLAST);

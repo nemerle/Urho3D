@@ -45,7 +45,7 @@ PListValue& PListValueMap::operator [](const String& key)
 const PListValue& PListValueMap::operator [](const String& key) const
 {
     ConstIterator i = Find(key);
-    if (i == End())
+    if (i == end())
         return EMPTY_VALUE;
 
     return i->second_;

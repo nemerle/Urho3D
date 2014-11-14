@@ -46,7 +46,7 @@ static const char* shapeNames[] =
     "AcceptDrop",
     "RejectDrop",
     "Busy",
-    0
+    nullptr
 };
 
 /// OS cursor shape lookup table matching cursor shape enumeration
@@ -76,13 +76,13 @@ Cursor::Cursor(Context* context) :
 
 Cursor::~Cursor()
 {
-    for (unsigned i = 0; i < CS_MAX_SHAPES; ++i)
+    for (auto & info : shapeInfos_)
     {
-        CursorShapeInfo& info = shapeInfos_[i];
+        
         if (info.osCursor_)
         {
             SDL_FreeCursor(info.osCursor_);
-            info.osCursor_ = 0;
+            info.osCursor_ = nullptr;
         }
     }
 }
@@ -142,7 +142,7 @@ void Cursor::DefineShape(CursorShape shape, Image* image, const IntRect& imageRe
     if (info.osCursor_)
     {
         SDL_FreeCursor(info.osCursor_);
-        info.osCursor_ = 0;
+        info.osCursor_ = nullptr;
     }
 
     // Reset current shape if it was edited
@@ -209,9 +209,9 @@ VariantVector Cursor::GetShapesAttr() const
     VariantVector ret;
 
     unsigned numShapes = 0;
-    for (unsigned i = 0; i < CS_MAX_SHAPES; ++i)
+    for (auto & elem : shapeInfos_)
     {
-        if (shapeInfos_[i].imageRect_ != IntRect::ZERO)
+        if (elem.imageRect_ != IntRect::ZERO)
             ++numShapes;
     }
 
@@ -243,7 +243,7 @@ void Cursor::ApplyOSCursorShape()
     if (info.osCursor_ && info.systemDefined_ != useSystemShapes_)
     {
         SDL_FreeCursor(info.osCursor_);
-        info.osCursor_ = 0;
+        info.osCursor_ = nullptr;
     }
 
     // Create SDL cursor now if necessary
