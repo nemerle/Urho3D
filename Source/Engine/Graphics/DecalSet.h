@@ -143,7 +143,7 @@ public:
     /// Return material.
     Material* GetMaterial() const;
     /// Return number of decals.
-    unsigned GetNumDecals() const { return decals_.Size(); }
+    unsigned GetNumDecals() const { return decals_.size(); }
     /// Retur number of vertices in the decals.
     unsigned GetNumVertices() const { return numVertices_; }
     /// Retur number of vertex indices in the decals.

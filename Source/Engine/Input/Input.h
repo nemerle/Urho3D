@@ -22,11 +22,10 @@
 
 #pragma once
 
-#include "HashSet.h"
 #include "InputEvents.h"
 #include "Mutex.h"
 #include "Object.h"
-#include "List.h"
+#include <QtCore/QSet>
 
 #include "Cursor.h"
 
@@ -302,13 +301,13 @@ private:
     /// Graphics subsystem.
     WeakPtr<Graphics> graphics_;
     /// Key down state.
-    HashSet<int> keyDown_;
+    QSet<int> keyDown_;
     /// Key pressed state.
-    HashSet<int> keyPress_;
+    QSet<int> keyPress_;
     /// Key down state by scancode.
-    HashSet<int> scancodeDown_;
+    QSet<int> scancodeDown_;
     /// Key pressed state by scancode.
-    HashSet<int> scancodePress_;
+    QSet<int> scancodePress_;
     /// Active finger touches.
     QHash<int, TouchState> touches_;
     /// List that maps between event touch IDs and normalised touch IDs

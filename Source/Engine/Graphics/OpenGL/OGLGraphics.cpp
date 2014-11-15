@@ -1120,10 +1120,10 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
         if (i != shaderPrograms_.end())
         {
             // Use the existing linked program
-            if (i->second_->GetGPUObject())
+            if ((*i)->GetGPUObject())
             {
-                glUseProgram(i->second_->GetGPUObject());
-                shaderProgram_ = i->second_;
+                glUseProgram((*i)->GetGPUObject());
+                shaderProgram_ = *i;
             }
             else
             {
@@ -1440,8 +1440,8 @@ void Graphics::CleanupShaderPrograms()
 
     for (ShaderProgramMap::Iterator i = shaderPrograms_.begin(); i != shaderPrograms_.end();)
     {
-        ShaderVariation* vs = i->second_->GetVertexShader();
-        ShaderVariation* ps = i->second_->GetPixelShader();
+        ShaderVariation* vs = (*i)->GetVertexShader();
+        ShaderVariation* ps = (*i)->GetPixelShader();
 
         if (!vs || !ps || !vs->GetGPUObject() || !ps->GetGPUObject())
             i = shaderPrograms_.erase(i);
@@ -1619,9 +1619,9 @@ void Graphics::SetDepthStencil(RenderSurface* depthStencil)
         if (width <= width_ && height <= height_)
         {
             int searchKey = (width << 16) | height;
-            HashMap<int, SharedPtr<Texture2D> >::Iterator i = depthTextures_.find(searchKey);
+            QHash<int, SharedPtr<Texture2D> >::Iterator i = depthTextures_.find(searchKey);
             if (i != depthTextures_.end())
-                depthStencil = i->second_->GetRenderSurface();
+                depthStencil = (*i)->GetRenderSurface();
             else
             {
                 SharedPtr<Texture2D> newDepthTexture(new Texture2D(context_));
@@ -2109,19 +2109,19 @@ VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
 
 TextureUnit Graphics::GetTextureUnit(const String& name)
 {
-    HashMap<String, TextureUnit>::Iterator i = textureUnits_.find(name);
+    QHash<String, TextureUnit>::Iterator i = textureUnits_.find(name);
     if (i != textureUnits_.end())
-        return i->second_;
+        return *i;
     else
         return MAX_TEXTURE_UNITS;
 }
 
 const String& Graphics::GetTextureUnitName(TextureUnit unit)
 {
-    for (auto & elem : textureUnits_)
+    for (auto elem=textureUnits_.begin(),fin=textureUnits_.end(); elem!=fin; ++elem)
     {
-        if (elem.second_ == unit)
-            return elem.first_;
+        if (*elem == unit)
+            return elem.key();
     }
     return String::EMPTY;
 }
@@ -2430,33 +2430,33 @@ void Graphics::CleanupRenderSurface(RenderSurface* surface)
     unsigned currentFbo = impl_->boundFbo_;
 
     // Go through all FBOs and clean up the surface from them
-    for (auto & elem : impl_->frameBuffers_)
+    for (FrameBufferObject & elem : impl_->frameBuffers_)
     {
         for (unsigned j = 0; j < MAX_RENDERTARGETS; ++j)
         {
-            if (elem.second_.colorAttachments_[j] == surface)
+            if (elem.colorAttachments_[j] == surface)
             {
-                if (currentFbo != elem.second_.fbo_)
+                if (currentFbo != elem.fbo_)
                 {
-                    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, elem.second_.fbo_);
-                    currentFbo = elem.second_.fbo_;
+                    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, elem.fbo_);
+                    currentFbo = elem.fbo_;
                 }
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, 0, 0);
-                elem.second_.colorAttachments_[j] = nullptr;
+                elem.colorAttachments_[j] = nullptr;
                 // Mark drawbuffer bits to need recalculation
-                elem.second_.drawBuffers_ = M_MAX_UNSIGNED;
+                elem.drawBuffers_ = M_MAX_UNSIGNED;
             }
         }
-        if (elem.second_.depthAttachment_ == surface)
+        if (elem.depthAttachment_ == surface)
         {
-            if (currentFbo != elem.second_.fbo_)
+            if (currentFbo != elem.fbo_)
             {
-                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, elem.second_.fbo_);
-                currentFbo = elem.second_.fbo_;
+                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, elem.fbo_);
+                currentFbo = elem.fbo_;
             }
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-            elem.second_.depthAttachment_ = nullptr;
+            elem.depthAttachment_ = nullptr;
         }
     }
 
@@ -2742,28 +2742,28 @@ void Graphics::CommitFramebuffer()
 
     unsigned long long fboKey = (rtSize.x_ << 16 | rtSize.y_) | (((unsigned long long)format) << 32);
 
-    HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.find(fboKey);
+    QHash<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.find(fboKey);
     if (i == impl_->frameBuffers_.end())
     {
         FrameBufferObject newFbo;
         glGenFramebuffersEXT(1, &newFbo.fbo_);
-        i = impl_->frameBuffers_.insert(MakePair(fboKey, newFbo));
+        i = impl_->frameBuffers_.insert(fboKey, newFbo);
     }
 
-    i->second_.useTimer_.Reset();
+    i->useTimer_.Reset();
 
-    if (impl_->boundFbo_ != i->second_.fbo_)
+    if (impl_->boundFbo_ != i->fbo_)
     {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, i->second_.fbo_);
-        impl_->boundFbo_ = i->second_.fbo_;
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, i->fbo_);
+        impl_->boundFbo_ = i->fbo_;
     }
 
     #ifndef GL_ES_VERSION_2_0
     // Setup readbuffers & drawbuffers if needed
-    if (i->second_.readBuffers_ != GL_NONE)
+    if (i->readBuffers_ != GL_NONE)
     {
         glReadBuffer(GL_NONE);
-        i->second_.readBuffers_ = GL_NONE;
+        i->readBuffers_ = GL_NONE;
     }
 
     // Calculate the bit combination of non-zero color rendertargets to first check if the combination changed
@@ -2774,7 +2774,7 @@ void Graphics::CommitFramebuffer()
             newDrawBuffers |= 1 << i;
     }
 
-    if (newDrawBuffers != i->second_.drawBuffers_)
+    if (newDrawBuffers != i->drawBuffers_)
     {
         // Check for no color rendertargets (depth rendering only)
         if (!newDrawBuffers)
@@ -2792,7 +2792,7 @@ void Graphics::CommitFramebuffer()
             glDrawBuffers(drawBufferCount, (const GLenum*)drawBufferIds);
         }
 
-        i->second_.drawBuffers_ = newDrawBuffers;
+        i->drawBuffers_ = newDrawBuffers;
     }
     #endif
 
@@ -2810,19 +2810,19 @@ void Graphics::CommitFramebuffer()
                 SetTexture(0, nullptr);
             }
 
-            if (i->second_.colorAttachments_[j] != renderTargets_[j])
+            if (i->colorAttachments_[j] != renderTargets_[j])
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, renderTargets_[j]->GetTarget(),
                     texture->GetGPUObject(), 0);
-                i->second_.colorAttachments_[j] = renderTargets_[j];
+                i->colorAttachments_[j] = renderTargets_[j];
             }
         }
         else
         {
-            if (i->second_.colorAttachments_[j])
+            if (i->colorAttachments_[j])
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, 0, 0);
-                i->second_.colorAttachments_[j] = nullptr;
+                i->colorAttachments_[j] = nullptr;
             }
         }
     }
@@ -2847,7 +2847,7 @@ void Graphics::CommitFramebuffer()
                 SetTexture(0, nullptr);
             }
 
-            if (i->second_.depthAttachment_ != depthStencil_)
+            if (i->depthAttachment_ != depthStencil_)
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texture->GetGPUObject(), 0);
                 if (hasStencil)
@@ -2858,12 +2858,12 @@ void Graphics::CommitFramebuffer()
                 else
                     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
 
-                i->second_.depthAttachment_ = depthStencil_;
+                i->depthAttachment_ = depthStencil_;
             }
         }
         else
         {
-            if (i->second_.depthAttachment_ != depthStencil_)
+            if (i->depthAttachment_ != depthStencil_)
             {
                 glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, renderBufferID);
                 if (hasStencil)
@@ -2874,17 +2874,17 @@ void Graphics::CommitFramebuffer()
                 else
                     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
 
-                i->second_.depthAttachment_ = depthStencil_;
+                i->depthAttachment_ = depthStencil_;
             }
         }
     }
     else
     {
-        if (i->second_.depthAttachment_)
+        if (i->depthAttachment_)
         {
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-            i->second_.depthAttachment_ = nullptr;
+            i->depthAttachment_ = nullptr;
         }
     }
 
@@ -2914,13 +2914,13 @@ void Graphics::CleanupFramebuffers(bool force)
 {
     if (!IsDeviceLost())
     {
-        for (HashMap<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.begin();
+        for (QHash<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.begin();
             i != impl_->frameBuffers_.end();)
         {
-            if (i->second_.fbo_ != impl_->boundFbo_ && (force || i->second_.useTimer_.GetMSec(false) >
+            if (i->fbo_ != impl_->boundFbo_ && (force || i->useTimer_.GetMSec(false) >
                 MAX_FRAMEBUFFER_AGE))
             {
-                glDeleteFramebuffersEXT(1, &i->second_.fbo_);
+                glDeleteFramebuffersEXT(1, &i->fbo_);
                 i = impl_->frameBuffers_.erase(i);
             }
             else

@@ -25,7 +25,7 @@
 #include "BoundingBox.h"
 #include "Component.h"
 #include "GraphicsDefs.h"
-#include "HashSet.h"
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -81,7 +81,7 @@ struct SourceBatch
     SourceBatch();
     /// Destruct.
     ~SourceBatch();
-    
+
     /// Distance from camera.
     float distance_;
     /// Geometry.
@@ -102,11 +102,11 @@ struct SourceBatch
 class URHO3D_API Drawable : public Component
 {
     OBJECT(Drawable);
-    
+
     friend class Octant;
     friend class Octree;
     friend void UpdateDrawablesWork(const WorkItem* item, unsigned threadIndex);
-    
+
 public:
     /// Construct.
     Drawable(Context* context, unsigned char drawableFlags);
@@ -114,7 +114,7 @@ public:
     virtual ~Drawable();
     /// Register object attributes. Drawable must be registered first.
     static void RegisterObject(Context* context);
-    
+
     /// Handle enabled/disabled state change.
     virtual void OnSetEnabled();
     /// Process octree raycast. May be called from a worker thread.
@@ -135,7 +135,7 @@ public:
     virtual bool DrawOcclusion(OcclusionBuffer* buffer);
     /// Visualize the component as debug geometry.
     virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
-    
+
     /// Set draw distance.
     void SetDrawDistance(float distance);
     /// Set shadow draw distance.
@@ -160,7 +160,7 @@ public:
     void SetOccludee(bool enable);
     /// Mark for update and octree reinsertion. Update is automatically queued when the drawable's scene node moves or changes scale.
     void MarkForUpdate();
-    
+
     /// Return local space bounding box. May not be applicable or properly updated on all drawables.
     const BoundingBox& GetBoundingBox() const { return boundingBox_; }
     /// Return world-space bounding box.
@@ -195,7 +195,7 @@ public:
     bool IsInView(Camera* camera) const;
     /// Return draw call source data.
     const Vector<SourceBatch>& GetBatches() const { return batches_; }
-    
+
     /// Set new zone. Zone assignment may optionally be temporary, meaning it needs to be re-evaluated on the next frame.
     void SetZone(Zone* zone, bool temporary = false);
     /// Set sorting value.
@@ -238,7 +238,7 @@ public:
     float GetMinZ() const { return minZ_; }
     /// Return the maximum view-space depth.
     float GetMaxZ() const { return maxZ_; }
-    
+
     // Clear the frame's light list.
     void ClearLights()
     {
@@ -277,7 +277,7 @@ protected:
     void RemoveFromOctree();
     /// Move into another octree octant.
     void SetOctant(Octant* octant) { octant_ = octant; }
-    
+
     /// World-space bounding box.
     BoundingBox worldBoundingBox_;
     /// Local-space bounding box.
@@ -339,7 +339,7 @@ protected:
     /// Zone inconclusive or dirtied flag.
     bool zoneDirty_;
     /// Set of cameras from which is seen on the current frame.
-    HashSet<Camera*> viewCameras_;
+    QSet<Camera*> viewCameras_;
 };
 
 inline bool CompareDrawables(Drawable* lhs, Drawable* rhs)

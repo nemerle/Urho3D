@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include "HashMap.h"
-#include "HashSet.h"
+#include <QtCore/QHash>
+#include <QtCore/QSet>
 #include "Sort.h"
 #include "Str.h"
 
-#include <unordered_map>

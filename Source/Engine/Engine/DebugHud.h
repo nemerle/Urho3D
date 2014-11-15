@@ -25,6 +25,8 @@
 #include "Object.h"
 #include "Timer.h"
 
+#include <QMap>
+
 namespace Urho3D
 {
 
@@ -104,7 +106,7 @@ private:
     /// Profiling information text.
     SharedPtr<Text> profilerText_;
     /// Hashmap containing application specific stats.
-    HashMap<String, String> appStats_;
+    QMap<String, String> appStats_;
     /// Profiler timer.
     Timer profilerTimer_;
     /// Profiler max block depth.

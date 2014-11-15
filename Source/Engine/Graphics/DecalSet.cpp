@@ -260,7 +260,7 @@ void DecalSet::SetMaxVertices(unsigned num)
         bufferSizeDirty_ = true;
         maxVertices_ = num;
 
-        while (decals_.Size() && numVertices_ > maxVertices_)
+        while (decals_.size() && numVertices_ > maxVertices_)
             RemoveDecals(1);
 
         MarkNetworkUpdate();
@@ -277,7 +277,7 @@ void DecalSet::SetMaxIndices(unsigned num)
         bufferSizeDirty_ = true;
         maxIndices_ = num;
 
-        while (decals_.Size() && numIndices_ > maxIndices_)
+        while (decals_.size() && numIndices_ > maxIndices_)
             RemoveDecals(1);
 
         MarkNetworkUpdate();
@@ -365,8 +365,8 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
 
     Vector3 decalNormal = (targetTransform * Vector4(worldRotation * Vector3::BACK, 0.0f)).Normalized();
 
-    decals_.Resize(decals_.Size() + 1);
-    Decal& newDecal = decals_.Back();
+    decals_.resize(decals_.size() + 1);
+    Decal& newDecal = decals_.back();
     newDecal.timeToLive_ = timeToLive;
 
     Vector<PODVector<DecalVertex> > faces;
@@ -455,7 +455,7 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
     numIndices_ += newDecal.indices_.Size();
 
     // Remove oldest decals if total vertices exceeded
-    while (decals_.Size() && (numVertices_ > maxVertices_ || numIndices_ > maxIndices_))
+    while (decals_.size() && (numVertices_ > maxVertices_ || numIndices_ > maxIndices_))
         RemoveDecals(1);
 
     LOGDEBUG("Added decal with " + String(newDecal.vertices_.Size()) + " vertices");
@@ -470,13 +470,13 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
 
 void DecalSet::RemoveDecals(unsigned num)
 {
-    while (num-- && decals_.Size())
+    while (num-- && decals_.size())
         RemoveDecal(decals_.begin());
 }
 
 void DecalSet::RemoveAllDecals()
 {
-    if (!decals_.Empty())
+    if (!decals_.empty())
     {
         decals_.Clear();
         numVertices_ = 0;
@@ -521,8 +521,8 @@ void DecalSet::SetDecalsAttr(PODVector<unsigned char> value)
 
     while (numDecals--)
     {
-        decals_.Resize(decals_.Size() + 1);
-        Decal& newDecal = decals_.Back();
+        decals_.resize(decals_.size() + 1);
+        Decal& newDecal = decals_.back();
 
         newDecal.timer_ = buffer.ReadFloat();
         newDecal.timeToLive_ = buffer.ReadFloat();
@@ -591,7 +591,7 @@ PODVector<unsigned char> DecalSet::GetDecalsAttr() const
     VectorBuffer ret;
 
     ret.WriteBool(skinned_);
-    ret.WriteVLE(decals_.Size());
+    ret.WriteVLE(decals_.size());
 
     for (const Decal & _i : decals_)
     {

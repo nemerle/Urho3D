@@ -201,7 +201,7 @@ bool ShaderProgram::Link()
     }
 
     // Rehash the parameter map to ensure minimal load factor
-    shaderParameters_.Rehash(NextPowerOfTwo(shaderParameters_.Size()));
+    shaderParameters_.reserve(NextPowerOfTwo(shaderParameters_.size()));
 
     return true;
 }
@@ -223,9 +223,9 @@ bool ShaderProgram::HasParameter(StringHash param) const
 
 const ShaderParameter* ShaderProgram::GetParameter(StringHash param) const
 {
-    HashMap<StringHash, ShaderParameter>::ConstIterator i = shaderParameters_.find(param);
+    QHash<StringHash, ShaderParameter>::ConstIterator i = shaderParameters_.find(param);
     if (i != shaderParameters_.end())
-        return &i->second_;
+        return &(*i);
     else
         return nullptr;
 }

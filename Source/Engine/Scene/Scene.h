@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "HashSet.h"
 #include "Mutex.h"
 #include "Node.h"
 #include "SceneResolver.h"
 #include "XMLElement.h"
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -62,7 +62,7 @@ struct AsyncProgress
     /// Current load mode.
     LoadMode mode_;
     /// Resource name hashes left to load.
-    HashSet<StringHash> resources_;
+    QSet<StringHash> resources_;
     /// Loaded resources.
     unsigned loadedResources_;
     /// Total resources.
@@ -246,9 +246,9 @@ private:
     /// Registered node user variable reverse mappings.
     QHash<StringHash, String> varNames_;
     /// Nodes to check for attribute changes on the next network update.
-    HashSet<unsigned> networkUpdateNodes_;
+    QSet<unsigned> networkUpdateNodes_;
     /// Components to check for attribute changes on the next network update.
-    HashSet<unsigned> networkUpdateComponents_;
+    QSet<unsigned> networkUpdateComponents_;
     /// Delayed dirty notification queue for components.
     PODVector<Component*> delayedDirtyComponents_;
     /// Mutex for the delayed dirty notification queue.

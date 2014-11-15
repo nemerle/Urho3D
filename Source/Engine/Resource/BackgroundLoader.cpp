@@ -46,10 +46,10 @@ void BackgroundLoader::ThreadFunction()
         backgroundLoadMutex_.Acquire();
 
         // Search for a queued resource that has not been loaded yet
-        HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.begin();
+        QHash<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.begin();
         while (i != backgroundLoadQueue_.end())
         {
-            if (i->second_.resource_->GetAsyncLoadState() == ASYNC_QUEUED)
+            if (i->resource_->GetAsyncLoadState() == ASYNC_QUEUED)
                 break;
             else
                 ++i;
@@ -63,7 +63,7 @@ void BackgroundLoader::ThreadFunction()
         }
         else
         {
-            BackgroundLoadItem& item = i->second_;
+            BackgroundLoadItem& item = *i;
             Resource* resource = item.resource_;
             // We can be sure that the item is not removed from the queue as long as it is in the
             // "queued" or "loading" state
@@ -81,17 +81,17 @@ void BackgroundLoader::ThreadFunction()
             // Need to lock the queue again when manipulating other entries
             Pair<StringHash, StringHash> key = MakePair(resource->GetType(), resource->GetNameHash());
             backgroundLoadMutex_.Acquire();
-            if (item.dependents_.Size())
+            if (item.dependents_.size())
             {
                 for (const Pair<StringHash, StringHash> &dependent : item.dependents_)
                 {
-                    HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j =
+                    QHash<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j =
                         backgroundLoadQueue_.find(dependent);
                     if (j != backgroundLoadQueue_.end())
-                        j->second_.dependencies_.Erase(key);
+                        j->dependencies_.remove(key);
                 }
 
-                item.dependents_.Clear();
+                item.dependents_.clear();
             }
 
             resource->SetAsyncLoadState(success ? ASYNC_SUCCESS : ASYNC_FAIL);
@@ -129,7 +129,7 @@ bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool s
             owner_->SendEvent(E_UNKNOWNRESOURCETYPE, eventData);
         }
 
-        backgroundLoadQueue_.erase(key);
+        backgroundLoadQueue_.remove(key);
         return false;
     }
 
@@ -142,12 +142,12 @@ bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool s
     if (caller)
     {
         Pair<StringHash, StringHash> callerKey = MakePair(caller->GetType(), caller->GetNameHash());
-        HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j = backgroundLoadQueue_.find(callerKey);
+        QHash<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator j = backgroundLoadQueue_.find(callerKey);
         if (j != backgroundLoadQueue_.end())
         {
-            BackgroundLoadItem& callerItem = j->second_;
-            item.dependents_.Insert(callerKey);
-            callerItem.dependencies_.Insert(key);
+            BackgroundLoadItem& callerItem = *j;
+            item.dependents_.insert(callerKey);
+            callerItem.dependencies_.insert(key);
         }
         else
             LOGWARNING("Resource " + caller->GetName() + " requested for a background loaded resource but was not in the background load queue");
@@ -166,19 +166,19 @@ void BackgroundLoader::WaitForResource(StringHash type, StringHash nameHash)
 
     // Check if the resource in question is being background loaded
     Pair<StringHash, StringHash> key = MakePair(type, nameHash);
-    HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.find(key);
+    QHash<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.find(key);
     if (i != backgroundLoadQueue_.end())
     {
         backgroundLoadMutex_.Release();
 
         {
-            Resource* resource = i->second_.resource_;
+            Resource* resource = i->resource_;
             HiresTimer waitTimer;
             bool didWait = false;
 
             for (;;)
             {
-                unsigned numDeps = i->second_.dependencies_.Size();
+                unsigned numDeps = i->dependencies_.size();
                 AsyncLoadState state = resource->GetAsyncLoadState();
                 if (numDeps > 0 || state == ASYNC_QUEUED || state == ASYNC_LOADING)
                 {
@@ -194,7 +194,7 @@ void BackgroundLoader::WaitForResource(StringHash type, StringHash nameHash)
         }
 
         // This may take a long time and may potentially wait on other resources, so it is important we do not hold the mutex during this
-        FinishBackgroundLoading(i->second_);
+        FinishBackgroundLoading(*i);
 
         backgroundLoadMutex_.Acquire();
         backgroundLoadQueue_.erase(i);
@@ -212,11 +212,11 @@ void BackgroundLoader::FinishResources(int maxMs)
 
         backgroundLoadMutex_.Acquire();
 
-        for (HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.begin();
+        for (QHash<Pair<StringHash, StringHash>, BackgroundLoadItem>::Iterator i = backgroundLoadQueue_.begin();
             i != backgroundLoadQueue_.end();)
         {
-            Resource* resource = i->second_.resource_;
-            unsigned numDeps = i->second_.dependencies_.Size();
+            Resource* resource = i->resource_;
+            unsigned numDeps = i->dependencies_.size();
             AsyncLoadState state = resource->GetAsyncLoadState();
             if (numDeps > 0 || state == ASYNC_QUEUED || state == ASYNC_LOADING)
                 ++i;
@@ -225,7 +225,7 @@ void BackgroundLoader::FinishResources(int maxMs)
                 // Finishing a resource may need it to wait for other resources to load, in which case we can not
                 // hold on to the mutex
                 backgroundLoadMutex_.Release();
-                FinishBackgroundLoading(i->second_);
+                FinishBackgroundLoading(*i);
                 backgroundLoadMutex_.Acquire();
                 i = backgroundLoadQueue_.erase(i);
             }
@@ -242,7 +242,7 @@ void BackgroundLoader::FinishResources(int maxMs)
 unsigned BackgroundLoader::GetNumQueuedResources() const
 {
     MutexLock lock(backgroundLoadMutex_);
-    return backgroundLoadQueue_.Size();
+    return backgroundLoadQueue_.size();
 }
 
 void BackgroundLoader::FinishBackgroundLoading(BackgroundLoadItem& item)

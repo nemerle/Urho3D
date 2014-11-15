@@ -131,20 +131,20 @@ bool Animatable::SaveXML(XMLElement& dest) const
             return false;
     }
 
-    for (const auto & _i : attributeAnimationInfos_)
+    for (const SharedPtr<AttributeAnimationInfo> & _i : attributeAnimationInfos_)
     {
-        ValueAnimation* attributeAnimation = _i.second_->GetAnimation();
+        ValueAnimation* attributeAnimation = _i->GetAnimation();
         if (attributeAnimation->GetOwner())
             continue;
 
-        const AttributeInfo& attr = _i.second_->GetAttributeInfo();
+        const AttributeInfo& attr = _i->GetAttributeInfo();
         XMLElement elem = dest.CreateChild("attributeanimation");
         elem.SetAttribute("name", attr.name_);
         if (!attributeAnimation->SaveXML(elem))
             return false;
 
-        elem.SetAttribute("wrapmode", wrapModeNames[_i.second_->GetWrapMode()]);
-        elem.SetFloat("speed", _i.second_->GetSpeed());
+        elem.SetAttribute("wrapmode", wrapModeNames[_i->GetWrapMode()]);
+        elem.SetFloat("speed", _i->GetSpeed());
     }
 
     return true;
@@ -215,7 +215,7 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
 
         // Add network attribute to set
         if (attributeInfo->mode_ & AM_NET)
-            animatedNetworkAttributes_.Insert(attributeInfo);
+            animatedNetworkAttributes_.insert(attributeInfo);
 
         attributeAnimationInfos_[name] = new AttributeAnimationInfo(this, *attributeInfo, attributeAnimation, wrapMode, speed);
 
@@ -229,9 +229,9 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
 
         // Remove network attribute from set
         if (info->GetAttributeInfo().mode_ & AM_NET)
-            animatedNetworkAttributes_.Erase(&info->GetAttributeInfo());
+            animatedNetworkAttributes_.remove(&info->GetAttributeInfo());
 
-        attributeAnimationInfos_.erase(name);
+        attributeAnimationInfos_.remove(name);
         OnAttributeAnimationRemoved();
     }
 }
@@ -313,10 +313,10 @@ void Animatable::OnObjectAnimationRemoved(ObjectAnimation* objectAnimation)
 
     // Just remove all attribute animations from the object animation
     Vector<String> names;
-    for (auto & elem : attributeAnimationInfos_)
+    for (auto elem=attributeAnimationInfos_.begin(),fin=attributeAnimationInfos_.end(); elem!=fin; ++elem)
     {
-        if (elem.second_->GetAnimation()->GetOwner() == objectAnimation)
-            names.Push(elem.first_);
+        if ((*elem)->GetAnimation()->GetOwner() == objectAnimation)
+            names.Push(elem.key());
     }
 
     for (unsigned i = 0; i < names.size(); ++i)
@@ -329,10 +329,10 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
         return;
 
     Vector<String> finishedNames;
-    for (HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
+    for (const SharedPtr<AttributeAnimationInfo> i : attributeAnimationInfos_)
     {
-        if (i->second_->Update(timeStep))
-            finishedNames.Push(i->second_->GetAttributeInfo().name_);
+        if (i->Update(timeStep))
+            finishedNames.Push(i->GetAttributeInfo().name_);
     }
 
     for (unsigned i = 0; i < finishedNames.size(); ++i)
@@ -341,14 +341,14 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
 
 bool Animatable::IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const
 {
-    return animatedNetworkAttributes_.Find(&attrInfo) != animatedNetworkAttributes_.end();
+    return animatedNetworkAttributes_.find(&attrInfo) != animatedNetworkAttributes_.end();
 }
 
 AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const String& name) const
 {
-    HashMap<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.find(name);
+    QHash<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
-        return i->second_;
+        return *i;
 
     return nullptr;
 }

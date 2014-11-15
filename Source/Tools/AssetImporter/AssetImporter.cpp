@@ -75,7 +75,7 @@ struct OutModel
 
     String outName_;
     aiNode* rootNode_;
-    HashSet<unsigned> meshIndices_;
+    QSet<unsigned> meshIndices_;
     PODVector<aiMesh*> meshes_;
     PODVector<aiNode*> meshNodes_;
     PODVector<aiNode*> bones_;
@@ -122,7 +122,7 @@ bool checkUniqueModel_ = true;
 Vector<String> nonSkinningBoneIncludes_;
 Vector<String> nonSkinningBoneExcludes_;
 
-HashSet<aiAnimation*> allAnimations_;
+QSet<aiAnimation*> allAnimations_;
 PODVector<aiAnimation*> sceneAnimations_;
 
 float defaultTicksPerSecond_ = 4800.0f;
@@ -134,7 +134,7 @@ void DumpNodes(aiNode* rootNode, unsigned level);
 void ExportModel(const String& outName, bool animationOnly);
 void CollectMeshes(OutModel& model, aiNode* node);
 void CollectBones(OutModel& model, bool animationOnly = false);
-void CollectBonesFinal(PODVector<aiNode*>& dest, const HashSet<aiNode*>& necessary, aiNode* node);
+void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary, aiNode* node);
 void CollectAnimations(OutModel* model = nullptr);
 void BuildBoneCollisionInfo(OutModel& model);
 void BuildAndSaveModel(OutModel& model);
@@ -142,12 +142,12 @@ void BuildAndSaveAnimations(OutModel* model = nullptr);
 
 void ExportScene(const String& outName, bool asPrefab);
 void CollectSceneModels(OutScene& scene, aiNode* node);
-Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, WeakPtr<Node> >& nodeMapping);
+Node* CreateSceneNode(Scene* scene, aiNode* srcNode, QHash<aiNode*, WeakPtr<Node> >& nodeMapping);
 void BuildAndSaveScene(OutScene& scene, bool asPrefab);
 
-void ExportMaterials(HashSet<String>& usedTextures);
-void BuildAndSaveMaterial(aiMaterial* material, HashSet<String>& usedTextures);
-void CopyTextures(const HashSet<String>& usedTextures, const String& sourcePath);
+void ExportMaterials(QSet<String>& usedTextures);
+void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures);
+void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath);
 
 void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& modelNames, const String& outName);
 
@@ -441,7 +441,7 @@ void Run(const Vector<String>& arguments)
 
         if (!noMaterials_)
         {
-            HashSet<String> usedTextures;
+            QSet<String> usedTextures;
             ExportMaterials(usedTextures);
             if (!noTextures_)
                 CopyTextures(usedTextures, GetPath(inFile));
@@ -550,7 +550,7 @@ void CollectMeshes(OutModel& model, aiNode* node)
             }
         }
 
-        model.meshIndices_.Insert(node->mMeshes[i]);
+        model.meshIndices_.insert(node->mMeshes[i]);
         model.meshes_.Push(mesh);
         model.meshNodes_.Push(node);
         model.totalVertices_ += mesh->mNumVertices;
@@ -563,8 +563,8 @@ void CollectMeshes(OutModel& model, aiNode* node)
 
 void CollectBones(OutModel& model, bool animationOnly)
 {
-    HashSet<aiNode*> necessary;
-    HashSet<aiNode*> rootNodes;
+    QSet<aiNode*> necessary;
+    QSet<aiNode*> rootNodes;
 
     for (unsigned i = 0; i < model.meshes_.Size(); ++i)
     {
@@ -580,7 +580,7 @@ void CollectBones(OutModel& model, bool animationOnly)
             aiNode* boneNode = GetNode(boneName, scene_->mRootNode, true);
             if (!boneNode)
                 ErrorExit("Could not find scene node for bone " + boneName);
-            necessary.Insert(boneNode);
+            necessary.insert(boneNode);
             rootNode = boneNode;
 
             for (;;)
@@ -589,16 +589,16 @@ void CollectBones(OutModel& model, bool animationOnly)
                 if (!boneNode || ((boneNode == meshNode || boneNode == meshParentNode) && !animationOnly))
                     break;
                 rootNode = boneNode;
-                necessary.Insert(boneNode);
+                necessary.insert(boneNode);
             }
 
-            if (rootNodes.Find(rootNode) == rootNodes.end())
-                rootNodes.Insert(rootNode);
+            if (rootNodes.find(rootNode) == rootNodes.end())
+                rootNodes.insert(rootNode);
         }
     }
 
     // If we find multiple root nodes, try to remedy by using their parent instead
-    if (rootNodes.Size() > 1)
+    if (rootNodes.size() > 1)
     {
         aiNode* commonParent = (*rootNodes.begin())->mParent;
         for (aiNode *nd : rootNodes)
@@ -609,12 +609,12 @@ void CollectBones(OutModel& model, bool animationOnly)
                     ErrorExit("Skeleton with multiple root nodes found, not supported");
             }
         }
-        rootNodes.Clear();
-        rootNodes.Insert(commonParent);
-        necessary.Insert(commonParent);
+        rootNodes.clear();
+        rootNodes.insert(commonParent);
+        necessary.insert(commonParent);
     }
 
-    if (rootNodes.Empty())
+    if (rootNodes.isEmpty())
         return;
 
     model.rootBone_ = *rootNodes.begin();
@@ -629,9 +629,9 @@ void CollectBones(OutModel& model, bool animationOnly)
     }
 }
 
-void CollectBonesFinal(PODVector<aiNode*>& dest, const HashSet<aiNode*>& necessary, aiNode* node)
+void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary, aiNode* node)
 {
-    bool includeBone = necessary.Find(node) != necessary.end();
+    bool includeBone = necessary.find(node) != necessary.end();
     String boneName = FromAIString(node->mName);
 
     // Check include/exclude filters for non-skinned bones
@@ -676,7 +676,7 @@ void CollectAnimations(OutModel* model)
     for (unsigned i = 0; i < scene->mNumAnimations; ++i)
     {
         aiAnimation* anim = scene->mAnimations[i];
-        if (allAnimations_.Contains(anim))
+        if (allAnimations_.contains(anim))
             continue;
 
         if (model)
@@ -695,13 +695,13 @@ void CollectAnimations(OutModel* model)
             if (modelBoneFound)
             {
                 model->animations_.Push(anim);
-                allAnimations_.Insert(anim);
+                allAnimations_.insert(anim);
             }
         }
         else
         {
             sceneAnimations_.Push(anim);
-            allAnimations_.Insert(anim);
+            allAnimations_.insert(anim);
         }
     }
 
@@ -1211,7 +1211,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
         {
             aiMesh* mesh = meshes[i].second_;
             unsigned meshIndex = GetMeshIndex(mesh);
-            model.meshIndices_.Insert(meshIndex);
+            model.meshIndices_.insert(meshIndex);
             model.meshes_.Push(mesh);
             model.meshNodes_.Push(meshes[i].first_);
             model.totalVertices_ += mesh->mNumVertices;
@@ -1256,7 +1256,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
         CollectSceneModels(scene, node->mChildren[i]);
 }
 
-Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping)
+Node* CreateSceneNode(Scene* scene, aiNode* srcNode, QHash<aiNode*, Node*>& nodeMapping)
 {
     if (nodeMapping.contains(srcNode))
         return nodeMapping[srcNode];
@@ -1343,7 +1343,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
 
     ResourceCache* cache = context_->GetSubsystem<ResourceCache>();
 
-    HashMap<aiNode*, Node*> nodeMapping;
+    QHash<aiNode*, Node*> nodeMapping;
     Node* outRootNode = nullptr;
     if (asPrefab || !noHierarchy_)
         outRootNode = CreateSceneNode(outScene, rootNode_, nodeMapping);
@@ -1459,7 +1459,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
     }
 }
 
-void ExportMaterials(HashSet<String>& usedTextures)
+void ExportMaterials(QSet<String>& usedTextures)
 {
     if (useSubdirs_)
         context_->GetSubsystem<FileSystem>()->CreateDir(resourcePath_ + "Materials");
@@ -1468,7 +1468,7 @@ void ExportMaterials(HashSet<String>& usedTextures)
         BuildAndSaveMaterial(scene_->mMaterials[i], usedTextures);
 }
 
-void BuildAndSaveMaterial(aiMaterial* material, HashSet<String>& usedTextures)
+void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
 {
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
@@ -1555,35 +1555,35 @@ void BuildAndSaveMaterial(aiMaterial* material, HashSet<String>& usedTextures)
         XMLElement diffuseElem = materialElem.CreateChild("texture");
         diffuseElem.SetString("unit", "diffuse");
         diffuseElem.SetString("name", GetMaterialTextureName(diffuseTexName));
-        usedTextures.Insert(diffuseTexName);
+        usedTextures.insert(diffuseTexName);
     }
     if (!normalTexName.Empty())
     {
         XMLElement normalElem = materialElem.CreateChild("texture");
         normalElem.SetString("unit", "normal");
         normalElem.SetString("name", GetMaterialTextureName(normalTexName));
-        usedTextures.Insert(normalTexName);
+        usedTextures.insert(normalTexName);
     }
     if (!specularTexName.Empty())
     {
         XMLElement specularElem = materialElem.CreateChild("texture");
         specularElem.SetString("unit", "specular");
         specularElem.SetString("name", GetMaterialTextureName(specularTexName));
-        usedTextures.Insert(specularTexName);
+        usedTextures.insert(specularTexName);
     }
     if (!lightmapTexName.Empty())
     {
         XMLElement lightmapElem = materialElem.CreateChild("texture");
         lightmapElem.SetString("unit", "emissive");
         lightmapElem.SetString("name", GetMaterialTextureName(lightmapTexName));
-        usedTextures.Insert(lightmapTexName);
+        usedTextures.insert(lightmapTexName);
     }
     if (!emissiveTexName.Empty())
     {
         XMLElement emissiveElem = materialElem.CreateChild("texture");
         emissiveElem.SetString("unit", "emissive");
         emissiveElem.SetString("name", GetMaterialTextureName(emissiveTexName));
-        usedTextures.Insert(emissiveTexName);
+        usedTextures.insert(emissiveTexName);
     }
 
     XMLElement diffuseColorElem = materialElem.CreateChild("parameter");
@@ -1621,7 +1621,7 @@ void BuildAndSaveMaterial(aiMaterial* material, HashSet<String>& usedTextures)
     outMaterial.Save(outFile);
 }
 
-void CopyTextures(const HashSet<String>& usedTextures, const String& sourcePath)
+void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath)
 {
     FileSystem* fileSystem = context_->GetSubsystem<FileSystem>();
 

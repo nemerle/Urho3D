@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "HashMap.h"
+#include <QtCore/QHash>
 #include "Ptr.h"
 
 namespace Urho3D
@@ -43,7 +43,7 @@ struct AnimationStateTrack
     AnimationStateTrack();
     /// Destruct
     ~AnimationStateTrack();
-    
+
     /// Animation track.
     const AnimationTrack* track_;
     /// Bone pointer.
@@ -66,7 +66,7 @@ public:
     AnimationState(Node* node, Animation* animation);
     /// Destruct.
     ~AnimationState();
-    
+
     /// Set start bone. Not supported in node animation mode. Resets any assigned per-bone weights.
     void SetStartBone(Bone* bone);
     /// Set looping enabled/disabled.
@@ -87,7 +87,7 @@ public:
     void AddTime(float delta);
     /// Set blending layer.
     void SetLayer(unsigned char layer);
-    
+
     /// Return animation.
     Animation* GetAnimation() const { return animation_; }
     /// Return animated model this state belongs to (model mode.)
@@ -120,10 +120,10 @@ public:
     float GetLength() const;
     /// Return blending layer.
     unsigned char GetLayer() const { return layer_; }
-    
+
     /// Apply the animation at the current time position.
     void Apply();
-    
+
 private:
     /// Apply animation to a skeleton. Transform changes are applied silently, so the model needs to dirty its root model afterward.
     void ApplyToModel();

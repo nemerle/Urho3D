@@ -399,7 +399,7 @@ public:
     /// Return a UTF8 substring with length from position.
     String SubstringUTF8(unsigned pos, unsigned length) const;
 
-    /// Return hash value for HashSet & HashMap.
+    /// Return hash value for QSet & QHash.
     unsigned ToHash() const
     {
         unsigned hash = 0;
@@ -540,9 +540,9 @@ private:
     wchar_t* buffer_;
 };
 
-}
 typedef unsigned int uint;
 inline uint qHash(const Urho3D::String & key, uint seed)
 {
     return key.ToHash();
+}
 }

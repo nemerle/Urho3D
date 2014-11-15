@@ -233,23 +233,23 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
     // Make a weak pointer to self to check for destruction during event handling
     WeakPtr<Object> self(this);
     Context* context = context_;
-    HashSet<Object*> processed;
+    QSet<Object*> processed;
 
     context->BeginSendEvent(this);
 
     // Check first the specific event receivers
-    const HashSet<Object*>* group = context->GetEventReceivers(this, eventType);
+    const QSet<Object*>* group = context->GetEventReceivers(this, eventType);
     if (group)
     {
-        for (HashSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
+        for (QSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
         {
-            HashSet<Object*>::ConstIterator current = i++;
+            QSet<Object*>::ConstIterator current = i++;
             Object* receiver = *current;
             Object* next = nullptr;
             if (i != group->end())
                 next = *i;
 
-            unsigned oldSize = group->Size();
+            unsigned oldSize = group->size();
             receiver->OnEvent(this, eventType, eventData);
 
             // If self has been destroyed as a result of event handling, exit
@@ -261,10 +261,10 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
 
             // If group has changed size during iteration (removed/added subscribers) try to recover
             /// \todo This is not entirely foolproof, as a subscriber could have been added to make up for the removed one
-            if (group->Size() != oldSize)
-                i = group->Find(next);
+            if (group->size() != oldSize)
+                i = group->find(next);
 
-            processed.Insert(receiver);
+            processed.insert(receiver);
         }
     }
 
@@ -272,17 +272,17 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
     group = context->GetEventReceivers(eventType);
     if (group)
     {
-        if (processed.Empty())
+        if (processed.isEmpty())
         {
-            for (HashSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
+            for (QSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
             {
-                HashSet<Object*>::ConstIterator current = i++;
+                QSet<Object*>::ConstIterator current = i++;
                 Object* receiver = *current;
                 Object* next = nullptr;
                 if (i != group->end())
                     next = *i;
 
-                unsigned oldSize = group->Size();
+                unsigned oldSize = group->size();
                 receiver->OnEvent(this, eventType, eventData);
 
                 if (self.Expired())
@@ -291,24 +291,24 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
                     return;
                 }
 
-                if (group->Size() != oldSize)
-                    i = group->Find(next);
+                if (group->size() != oldSize)
+                    i = group->find(next);
             }
         }
         else
         {
             // If there were specific receivers, check that the event is not sent doubly to them
-            for (HashSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
+            for (QSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
             {
-                HashSet<Object*>::ConstIterator current = i++;
+                QSet<Object*>::ConstIterator current = i++;
                 Object* receiver = *current;
                 Object* next = nullptr;
                 if (i != group->end())
                     next = *i;
 
-                if (!processed.Contains(receiver))
+                if (!processed.contains(receiver))
                 {
-                    unsigned oldSize = group->Size();
+                    unsigned oldSize = group->size();
                     receiver->OnEvent(this, eventType, eventData);
 
                     if (self.Expired())
@@ -317,8 +317,8 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
                         return;
                     }
 
-                    if (group->Size() != oldSize)
-                        i = group->Find(next);
+                    if (group->size() != oldSize)
+                        i = group->find(next);
                 }
             }
         }
@@ -362,11 +362,11 @@ bool Object::HasSubscribedToEvent(Object* sender, StringHash eventType) const
 
 const String& Object::GetCategory() const
 {
-    const HashMap<String, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
-    for (const auto & objectCategorie : objectCategories)
+    const QHash<String, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
+    for (auto iter = objectCategories.begin(),fin=objectCategories.end(); iter!=fin; ++iter)
     {
-        if (objectCategorie.second_.Contains(GetType()))
-            return objectCategorie.first_;
+        if (iter->Contains(GetType()))
+            return iter.key();
     }
 
     return String::EMPTY;

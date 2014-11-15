@@ -24,12 +24,13 @@
 
 #include "BoundingBox.h"
 #include "Component.h"
-#include "HashSet.h"
 #include "Sphere.h"
 #include "Vector3.h"
 #include "VectorBuffer.h"
+#include "Pair.h"
 
 #include <LinearMath/btIDebugDraw.h>
+#include <QtCore/QSet>
 
 class btCollisionConfiguration;
 class btCollisionShape;
@@ -208,9 +209,9 @@ public:
     /// Clean up the geometry cache.
     void CleanupGeometryCache();
     /// Return trimesh collision geometry cache.
-    HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& GetTriMeshCache() { return triMeshCache_; }
+    QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& GetTriMeshCache() { return triMeshCache_; }
     /// Return convex collision geometry cache.
-    HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& GetConvexCache() { return convexCache_; }
+    QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& GetConvexCache() { return convexCache_; }
     /// Set node dirtying to be disregarded.
     void SetApplyingTransforms(bool enable) { applyingTransforms_ = enable; }
     /// Return whether node dirtying should be disregarded.
@@ -251,15 +252,15 @@ private:
     /// Constraints in the world.
     PODVector<Constraint*> constraints_;
     /// Collision pairs on this frame.
-    HashMap<Pair<WeakPtr<RigidBody>, WeakPtr<RigidBody> >, btPersistentManifold* > currentCollisions_;
+    QHash<Pair<WeakPtr<RigidBody>, WeakPtr<RigidBody> >, btPersistentManifold* > currentCollisions_;
     /// Collision pairs on the previous frame. Used to check if a collision is "new." Manifolds are not guaranteed to exist anymore.
-    HashMap<Pair<WeakPtr<RigidBody>, WeakPtr<RigidBody> >, btPersistentManifold* > previousCollisions_;
+    QHash<Pair<WeakPtr<RigidBody>, WeakPtr<RigidBody> >, btPersistentManifold* > previousCollisions_;
     /// Delayed (parented) world transform assignments.
     QHash<RigidBody*, DelayedWorldTransform> delayedWorldTransforms_;
     /// Cache for trimesh geometry data by model and LOD level.
-    HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> > triMeshCache_;
+    QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> > triMeshCache_;
     /// Cache for convex geometry data by model and LOD level.
-    HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> > convexCache_;
+    QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> > convexCache_;
     /// Preallocated event data map for physics collision events.
     VariantMap physicsCollisionData_;
     /// Preallocated event data map for node collision events.

@@ -195,28 +195,28 @@ static CScriptArray* SceneGetRequiredPackageFiles(Scene* ptr)
 
 static CScriptArray* GetObjectCategories()
 {
-    Vector<String> categories = GetScriptContext()->GetObjectCategories().keys();
-    Sort(categories.begin(), categories.end());
+    QList<String> categories = GetScriptContext()->GetObjectCategories().keys();
+    qSort(categories);
     return VectorToArray<String>(categories, "Array<String>");
 }
 
 static CScriptArray* GetObjectsByCategory(const String& category)
 {
-    const HashMap<String, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
+    const QHash<String, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
     Vector<String> components;
 
-    HashMap<String, Vector<StringHash> >::ConstIterator i = categories.find(category);
+    QHash<String, Vector<StringHash> >::ConstIterator i = categories.find(category);
     if (i != categories.end())
     {
-        const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
-        const Vector<StringHash>& factoryHashes = i->second_;
+        const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
+        const Vector<StringHash>& factoryHashes = *i;
         components.Reserve(factoryHashes.size());
 
         for (unsigned j = 0; j < factoryHashes.size(); ++j)
         {
-            HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator k = factories.find(factoryHashes[j]);
+            QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator k = factories.find(factoryHashes[j]);
             if (k != factories.end())
-                components.Push(k->second_->GetTypeName());
+                components.Push((*k)->GetTypeName());
         }
     }
 
@@ -265,7 +265,7 @@ static void RegisterScene(asIScriptEngine* engine)
     engine->RegisterEnumValue("LoadMode", "LOAD_RESOURCES_ONLY", LOAD_RESOURCES_ONLY);
     engine->RegisterEnumValue("LoadMode", "LOAD_SCENE", LOAD_SCENE);
     engine->RegisterEnumValue("LoadMode", "LOAD_SCENE_AND_RESOURCES", LOAD_SCENE_AND_RESOURCES);
-    
+
     engine->RegisterGlobalProperty("const uint FIRST_REPLICATED_ID", (void*)&FIRST_REPLICATED_ID);
     engine->RegisterGlobalProperty("const uint LAST_REPLICATED_ID", (void*)&LAST_REPLICATED_ID);
     engine->RegisterGlobalProperty("const uint FIRST_LOCAL_ID", (void*)&FIRST_LOCAL_ID);

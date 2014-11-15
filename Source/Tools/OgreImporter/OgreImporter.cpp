@@ -23,7 +23,7 @@
 #include "Context.h"
 #include "File.h"
 #include "FileSystem.h"
-#include "HashSet.h"
+#include <QtCore/QSet>
 #include "OgreImporterUtils.h"
 #include "ProcessUtils.h"
 #include "Sort.h"
@@ -499,7 +499,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 // If amount of bones is larger than supported by HW skinning, must remap per submesh
                 if (bones_.size() > MAX_SKIN_MATRICES)
                 {
-                    HashMap<unsigned, unsigned> usedBoneMap;
+                    QHash<unsigned, unsigned> usedBoneMap;
                     unsigned remapIndex = 0;
                     for (PODVector<BoneWeightAssignment> & elem : subGeometryLodLevel.boneWeights_)
                     {
@@ -520,13 +520,13 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     }
 
                     // If still too many bones in one subgeometry, error
-                    if (usedBoneMap.Size() > MAX_SKIN_MATRICES)
+                    if (usedBoneMap.size() > MAX_SKIN_MATRICES)
                         ErrorExit("Too many bones in submesh " + String(subMeshIndex + 1));
 
                     // Write mapping of vertex buffer bone indices to original bone indices
-                    subGeometryLodLevel.boneMapping_.Resize(usedBoneMap.Size());
-                    for (auto & elem : usedBoneMap)
-                        subGeometryLodLevel.boneMapping_[elem.second_] = elem.first_;
+                    subGeometryLodLevel.boneMapping_.Resize(usedBoneMap.size());
+                    for (auto elem=usedBoneMap.begin(),fin=usedBoneMap.end(); elem!=fin; ++elem)
+                        subGeometryLodLevel.boneMapping_[*elem] = elem.key();
 
                     sorted = true;
                 }
@@ -697,7 +697,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 {
                     String name = anim.GetAttribute("name");
                     float length = anim.GetFloat("length");
-                    HashSet<unsigned> usedPoses;
+                    QSet<unsigned> usedPoses;
                     XMLElement tracks = anim.GetChild("tracks");
                     if (tracks)
                     {
@@ -714,7 +714,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                                     XMLElement poseref = keyframe.GetChild("poseref");
                                     // Get only the end pose
                                     if (poseref && time == length)
-                                        usedPoses.Insert(poseref.GetInt("poseindex"));
+                                        usedPoses.insert(poseref.GetInt("poseindex"));
 
                                     keyframe = keyframe.GetNext("keyframe");
                                 }
@@ -723,7 +723,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                         }
                     }
 
-                    if (usedPoses.Size())
+                    if (usedPoses.size())
                     {
                         ModelMorph newMorph;
                         newMorph.name_ = name;
@@ -731,7 +731,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                         if (useOneBuffer_)
                             newMorph.buffers_.Resize(1);
                         else
-                            newMorph.buffers_.Resize(usedPoses.Size());
+                            newMorph.buffers_.Resize(usedPoses.size());
 
                         unsigned bufIndex = 0;
 
@@ -786,7 +786,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                                 ++bufIndex;
                         }
                         morphs_.Push(newMorph);
-                        PrintLine("Processed morph " + name + " with " + String(usedPoses.Size()) + " sub-poses");
+                        PrintLine("Processed morph " + name + " with " + String(usedPoses.size()) + " sub-poses");
                     }
 
                     anim = anim.GetNext("animation");

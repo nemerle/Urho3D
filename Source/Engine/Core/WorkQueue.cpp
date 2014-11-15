@@ -103,9 +103,9 @@ void WorkQueue::CreateThreads(unsigned numThreads)
 
 SharedPtr<WorkItem> WorkQueue::GetFreeItem()
 {
-    if (poolItems_.Size() > 0)
+    if (poolItems_.size() > 0)
     {
-        SharedPtr<WorkItem> item = poolItems_.Front();
+        SharedPtr<WorkItem> item = poolItems_.front();
         poolItems_.PopFront();
         return item;
     }
@@ -139,7 +139,7 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
         queueMutex_.Acquire();
 
     // Find position for new item
-    if (queue_.Empty())
+    if (queue_.empty())
         queue_.Push(item);
     else
     {
@@ -190,12 +190,12 @@ void WorkQueue::Complete(unsigned priority)
         Resume();
 
         // Take work items also in the main thread until queue empty or no high-priority items anymore
-        while (!queue_.Empty())
+        while (!queue_.empty())
         {
             queueMutex_.Acquire();
-            if (!queue_.Empty() && queue_.Front()->priority_ >= priority)
+            if (!queue_.empty() && queue_.front()->priority_ >= priority)
             {
-                WorkItem* item = queue_.Front();
+                WorkItem* item = queue_.front();
                 queue_.PopFront();
                 queueMutex_.Release();
                 item->workFunction_(item, 0);
@@ -214,15 +214,15 @@ void WorkQueue::Complete(unsigned priority)
         }
 
         // If no work at all remaining, pause worker threads by leaving the mutex locked
-        if (queue_.Empty())
+        if (queue_.empty())
             Pause();
     }
     else
     {
         // No worker threads: ensure all high-priority items are completed in the main thread
-        while (!queue_.Empty() && queue_.Front()->priority_ >= priority)
+        while (!queue_.empty() && queue_.front()->priority_ >= priority)
         {
-            WorkItem* item = queue_.Front();
+            WorkItem* item = queue_.front();
             queue_.PopFront();
             item->workFunction_(item, 0);
             item->completed_ = true;
@@ -257,11 +257,11 @@ void WorkQueue::ProcessItems(unsigned threadIndex)
         else
         {
             queueMutex_.Acquire();
-            if (!queue_.Empty())
+            if (!queue_.empty())
             {
                 wasActive = true;
 
-                WorkItem* item = queue_.Front();
+                WorkItem* item = queue_.front();
                 queue_.PopFront();
                 queueMutex_.Release();
                 item->workFunction_(item, threadIndex);
@@ -323,11 +323,11 @@ void WorkQueue::PurgeCompleted(unsigned priority)
 
 void WorkQueue::PurgePool()
 {
-    unsigned currentSize = poolItems_.Size();
+    unsigned currentSize = poolItems_.size();
     int difference = lastSize_ - currentSize;
 
     // Difference tolerance, should be fairly significant to reduce the pool size.
-    for (unsigned i = 0; poolItems_.Size() > 0 && difference > tolerance_ && i < (unsigned)difference; i++)
+    for (unsigned i = 0; poolItems_.size() > 0 && difference > tolerance_ && i < (unsigned)difference; i++)
         poolItems_.PopFront();
 
     lastSize_ = currentSize;
@@ -336,15 +336,15 @@ void WorkQueue::PurgePool()
 void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
     // If no worker threads, complete low-priority work here
-    if (threads_.empty() && !queue_.Empty())
+    if (threads_.empty() && !queue_.empty())
     {
         PROFILE(CompleteWorkNonthreaded);
 
         HiresTimer timer;
 
-        while (!queue_.Empty() && timer.GetUSec(false) < maxNonThreadedWorkMs_ * 1000)
+        while (!queue_.empty() && timer.GetUSec(false) < maxNonThreadedWorkMs_ * 1000)
         {
-            WorkItem* item = queue_.Front();
+            WorkItem* item = queue_.front();
             queue_.PopFront();
             item->workFunction_(item, 0);
             item->completed_ = true;

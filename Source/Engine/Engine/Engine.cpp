@@ -387,9 +387,9 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     // In debug mode, check now that all factory created objects can be created without crashing
     #ifdef _DEBUG
-    const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
+    const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
     for (const auto & factorie : factories)
-        SharedPtr<Object> object = factorie.second_->CreateObject();
+        SharedPtr<Object> object = factorie->CreateObject();
     #endif
 
     frameTimer_.Reset();

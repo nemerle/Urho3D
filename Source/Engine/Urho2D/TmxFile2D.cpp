@@ -465,7 +465,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
     if (element.HasAttribute("source"))
     {
         String source = element.GetAttribute("source");
-        HashMap<String, SharedPtr<XMLFile> >::Iterator i = tsxXMLFiles_.find(source);
+        QHash<String, SharedPtr<XMLFile> >::Iterator i = tsxXMLFiles_.find(source);
         if (i == tsxXMLFiles_.end())
         {
             SharedPtr<XMLFile> tsxXMLFile = LoadTSXFile(source);
@@ -478,7 +478,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
             tileSetElem = tsxXMLFile->GetRoot("tileset");
         }
         else
-            tileSetElem = i->second_->GetRoot("tileset");
+            tileSetElem = (*i)->GetRoot("tileset");
     }
     else
         tileSetElem = element;

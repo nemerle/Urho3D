@@ -130,11 +130,11 @@ void DebugHud::Update()
             renderer->GetNumShadowMaps(true),
             renderer->GetNumOccluders(true));
 
-        if (!appStats_.Empty())
+        if (!appStats_.isEmpty())
         {
             stats.Append("\n");
-            for (HashMap<String, String>::ConstIterator i = appStats_.begin(); i != appStats_.end(); ++i)
-                stats.AppendWithFormat("\n%s %s", i->first_.CString(), i->second_.CString());
+            for (QMap<String, String>::ConstIterator i = appStats_.begin(); i != appStats_.end(); ++i)
+                stats.AppendWithFormat("\n%s %s", i.key().CString(), i->CString());
         }
 
         statsText_->SetText(stats);
@@ -243,15 +243,13 @@ void DebugHud::SetAppStats(const String& label, const Variant& stats)
 
 void DebugHud::SetAppStats(const String& label, const String& stats)
 {
-    bool newLabel = !appStats_.contains(label);
+    //bool newLabel = !appStats_.contains(label);
     appStats_[label] = stats;
-    if (newLabel)
-        appStats_.Sort();
 }
 
 bool DebugHud::ResetAppStats(const String& label)
 {
-    return appStats_.erase(label);
+    return appStats_.remove(label);
 }
 
 void DebugHud::ClearAppStats()

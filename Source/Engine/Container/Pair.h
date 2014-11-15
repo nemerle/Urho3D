@@ -35,19 +35,19 @@ public:
     Pair()
     {
     }
-    
+
     /// Construct with values.
     Pair(const T& first, const U& second) :
         first_(first),
         second_(second)
     {
     }
-    
+
     /// Test for equality with another pair.
     bool operator == (const Pair<T, U>& rhs) const { return first_ == rhs.first_ && second_ == rhs.second_; }
     /// Test for inequality with another pair.
     bool operator != (const Pair<T, U>& rhs) const { return first_ != rhs.first_ || second_ != rhs.second_; }
-    
+
     /// Test for less than with another pair.
     bool operator < (const Pair<T, U>& rhs) const
     {
@@ -57,7 +57,7 @@ public:
             return false;
         return second_ < rhs.second_;
     }
-    
+
     /// Test for greater than with another pair.
     bool operator > (const Pair<T, U>& rhs) const
     {
@@ -67,10 +67,10 @@ public:
             return false;
         return second_ > rhs.second_;
     }
-    
-    /// Return hash value for HashSet & HashMap.
+
+    /// Return hash value for QSet & QHash.
     unsigned ToHash() const { return (MakeHash(first_) & 0xffff) | (MakeHash(second_) << 16); }
-    
+
     /// First value.
     T first_;
     /// Second value.
@@ -81,6 +81,13 @@ public:
 template <class T, class U> Pair<T, U> MakePair(const T& first, const U& second)
 {
     return Pair<T, U>(first, second);
+}
+
+typedef unsigned int uint;
+template <class T, class U>
+inline uint qHash(const Urho3D::Pair<T, U> & key, uint seed)
+{
+    return key.ToHash();
 }
 
 }

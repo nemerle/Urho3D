@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "HashMap.h"
 #include "Ptr.h"
 
 #include <QtCore/QHash>

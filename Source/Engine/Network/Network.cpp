@@ -61,47 +61,47 @@ Network::Network(Context* context) :
     SubscribeToEvent(E_RENDERUPDATE, HANDLER(Network, HandleRenderUpdate));
 
     // Blacklist remote events which are not to be allowed to be registered in any case
-    blacklistedRemoteEvents_.Insert(E_CONSOLECOMMAND);
-    blacklistedRemoteEvents_.Insert(E_LOGMESSAGE);
-    blacklistedRemoteEvents_.Insert(E_BEGINFRAME);
-    blacklistedRemoteEvents_.Insert(E_UPDATE);
-    blacklistedRemoteEvents_.Insert(E_POSTUPDATE);
-    blacklistedRemoteEvents_.Insert(E_RENDERUPDATE);
-    blacklistedRemoteEvents_.Insert(E_ENDFRAME);
-    blacklistedRemoteEvents_.Insert(E_MOUSEBUTTONDOWN);
-    blacklistedRemoteEvents_.Insert(E_MOUSEBUTTONUP);
-    blacklistedRemoteEvents_.Insert(E_MOUSEMOVE);
-    blacklistedRemoteEvents_.Insert(E_MOUSEWHEEL);
-    blacklistedRemoteEvents_.Insert(E_KEYDOWN);
-    blacklistedRemoteEvents_.Insert(E_KEYUP);
-    blacklistedRemoteEvents_.Insert(E_TEXTINPUT);
-    blacklistedRemoteEvents_.Insert(E_JOYSTICKCONNECTED);
-    blacklistedRemoteEvents_.Insert(E_JOYSTICKDISCONNECTED);
-    blacklistedRemoteEvents_.Insert(E_JOYSTICKBUTTONDOWN);
-    blacklistedRemoteEvents_.Insert(E_JOYSTICKBUTTONUP);
-    blacklistedRemoteEvents_.Insert(E_JOYSTICKAXISMOVE);
-    blacklistedRemoteEvents_.Insert(E_JOYSTICKHATMOVE);
-    blacklistedRemoteEvents_.Insert(E_TOUCHBEGIN);
-    blacklistedRemoteEvents_.Insert(E_TOUCHEND);
-    blacklistedRemoteEvents_.Insert(E_TOUCHMOVE);
-    blacklistedRemoteEvents_.Insert(E_GESTURERECORDED);
-    blacklistedRemoteEvents_.Insert(E_GESTUREINPUT);
-    blacklistedRemoteEvents_.Insert(E_MULTIGESTURE);
-    blacklistedRemoteEvents_.Insert(E_DROPFILE);
-    blacklistedRemoteEvents_.Insert(E_INPUTFOCUS);
-    blacklistedRemoteEvents_.Insert(E_MOUSEVISIBLECHANGED);
-    blacklistedRemoteEvents_.Insert(E_EXITREQUESTED);
-    blacklistedRemoteEvents_.Insert(E_SERVERCONNECTED);
-    blacklistedRemoteEvents_.Insert(E_SERVERDISCONNECTED);
-    blacklistedRemoteEvents_.Insert(E_CONNECTFAILED);
-    blacklistedRemoteEvents_.Insert(E_CLIENTCONNECTED);
-    blacklistedRemoteEvents_.Insert(E_CLIENTDISCONNECTED);
-    blacklistedRemoteEvents_.Insert(E_CLIENTIDENTITY);
-    blacklistedRemoteEvents_.Insert(E_CLIENTSCENELOADED);
-    blacklistedRemoteEvents_.Insert(E_NETWORKMESSAGE);
-    blacklistedRemoteEvents_.Insert(E_NETWORKUPDATE);
-    blacklistedRemoteEvents_.Insert(E_NETWORKUPDATESENT);
-    blacklistedRemoteEvents_.Insert(E_NETWORKSCENELOADFAILED);
+    blacklistedRemoteEvents_.insert(E_CONSOLECOMMAND);
+    blacklistedRemoteEvents_.insert(E_LOGMESSAGE);
+    blacklistedRemoteEvents_.insert(E_BEGINFRAME);
+    blacklistedRemoteEvents_.insert(E_UPDATE);
+    blacklistedRemoteEvents_.insert(E_POSTUPDATE);
+    blacklistedRemoteEvents_.insert(E_RENDERUPDATE);
+    blacklistedRemoteEvents_.insert(E_ENDFRAME);
+    blacklistedRemoteEvents_.insert(E_MOUSEBUTTONDOWN);
+    blacklistedRemoteEvents_.insert(E_MOUSEBUTTONUP);
+    blacklistedRemoteEvents_.insert(E_MOUSEMOVE);
+    blacklistedRemoteEvents_.insert(E_MOUSEWHEEL);
+    blacklistedRemoteEvents_.insert(E_KEYDOWN);
+    blacklistedRemoteEvents_.insert(E_KEYUP);
+    blacklistedRemoteEvents_.insert(E_TEXTINPUT);
+    blacklistedRemoteEvents_.insert(E_JOYSTICKCONNECTED);
+    blacklistedRemoteEvents_.insert(E_JOYSTICKDISCONNECTED);
+    blacklistedRemoteEvents_.insert(E_JOYSTICKBUTTONDOWN);
+    blacklistedRemoteEvents_.insert(E_JOYSTICKBUTTONUP);
+    blacklistedRemoteEvents_.insert(E_JOYSTICKAXISMOVE);
+    blacklistedRemoteEvents_.insert(E_JOYSTICKHATMOVE);
+    blacklistedRemoteEvents_.insert(E_TOUCHBEGIN);
+    blacklistedRemoteEvents_.insert(E_TOUCHEND);
+    blacklistedRemoteEvents_.insert(E_TOUCHMOVE);
+    blacklistedRemoteEvents_.insert(E_GESTURERECORDED);
+    blacklistedRemoteEvents_.insert(E_GESTUREINPUT);
+    blacklistedRemoteEvents_.insert(E_MULTIGESTURE);
+    blacklistedRemoteEvents_.insert(E_DROPFILE);
+    blacklistedRemoteEvents_.insert(E_INPUTFOCUS);
+    blacklistedRemoteEvents_.insert(E_MOUSEVISIBLECHANGED);
+    blacklistedRemoteEvents_.insert(E_EXITREQUESTED);
+    blacklistedRemoteEvents_.insert(E_SERVERCONNECTED);
+    blacklistedRemoteEvents_.insert(E_SERVERDISCONNECTED);
+    blacklistedRemoteEvents_.insert(E_CONNECTFAILED);
+    blacklistedRemoteEvents_.insert(E_CLIENTCONNECTED);
+    blacklistedRemoteEvents_.insert(E_CLIENTDISCONNECTED);
+    blacklistedRemoteEvents_.insert(E_CLIENTIDENTITY);
+    blacklistedRemoteEvents_.insert(E_CLIENTSCENELOADED);
+    blacklistedRemoteEvents_.insert(E_NETWORKMESSAGE);
+    blacklistedRemoteEvents_.insert(E_NETWORKUPDATE);
+    blacklistedRemoteEvents_.insert(E_NETWORKUPDATESENT);
+    blacklistedRemoteEvents_.insert(E_NETWORKSCENELOADFAILED);
 }
 
 Network::~Network()
@@ -334,23 +334,23 @@ void Network::SetUpdateFps(int fps)
 
 void Network::RegisterRemoteEvent(StringHash eventType)
 {
-    if (blacklistedRemoteEvents_.Find(eventType) != blacklistedRemoteEvents_.end())
+    if (blacklistedRemoteEvents_.find(eventType) != blacklistedRemoteEvents_.end())
     {
         LOGERROR("Attempted to register blacklisted remote event type " + String(eventType));
         return;
     }
 
-    allowedRemoteEvents_.Insert(eventType);
+    allowedRemoteEvents_.insert(eventType);
 }
 
 void Network::UnregisterRemoteEvent(StringHash eventType)
 {
-    allowedRemoteEvents_.Erase(eventType);
+    allowedRemoteEvents_.remove(eventType);
 }
 
 void Network::UnregisterAllRemoteEvents()
 {
-    allowedRemoteEvents_.Clear();
+    allowedRemoteEvents_.clear();
 }
 
 void Network::SetPackageCacheDir(const String& path)
@@ -422,7 +422,7 @@ bool Network::IsServerRunning() const
 
 bool Network::CheckRemoteEvent(StringHash eventType) const
 {
-    return allowedRemoteEvents_.Contains(eventType);
+    return allowedRemoteEvents_.contains(eventType);
 }
 
 void Network::Update(float timeStep)
@@ -476,12 +476,12 @@ void Network::PostUpdate(float timeStep)
             {
                 PROFILE(PrepareServerUpdate);
 
-                networkScenes_.Clear();
+                networkScenes_.clear();
                 for (SharedPtr<Connection> & elem : clientConnections_)
                 {
                     Scene* scene = elem->GetScene();
                     if (scene)
-                        networkScenes_.Insert(scene);
+                        networkScenes_.insert(scene);
                 }
 
                 for (Scene* net_scene : networkScenes_)

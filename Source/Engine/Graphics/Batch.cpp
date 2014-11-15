@@ -154,6 +154,19 @@ void CalculateSpotMatrix(Matrix4& dest, Light* light, const Vector3& translation
     dest = texAdjust * spotProj * spotView * posAdjust;
 }
 
+Batch::Batch(const SourceBatch &rhs) :
+    distance_(rhs.distance_),
+    geometry_(rhs.geometry_),
+    material_(rhs.material_),
+    worldTransform_(rhs.worldTransform_),
+    numWorldTransforms_(rhs.numWorldTransforms_),
+    lightQueue_(0),
+    geometryType_(rhs.geometryType_),
+    overrideView_(rhs.overrideView_),
+    isBase_(false)
+{
+}
+
 void Batch::CalculateSortKey()
 {
     unsigned shaderID = ((*((unsigned*)&vertexShader_) / sizeof(ShaderVariation)) + (*((unsigned*)&pixelShader_) / sizeof(ShaderVariation))) & 0x3fff;
@@ -725,11 +738,11 @@ void BatchQueue::SortBackToFront()
     Sort(sortedBatches_.begin(), sortedBatches_.end(), CompareBatchesBackToFront);
 
     // Do not actually sort batch groups, just list them
-    sortedBatchGroups_.Resize(batchGroups_.Size());
+    sortedBatchGroups_.Resize(batchGroups_.size());
 
     unsigned index = 0;
     for (auto & elem : batchGroups_)
-        sortedBatchGroups_[index++] = &elem.second_;
+        sortedBatchGroups_[index++] = &elem;
 }
 
 void BatchQueue::SortFrontToBack()
@@ -742,28 +755,28 @@ void BatchQueue::SortFrontToBack()
     SortFrontToBack2Pass(sortedBatches_);
 
     // Sort each group front to back
-    for (auto & elem : batchGroups_)
+    for (BatchGroup & elem : batchGroups_)
     {
-        if (elem.second_.instances_.Size() <= maxSortedInstances_)
+        if (elem.instances_.Size() <= maxSortedInstances_)
         {
-            Sort(elem.second_.instances_.begin(), elem.second_.instances_.end(), CompareInstancesFrontToBack);
-            if (elem.second_.instances_.Size())
-                elem.second_.distance_ = elem.second_.instances_[0].distance_;
+            Sort(elem.instances_.begin(), elem.instances_.end(), CompareInstancesFrontToBack);
+            if (elem.instances_.Size())
+                elem.distance_ = elem.instances_[0].distance_;
         }
         else
         {
             float minDistance = M_INFINITY;
-            for (PODVector<InstanceData>::ConstIterator j = elem.second_.instances_.begin(); j != elem.second_.instances_.end(); ++j)
+            for (PODVector<InstanceData>::ConstIterator j = elem.instances_.begin(); j != elem.instances_.end(); ++j)
                 minDistance = Min(minDistance, j->distance_);
-            elem.second_.distance_ = minDistance;
+            elem.distance_ = minDistance;
         }
     }
 
-    sortedBatchGroups_.Resize(batchGroups_.Size());
+    sortedBatchGroups_.Resize(batchGroups_.size());
 
     unsigned index = 0;
-    for (auto & elem : batchGroups_)
-        sortedBatchGroups_[index++] = &elem.second_;
+    for (BatchGroup & elem : batchGroups_)
+        sortedBatchGroups_[index++] = &elem;
 
     SortFrontToBack2Pass(reinterpret_cast<PODVector<Batch*>& >(sortedBatchGroups_));
 }
@@ -830,8 +843,8 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
 void BatchQueue::SetTransforms(void* lockedData, unsigned& freeIndex)
 {
-    for (auto & elem : batchGroups_)
-        elem.second_.SetTransforms(lockedData, freeIndex);
+    for (BatchGroup & elem : batchGroups_)
+        elem.SetTransforms(lockedData, freeIndex);
 }
 
 void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimization) const
@@ -881,10 +894,10 @@ unsigned BatchQueue::GetNumInstances() const
 {
     unsigned total = 0;
 
-    for (const auto & elem : batchGroups_)
+    for (const BatchGroup & elem : batchGroups_)
     {
-       if (elem.second_.geometryType_ == GEOM_INSTANCED)
-            total += elem.second_.instances_.Size();
+       if (elem.geometryType_ == GEOM_INSTANCED)
+            total += elem.instances_.Size();
     }
 
     return total;

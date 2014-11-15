@@ -57,7 +57,7 @@ enum ScriptInstanceMethod
 class URHO3D_API ScriptInstance : public Component, public ScriptEventListener
 {
     OBJECT(ScriptInstance);
-    
+
 public:
     /// Construct.
     ScriptInstance(Context* context);
@@ -65,7 +65,7 @@ public:
     virtual ~ScriptInstance();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Handle attribute write access.
     virtual void OnSetAttribute(const AttributeInfo& attr, const Variant& src);
     /// Handle attribute read access.
@@ -106,14 +106,14 @@ public:
     void DelayedExecute(float delay, bool repeat, const String& declaration, const VariantVector& parameters = Variant::emptyVariantVector);
     /// Clear pending delay-executed method calls. If empty declaration given, clears all.
     void ClearDelayedExecute(const String& declaration = String::EMPTY);
-    
+
     /// Return script file.
     ScriptFile* GetScriptFile() const { return scriptFile_; }
     /// Return script object.
     asIScriptObject* GetScriptObject() const { return scriptObject_; }
     /// Return class name.
     const String& GetClassName() const { return className_; }
-    
+
     /// Set script file attribute.
     void SetScriptFileAttr(ResourceRef value);
     /// Set delayed method calls attribute.
@@ -134,11 +134,11 @@ public:
     PODVector<unsigned char> GetScriptDataAttr() const;
     /// Get script network serialization attribute by calling a script function.
     PODVector<unsigned char> GetScriptNetworkDataAttr() const;
-    
+
 protected:
     /// Handle node transform being dirtied.
     virtual void OnMarkedDirty(Node* node);
-    
+
 private:
     /// (Re)create the script object and check for supported methods if successfully created.
     void CreateObject();
@@ -170,7 +170,7 @@ private:
     void HandleScriptFileReload(StringHash eventType, VariantMap& eventData);
     /// Handle script file reload finished.
     void HandleScriptFileReloadFinished(StringHash eventType, VariantMap& eventData);
-    
+
     /// Script subsystem.
     SharedPtr<Script> script_;
     /// Script file.
@@ -186,7 +186,7 @@ private:
     /// Attributes, including script object variables.
     Vector<AttributeInfo> attributeInfos_;
     /// Storage for unapplied node and component ID attributes
-    HashMap<AttributeInfo*, unsigned> idAttributes_;
+    QHash<AttributeInfo*, unsigned> idAttributes_;
     /// Subscribed to scene update events flag.
     bool subscribed_;
     /// Subscribed to scene post and fixed update events flag.

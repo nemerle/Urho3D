@@ -23,12 +23,12 @@
 #pragma once
 
 #include "Connection.h"
-#include "HashSet.h"
 #include "Object.h"
 #include "VectorBuffer.h"
 
 #include <kNet/IMessageHandler.h>
 #include <kNet/INetworkServerListener.h>
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -133,11 +133,11 @@ private:
     /// Server's client connections.
     QHash<kNet::MessageConnection*, SharedPtr<Connection> > clientConnections_;
     /// Allowed remote events.
-    HashSet<StringHash> allowedRemoteEvents_;
+    QSet<StringHash> allowedRemoteEvents_;
     /// Remote event fixed blacklist.
-    HashSet<StringHash> blacklistedRemoteEvents_;
+    QSet<StringHash> blacklistedRemoteEvents_;
     /// Networked scenes.
-    HashSet<Scene*> networkScenes_;
+    QSet<Scene*> networkScenes_;
     /// Update FPS.
     int updateFps_;
     /// Update time interval.

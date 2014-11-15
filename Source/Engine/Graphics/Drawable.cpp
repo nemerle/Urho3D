@@ -267,18 +267,18 @@ bool Drawable::IsInView() const
     // Note: in headless mode there is no renderer subsystem and no view frustum tests are performed, so return
     // always false in that case
     Renderer* renderer = GetSubsystem<Renderer>();
-    return renderer && viewFrameNumber_ == renderer->GetFrameInfo().frameNumber_ && !viewCameras_.Empty();
+    return renderer && viewFrameNumber_ == renderer->GetFrameInfo().frameNumber_ && !viewCameras_.empty();
 }
 
 bool Drawable::IsInView(Camera* camera) const
 {
     Renderer* renderer = GetSubsystem<Renderer>();
-    return renderer && viewFrameNumber_ == renderer->GetFrameInfo().frameNumber_ && (!camera || viewCameras_.Contains(camera));
+    return renderer && viewFrameNumber_ == renderer->GetFrameInfo().frameNumber_ && (!camera || viewCameras_.contains(camera));
 }
 
 bool Drawable::IsInView(const FrameInfo& frame, bool anyCamera) const
 {
-    return viewFrameNumber_ == frame.frameNumber_ && (anyCamera || viewCameras_.Contains(frame.camera_));
+    return viewFrameNumber_ == frame.frameNumber_ && (anyCamera || viewCameras_.contains(frame.camera_));
 }
 
 void Drawable::SetZone(Zone* zone, bool temporary)
@@ -305,10 +305,10 @@ void Drawable::MarkInView(const FrameInfo& frame)
     if (frame.frameNumber_ != viewFrameNumber_)
     {
         viewFrameNumber_ = frame.frameNumber_;
-        viewCameras_.Clear();
+        viewCameras_.clear();
     }
-    
-    viewCameras_.Insert(frame.camera_);
+
+    viewCameras_.insert(frame.camera_);
 }
 
 void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
@@ -316,11 +316,11 @@ void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
     if (frameNumber != viewFrameNumber_)
     {
         viewFrameNumber_ = frameNumber;
-        viewCameras_.Clear();
+        viewCameras_.clear();
     }
-    
+
     if (camera)
-        viewCameras_.Insert(camera);
+        viewCameras_.insert(camera);
 }
 
 void Drawable::LimitLights()
@@ -403,10 +403,10 @@ void Drawable::RemoveFromOctree()
         Octree* octree = octant_->GetRoot();
         if (updateQueued_)
             octree->CancelUpdate(this);
-        
+
         // Perform subclass specific deinitialization if necessary
         OnRemoveFromOctree();
-        
+
         octant_->RemoveDrawable(this);
     }
 }

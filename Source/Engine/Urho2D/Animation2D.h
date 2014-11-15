@@ -25,7 +25,7 @@
 #include "Ptr.h"
 #include "RefCounted.h"
 #include "Vector2.h"
-
+#include "Vector.h"
 namespace Urho3D
 {
 

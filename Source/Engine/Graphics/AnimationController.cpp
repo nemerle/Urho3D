@@ -535,14 +535,14 @@ void AnimationController::SetNetAnimationsAttr(const PODVector<unsigned char>& v
     AnimatedModel* model = GetComponent<AnimatedModel>();
 
     // Check which animations we need to remove
-    HashSet<StringHash> processedAnimations;
+    QSet<StringHash> processedAnimations;
 
     unsigned numAnimations = buf.ReadVLE();
     while (numAnimations--)
     {
         String animName = buf.ReadString();
         StringHash animHash(animName);
-        processedAnimations.Insert(animHash);
+        processedAnimations.insert(animHash);
 
         // Check if the animation state exists. If not, add new
         AnimationState* state = GetAnimationState(animHash);
@@ -616,7 +616,7 @@ void AnimationController::SetNetAnimationsAttr(const PODVector<unsigned char>& v
     // Set any extra animations to fade out
     for (AnimationControl & elem : animations_)
     {
-        if (!processedAnimations.Contains(elem.hash_))
+        if (!processedAnimations.contains(elem.hash_))
         {
             elem.targetWeight_ = 0.0f;
             elem.fadeTime_ = EXTRA_ANIM_FADEOUT_TIME;

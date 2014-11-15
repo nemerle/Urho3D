@@ -177,7 +177,7 @@ private:
     /// XML file used during loading.
     SharedPtr<XMLFile> loadXMLFile_;
     /// TSX name to XML file mapping.
-    HashMap<String, SharedPtr<XMLFile> > tsxXMLFiles_;
+    QHash<String, SharedPtr<XMLFile> > tsxXMLFiles_;
     /// Tile map information.
     TileMapInfo2D info_;
     /// Tile set textures.

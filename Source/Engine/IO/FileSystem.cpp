@@ -273,7 +273,7 @@ FileSystem::FileSystem(Context* context) :
 FileSystem::~FileSystem()
 {
     // If any async exec items pending, delete them
-    if (asyncExecQueue_.Size())
+    if (asyncExecQueue_.size())
     {
         for (auto & elem : asyncExecQueue_)
             delete(elem);
@@ -343,7 +343,7 @@ void FileSystem::SetExecuteConsoleCommands(bool enable)
 
 int FileSystem::SystemCommand(const String& commandLine, bool redirectStdOutToLog)
 {
-    if (allowedPaths_.Empty())
+    if (allowedPaths_.isEmpty())
         return DoSystemCommand(commandLine, redirectStdOutToLog, context_);
     else
     {
@@ -354,7 +354,7 @@ int FileSystem::SystemCommand(const String& commandLine, bool redirectStdOutToLo
 
 int FileSystem::SystemRun(const String& fileName, const Vector<String>& arguments)
 {
-    if (allowedPaths_.Empty())
+    if (allowedPaths_.isEmpty())
         return DoSystemRun(fileName, arguments);
     else
     {
@@ -365,7 +365,7 @@ int FileSystem::SystemRun(const String& fileName, const Vector<String>& argument
 
 unsigned FileSystem::SystemCommandAsync(const String& commandLine)
 {
-    if (allowedPaths_.Empty())
+    if (allowedPaths_.isEmpty())
     {
         unsigned requestID = nextAsyncExecID_;
         AsyncSystemCommand* cmd = new AsyncSystemCommand(nextAsyncExecID_, commandLine);
@@ -381,7 +381,7 @@ unsigned FileSystem::SystemCommandAsync(const String& commandLine)
 
 unsigned FileSystem::SystemRunAsync(const String& fileName, const Vector<String>& arguments)
 {
-    if (allowedPaths_.Empty())
+    if (allowedPaths_.isEmpty())
     {
         unsigned requestID = nextAsyncExecID_;
         AsyncSystemRun* cmd = new AsyncSystemRun(nextAsyncExecID_, fileName, arguments);
@@ -397,7 +397,7 @@ unsigned FileSystem::SystemRunAsync(const String& fileName, const Vector<String>
 
 bool FileSystem::SystemOpen(const String& fileName, const String& mode)
 {
-    if (allowedPaths_.Empty())
+    if (allowedPaths_.isEmpty())
     {
         if (!FileExists(fileName) && !DirExists(fileName))
         {
@@ -513,7 +513,7 @@ bool FileSystem::CheckAccess(const String& pathName) const
     String fixedPath = AddTrailingSlash(pathName);
 
     // If no allowed directories defined, succeed always
-    if (allowedPaths_.Empty())
+    if (allowedPaths_.isEmpty())
         return true;
 
     // If there is any attempt to go to a parent directory, disallow
@@ -715,7 +715,7 @@ void FileSystem::RegisterPath(const String& pathName)
     if (pathName.Empty())
         return;
 
-    allowedPaths_.Insert(AddTrailingSlash(pathName));
+    allowedPaths_.insert(AddTrailingSlash(pathName));
 }
 
 bool FileSystem::SetLastModifiedTime(const String& fileName, unsigned newTime)

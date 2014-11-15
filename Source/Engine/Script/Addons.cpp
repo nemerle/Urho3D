@@ -1793,11 +1793,10 @@ bool CScriptDictionary::GetGCFlag()
 void CScriptDictionary::EnumReferences(asIScriptEngine *engine)
 {
     // Call the gc enum callback for each of the objects
-    HashMap<String, CScriptDictValue>::Iterator it;
-    for( it = dict.begin(); it != dict.end(); it++ )
+    for( CScriptDictValue & it : dict )
     {
-        if( it->second_.m_typeId & asTYPEID_MASK_OBJECT )
-            engine->GCEnumCallback(it->second_.m_valueObj);
+        if( it.m_typeId & asTYPEID_MASK_OBJECT )
+            engine->GCEnumCallback(it.m_valueObj);
     }
 }
 
@@ -1814,15 +1813,15 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
     DeleteAll();
 
     // Do a shallow copy of the dictionary
-    HashMap<String, CScriptDictValue>::ConstIterator it;
+    QHash<String, CScriptDictValue>::ConstIterator it;
     for( it = other.dict.begin(); it != other.dict.end(); it++ )
     {
-        if( it->second_.m_typeId & asTYPEID_OBJHANDLE )
-            Set(it->first_, (void*)&it->second_.m_valueObj, it->second_.m_typeId);
-        else if( it->second_.m_typeId & asTYPEID_MASK_OBJECT )
-            Set(it->first_, (void*)it->second_.m_valueObj, it->second_.m_typeId);
+        if( it->m_typeId & asTYPEID_OBJHANDLE )
+            Set(it.key(), (void*)&it->m_valueObj, it->m_typeId);
+        else if( it->m_typeId & asTYPEID_MASK_OBJECT )
+            Set(it.key(), (void*)it->m_valueObj, it->m_typeId);
         else
-            Set(it->first_, (void*)&it->second_.m_valueInt, it->second_.m_typeId);
+            Set(it.key(), (void*)&it->m_valueInt, it->m_typeId);
     }
 
     return *this;
@@ -1831,21 +1830,19 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
 CScriptDictValue *CScriptDictionary::operator[](const String &key)
 {
     // Return the existing value if it exists, else insert an empty value
-    HashMap<String, CScriptDictValue>::Iterator it;
-    it = dict.find(key);
+    QHash<String, CScriptDictValue>::Iterator it = dict.find(key);
     if( it == dict.end() )
-        it = dict.insert(MakePair(key, CScriptDictValue()));
+        it = dict.insert(key, CScriptDictValue());
 
-    return &it->second_;
+    return &(*it);
 }
 
 const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 {
     // Return the existing value if it exists
-    HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.find(key);
+    QHash<String, CScriptDictValue>::ConstIterator it = dict.find(key);
     if( it != dict.end() )
-        return &it->second_;
+        return &(*it);
 
     // Else raise an exception
     asIScriptContext *ctx = asGetActiveContext();
@@ -1857,12 +1854,11 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 
 void CScriptDictionary::Set(const String &key, void *value, int typeId)
 {
-    HashMap<String, CScriptDictValue>::Iterator it;
-    it = dict.find(key);
+    QHash<String, CScriptDictValue>::Iterator it = dict.find(key);
     if( it == dict.end() )
-        it = dict.insert(MakePair(key, CScriptDictValue()));
+        it = dict.insert(key, CScriptDictValue());
 
-    it->second_.Set(engine, value, typeId);
+    it->Set(engine, value, typeId);
 }
 
 // This overloaded method is implemented so that all integer and
@@ -1887,10 +1883,9 @@ void CScriptDictionary::Set(const String &key, const double &value)
 // Returns true if the value was successfully retrieved
 bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 {
-    HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.find(key);
+    QHash<String, CScriptDictValue>::ConstIterator it = dict.find(key);
     if( it != dict.end() )
-        return it->second_.Get(engine, value, typeId);
+        return it->Get(engine, value, typeId);
 
     // AngelScript has already initialized the value with a default value,
     // so we don't have to do anything if we don't find the element, or if
@@ -1902,10 +1897,9 @@ bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 // Returns the type id of the stored value
 int CScriptDictionary::GetTypeId(const String &key) const
 {
-    HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.find(key);
+    QHash<String, CScriptDictValue>::ConstIterator it = dict.find(key);
     if( it != dict.end() )
-        return it->second_.m_typeId;
+        return it->m_typeId;
 
     return -1;
 }
@@ -1922,43 +1916,33 @@ bool CScriptDictionary::Get(const String &key, double &value) const
 
 bool CScriptDictionary::Exists(const String &key) const
 {
-    HashMap<String, CScriptDictValue>::ConstIterator it;
-    it = dict.find(key);
-    if( it != dict.end() )
-        return true;
-
-    return false;
+    return dict.contains(key);
 }
 
 bool CScriptDictionary::IsEmpty() const
 {
-    if( dict.Size() == 0 )
-        return true;
-
-    return false;
+    return dict.isEmpty();
 }
 
 asUINT CScriptDictionary::GetSize() const
 {
-    return asUINT(dict.Size());
+    return asUINT(dict.size());
 }
 
 void CScriptDictionary::Delete(const String &key)
 {
-    HashMap<String, CScriptDictValue>::Iterator it;
-    it = dict.find(key);
+    QHash<String, CScriptDictValue>::Iterator it = dict.find(key);
     if( it != dict.end() )
     {
-        it->second_.FreeValue(engine);
+        it->FreeValue(engine);
         dict.erase(it);
     }
 }
 
 void CScriptDictionary::DeleteAll()
 {
-    HashMap<String, CScriptDictValue>::Iterator it;
-    for( it = dict.begin(); it != dict.end(); it++ )
-        it->second_.FreeValue(engine);
+    for(auto it = dict.begin(); it != dict.end(); it++ )
+        it->FreeValue(engine);
 
     dict.clear();
 }
@@ -1973,13 +1957,12 @@ CScriptArray* CScriptDictionary::GetKeys() const
     asIObjectType *ot = engine->GetObjectTypeByDecl("Array<String>");
 
     // Create the array object
-    CScriptArray *array = CScriptArray::Create(ot, asUINT(dict.Size()));
+    CScriptArray *array = CScriptArray::Create(ot, asUINT(dict.size()));
     long current = -1;
-    HashMap<String, CScriptDictValue>::ConstIterator it;
-    for( it = dict.begin(); it != dict.end(); it++ )
+    for(const String & it : dict.keys() )
     {
         current++;
-        *(String*)array->At(current) = it->first_;
+        *(String*)array->At(current) = it;
     }
 
     return array;

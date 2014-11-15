@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 //
 
+#include "Str.h"
 #include "AnimatedSprite2D.h"
 #include "AnimationSet2D.h"
 #include "Camera.h"
@@ -92,7 +93,7 @@ void Urho2DSpriterAnimation::CreateScene()
     Graphics* graphics = GetSubsystem<Graphics>();
     camera->SetOrthoSize((float)graphics->GetHeight() * PIXEL_SIZE);
 
-    ResourceCache* cache = GetSubsystem<ResourceCache>();  
+    ResourceCache* cache = GetSubsystem<ResourceCache>();
     AnimationSet2D* animationSet = cache->GetResource<AnimationSet2D>("Urho2D/imp/imp.scml");
     if (!animationSet)
         return;

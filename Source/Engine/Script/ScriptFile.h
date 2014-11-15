@@ -23,9 +23,9 @@
 #pragma once
 
 #include "ArrayPtr.h"
-#include "HashSet.h"
 #include "Resource.h"
 #include "ScriptEventListener.h"
+#include <QtCore/QSet>
 
 class asIObjectType;
 class asIScriptContext;
@@ -46,7 +46,7 @@ class Variant;
 class URHO3D_API ScriptFile : public Resource, public ScriptEventListener
 {
     OBJECT(ScriptFile);
-    
+
 public:
     /// Construct.
     ScriptFile(Context* context);
@@ -54,7 +54,7 @@ public:
     virtual ~ScriptFile();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
     virtual bool BeginLoad(Deserializer& source);
     /// Finish resource loading. Always called from the main thread. Return true if successful.
@@ -74,7 +74,7 @@ public:
     virtual void RemoveEventHandlers();
     /// Remove all scripted event handlers, except those listed.
     virtual void RemoveEventHandlersExcept(const PODVector<StringHash>& exceptions);
-    
+
     /// Query for a function by declaration and execute if found.
     bool Execute(const String& declaration, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
     /// Execute a function.
@@ -91,7 +91,7 @@ public:
     asIScriptObject* CreateObject(const String& className, bool useInterface = false);
     /// Save the script bytecode. Return true if successful.
     bool SaveByteCode(Serializer& dest);
-    
+
     /// Return script module.
     asIScriptModule* GetScriptModule() const { return scriptModule_; }
     /// Return a function by declaration. Will be stored to a search cache so that further searches should be faster.
@@ -114,7 +114,7 @@ private:
     void ReleaseModule();
     /// Handle application update event.
     void HandleUpdate(StringHash eventType, VariantMap& eventData);
-    
+
     /// Script subsystem.
     SharedPtr<Script> script_;
     /// Script module.
@@ -124,17 +124,17 @@ private:
     /// Subscribed to application update event flag.
     bool subscribed_;
     /// Encountered include files during script file loading.
-    HashSet<String> includeFiles_;
+    QSet<String> includeFiles_;
     /// Search cache for checking whether script classes implement "ScriptObject" interface.
-    HashMap<asIObjectType*, bool> validClasses_;
+    QHash<asIObjectType*, bool> validClasses_;
     /// Search cache for functions.
-    HashMap<String, asIScriptFunction*> functions_;
+    QHash<String, asIScriptFunction*> functions_;
     /// Search cache for methods.
-    HashMap<asIObjectType*, HashMap<String, asIScriptFunction*> > methods_;
+    QHash<asIObjectType*, QHash<String, asIScriptFunction*> > methods_;
     /// Delayed function calls.
     Vector<DelayedCall> delayedCalls_;
     /// Event helper objects for handling procedural or non-ScriptInstance script events
-    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> > eventInvokers_;
+    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> > eventInvokers_;
     /// Byte code for asynchronous loading.
     SharedArrayPtr<unsigned char> loadByteCode_;
     /// Byte code size for asynchronous loading.

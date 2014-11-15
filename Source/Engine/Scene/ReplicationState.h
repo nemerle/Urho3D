@@ -23,11 +23,11 @@
 #pragma once
 
 #include "Attribute.h"
-#include "HashMap.h"
-#include "HashSet.h"
 #include "Ptr.h"
 #include "StringHash.h"
 
+#include <QtCore/QHash>
+#include <QtCore/QSet>
 #include <cstring>
 
 namespace Urho3D
@@ -172,7 +172,7 @@ struct URHO3D_API NodeReplicationState : public ReplicationState
     /// Dirty attribute bits.
     DirtyBits dirtyAttributes_;
     /// Dirty user vars.
-    HashSet<StringHash> dirtyVars_;
+    QSet<StringHash> dirtyVars_;
     /// Components by ID.
     QHash<unsigned, ComponentReplicationState> componentStates_;
     /// Interest management priority accumulator.
@@ -187,12 +187,12 @@ struct URHO3D_API SceneReplicationState : public ReplicationState
     /// Nodes by ID.
     QHash<unsigned, NodeReplicationState> nodeStates_;
     /// Dirty node IDs.
-    HashSet<unsigned> dirtyNodes_;
+    QSet<unsigned> dirtyNodes_;
 
     void Clear()
     {
         nodeStates_.clear();
-        dirtyNodes_.Clear();
+        dirtyNodes_.clear();
     }
 };
 

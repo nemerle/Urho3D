@@ -921,7 +921,7 @@ void View::GetBatches()
         }
 
         lightQueues_.Resize(numLightQueues);
-        maxLightsDrawables_.Clear();
+        maxLightsDrawables_.clear();
         unsigned maxSortedInstances = renderer_->GetMaxSortedInstances();
 
         for (LightQueryResult & query : lightQueryResults_)
@@ -1020,7 +1020,7 @@ void View::GetBatches()
                     if (!drawable->GetMaxLights())
                         GetLitBatches(drawable, lightQueue, alphaQueue);
                     else
-                        maxLightsDrawables_.Insert(drawable);
+                        maxLightsDrawables_.insert(drawable);
                 }
 
                 // In deferred modes, store the light volume batch now
@@ -1056,7 +1056,7 @@ void View::GetBatches()
     }
 
     // Process drawables with limited per-pixel light count
-    if (maxLightsDrawables_.Size())
+    if (maxLightsDrawables_.size())
     {
         PROFILE(GetMaxLightsBatches);
 
@@ -2676,7 +2676,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
     {
         BatchGroupKey key(batch);
 
-        HashMap<BatchGroupKey, BatchGroup>::Iterator i = batchQueue.batchGroups_.find(key);
+        QHash<BatchGroupKey, BatchGroup>::Iterator i = batchQueue.batchGroups_.find(key);
         if (i == batchQueue.batchGroups_.end())
         {
             // Create a new group based on the batch
@@ -2685,17 +2685,17 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
             newGroup.geometryType_ = GEOM_STATIC;
             renderer_->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
-            i = batchQueue.batchGroups_.insert(MakePair(key, newGroup));
+            i = batchQueue.batchGroups_.insert(key, newGroup);
         }
 
-        int oldSize = i->second_.instances_.Size();
-        i->second_.AddTransforms(batch);
+        int oldSize = i->instances_.Size();
+        i->AddTransforms(batch);
         // Convert to using instancing shaders when the instancing limit is reached
-        if (oldSize < minInstances_ && (int)i->second_.instances_.Size() >= minInstances_)
+        if (oldSize < minInstances_ && (int)i->instances_.Size() >= minInstances_)
         {
-            i->second_.geometryType_ = GEOM_INSTANCED;
-            renderer_->SetBatchShaders(i->second_, tech, allowShadows);
-            i->second_.CalculateSortKey();
+            i->geometryType_ = GEOM_INSTANCED;
+            renderer_->SetBatchShaders(*i, tech, allowShadows);
+            i->CalculateSortKey();
         }
     }
     else

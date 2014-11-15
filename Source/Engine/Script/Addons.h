@@ -23,11 +23,10 @@
 #pragma once
 
 #include "Urho3D.h"
-#include "HashMap.h"
 #include "Str.h"
 
 #include <angelscript.h>
-
+#include <QtCore/QHash>
 // Adapted from Angelscript's scriptarray, scriptdictionary & scriptstdstring add-ons, but with garbage collection disabled
 
 namespace Urho3D
@@ -74,9 +73,9 @@ public:
     void       *At(asUINT index);
     const void *At(asUINT index) const;
 
-    // Set value of an element. 
+    // Set value of an element.
     // The value arg should be a pointer to the value that will be copied to the element.
-    // Remember, if the array holds handles the value parameter should be the 
+    // Remember, if the array holds handles the value parameter should be the
     // address of the handle. The refCount of the object will also be incremented
     void  SetValue(asUINT index, void *value);
 
@@ -145,7 +144,7 @@ class CScriptDictionary;
 class URHO3D_API CScriptDictValue
 {
 public:
-    // This class must not be declared as local variable in C++, because it needs 
+    // This class must not be declared as local variable in C++, because it needs
     // to receive the script engine pointer in all operations. The engine pointer
     // is not kept as member in order to keep the size down
     CScriptDictValue();
@@ -261,11 +260,11 @@ public:
 
         CIterator();
         CIterator(const CScriptDictionary &dict,
-                  HashMap<String, CScriptDictValue>::ConstIterator it);
+                  QHash<String, CScriptDictValue>::ConstIterator it);
 
         CIterator &operator=(const CIterator &) {return *this;} // Not used
 
-        HashMap<String, CScriptDictValue>::ConstIterator m_it;
+        QHash<String, CScriptDictValue>::ConstIterator m_it;
         const CScriptDictionary &m_dict;
     };
 
@@ -281,21 +280,21 @@ public:
 
 protected:
     // Since the dictionary uses the asAllocMem and asFreeMem functions to allocate memory
-    // the constructors are made protected so that the application cannot allocate it 
+    // the constructors are made protected so that the application cannot allocate it
     // manually in a different way
     CScriptDictionary(asIScriptEngine *engine);
     CScriptDictionary(asBYTE *buffer);
 
     // We don't want anyone to call the destructor directly, it should be called through the Release method
     virtual ~CScriptDictionary();
-    
+
     // Our properties
     asIScriptEngine *engine;
     mutable int refCount;
     mutable bool gcFlag;
 
     // TODO: memory: The allocator should use the asAllocMem and asFreeMem
-    HashMap<String, CScriptDictValue> dict;
+    QHash<String, CScriptDictValue> dict;
 };
 
 /// Register the array type to script.

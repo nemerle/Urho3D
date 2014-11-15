@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "HashBase.h"
 #include "StringHash.h"
 
 namespace Urho3D

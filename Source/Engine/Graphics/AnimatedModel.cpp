@@ -961,7 +961,7 @@ void AnimatedModel::MarkMorphsDirty()
 void AnimatedModel::CloneGeometries()
 {
     const Vector<SharedPtr<VertexBuffer> >& originalVertexBuffers = model_->GetVertexBuffers();
-    HashMap<VertexBuffer*, SharedPtr<VertexBuffer> > clonedVertexBuffers;
+    QHash<VertexBuffer*, SharedPtr<VertexBuffer> > clonedVertexBuffers;
     morphVertexBuffers_.Resize(originalVertexBuffers.size());
 
     for (unsigned i = 0; i < originalVertexBuffers.size(); ++i)

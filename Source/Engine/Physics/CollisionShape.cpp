@@ -132,7 +132,7 @@ public:
     {
         const Vector<PODVector<CustomGeometryVertex> >& srcVertices = custom->GetVertices();
         unsigned totalVertexCount = 0;
-        
+
         for (unsigned i = 0; i < srcVertices.size(); ++i)
             totalVertexCount += srcVertices[i].Size();
 
@@ -143,11 +143,11 @@ public:
             SharedArrayPtr<unsigned char> indexData(new unsigned char[totalVertexCount * sizeof(unsigned)]);
             dataArrays_.Push(vertexData);
             dataArrays_.Push(indexData);
-            
+
             Vector3* destVertex = reinterpret_cast<Vector3*>(&vertexData[0]);
             unsigned* destIndex = reinterpret_cast<unsigned*>(&indexData[0]);
             unsigned k = 0;
-            
+
             for (unsigned i = 0; i < srcVertices.size(); ++i)
             {
                 for (unsigned j = 0; j < srcVertices[i].Size(); ++j)
@@ -156,7 +156,7 @@ public:
                     *destIndex++ = k++;
                 }
             }
-            
+
             btIndexedMesh meshIndex;
             meshIndex.m_numTriangles = totalVertexCount / 3;
             meshIndex.m_triangleIndexBase = indexData;
@@ -169,7 +169,7 @@ public:
             m_indexedMeshes.push_back(meshIndex);
         }
     }
-    
+
 private:
     /// Shared vertex/index data used in the collision
     Vector<SharedArrayPtr<unsigned char> > dataArrays_;
@@ -262,7 +262,7 @@ ConvexData::ConvexData(CustomGeometry* custom)
         for (unsigned j = 0; j < srcVertices[i].Size(); ++j)
             vertices.Push(srcVertices[i][j].position_);
     }
-    
+
     BuildHull(vertices);
 }
 
@@ -1002,10 +1002,10 @@ void CollisionShape::UpdateShape()
             {
                 // Check the geometry cache
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
-                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetTriMeshCache();
-                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
+                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetTriMeshCache();
+                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
                 if (j != cache.end())
-                    geometry_ = j->second_;
+                    geometry_ = *j;
                 else
                 {
                     geometry_ = new TriangleMeshData(model_, lodLevel_);
@@ -1041,10 +1041,10 @@ void CollisionShape::UpdateShape()
             {
                 // Check the geometry cache
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
-                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetConvexCache();
-                HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
+                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetConvexCache();
+                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
                 if (j != cache.end())
-                    geometry_ = j->second_;
+                    geometry_ = *j;
                 else
                 {
                     geometry_ = new ConvexData(model_, lodLevel_);

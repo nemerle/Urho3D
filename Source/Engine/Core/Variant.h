@@ -23,7 +23,6 @@
 #pragma once
 
 #include "Color.h"
-#include "HashMap.h"
 #include "Matrix3.h"
 #include "Matrix3x4.h"
 #include "Ptr.h"

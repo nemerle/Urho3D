@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "HashSet.h"
 #include "Serializable.h"
 #include "ValueAnimationInfo.h"
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -125,9 +125,9 @@ protected:
     /// Animation.
     SharedPtr<ObjectAnimation> objectAnimation_;
     /// Animated network attribute set.
-    HashSet<const AttributeInfo*> animatedNetworkAttributes_;
+    QSet<const AttributeInfo*> animatedNetworkAttributes_;
     /// Attribute animation infos.
-    HashMap<String, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
+    QHash<String, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
 };
 
 }

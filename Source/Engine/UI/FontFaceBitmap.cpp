@@ -111,7 +111,7 @@ bool FontFaceBitmap::Load(const unsigned char* fontData, unsigned fontDataSize, 
         SharedPtr<Texture2D> texture = LoadFaceTexture(fontImage);
         if (!texture)
             return 0;
-        
+
         textures_.Push(texture);
 
         // Add texture to resource cache
@@ -190,9 +190,9 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
     int maxTextureSize = font_->GetSubsystem<UI>()->GetMaxFontTextureSize();
     AreaAllocator allocator(FONT_TEXTURE_MIN_SIZE, FONT_TEXTURE_MIN_SIZE, maxTextureSize, maxTextureSize);
 
-    for (HashMap<unsigned, FontGlyph>::ConstIterator i = fontFace->glyphMapping_.begin(); i != fontFace->glyphMapping_.end(); ++i)
+    for (auto i = fontFace->glyphMapping_.begin(), fin=fontFace->glyphMapping_.end(); i!=fin; ++i)
     {
-        FontGlyph fontGlyph = i->second_;
+        FontGlyph fontGlyph = *i;
         if (!fontGlyph.used_)
             continue;
 
@@ -210,7 +210,7 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
         fontGlyph.y_ = y;
         fontGlyph.page_ = numPages - 1;
 
-        glyphMapping_[i->first_] = fontGlyph;
+        glyphMapping_[i.key()] = fontGlyph;
     }
 
     // Assume that format is the same for all textures and that bitmap font type may have more than one component
@@ -240,10 +240,10 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
         newImages.Push(image);
     }
 
-    for (auto & elem : glyphMapping_)
+    for (auto elem=glyphMapping_.begin(),fin=glyphMapping_.end(); elem!=fin; ++elem)
     {
-        FontGlyph& newGlyph = elem.second_;
-        const FontGlyph& oldGlyph = fontFace->glyphMapping_[elem.first_];
+        FontGlyph& newGlyph = *elem;
+        const FontGlyph& oldGlyph = fontFace->glyphMapping_[elem.key()];
         Blit(newImages[newGlyph.page_], newGlyph.x_, newGlyph.y_, newGlyph.width_, newGlyph.height_, oldImages[oldGlyph.page_], oldGlyph.x_, oldGlyph.y_, components);
     }
 
@@ -251,12 +251,12 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
     for (unsigned i = 0; i < newImages.size(); ++i)
         textures_[i] = LoadFaceTexture(newImages[i]);
 
-    for (HashMap<unsigned, short>::ConstIterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
+    for (QHash<unsigned, short>::ConstIterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
     {
-        unsigned first = (i->first_) >> 16;
-        unsigned second = (i->first_) & 0xffff;
+        unsigned first = (i.key()) >> 16;
+        unsigned second = (i.key()) & 0xffff;
         if (glyphMapping_.find(first) != glyphMapping_.end() && glyphMapping_.find(second) != glyphMapping_.end())
-            kerningMapping_[i->first_] = i->second_;
+            kerningMapping_[i.key()] = *i;
     }
 
     return true;
@@ -306,16 +306,16 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize)
 
     // Chars and kernings
     XMLElement charsElem = rootElem.CreateChild("chars");
-    unsigned numGlyphs = glyphMapping_.Size();
+    unsigned numGlyphs = glyphMapping_.size();
     charsElem.SetInt("count", numGlyphs);
 
-    for (HashMap<unsigned, FontGlyph>::ConstIterator i = glyphMapping_.begin(); i != glyphMapping_.end(); ++i)
+    for (auto i = glyphMapping_.begin(), fin=glyphMapping_.end(); i!=fin; ++i)
     {
         // Char
         XMLElement charElem = charsElem.CreateChild("char");
-        charElem.SetInt("id", i->first_);
+        charElem.SetInt("id", i.key());
 
-        const FontGlyph& glyph = i->second_;
+        const FontGlyph& glyph = *i;
         charElem.SetInt("x", glyph.x_);
         charElem.SetInt("y", glyph.y_);
         charElem.SetInt("width", glyph.width_);
@@ -326,15 +326,15 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize)
         charElem.SetInt("page", glyph.page_);
     }
 
-    if (!kerningMapping_.Empty())
+    if (!kerningMapping_.empty())
     {
         XMLElement kerningsElem = rootElem.CreateChild("kernings");
-        for (HashMap<unsigned, short>::ConstIterator i = kerningMapping_.begin(); i != kerningMapping_.end(); ++i)
+        for (auto i = kerningMapping_.begin(), fin=kerningMapping_.end(); i!=fin; ++i)
         {
             XMLElement kerningElem = kerningsElem.CreateChild("kerning");
-            kerningElem.SetInt("first", i->first_ >> 16);
-            kerningElem.SetInt("second", i->first_ & 0xffff);
-            kerningElem.SetInt("amount", i->second_);
+            kerningElem.SetInt("first", i.key()>> 16);
+            kerningElem.SetInt("second", i.key() & 0xffff);
+            kerningElem.SetInt("amount", *i);
         }
     }
 

@@ -84,11 +84,11 @@ bool SpriteSheet2D::EndLoad()
 
 Sprite2D* SpriteSheet2D::GetSprite(const String& name) const
 {
-    HashMap<String, SharedPtr<Sprite2D> >::ConstIterator i = spriteMapping_.find(name);
+    QHash<String, SharedPtr<Sprite2D> >::ConstIterator i = spriteMapping_.find(name);
     if (i == spriteMapping_.end())
         return nullptr;
 
-    return i->second_;
+    return *i;
 }
 
 void SpriteSheet2D::DefineSprite(const String& name, const IntRect& rectangle, const Vector2& hotSpot, const IntVector2& offset)

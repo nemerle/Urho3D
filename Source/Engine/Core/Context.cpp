@@ -29,13 +29,13 @@
 namespace Urho3D
 {
 
-void RemoveNamedAttribute(HashMap<StringHash, Vector<AttributeInfo> >& attributes, StringHash objectType, const char* name)
+void RemoveNamedAttribute(QHash<StringHash, Vector<AttributeInfo> >& attributes, StringHash objectType, const char* name)
 {
-    HashMap<StringHash, Vector<AttributeInfo> >::Iterator i = attributes.find(objectType);
+    QHash<StringHash, Vector<AttributeInfo> >::Iterator i = attributes.find(objectType);
     if (i == attributes.end())
         return;
 
-    Vector<AttributeInfo>& infos = i->second_;
+    Vector<AttributeInfo>& infos = *i;
 
     for (Vector<AttributeInfo>::Iterator j = infos.begin(); j != infos.end(); ++j)
     {
@@ -84,9 +84,9 @@ Context::~Context()
 
 SharedPtr<Object> Context::CreateObject(StringHash objectType)
 {
-    HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
+    QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
     if (i != factories_.end())
-        return i->second_->CreateObject();
+        return (*i)->CreateObject();
     else
         return SharedPtr<Object>();
 }
@@ -119,7 +119,7 @@ void Context::RegisterSubsystem(Object* object)
 
 void Context::RemoveSubsystem(StringHash objectType)
 {
-    HashMap<StringHash, SharedPtr<Object> >::Iterator i = subsystems_.find(objectType);
+    QHash<StringHash, SharedPtr<Object> >::Iterator i = subsystems_.find(objectType);
     if (i != subsystems_.end())
         subsystems_.erase(i);
 }
@@ -178,9 +178,9 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
 
 Object* Context::GetSubsystem(StringHash type) const
 {
-    HashMap<StringHash, SharedPtr<Object> >::ConstIterator i = subsystems_.find(type);
+    QHash<StringHash, SharedPtr<Object> >::ConstIterator i = subsystems_.find(type);
     if (i != subsystems_.end())
-        return i->second_;
+        return *i;
     else
         return nullptr;
 }
@@ -196,17 +196,17 @@ Object* Context::GetEventSender() const
 const String& Context::GetTypeName(StringHash objectType) const
 {
     // Search factories to find the hash-to-name mapping
-    HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
-    return i != factories_.end() ? i->second_->GetTypeName() : String::EMPTY;
+    QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
+    return i != factories_.end() ? (*i)->GetTypeName() : String::EMPTY;
 }
 
 AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
 {
-    HashMap<StringHash, Vector<AttributeInfo> >::Iterator i = attributes_.find(objectType);
+    QHash<StringHash, Vector<AttributeInfo> >::Iterator i = attributes_.find(objectType);
     if (i == attributes_.end())
         return nullptr;
 
-    Vector<AttributeInfo>& infos = i->second_;
+    Vector<AttributeInfo>& infos = *i;
 
     for (AttributeInfo &j : infos)
     {
@@ -219,22 +219,22 @@ AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
 
 void Context::AddEventReceiver(Object* receiver, StringHash eventType)
 {
-    eventReceivers_[eventType].Insert(receiver);
+    eventReceivers_[eventType].insert(receiver);
 }
 
 void Context::AddEventReceiver(Object* receiver, Object* sender, StringHash eventType)
 {
-    specificEventReceivers_[sender][eventType].Insert(receiver);
+    specificEventReceivers_[sender][eventType].insert(receiver);
 }
 
 void Context::RemoveEventSender(Object* sender)
 {
-    HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
+    QHash<Object*, QHash<StringHash, QSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
     if (i == specificEventReceivers_.end())
         return;
-    for (auto & elem : i->second_)
+    for (QSet<Object*> & elem : *i)
     {
-        for (Object* k : elem.second_)
+        for (Object* k : elem)
             k->RemoveEventSender(sender);
     }
     specificEventReceivers_.erase(i);
@@ -242,16 +242,16 @@ void Context::RemoveEventSender(Object* sender)
 
 void Context::RemoveEventReceiver(Object* receiver, StringHash eventType)
 {
-    HashSet<Object*>* group = GetEventReceivers(eventType);
+    QSet<Object*>* group = GetEventReceivers(eventType);
     if (group)
-        group->Erase(receiver);
+        group->remove(receiver);
 }
 
 void Context::RemoveEventReceiver(Object* receiver, Object* sender, StringHash eventType)
 {
-    HashSet<Object*>* group = GetEventReceivers(sender, eventType);
+    QSet<Object*>* group = GetEventReceivers(sender, eventType);
     if (group)
-        group->Erase(receiver);
+        group->remove(receiver);
 }
 
 }

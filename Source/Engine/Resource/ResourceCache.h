@@ -23,12 +23,11 @@
 #pragma once
 
 #include "File.h"
-#include "HashSet.h"
 #include "List.h"
 #include "Mutex.h"
 #include "Resource.h"
 
-#include <unordered_map>
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -214,7 +213,7 @@ private:
     /// Package files.
     Vector<SharedPtr<PackageFile> > packages_;
     /// Dependent resources. Only used with automatic reload to eg. trigger reload of a cube texture when any of its faces change.
-    QHash<StringHash, HashSet<StringHash> > dependentResources_;
+    QHash<StringHash, QSet<StringHash> > dependentResources_;
     /// Resource background loader.
     SharedPtr<BackgroundLoader> backgroundLoader_;
     /// Resource router.

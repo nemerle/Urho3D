@@ -496,18 +496,18 @@ void PhysicsWorld::ConvexCast(PhysicsRaycastResult& result, btCollisionShape* sh
 
 void PhysicsWorld::RemoveCachedGeometry(Model* model)
 {
-    for (HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = triMeshCache_.begin();
+    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = triMeshCache_.begin();
         i != triMeshCache_.end();)
     {
-        HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current->first_.first_ == model)
+        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
+        if (current.key().first_ == model)
             triMeshCache_.erase(current);
     }
-    for (HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
+    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
         i != convexCache_.end();)
     {
-        HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current->first_.first_ == model)
+        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
+        if (current.key().first_ == model)
             convexCache_.erase(current);
     }
 }
@@ -557,12 +557,12 @@ void PhysicsWorld::GetRigidBodies(PODVector<RigidBody*>& result, const RigidBody
 
     result.Clear();
 
-    for (auto & elem : currentCollisions_)
+    for (auto & elem : currentCollisions_.keys())
     {
-        if (elem.first_.first_ == body)
-            result.Push(elem.first_.second_);
-        else if (elem.first_.second_ == body)
-            result.Push(elem.first_.first_);
+        if (elem.first_ == body)
+            result.Push(elem.second_);
+        else if (elem.second_ == body)
+            result.Push(elem.first_);
     }
 }
 
@@ -637,18 +637,18 @@ void PhysicsWorld::SetDebugDepthTest(bool enable)
 void PhysicsWorld::CleanupGeometryCache()
 {
     // Remove cached shapes whose only reference is the cache itself
-    for (HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = triMeshCache_.begin();
+    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = triMeshCache_.begin();
         i != triMeshCache_.end();)
     {
-        HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current->second_.Refs() == 1)
+        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
+        if (current->Refs() == 1)
             triMeshCache_.erase(current);
     }
-    for (HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
+    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
         i != convexCache_.end();)
     {
-        HashMap<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current->second_.Refs() == 1)
+        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
+        if (current->Refs() == 1)
             convexCache_.erase(current);
     }
 }
@@ -760,14 +760,14 @@ void PhysicsWorld::SendCollisionEvents()
             currentCollisions_[bodyPair] = contactManifold;
         }
 
-        for (auto & elem : currentCollisions_)
+        for (auto elem = currentCollisions_.begin(),fin=currentCollisions_.end(); elem!=fin; ++elem)
         {
-            RigidBody* bodyA = elem.first_.first_;
-            RigidBody* bodyB = elem.first_.second_;
+            RigidBody* bodyA = elem.key().first_;
+            RigidBody* bodyB = elem.key().second_;
             if (!bodyA || !bodyB)
                 continue;
 
-            btPersistentManifold* contactManifold = elem.second_;
+            btPersistentManifold* contactManifold = *elem;
 
             Node* nodeA = bodyA->GetNode();
             Node* nodeB = bodyB->GetNode();
@@ -775,7 +775,7 @@ void PhysicsWorld::SendCollisionEvents()
             WeakPtr<Node> nodeWeakB(nodeB);
 
             bool trigger = bodyA->IsTrigger() || bodyB->IsTrigger();
-            bool newCollision = !previousCollisions_.contains(elem.first_);
+            bool newCollision = !previousCollisions_.contains(elem.key());
 
             physicsCollisionData_[PhysicsCollision::P_NODEA] = nodeA;
             physicsCollisionData_[PhysicsCollision::P_NODEB] = nodeB;
@@ -801,13 +801,13 @@ void PhysicsWorld::SendCollisionEvents()
             {
                 SendEvent(E_PHYSICSCOLLISIONSTART, physicsCollisionData_);
                 // Skip rest of processing if either of the nodes or bodies is removed as a response to the event
-                if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+                if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
                     continue;
             }
 
             // Then send the ongoing collision event
             SendEvent(E_PHYSICSCOLLISION, physicsCollisionData_);
-            if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+            if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
                 continue;
 
             nodeCollisionData_[NodeCollision::P_BODY] = bodyA;
@@ -819,12 +819,12 @@ void PhysicsWorld::SendCollisionEvents()
             if (newCollision)
             {
                 nodeA->SendEvent(E_NODECOLLISIONSTART, nodeCollisionData_);
-                if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+                if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
                     continue;
             }
 
             nodeA->SendEvent(E_NODECOLLISION, nodeCollisionData_);
-            if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+            if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
                 continue;
 
             contacts_.Clear();
@@ -845,7 +845,7 @@ void PhysicsWorld::SendCollisionEvents()
             if (newCollision)
             {
                 nodeB->SendEvent(E_NODECOLLISIONSTART, nodeCollisionData_);
-                if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+                if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
                     continue;
             }
 
@@ -857,12 +857,12 @@ void PhysicsWorld::SendCollisionEvents()
     {
         physicsCollisionData_[PhysicsCollisionEnd::P_WORLD] = this;
 
-        for (auto & elem : previousCollisions_)
+        for (auto & elem : previousCollisions_.keys())
         {
-            if (!currentCollisions_.contains(elem.first_))
+            if (!currentCollisions_.contains(elem))
             {
-                RigidBody* bodyA = elem.first_.first_;
-                RigidBody* bodyB = elem.first_.second_;
+                RigidBody* bodyA = elem.first_;
+                RigidBody* bodyB = elem.second_;
                 if (!bodyA || !bodyB)
                     continue;
 
@@ -890,7 +890,7 @@ void PhysicsWorld::SendCollisionEvents()
 
                 SendEvent(E_PHYSICSCOLLISIONEND, physicsCollisionData_);
                 // Skip rest of processing if either of the nodes or bodies is removed as a response to the event
-                if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+                if (!nodeWeakA || !nodeWeakB || !elem.first_ || !elem.second_)
                     continue;
 
                 nodeCollisionData_[NodeCollisionEnd::P_BODY] = bodyA;
@@ -899,7 +899,7 @@ void PhysicsWorld::SendCollisionEvents()
                 nodeCollisionData_[NodeCollisionEnd::P_TRIGGER] = trigger;
 
                 nodeA->SendEvent(E_NODECOLLISIONEND, nodeCollisionData_);
-                if (!nodeWeakA || !nodeWeakB || !elem.first_.first_ || !elem.first_.second_)
+                if (!nodeWeakA || !nodeWeakB || !elem.first_ || !elem.second_)
                     continue;
 
                 nodeCollisionData_[NodeCollisionEnd::P_BODY] = bodyB;

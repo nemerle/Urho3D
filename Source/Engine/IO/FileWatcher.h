@@ -84,7 +84,7 @@ private:
 
 #elif __linux__
 
-    /// HashMap for the directory and sub-directories (needed for inotify's int handles).
+    /// QHash for the directory and sub-directories (needed for inotify's int handles).
     QHash<int, String> dirHandle_;
     /// Linux inotify needs a handle.
     int watchHandle_;

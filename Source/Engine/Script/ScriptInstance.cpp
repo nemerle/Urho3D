@@ -121,9 +121,9 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
     {
         // If a cached ID value has been stored, return it instead of querying from the actual object
         // (the object handle is likely null at that point)
-        HashMap<AttributeInfo*, unsigned>::ConstIterator i = idAttributes_.find(attrPtr);
+        QHash<AttributeInfo*, unsigned>::ConstIterator i = idAttributes_.find(attrPtr);
         if (i != idAttributes_.end())
-            dest = i->second_;
+            dest = *i;
         else if (attr.mode_ & AM_NODEID)
         {
             Node* node = *(reinterpret_cast<Node**>(attr.ptr_));
@@ -150,16 +150,16 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
 void ScriptInstance::ApplyAttributes()
 {
     // Apply node / component ID attributes now (find objects from the scene and assign to the object handles)
-    for (auto & elem : idAttributes_)
+    for (auto elem=idAttributes_.begin(),fin=idAttributes_.end(); elem!=fin; ++elem)
     {
-        AttributeInfo& attr = *elem.first_;
+        AttributeInfo& attr = *elem.key();
         if (attr.mode_ & AM_NODEID)
         {
             Node*& nodePtr = *(reinterpret_cast<Node**>(attr.ptr_));
             // Decrease reference count of the old object if any, then increment the new
             if (nodePtr)
                 nodePtr->ReleaseRef();
-            nodePtr = GetScene()->GetNode(elem.second_);
+            nodePtr = GetScene()->GetNode(*elem);
             if (nodePtr)
                 nodePtr->AddRef();
         }
@@ -168,7 +168,7 @@ void ScriptInstance::ApplyAttributes()
             Component*& componentPtr = *(reinterpret_cast<Component**>(attr.ptr_));
             if (componentPtr)
                 componentPtr->ReleaseRef();
-            componentPtr = GetScene()->GetComponent(elem.second_);
+            componentPtr = GetScene()->GetComponent(*elem);
             if (componentPtr)
                 componentPtr->AddRef();
         }
@@ -583,12 +583,12 @@ void ScriptInstance::GetScriptAttributes()
         {
             // For a handle type, check if it's an Object subclass with a registered factory
             StringHash typeHash(typeName);
-            const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
-            HashMap<StringHash, SharedPtr<ObjectFactory> >::ConstIterator j = factories.find(typeHash);
+            const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
+            QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator j = factories.find(typeHash);
             if (j != factories.end())
             {
                 // Check base class type. Node & Component are supported as ID attributes, Resource as a resource reference
-                StringHash baseType = j->second_->GetBaseType();
+                StringHash baseType = (*j)->GetBaseType();
                 if (baseType == Node::GetTypeStatic())
                 {
                     info.mode_ |= AM_NODEID;

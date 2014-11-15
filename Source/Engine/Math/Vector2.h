@@ -23,11 +23,10 @@
 #pragma once
 
 #include "MathDefs.h"
-#include "Str.h"
 
 namespace Urho3D
 {
-
+class String;
 /// Two-dimensional vector.
 class URHO3D_API Vector2
 {
@@ -38,28 +37,28 @@ public:
         y_(0.0f)
     {
     }
-    
+
     /// Copy-construct from another vector.
     Vector2(const Vector2& vector) :
         x_(vector.x_),
         y_(vector.y_)
     {
     }
-    
+
     /// Construct from coordinates.
     Vector2(float x, float y) :
         x_(x),
         y_(y)
     {
     }
-    
+
     /// Construct from a float array.
     Vector2(const float* data) :
         x_(data[0]),
         y_(data[1])
     {
     }
-    
+
     /// Assign from another vector.
     Vector2& operator = (const Vector2& rhs)
     {
@@ -67,7 +66,7 @@ public:
         y_ = rhs.y_;
         return *this;
     }
-    
+
     /// Test for equality with another vector without epsilon.
     bool operator == (const Vector2& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_; }
     /// Test for inequality with another vector without epsilon.
@@ -86,7 +85,7 @@ public:
     Vector2 operator / (float rhs) const { return Vector2(x_ / rhs, y_ / rhs); }
     /// Divide by a vector.
     Vector2 operator / (const Vector2& rhs) const { return Vector2(x_ / rhs.x_, y_ / rhs.y_); }
-    
+
     /// Add-assign a vector.
     Vector2& operator += (const Vector2& rhs)
     {
@@ -94,7 +93,7 @@ public:
         y_ += rhs.y_;
         return *this;
     }
-    
+
     /// Subtract-assign a vector.
     Vector2& operator -= (const Vector2& rhs)
     {
@@ -102,7 +101,7 @@ public:
         y_ -= rhs.y_;
         return *this;
     }
-    
+
     /// Multiply-assign a scalar.
     Vector2& operator *= (float rhs)
     {
@@ -110,7 +109,7 @@ public:
         y_ *= rhs;
         return *this;
     }
-    
+
     /// Multiply-assign a vector.
     Vector2& operator *= (const Vector2& rhs)
     {
@@ -118,7 +117,7 @@ public:
         y_ *= rhs.y_;
         return *this;
     }
-    
+
     /// Divide-assign a scalar.
     Vector2& operator /= (float rhs)
     {
@@ -127,7 +126,7 @@ public:
         y_ *= invRhs;
         return *this;
     }
-    
+
     /// Divide-assign a vector.
     Vector2& operator /= (const Vector2& rhs)
     {
@@ -135,7 +134,7 @@ public:
         y_ /= rhs.y_;
         return *this;
     }
-    
+
     /// Normalize to unit length.
     void Normalize()
     {
@@ -147,7 +146,7 @@ public:
             y_ *= invLen;
         }
     }
-    
+
     /// Return length.
     float Length() const { return sqrtf(x_ * x_ + y_ * y_); }
     /// Return squared length.
@@ -164,7 +163,7 @@ public:
     bool Equals(const Vector2& rhs) const { return Urho3D::Equals(x_, rhs.x_) && Urho3D::Equals(y_, rhs.y_); }
     /// Return whether is NaN.
     bool IsNaN() const { return Urho3D::IsNaN(x_) || Urho3D::IsNaN(y_); }
-    
+
     /// Return normalized to unit length.
     Vector2 Normalized() const
     {
@@ -177,17 +176,17 @@ public:
         else
             return *this;
     }
-    
+
     /// Return float data.
     const float* Data() const { return &x_; }
     /// Return as string.
     String ToString() const;
-    
+
     /// X coordinate.
     float x_;
     /// Y coordinate.
     float y_;
-    
+
     /// Zero vector.
     static const Vector2 ZERO;
     /// (-1,0) vector.
@@ -215,28 +214,28 @@ public:
         y_(0)
     {
     }
-    
+
     /// Construct from coordinates.
     IntVector2(int x, int y) :
         x_(x),
         y_(y)
     {
     }
-    
+
     /// Construct from an int array.
     IntVector2(const int* data) :
         x_(data[0]),
         y_(data[1])
     {
     }
-    
+
     /// Copy-construct from another vector.
     IntVector2(const IntVector2& rhs) :
         x_(rhs.x_),
         y_(rhs.y_)
     {
     }
-    
+
     /// Test for equality with another vector.
     bool operator == (const IntVector2& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_; }
     /// Test for inequality with another vector.
@@ -251,7 +250,7 @@ public:
     IntVector2 operator * (int rhs) const { return IntVector2(x_ * rhs, y_ * rhs); }
     /// Divide by a scalar.
     IntVector2 operator / (int rhs) const { return IntVector2(x_ / rhs, y_ / rhs); }
-    
+
     /// Add-assign a vector.
     IntVector2& operator += (const IntVector2& rhs)
     {
@@ -259,7 +258,7 @@ public:
         y_ += rhs.y_;
         return *this;
     }
-    
+
     /// Subtract-assign a vector.
     IntVector2& operator -= (const IntVector2& rhs)
     {
@@ -267,7 +266,7 @@ public:
         y_ -= rhs.y_;
         return *this;
     }
-    
+
     /// Multiply-assign a scalar.
     IntVector2& operator *= (int rhs)
     {
@@ -275,7 +274,7 @@ public:
         y_ *= rhs;
         return *this;
     }
-    
+
     /// Divide-assign a scalar.
     IntVector2& operator /= (int rhs)
     {
@@ -283,17 +282,17 @@ public:
         y_ /= rhs;
         return *this;
     }
-    
+
     /// Return integer data.
     const int* Data() const { return &x_; }
     /// Return as string.
     String ToString() const;
-    
+
     /// X coordinate.
     int x_;
     /// Y coordinate.
     int y_;
-    
+
     /// Zero vector.
     static const IntVector2 ZERO;
 };

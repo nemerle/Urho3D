@@ -45,7 +45,7 @@ unsigned BufferedSoundStream::GetData(signed char* dest, unsigned numBytes)
 
     unsigned outBytes = 0;
 
-    while (numBytes && buffers_.Size())
+    while (numBytes && buffers_.size())
     {
         // Copy as much from the front buffer as possible, then discard it and move to the next
         List<Pair<SharedArrayPtr<signed char>, unsigned> >::Iterator front = buffers_.begin();

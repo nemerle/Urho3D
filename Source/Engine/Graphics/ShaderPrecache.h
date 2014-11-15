@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "HashSet.h"
 #include "Object.h"
 #include "XMLFile.h"
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -36,16 +36,16 @@ class ShaderVariation;
 class URHO3D_API ShaderPrecache : public Object
 {
     OBJECT(ShaderPrecache);
-    
+
 public:
     /// Construct and begin collecting shader combinations. Load existing combinations from XML if the file exists.
     ShaderPrecache(Context* context, const String& fileName);
     /// Destruct. Write the collected shaders to XML.
     ~ShaderPrecache();
-    
+
     /// Collect a shader combination. Called by Graphics when shaders have been set.
     void StoreShaders(ShaderVariation* vs, ShaderVariation* ps);
-    
+
     /// Load shaders from an XML file.
     static void LoadShaders(Graphics* graphics, Deserializer& source);
 
@@ -55,9 +55,9 @@ private:
     /// XML file.
     XMLFile xmlFile_;
     /// Already encountered shader combinations, pointer version for fast queries.
-    HashSet<Pair<ShaderVariation*, ShaderVariation*> > usedPtrCombinations_;
+    QSet<Pair<ShaderVariation*, ShaderVariation*> > usedPtrCombinations_;
     /// Already encountered shader combinations.
-    HashSet<String> usedCombinations_;
+    QSet<String> usedCombinations_;
 };
 
 }

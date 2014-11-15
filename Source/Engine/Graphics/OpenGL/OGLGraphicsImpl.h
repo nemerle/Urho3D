@@ -23,8 +23,8 @@
 #pragma once
 
 #include "Color.h"
-#include "HashMap.h"
 #include "Timer.h"
+#include <QtCore/QHash>
 
 #if defined(ANDROID) || defined (RASPI)
 #include <GLES2/gl2.h>
@@ -116,7 +116,7 @@ private:
     /// Current pixel format.
     int pixelFormat_;
     /// Map for FBO's per resolution and format.
-    HashMap<unsigned long long, FrameBufferObject> frameBuffers_;
+    QHash<unsigned long long, FrameBufferObject> frameBuffers_;
     /// Need FBO commit flag.
     bool fboDirty_;
     /// sRGB write mode flag.

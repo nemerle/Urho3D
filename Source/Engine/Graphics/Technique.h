@@ -47,7 +47,7 @@ public:
     Pass(StringHash type);
     /// Destruct.
     ~Pass();
-    
+
     /// Set blend mode.
     void SetBlendMode(BlendMode mode);
     /// Set depth compare mode.
@@ -74,7 +74,7 @@ public:
     void ReleaseShaders();
     /// Mark shaders loaded this frame.
     void MarkShadersLoaded(unsigned frameNumber);
-    
+
     /// Return pass type.
     const StringHash& GetType() const { return type_; }
     /// Return blend mode.
@@ -105,7 +105,7 @@ public:
     Vector<SharedPtr<ShaderVariation> >& GetVertexShaders() { return vertexShaders_; }
     /// Return pixel shaders.
     Vector<SharedPtr<ShaderVariation> >& GetPixelShaders() { return pixelShaders_; }
-    
+
 private:
     /// Pass type.
     StringHash type_;
@@ -143,9 +143,9 @@ private:
 class URHO3D_API Technique : public Resource
 {
     OBJECT(Technique);
-    
+
     friend class Renderer;
-    
+
 public:
     /// Construct.
     Technique(Context* context);
@@ -153,10 +153,10 @@ public:
     ~Technique();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
     virtual bool BeginLoad(Deserializer& source);
-    
+
     /// Set whether requires %Shader %Model 3.
     void SetIsSM3(bool enable);
     /// Set whether requires desktop level hardware.
@@ -167,7 +167,7 @@ public:
     void RemovePass(StringHash type);
     /// Reset shader pointers in all passes.
     void ReleaseShaders();
-    
+
     /// Return whether requires %Shader %Model 3.
     bool IsSM3() const { return isSM3_; }
     /// Return whether requires desktop level hardware.
@@ -176,14 +176,14 @@ public:
     bool IsSupported() const { return (!isSM3_ || sm3Support_) && (!isDesktop_ || desktopSupport_); }
     /// Return whether has a pass.
     bool HasPass(StringHash type) const { return  passes_.Find(type.Value()) != 0; }
-    
+
     /// Return a pass, or null if not found.
     Pass* GetPass(StringHash type) const
     {
         SharedPtr<Pass>* passPtr = passes_.Find(type.Value());
         return passPtr ? passPtr->Get() : 0;
     }
-    
+
     /// Return a pass that is supported for rendering, or null if not found.
     Pass* GetSupportedPass(StringHash type) const
     {
@@ -191,7 +191,7 @@ public:
         Pass* pass = passPtr ? passPtr->Get() : 0;
         return pass && (!pass->IsSM3() || sm3Support_) && (!pass->IsDesktop() || desktopSupport_) ? pass : 0;
     }
-    
+
     /// Return number of passes.
     unsigned GetNumPasses() const { return numPasses_; }
     /// Return all the pass types in the hash table. The returned collection is not guaranteed to be in the same order as the hash table insertion order.

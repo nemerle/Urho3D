@@ -23,7 +23,7 @@
 #pragma once
 
 #include "Component.h"
-
+#include "Pair.h"
 namespace Urho3D
 {
 
@@ -177,7 +177,7 @@ private:
     void HandleHeightMapReloadFinished(StringHash eventType, VariantMap& eventData);
     /// Mark patch(es) dirty based on location. Used when checking the heightmap image for changes.
     void MarkPatchesDirty(PODVector<bool>& dirtyPatches, int x, int z);
-    
+
     /// Shared index buffer.
     SharedPtr<IndexBuffer> indexBuffer_;
     /// Heightmap image.

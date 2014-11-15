@@ -58,10 +58,10 @@ FontFace::~FontFace()
 
 const FontGlyph* FontFace::GetGlyph(unsigned c)
 {
-    HashMap<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
+    QHash<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
     if (i != glyphMapping_.end())
     {
-        FontGlyph& glyph = i->second_;
+        FontGlyph& glyph = *i;
         glyph.used_ = true;
         return &glyph;
     }
@@ -71,7 +71,7 @@ const FontGlyph* FontFace::GetGlyph(unsigned c)
 
 short FontFace::GetKerning(unsigned c, unsigned d) const
 {
-    if (kerningMapping_.Empty())
+    if (kerningMapping_.empty())
         return 0;
 
     if (c == '\n' || d == '\n')
@@ -82,9 +82,9 @@ short FontFace::GetKerning(unsigned c, unsigned d) const
 
     unsigned value = (c << 16) + d;
 
-    HashMap<unsigned, short>::ConstIterator i = kerningMapping_.find(value);
+    QHash<unsigned, short>::ConstIterator i = kerningMapping_.find(value);
     if (i != kerningMapping_.end())
-        return i->second_;
+        return *i;
 
     return 0;
 }

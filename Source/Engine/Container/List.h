@@ -131,7 +131,7 @@ public:
     List(const List<T>& list)
     {
         // Reserve the tail node + initial capacity according to the list's size
-        allocator_ = AllocatorInitialize(sizeof(Node), list.Size() + 1);
+        allocator_ = AllocatorInitialize(sizeof(Node), list.size() + 1);
         head_ = tail_ = ReserveNode();
         *this = list;
     }
@@ -273,7 +273,7 @@ public:
     /// Clear the list.
     void Clear()
     {
-        if (Size())
+        if (size())
         {
             for (Iterator i = begin(); i != end(); )
             {
@@ -287,7 +287,7 @@ public:
     }
 
     /// Resize the list by removing or adding items at the end.
-    void Resize(unsigned newSize)
+    void resize(unsigned newSize)
     {
         while (size_ > newSize)
             Pop();
@@ -297,7 +297,7 @@ public:
     }
 
     /// Return iterator to value, or to the end if not found.
-    Iterator Find(const T& value)
+    Iterator find(const T& value)
     {
         Iterator it = begin();
         while (it != end() && *it != value)
@@ -306,7 +306,7 @@ public:
     }
 
     /// Return const iterator to value, or to the end if not found.
-    ConstIterator Find(const T& value) const
+    ConstIterator find(const T& value) const
     {
         ConstIterator it = begin();
         while (it != end() && *it != value)
@@ -315,7 +315,7 @@ public:
     }
 
     /// Return whether contains a specific value.
-    bool Contains(const T& value) const { return Find(value) != end(); }
+    bool Contains(const T& value) const { return find(value) != end(); }
     /// Return iterator to the first element.
     Iterator begin() { return Iterator(Head()); }
     /// Return iterator to the first element.
@@ -325,17 +325,17 @@ public:
     /// Return iterator to the end.
     ConstIterator end() const { return ConstIterator(Tail()); }
     /// Return first element.
-    T& Front() { return *begin(); }
+    T& front() { return *begin(); }
     /// Return const first element.
-    const T& Front() const { return *begin(); }
+    const T& front() const { return *begin(); }
     /// Return last element.
-    T& Back() { return *(--end()); }
+    T& back() { return *(--end()); }
     /// Return const last element.
-    const T& Back() const { return *(--end()); }
+    const T& back() const { return *(--end()); }
     /// Return number of elements.
-    unsigned Size() const { return size_; }
+    unsigned size() const { return size_; }
     /// Return whether list is empty.
-    bool Empty() const { return size_ == 0; }
+    bool empty() const { return size_ == 0; }
 
 private:
     /// Return the head node.

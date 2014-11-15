@@ -390,14 +390,14 @@ void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
     if (!resource || GetExtension(resource->GetName()) == ".xml")
     {
         // Check if this is a dependency resource, reload dependents
-        QHash<StringHash, HashSet<StringHash> >::ConstIterator j = dependentResources_.find(fileNameHash);
+        QHash<StringHash, QSet<StringHash> >::ConstIterator j = dependentResources_.find(fileNameHash);
         if (j == dependentResources_.end())
             return;
 
         // Reloading a resource may modify the dependency tracking structure. Therefore collect the
         // resources we need to reload first
         Vector<SharedPtr<Resource> > dependents;
-        dependents.Reserve(j->Size());
+        dependents.Reserve(j->size());
 
         for (const StringHash &k : *j)
         {
@@ -810,8 +810,8 @@ void ResourceCache::StoreResourceDependency(Resource* resource, const String& de
     MutexLock lock(resourceMutex_);
 
     StringHash nameHash(resource->GetName());
-    HashSet<StringHash>& dependents = dependentResources_[dependency];
-    dependents.Insert(nameHash);
+    QSet<StringHash>& dependents = dependentResources_[dependency];
+    dependents.insert(nameHash);
 }
 
 void ResourceCache::ResetDependencies(Resource* resource)
@@ -823,12 +823,12 @@ void ResourceCache::ResetDependencies(Resource* resource)
 
     StringHash nameHash(resource->GetName());
 
-    for (QHash<StringHash, HashSet<StringHash> >::Iterator i = dependentResources_.begin(); i !=
+    for (QHash<StringHash, QSet<StringHash> >::Iterator i = dependentResources_.begin(); i !=
         dependentResources_.end();)
     {
-        HashSet<StringHash>& dependents = *i;
-        dependents.Erase(nameHash);
-        if (dependents.Empty())
+        QSet<StringHash>& dependents = *i;
+        dependents.remove(nameHash);
+        if (dependents.isEmpty())
             i = dependentResources_.erase(i);
         else
             ++i;
@@ -865,7 +865,7 @@ const SharedPtr<Resource>& ResourceCache::FindResource(StringHash nameHash)
 
 void ResourceCache::ReleasePackageResources(PackageFile* package, bool force)
 {
-    HashSet<StringHash> affectedGroups;
+    QSet<StringHash> affectedGroups;
 
     const QHash<String, PackageEntry>& entries = package->GetEntries();
     for (auto nameHash : entries.keys())
@@ -881,7 +881,7 @@ void ResourceCache::ReleasePackageResources(PackageFile* package, bool force)
                 if (((*k).Refs() == 1 && (*k).WeakRefs() == 0) || force)
                 {
                     elem.resources_.erase(k);
-                    affectedGroups.Insert(iter.key());
+                    affectedGroups.insert(iter.key());
                 }
                 break;
             }

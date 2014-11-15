@@ -1299,7 +1299,7 @@ void Node::PrepareNetworkUpdate()
                 if (!nodeState->markedDirty_)
                 {
                     nodeState->markedDirty_ = true;
-                    nodeState->sceneState_->dirtyNodes_.Insert(id_);
+                    nodeState->sceneState_->dirtyNodes_.insert(id_);
                 }
             }
         }
@@ -1317,12 +1317,12 @@ void Node::PrepareNetworkUpdate()
         for (auto & elem : networkState_->replicationStates_)
         {
             NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
-            nodeState->dirtyVars_.Insert(i.key());
+            nodeState->dirtyVars_.insert(i.key());
 
             if (!nodeState->markedDirty_)
             {
                 nodeState->markedDirty_ = true;
-                nodeState->sceneState_->dirtyNodes_.Insert(id_);
+                nodeState->sceneState_->dirtyNodes_.insert(id_);
             }
         }
     }
@@ -1355,7 +1355,7 @@ void Node::MarkReplicationDirty()
             if (!nodeState->markedDirty_)
             {
                 nodeState->markedDirty_ = true;
-                nodeState->sceneState_->dirtyNodes_.Insert(id_);
+                nodeState->sceneState_->dirtyNodes_.insert(id_);
             }
         }
     }
@@ -1457,13 +1457,13 @@ void Node::SetTransformSilent(const Vector3& position, const Quaternion& rotatio
 
 void Node::OnAttributeAnimationAdded()
 {
-    if (attributeAnimationInfos_.Size() == 1)
+    if (attributeAnimationInfos_.size() == 1)
         SubscribeToEvent(GetScene(), E_ATTRIBUTEANIMATIONUPDATE, HANDLER(Node, HandleAttributeAnimationUpdate));
 }
 
 void Node::OnAttributeAnimationRemoved()
 {
-    if (attributeAnimationInfos_.Empty())
+    if (attributeAnimationInfos_.isEmpty())
         UnsubscribeFromEvent(GetScene(), E_ATTRIBUTEANIMATIONUPDATE);
 }
 

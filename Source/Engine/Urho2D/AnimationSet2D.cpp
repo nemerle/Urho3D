@@ -70,7 +70,7 @@ bool AnimationSet2D::BeginLoad(Deserializer& source)
         loadXMLFile_.Reset();
         return false;
     }
-    
+
     // When async loading, preprocess folders for spritesheet / sprite files and request them for background loading
     if (GetAsyncLoadState() == ASYNC_LOADING)
     {
@@ -104,7 +104,7 @@ bool AnimationSet2D::EndLoad()
         loadXMLFile_.Reset();
         return false;
     }
-    
+
     for (XMLElement animationElem = entityElem.GetChild("animation"); animationElem; animationElem = animationElem.GetNext("animation"))
     {
         if (!LoadAnimation(animationElem))
@@ -185,7 +185,7 @@ bool AnimationSet2D::LoadFolders(const XMLElement& rootElem)
             if (!async)
             {
                 SharedPtr<Sprite2D> sprite;
-                
+
                 if (spriteSheet)
                     sprite = spriteSheet->GetSprite(GetFileName(fileName));
                 else
@@ -233,16 +233,16 @@ bool AnimationSet2D::LoadFolders(const XMLElement& rootElem)
 Sprite2D* AnimationSet2D::GetSprite(unsigned folderId, unsigned fileId) const
 {
     unsigned key = (folderId << 16) + fileId;
-    HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator i = sprites_.find(key);
+    QHash<unsigned, SharedPtr<Sprite2D> >::ConstIterator i = sprites_.find(key);
     if (i != sprites_.end())
-        return i->second_;
+        return *i;
     return nullptr;
 }
 
 bool AnimationSet2D::LoadAnimation(const XMLElement& animationElem)
 {
     SharedPtr<Animation2D> animation(new Animation2D(this));
-    
+
     String name = animationElem.GetAttribute("name");
     animation->SetName(name);
 
@@ -338,7 +338,7 @@ bool AnimationSet2D::LoadAnimation(const XMLElement& animationElem)
         for (XMLElement refElem = keyElem.GetChild(); refElem; refElem = refElem.GetNext())
         {
             Reference2D ref;
-            
+
             if (refElem.GetName() == "bone_ref")
                 ref.type_ = OT_BONE;
             else
@@ -352,7 +352,7 @@ bool AnimationSet2D::LoadAnimation(const XMLElement& animationElem)
                 int parentTimeline = mainlineKey.references_[parent].timeline_;
                 animation->SetTimelineParent(ref.timeline_, parentTimeline);
             }
-            
+
             if (refElem.GetName() == "object_ref")
                 ref.zIndex_ = refElem.GetInt("z_index");
 

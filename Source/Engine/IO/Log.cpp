@@ -254,9 +254,9 @@ void Log::HandleEndFrame(StringHash eventType, VariantMap& eventData)
     MutexLock lock(logMutex_);
     
     // Process messages accumulated from other threads (if any)
-    while (!threadMessages_.Empty())
+    while (!threadMessages_.empty())
     {
-        const StoredLogMessage& stored = threadMessages_.Front();
+        const StoredLogMessage& stored = threadMessages_.front();
         
         if (stored.level_ != LOG_RAW)
             Write(stored.level_, stored.message_);

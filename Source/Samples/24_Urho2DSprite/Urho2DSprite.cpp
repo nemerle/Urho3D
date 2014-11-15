@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 //
 
+#include "Str.h"
 #include "AnimatedSprite2D.h"
 #include "AnimationSet2D.h"
 #include "Camera.h"

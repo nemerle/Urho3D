@@ -22,9 +22,10 @@
 
 #pragma once
 
-#include "HashSet.h"
 #include "List.h"
 #include "Object.h"
+
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -42,13 +43,13 @@ static const unsigned SCAN_HIDDEN = 0x4;
 class URHO3D_API FileSystem : public Object
 {
     OBJECT(FileSystem);
-    
+
 public:
     /// Construct.
     FileSystem(Context* context);
     /// Destruct.
     ~FileSystem();
-    
+
     /// Set the current working directory.
     bool SetCurrentDir(const String& pathName);
     /// Create a directory.
@@ -75,13 +76,13 @@ public:
     void RegisterPath(const String& pathName);
     /// Set a file's last modified time as seconds since 1.1.1970. Return true on success.
     bool SetLastModifiedTime(const String& fileName, unsigned newTime);
-    
+
     /// Return the absolute current working directory.
     String GetCurrentDir() const;
     /// Return whether is executing engine console commands as OS-specific system command.
     bool GetExecuteConsoleCommands() const { return executeConsoleCommands_; }
     /// Return whether paths have been registered.
-    bool HasRegisteredPaths() const { return allowedPaths_.Size() > 0; }
+    bool HasRegisteredPaths() const { return !allowedPaths_.empty(); }
     /// Check if a path is allowed to be accessed. If no paths are registered, all are allowed.
     bool CheckAccess(const String& pathName) const;
     /// Returns the file's last modified time as seconds since 1.1.1970, or 0 if can not be accessed.
@@ -98,7 +99,7 @@ public:
     String GetUserDocumentsDir() const;
     /// Return the application preferences directory.
     String GetAppPreferencesDir(const String& org, const String& app) const;
-    
+
 private:
     /// Scan directory, called internally.
     void ScanDirInternal(Vector<String>& result, String path, const String& startPath, const String& filter, unsigned flags, bool recursive) const;
@@ -106,9 +107,9 @@ private:
     void HandleBeginFrame(StringHash eventType, VariantMap& eventData);
     /// Handle a console command event.
     void HandleConsoleCommand(StringHash eventType, VariantMap& eventData);
-    
+
     /// Allowed directories.
-    HashSet<String> allowedPaths_;
+    QSet<String> allowedPaths_;
     /// Cached program directory.
     mutable String programDir_;
     /// Async execution queue.

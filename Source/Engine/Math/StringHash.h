@@ -90,7 +90,7 @@ public:
     unsigned Value() const { return value_; }
     /// Return as string.
     String ToString() const;
-    /// Return hash value for HashSet & HashMap.
+    /// Return hash value for QSet & QHash.
     unsigned ToHash() const { return value_; }
 
     /// Calculate hash value case-insensitively from a C string.
@@ -103,10 +103,10 @@ private:
     /// Hash value.
     unsigned value_;
 };
-
-}
-
+typedef unsigned int uint;
 inline uint qHash(const Urho3D::StringHash &key, uint seed)
 {
     return key.ToHash();
+}
+
 }

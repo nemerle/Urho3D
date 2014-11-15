@@ -25,7 +25,6 @@
 #include "Drawable.h"
 #include "MathDefs.h"
 #include "Matrix3x4.h"
-#include "Ptr.h"
 #include "Rect.h"
 
 namespace Urho3D
@@ -43,6 +42,7 @@ class Texture2D;
 class VertexBuffer;
 class View;
 class Zone;
+struct SourceBatch;
 struct LightBatchQueue;
 
 /// Queued 3D geometry draw call.
@@ -56,18 +56,7 @@ struct Batch
     }
 
     /// Construct from a drawable's source batch.
-    Batch(const SourceBatch& rhs) :
-        distance_(rhs.distance_),
-        geometry_(rhs.geometry_),
-        material_(rhs.material_),
-        worldTransform_(rhs.worldTransform_),
-        numWorldTransforms_(rhs.numWorldTransforms_),
-        lightQueue_(0),
-        geometryType_(rhs.geometryType_),
-        overrideView_(rhs.overrideView_),
-        isBase_(false)
-    {
-    }
+    Batch(const SourceBatch& rhs);
 
     /// Calculate state sorting key, which consists of base pass flag, light, pass and geometry.
     void CalculateSortKey();
@@ -213,7 +202,6 @@ struct BatchGroupKey
     /// Return hash value.
     unsigned ToHash() const;
 };
-
 /// Queue that contains both instanced and non-instanced draw calls.
 struct BatchQueue
 {
@@ -233,10 +221,10 @@ public:
     /// Return the combined amount of instances.
     unsigned GetNumInstances() const;
     /// Return whether the batch group is empty.
-    bool IsEmpty() const { return batches_.Empty() && batchGroups_.Empty(); }
+    bool IsEmpty() const { return batches_.Empty() && batchGroups_.isEmpty(); }
 
     /// Instanced draw calls.
-    HashMap<BatchGroupKey, BatchGroup> batchGroups_;
+    QHash<BatchGroupKey, BatchGroup> batchGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
     QHash<unsigned, unsigned> shaderRemapping_;
     /// Material remapping table for 2-pass state and distance sort.
@@ -288,4 +276,10 @@ struct LightBatchQueue
     PODVector<Batch> volumeBatches_;
 };
 
+typedef unsigned int uint;
+inline uint qHash(const Urho3D::BatchGroupKey & key)
+{
+    return key.ToHash();
 }
+}
+

@@ -25,10 +25,10 @@
 #include "Batch.h"
 #include "Color.h"
 #include "Drawable.h"
-#include "HashSet.h"
 #include "Mutex.h"
 #include "Viewport.h"
-#include <unordered_map>
+#include "Pair.h"
+#include <QtCore/QSet>
 namespace Urho3D
 {
 
@@ -406,7 +406,7 @@ private:
     /// Saved status of screen buffer allocations for restoring.
     QHash<long long, unsigned> savedScreenBufferAllocations_;
     /// Cache for light scissor queries.
-    HashMap<Pair<Light*, Camera*>, Rect> lightScissorCache_;
+    QHash<Pair<Light*, Camera*>, Rect> lightScissorCache_;
     /// Backbuffer viewports.
     Vector<SharedPtr<Viewport> > viewports_;
     /// Render surface viewports queued for update.
@@ -414,9 +414,9 @@ private:
     /// Views that have been processed this frame.
     Vector<WeakPtr<View> > views_;
     /// Octrees that have been updated during the frame.
-    HashSet<Octree*> updatedOctrees_;
+    QSet<Octree*> updatedOctrees_;
     /// Techniques for which missing shader error has been displayed.
-    HashSet<Technique*> shaderErrorDisplayed_;
+    QSet<Technique*> shaderErrorDisplayed_;
     /// Mutex for shadow camera allocation.
     Mutex rendererMutex_;
     /// Current variation names for deferred light volume shaders.

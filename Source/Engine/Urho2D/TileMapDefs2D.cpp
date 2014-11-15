@@ -140,15 +140,15 @@ bool PropertySet2D::HasProperty(const String& name) const
 
 const String& PropertySet2D::GetProperty(const String& name) const
 {
-    HashMap<String, String>::ConstIterator i = nameToValueMapping_.find(name);
+    QHash<String, String>::ConstIterator i = nameToValueMapping_.find(name);
     if (i == nameToValueMapping_.end())
         return String::EMPTY;
 
-    return i->second_;
+    return *i;
 }
 
-Tile2D::Tile2D() : 
-    gid_(0) 
+Tile2D::Tile2D() :
+    gid_(0)
 {
 }
 

@@ -490,7 +490,7 @@ void SceneReplication::HandleClientDisconnected(StringHash eventType, VariantMap
     if (object)
         object->Remove();
 
-    serverObjects_.erase(connection);
+    serverObjects_.remove(connection);
 }
 
 void SceneReplication::HandleClientObjectID(StringHash eventType, VariantMap& eventData)

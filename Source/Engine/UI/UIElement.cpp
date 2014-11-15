@@ -24,7 +24,6 @@
 #include "Context.h"
 #include "CoreEvents.h"
 #include "Cursor.h"
-#include "HashSet.h"
 #include "Log.h"
 #include "ObjectAnimation.h"
 #include "ResourceCache.h"
@@ -34,6 +33,7 @@
 #include "UIEvents.h"
 
 #include "DebugNew.h"
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -1155,7 +1155,7 @@ void UIElement::BringToFront()
     // Get the highest priority used by all other top level elements, assign that to the new front element
     // and decrease others' priority where necessary. However, take into account only input-enabled
     // elements and those which have the BringToBack flag set
-    HashSet<int> usedPriorities;
+    QSet<int> usedPriorities;
 
     int maxPriority = M_MIN_INT;
     const Vector<SharedPtr<UIElement> >& rootChildren = root->GetChildren();
@@ -1168,7 +1168,7 @@ void UIElement::BringToFront()
             // M_MAX_INT is used by popups and tooltips. Disregard these to avoid an "arms race" with the priorities
             if (priority == M_MAX_INT)
                 continue;
-            usedPriorities.Insert(priority);
+            usedPriorities.insert(priority);
             maxPriority = Max(priority, maxPriority);
         }
     }
@@ -1178,7 +1178,7 @@ void UIElement::BringToFront()
         ptr->SetPriority(maxPriority);
 
         int minPriority = maxPriority;
-        while (usedPriorities.Contains(minPriority))
+        while (usedPriorities.contains(minPriority))
             --minPriority;
 
         for (const auto & elem : rootChildren)
@@ -1669,13 +1669,13 @@ UIElement* UIElement::GetElementEventSender() const
 
 void UIElement::OnAttributeAnimationAdded()
 {
-    if (attributeAnimationInfos_.Size() == 1)
+    if (attributeAnimationInfos_.size() == 1)
         SubscribeToEvent(E_POSTUPDATE, HANDLER(UIElement, HandlePostUpdate));
 }
 
 void UIElement::OnAttributeAnimationRemoved()
 {
-    if (attributeAnimationInfos_.Empty())
+    if (attributeAnimationInfos_.isEmpty())
         UnsubscribeFromEvent(E_POSTUPDATE);
 }
 

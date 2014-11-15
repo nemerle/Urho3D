@@ -42,7 +42,7 @@ public:
     AnimationSet2D(Context* context);
     /// Destruct.
     virtual ~AnimationSet2D();
-    /// Register object factory. 
+    /// Register object factory.
     static void RegisterObject(Context* context);
 
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
@@ -66,7 +66,7 @@ private:
     bool LoadAnimation(const XMLElement& animationElem);
 
     /// Sprites.
-    HashMap<unsigned, SharedPtr<Sprite2D> > sprites_;
+    QHash<unsigned, SharedPtr<Sprite2D> > sprites_;
     /// Animations.
     Vector<SharedPtr<Animation2D> > animations_;
     /// XML file used during loading.

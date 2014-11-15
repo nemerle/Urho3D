@@ -28,7 +28,6 @@
 #include "Context.h"
 #include "Drawable.h"
 #include "File.h"
-#include "HashSet.h"
 #include "Log.h"
 #include "Node.h"
 #include "Resource.h"
@@ -41,6 +40,7 @@
 
 #include <angelscript.h>
 #include <cstring>
+#include <QtCore/QSet>
 #include <QtCore/QList>
 
 #ifdef _MSC_VER

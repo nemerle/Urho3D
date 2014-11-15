@@ -113,7 +113,7 @@ public:
 
 protected:
     /// Property name to property value mapping.
-    HashMap<String, String> nameToValueMapping_;
+    QHash<String, String> nameToValueMapping_;
 };
 
 /// Tile define.

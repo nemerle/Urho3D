@@ -24,8 +24,8 @@
 
 #include "GPUObject.h"
 #include "GraphicsDefs.h"
-#include "HashMap.h"
 #include "RefCounted.h"
+#include <QtCore/QHash>
 
 namespace Urho3D
 {
@@ -50,15 +50,15 @@ public:
     ShaderProgram(Graphics* graphics, ShaderVariation* vertexShader, ShaderVariation* pixelShader);
     /// Destruct.
     ~ShaderProgram();
-    
+
     /// Mark the GPU resource destroyed on context destruction.
     virtual void OnDeviceLost();
     /// Release shader program.
     virtual void Release();
-    
+
     /// Link the shaders and examine the uniforms and samplers used. Return true if successful.
     bool Link();
-    
+
     /// Return the vertex shader.
     ShaderVariation* GetVertexShader() const;
     /// Return the pixel shader.
@@ -71,14 +71,14 @@ public:
     const ShaderParameter* GetParameter(StringHash param) const;
     /// Return linker output.
     const String& GetLinkerOutput() const { return linkerOutput_; }
-    
+
 private:
     /// Vertex shader.
     WeakPtr<ShaderVariation> vertexShader_;
     /// Pixel shader.
     WeakPtr<ShaderVariation> pixelShader_;
     /// Shader parameters.
-    HashMap<StringHash, ShaderParameter> shaderParameters_;
+    QHash<StringHash, ShaderParameter> shaderParameters_;
     /// Texture unit use.
     bool useTextureUnit_[MAX_TEXTURE_UNITS];
     /// Shader link error string.

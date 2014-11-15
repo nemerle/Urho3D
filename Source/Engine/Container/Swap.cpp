@@ -21,7 +21,6 @@
 //
 
 #include "Precompiled.h"
-#include "HashBase.h"
 #include "ListBase.h"
 #include "Str.h"
 #include "VectorBase.h"
@@ -40,11 +39,6 @@ template<> void Swap<VectorBase>(VectorBase& first, VectorBase& second)
 }
 
 template<> void Swap<ListBase>(ListBase& first, ListBase& second)
-{
-    first.Swap(second);
-}
-
-template<> void Swap<HashBase>(HashBase& first, HashBase& second)
 {
     first.Swap(second);
 }

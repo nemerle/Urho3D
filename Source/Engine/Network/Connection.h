@@ -23,7 +23,6 @@
 #pragma once
 
 #include "Controls.h"
-#include "HashSet.h"
 #include "Object.h"
 #include "ReplicationState.h"
 #include "Timer.h"
@@ -31,6 +30,7 @@
 
 #include <kNetFwd.h>
 #include <kNet/SharedPtr.h>
+#include <QtCore/QSet>
 
 #ifdef SendMessage
 #undef SendMessage
@@ -68,7 +68,7 @@ struct PackageDownload
     /// Destination file.
     SharedPtr<File> file_;
     /// Already received fragments.
-    HashSet<unsigned> receivedFragments_;
+    QSet<unsigned> receivedFragments_;
     /// Package name.
     String name_;
     /// Total number of fragments.
@@ -246,7 +246,7 @@ private:
     /// Pending latest data for not yet received components.
     QHash<unsigned, PODVector<unsigned char> > componentLatestData_;
     /// Node ID's to process during a replication update.
-    HashSet<unsigned> nodesToProcess_;
+    QSet<unsigned> nodesToProcess_;
     /// Reusable message buffer.
     VectorBuffer msg_;
     /// Queued remote events.

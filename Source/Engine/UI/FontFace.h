@@ -97,9 +97,9 @@ protected:
     /// Parent font.
     Font* font_;
     /// Glyph mapping.
-    HashMap<unsigned, FontGlyph> glyphMapping_;
+    QHash<unsigned, FontGlyph> glyphMapping_;
     /// Kerning mapping.
-    HashMap<unsigned, short> kerningMapping_;
+    QHash<unsigned, short> kerningMapping_;
     /// Glyph texture pages.
     Vector<SharedPtr<Texture2D> > textures_;
     /// Point size.

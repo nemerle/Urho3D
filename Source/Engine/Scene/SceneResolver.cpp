@@ -22,12 +22,12 @@
 
 #include "Precompiled.h"
 #include "Component.h"
-#include "HashSet.h"
 #include "SceneResolver.h"
 #include "Log.h"
 #include "Node.h"
 
 #include "DebugNew.h"
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -61,18 +61,18 @@ void SceneResolver::AddComponent(unsigned oldID, Component* component)
 void SceneResolver::Resolve()
 {
     // Nodes do not have component or node ID attributes, so only have to go through components
-    HashSet<StringHash> noIDAttributes;
+    QSet<StringHash> noIDAttributes;
     for (QHash<unsigned, WeakPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
     {
         Component* component = *i;
-        if (!component || noIDAttributes.Contains(component->GetType()))
+        if (!component || noIDAttributes.contains(component->GetType()))
             continue;
 
         bool hasIDAttributes = false;
         const Vector<AttributeInfo>* attributes = component->GetAttributes();
         if (!attributes)
         {
-            noIDAttributes.Insert(component->GetType());
+            noIDAttributes.insert(component->GetType());
             continue;
         }
 
@@ -149,7 +149,7 @@ void SceneResolver::Resolve()
 
         // If component type had no ID attributes, cache this fact for optimization
         if (!hasIDAttributes)
-            noIDAttributes.Insert(component->GetType());
+            noIDAttributes.insert(component->GetType());
     }
 
     // Attributes have been resolved, so no need to remember the nodes after this

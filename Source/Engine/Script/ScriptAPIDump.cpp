@@ -26,6 +26,7 @@
 #include "FileSystem.h"
 #include "Log.h"
 #include "Script.h"
+#include "Pair.h"
 
 #include <angelscript.h>
 
@@ -185,7 +186,7 @@ void Script::DumpAPI(DumpMode mode)
     // and of Log subsystem availability
 
     // Dump event descriptions and attribute definitions in Doxygen mode. For events, this means going through the header files,
-    // as the information is not available otherwise. 
+    // as the information is not available otherwise.
     /// \todo Dump events + attributes before the actual script API because the remarks (readonly / writeonly) seem to throw off
     // Doxygen parsing and the following page definition(s) may not be properly recognized
     if (mode == DOXYGEN)
@@ -196,7 +197,7 @@ void Script::DumpAPI(DumpMode mode)
         Vector<String> headerFiles;
         String path = fileSystem->GetProgramDir();
         path.Replace("/Bin", "/Source/Engine");
-        
+
         fileSystem->ScanDir(headerFiles, path, "*.h", SCAN_FILES, true);
         if (!headerFiles.empty())
         {
@@ -210,11 +211,11 @@ void Script::DumpAPI(DumpMode mode)
                     SharedPtr<File> file(new File(context_, path + headerFiles[i], FILE_READ));
                     if (!file->IsOpen())
                         continue;
-                    
+
                     unsigned start = headerFiles[i].Find('/') + 1;
                     unsigned end = headerFiles[i].Find("Events.h");
                     Log::WriteRaw("\n## %" + headerFiles[i].Substring(start, end - start) + " events\n");
-                    
+
                     while (!file->IsEof())
                     {
                         String line = file->ReadLine();
@@ -238,23 +239,23 @@ void Script::DumpAPI(DumpMode mode)
                     }
                 }
             }
-            
+
             Log::WriteRaw("\n");
         }
-        
+
         Log::WriteRaw("\n\\page AttributeList Attribute list\n");
-        
-        const HashMap<StringHash, Vector<AttributeInfo> >& attributes = context_->GetAllAttributes();
+
+        const QHash<StringHash, Vector<AttributeInfo> >& attributes = context_->GetAllAttributes();
 
         Vector<String> objectTypes;
-        for (const auto & attribute : attributes)
-            objectTypes.Push(context_->GetTypeName(attribute.first_));
-        
+        for (const auto & attribute : attributes.keys())
+            objectTypes.Push(context_->GetTypeName(attribute));
+
         Sort(objectTypes.begin(), objectTypes.end());
-        
+
         for (unsigned i = 0; i < objectTypes.size(); ++i)
         {
-            const Vector<AttributeInfo>& attrs = attributes.find(objectTypes[i])->second_;
+            const Vector<AttributeInfo>& attrs = *attributes.find(objectTypes[i]);
             unsigned usableAttrs = 0;
             for (unsigned j = 0; j < attrs.size(); ++j)
             {
@@ -264,12 +265,12 @@ void Script::DumpAPI(DumpMode mode)
                     continue;
                 ++usableAttrs;
             }
-            
+
             if (!usableAttrs)
                 continue;
-            
+
             Log::WriteRaw("\n### " + objectTypes[i] + "\n");
-            
+
             for (unsigned j = 0; j < attrs.size(); ++j)
             {
                 if (attrs[j].mode_ & AM_NOEDIT)
@@ -287,14 +288,14 @@ void Script::DumpAPI(DumpMode mode)
                 // Variant typenames are all uppercase. Convert primitive types to the proper lowercase form for the documentation
                 if (type == "Int" || type == "Bool" || type == "Float")
                     type[0] = ToLower(type[0]);
-                
+
                 Log::WriteRaw("- " + name + " : " + type + "\n");
             }
         }
-        
+
         Log::WriteRaw("\n");
     }
-    
+
     if (mode == DOXYGEN)
         Log::WriteRaw("\n\\page ScriptAPI Scripting API\n\n");
     else if (mode == C_HEADER)
@@ -319,7 +320,7 @@ void Script::DumpAPI(DumpMode mode)
         }
     }
     Sort(sortedTypes.begin(), sortedTypes.end());
-    
+
     if (mode == DOXYGEN)
     {
         Log::WriteRaw("\\section ScriptAPI_TableOfContents Table of contents\n"
@@ -331,7 +332,7 @@ void Script::DumpAPI(DumpMode mode)
             "\\ref ScriptAPI_GlobalConstants \"Global constants\"<br>\n\n");
 
         Log::WriteRaw("\\section ScriptAPI_ClassList Class list\n\n");
-        
+
         for (unsigned i = 0; i < sortedTypes.size(); ++i)
         {
             asIObjectType* type = scriptEngine_->GetObjectTypeByIndex(sortedTypes[i].second_);
@@ -341,7 +342,7 @@ void Script::DumpAPI(DumpMode mode)
                 Log::WriteRaw("<a href=\"#Class_" + typeName + "\"><b>" + typeName + "</b></a>\n");
             }
         }
-        
+
         Log::WriteRaw("\n\\section ScriptAPI_Classes Classes\n");
     }
     else if (mode == C_HEADER)
@@ -425,10 +426,10 @@ void Script::DumpAPI(DumpMode mode)
                 newInfo.read_ = newInfo.write_ = true;
                 propertyInfos.Push(newInfo);
             }
-            
+
             Sort(methodDeclarations.begin(), methodDeclarations.end(), ComparePropertyStrings);
             Sort(propertyInfos.begin(), propertyInfos.end(), ComparePropertyInfos);
-            
+
             if (!methodDeclarations.empty())
             {
                 if (mode == DOXYGEN)
@@ -509,7 +510,7 @@ void Script::DumpAPI(DumpMode mode)
         sortedEnums.Push(MakePair(String(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
     }
     Sort(sortedEnums.begin(), sortedEnums.end());
-    
+
     for (unsigned i = 0; i < sortedEnums.size(); ++i)
     {
         int typeId = 0;
@@ -530,7 +531,7 @@ void Script::DumpAPI(DumpMode mode)
         else if (mode == C_HEADER)
             Log::WriteRaw("};\n");
     }
-    
+
     if (mode == DOXYGEN)
         Log::WriteRaw("\\section ScriptAPI_GlobalFunctions Global functions\n");
     else if (mode == C_HEADER)
@@ -565,12 +566,12 @@ void Script::DumpAPI(DumpMode mode)
         String type(propertyDeclaration);
         globalConstants.Push(type + " " + String(propertyName));
     }
-    
+
     Sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);
-    
+
     for (unsigned i = 0; i < globalConstants.size(); ++i)
         OutputAPIRow(mode, globalConstants[i], true);
-        
+
     if (mode == DOXYGEN)
         Log::WriteRaw("*/\n\n}\n");
 }

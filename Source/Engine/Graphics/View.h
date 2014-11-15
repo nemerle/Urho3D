@@ -23,13 +23,12 @@
 #pragma once
 
 #include "Batch.h"
-#include "HashSet.h"
 #include "Light.h"
 #include "List.h"
 #include "Object.h"
 #include "Polyhedron.h"
 #include "Zone.h"
-
+#include <QtCore/QSet>
 namespace Urho3D
 {
 
@@ -44,7 +43,7 @@ class RenderSurface;
 class Technique;
 class Texture2D;
 class Viewport;
-class Zone;
+class Renderer;
 struct RenderPathCommand;
 struct WorkItem;
 
@@ -338,7 +337,7 @@ private:
     /// Lights.
     PODVector<Light*> lights_;
     /// Drawables that limit their maximum light count.
-    HashSet<Drawable*> maxLightsDrawables_;
+    QSet<Drawable*> maxLightsDrawables_;
     /// Rendertargets defined by the renderpath.
     QHash<StringHash, Texture2D*> renderTargets_;
     /// Intermediate light processing results.

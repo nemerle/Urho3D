@@ -24,7 +24,8 @@
 
 #include "Attribute.h"
 #include "Object.h"
-#include "HashSet.h"
+
+#include <QtCore/QSet>
 
 namespace Urho3D
 {
@@ -79,11 +80,11 @@ public:
     /// Return subsystem by type.
     Object* GetSubsystem(StringHash type) const;
     /// Return all subsystems.
-    const HashMap<StringHash, SharedPtr<Object> >& GetSubsystems() const { return subsystems_; }
+    const QHash<StringHash, SharedPtr<Object> >& GetSubsystems() const { return subsystems_; }
     /// Return all object factories.
-    const HashMap<StringHash, SharedPtr<ObjectFactory> >& GetObjectFactories() const { return factories_; }
+    const QHash<StringHash, SharedPtr<ObjectFactory> >& GetObjectFactories() const { return factories_; }
     /// Return all object categories.
-    const HashMap<String, Vector<StringHash> >& GetObjectCategories() const { return objectCategories_; }
+    const QHash<String, Vector<StringHash> >& GetObjectCategories() const { return objectCategories_; }
     /// Return active event sender. Null outside event handling.
     Object* GetEventSender() const;
     /// Return active event handler. Set by Object. Null outside event handling.
@@ -100,38 +101,38 @@ public:
     /// Return attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetAttributes(StringHash type) const
     {
-        HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes_.find(type);
-        return i != attributes_.end() ? &i->second_ : 0;
+        QHash<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes_.find(type);
+        return i != attributes_.end() ? &(*i) : 0;
     }
 
     /// Return network replication attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetNetworkAttributes(StringHash type) const
     {
-        HashMap<StringHash, Vector<AttributeInfo> >::ConstIterator i = networkAttributes_.find(type);
-        return i != networkAttributes_.end() ? &i->second_ : 0;
+        QHash<StringHash, Vector<AttributeInfo> >::ConstIterator i = networkAttributes_.find(type);
+        return i != networkAttributes_.end() ? &(*i) : 0;
     }
 
     /// Return all registered attributes.
-    const HashMap<StringHash, Vector<AttributeInfo> >& GetAllAttributes() const { return attributes_; }
+    const QHash<StringHash, Vector<AttributeInfo> >& GetAllAttributes() const { return attributes_; }
 
     /// Return event receivers for a sender and event type, or null if they do not exist.
-    HashSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
+    QSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
     {
-        HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
+        QHash<Object*, QHash<StringHash, QSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
         if (i != specificEventReceivers_.end())
         {
-            HashMap<StringHash, HashSet<Object*> >::Iterator j = i->second_.find(eventType);
-            return j != i->second_.end() ? &j->second_ : 0;
+            QHash<StringHash, QSet<Object*> >::Iterator j = i->find(eventType);
+            return j != i->end() ? &(*j) : 0;
         }
         else
             return 0;
     }
 
     /// Return event receivers for an event type, or null if they do not exist.
-    HashSet<Object*>* GetEventReceivers(StringHash eventType)
+    QSet<Object*>* GetEventReceivers(StringHash eventType)
     {
-        HashMap<StringHash, HashSet<Object*> >::Iterator i = eventReceivers_.find(eventType);
-        return i != eventReceivers_.end() ? &i->second_ : 0;
+        QHash<StringHash, QSet<Object*> >::Iterator i = eventReceivers_.find(eventType);
+        return i != eventReceivers_.end() ? &(*i) : 0;
     }
 
 private:
@@ -153,17 +154,17 @@ private:
     void EndSendEvent() { eventSenders_.Pop(); }
 
     /// Object factories.
-    HashMap<StringHash, SharedPtr<ObjectFactory> > factories_;
+    QHash<StringHash, SharedPtr<ObjectFactory> > factories_;
     /// Subsystems.
-    HashMap<StringHash, SharedPtr<Object> > subsystems_;
+    QHash<StringHash, SharedPtr<Object> > subsystems_;
     /// Attribute descriptions per object type.
-    HashMap<StringHash, Vector<AttributeInfo> > attributes_;
+    QHash<StringHash, Vector<AttributeInfo> > attributes_;
     /// Network replication attribute descriptions per object type.
-    HashMap<StringHash, Vector<AttributeInfo> > networkAttributes_;
+    QHash<StringHash, Vector<AttributeInfo> > networkAttributes_;
     /// Event receivers for non-specific events.
-    HashMap<StringHash, HashSet<Object*> > eventReceivers_;
+    QHash<StringHash, QSet<Object*> > eventReceivers_;
     /// Event receivers for specific senders' events.
-    HashMap<Object*, HashMap<StringHash, HashSet<Object*> > > specificEventReceivers_;
+    QHash<Object*, QHash<StringHash, QSet<Object*> > > specificEventReceivers_;
     /// Event sender stack.
     PODVector<Object*> eventSenders_;
     /// Event data stack.
@@ -171,7 +172,7 @@ private:
     /// Active event handler. Not stored in a stack for performance reasons; is needed only in esoteric cases.
     EventHandler* eventHandler_;
     /// Object categories.
-    HashMap<String, Vector<StringHash> > objectCategories_;
+    QHash<String, Vector<StringHash> > objectCategories_;
 };
 
 template <class T> void Context::RegisterFactory() { RegisterFactory(new ObjectFactoryImpl<T>(this)); }
