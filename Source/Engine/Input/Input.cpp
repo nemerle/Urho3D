@@ -121,7 +121,7 @@ Input::Input(Context* context) :
     initialized_(false)
 {
     for (int i = 0; i < TOUCHID_MAX; i++)
-        availableTouchIDs_.Push(i);
+        availableTouchIDs_.push_back(i);
 
     SubscribeToEvent(E_SCREENMODE, HANDLER(Input, HandleScreenMode));
 
@@ -1053,19 +1053,19 @@ void Input::ResetTouches()
     }
 
     touches_.clear();
-    touchIDMap_.Clear();
-    availableTouchIDs_.Clear();
+    touchIDMap_.clear();
+    availableTouchIDs_.clear();
     for (int i = 0; i < TOUCHID_MAX; i++)
-        availableTouchIDs_.Push(i);
+        availableTouchIDs_.push_back(i);
 
 }
 
 unsigned Input::GetTouchIndexFromID(int touchID)
 {
-    HashMap<int, int>::ConstIterator i = touchIDMap_.Find(touchID);
-    if (i != touchIDMap_.End())
+    auto i = touchIDMap_.find(touchID);
+    if (i != touchIDMap_.end())
     {
-        return i->second_;
+        return *i;
     }
 
     int index = PopTouchIndex();
@@ -1075,26 +1075,26 @@ unsigned Input::GetTouchIndexFromID(int touchID)
 
 unsigned Input::PopTouchIndex()
 {
-    if (availableTouchIDs_.Empty())
+    if (availableTouchIDs_.isEmpty())
         return 0;
 
-    unsigned index = availableTouchIDs_.Front();
-    availableTouchIDs_.PopFront();
+    unsigned index = availableTouchIDs_.front();
+    availableTouchIDs_.pop_front();
     return index;
 }
 
 void Input::PushTouchIndex(int touchID)
 {
-    HashMap<int, int>::ConstIterator ci = touchIDMap_.Find(touchID);
-    if (ci == touchIDMap_.End())
+    QHash<int, int>::ConstIterator ci = touchIDMap_.find(touchID);
+    if (ci == touchIDMap_.end())
         return;
-    
+
     int index = touchIDMap_[touchID];
-    touchIDMap_.Erase(touchID);
+    touchIDMap_.remove(touchID);
 
     // Sorted insertion
     bool inserted = false;
-    for (List<int>::Iterator i = availableTouchIDs_.Begin(); i != availableTouchIDs_.End(); ++i)
+    for (QList<int>::Iterator i = availableTouchIDs_.begin(); i != availableTouchIDs_.end(); ++i)
     {
         if (*i == index)
         {
@@ -1105,7 +1105,7 @@ void Input::PushTouchIndex(int touchID)
 
         if (*i > index)
         {
-            availableTouchIDs_.Insert(i, index);
+            availableTouchIDs_.insert(i, index);
             inserted = true;
             break;
         }
@@ -1113,7 +1113,7 @@ void Input::PushTouchIndex(int touchID)
 
     // If empty, or the lowest value then insert at end.
     if (!inserted)
-        availableTouchIDs_.Push(index);
+        availableTouchIDs_.push_back(index);
 }
 
 void Input::SendInputFocusEvent()

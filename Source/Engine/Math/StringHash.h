@@ -111,7 +111,3 @@ inline uint qHash(const Urho3D::StringHash &key, uint seed)
 
 }
 
-inline uint qHash(const Urho3D::StringHash &key, uint seed)
-{
-    return key.ToHash();
-}

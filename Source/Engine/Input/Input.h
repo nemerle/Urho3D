@@ -311,9 +311,9 @@ private:
     /// Active finger touches.
     QHash<int, TouchState> touches_;
     /// List that maps between event touch IDs and normalised touch IDs
-    List<int> availableTouchIDs_;
+    QList<int> availableTouchIDs_;
     /// Mapping of touch indicies
-    HashMap<int, int> touchIDMap_;
+    QHash<int, int> touchIDMap_;
     /// String for text input.
     String textInput_;
     /// Opened joysticks.
