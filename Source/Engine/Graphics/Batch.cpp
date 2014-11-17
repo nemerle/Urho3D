@@ -564,8 +564,6 @@ void Batch::Prepare(View* view, bool setModelTransform) const
     {
         if (graphics->NeedParameterUpdate(SP_MATERIAL, material_))
         {
-            // Update shader parameter animations
-            material_->UpdateShaderParameterAnimations();
             const QHash<StringHash, MaterialShaderParameter> & params(material_->GetShaderParameters());
             for (auto iter= params.begin(), fin=params.end(); iter!=fin; ++iter)
                 graphics->SetShaderParameter(iter.key(), iter->value_);
