@@ -753,7 +753,7 @@ ShaderParameterAnimationInfo* Material::GetShaderParameterAnimationInfo(const St
 
 void Material::UpdateEventSubscription()
 {
-    if (shaderParameterAnimationInfos_.Size() && !subscribed_)
+    if (shaderParameterAnimationInfos_.size() && !subscribed_)
     {
         if (scene_)
             SubscribeToEvent(scene_, E_ATTRIBUTEANIMATIONUPDATE, HANDLER(Material, HandleAttributeAnimationUpdate));
@@ -782,7 +782,7 @@ void Material::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& 
     }
 
     // Remove finished animations
-    for (unsigned i = 0; i < finishedNames.Size(); ++i)
+    for (unsigned i = 0; i < finishedNames.size(); ++i)
         SetShaderParameterAnimation(finishedNames[i], 0);
 }
 

@@ -882,7 +882,7 @@ void View::GetBatches()
 
     nonThreadedGeometries_.Clear();
     threadedGeometries_.Clear();
-    
+
     WorkQueue* queue = GetSubsystem<WorkQueue>();
     PODVector<Light*> vertexLights;
     BatchQueue* alphaQueue = batchQueues_.contains(alphaPassName_) ? &batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
@@ -1097,7 +1097,7 @@ void View::GetBatches()
                 nonThreadedGeometries_.Push(drawable);
             else if (type == UPDATE_WORKER_THREAD)
                 threadedGeometries_.Push(drawable);
-            
+
             Zone* zone = GetZone(drawable);
             const Vector<SourceBatch>& batches = drawable->GetBatches();
 
@@ -1234,7 +1234,7 @@ void View::UpdateGeometries()
             // In special cases (context loss, multi-view) a drawable may theoretically first have reported a threaded update, but will actually
             // require a main thread update. Check these cases first and move as applicable. The threaded work routine will tolerate the null
             // pointer holes that we leave to the threaded update queue.
-            for (PODVector<Drawable*>::Iterator i = threadedGeometries_.Begin(); i != threadedGeometries_.End(); ++i)
+            for (PODVector<Drawable*>::Iterator i = threadedGeometries_.begin(); i != threadedGeometries_.end(); ++i)
             {
                 if ((*i)->GetUpdateGeometryType() == UPDATE_MAIN_THREAD)
                 {
@@ -1242,7 +1242,7 @@ void View::UpdateGeometries()
                     *i = 0;
                 }
             }
-            
+
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
             int drawablesPerItem = threadedGeometries_.Size() / numWorkItems;
 
