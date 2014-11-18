@@ -498,7 +498,7 @@ unsigned Renderer::GetNumGeometries(bool allViews) const
     for (unsigned i = 0; i < lastView; ++i)
     {
         if (views_[i])
-            numGeometries += views_[i]->GetGeometries().Size();
+            numGeometries += views_[i]->GetGeometries().size();
     }
 
     return numGeometries;
@@ -512,7 +512,7 @@ unsigned Renderer::GetNumLights(bool allViews) const
     for (unsigned i = 0; i < lastView; ++i)
     {
         if (views_[i])
-            numLights += views_[i]->GetLights().Size();
+            numLights += views_[i]->GetLights().size();
     }
 
     return numLights;
@@ -548,7 +548,7 @@ unsigned Renderer::GetNumOccluders(bool allViews) const
     for (unsigned i = 0; i < lastView; ++i)
     {
         if (views_[i])
-            numOccluders += views_[i]->GetOccluders().Size();
+            numOccluders += views_[i]->GetOccluders().size();
     }
 
     return numOccluders;
@@ -748,7 +748,7 @@ void Renderer::DrawDebugGeometry(bool depthTest)
         const PODVector<Drawable*>& geometries = view->GetGeometries();
         const PODVector<Light*>& lights = view->GetLights();
 
-        for (unsigned i = 0; i < geometries.Size(); ++i)
+        for (unsigned i = 0; i < geometries.size(); ++i)
         {
             if (!processedGeometries.contains(geometries[i]))
             {
@@ -756,7 +756,7 @@ void Renderer::DrawDebugGeometry(bool depthTest)
                 processedGeometries.insert(geometries[i]);
             }
         }
-        for (unsigned i = 0; i < lights.Size(); ++i)
+        for (unsigned i = 0; i < lights.size(); ++i)
         {
             if (!processedLights.contains(lights[i]))
             {
@@ -874,10 +874,10 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
         else
         {
             // If not reused, check allocation count and return existing shadow map if possible
-            unsigned allocated = shadowMapAllocations_[searchKey].Size();
+            unsigned allocated = shadowMapAllocations_[searchKey].size();
             if (allocated < shadowmap.size())
             {
-                shadowMapAllocations_[searchKey].Push(light);
+                shadowMapAllocations_[searchKey].push_back(light);
                 return shadowmap[allocated];
             }
             else if ((int)allocated >= maxShadowMaps_)
@@ -938,7 +938,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
 
     shadowMaps_[searchKey].push_back(newShadowMap);
     if (!reuseShadowMaps_)
-        shadowMapAllocations_[searchKey].Push(light);
+        shadowMapAllocations_[searchKey].push_back(light);
 
     return newShadowMap;
 }
@@ -1140,7 +1140,7 @@ void Renderer::SetBatchShaders(Batch& batch, Technique* tech, bool allowShadows)
             {
                 unsigned numVertexLights = 0;
                 if (batch.lightQueue_)
-                    numVertexLights = batch.lightQueue_->vertexLights_.Size();
+                    numVertexLights = batch.lightQueue_->vertexLights_.size();
 
                 unsigned vsi = batch.geometryType_ * MAX_VERTEXLIGHT_VS_VARIATIONS + numVertexLights;
                 batch.vertexShader_ = vertexShaders[vsi];
@@ -1375,7 +1375,7 @@ void Renderer::RemoveUnusedBuffers()
         if (occlusionBuffers_[i]->GetUseTimer() > MAX_BUFFER_AGE)
         {
             LOGDEBUG("Removed unused occlusion buffer");
-            occlusionBuffers_.erase(i);
+            occlusionBuffers_.erase(occlusionBuffers_.begin()+i);
         }
     }
 
@@ -1389,7 +1389,7 @@ void Renderer::RemoveUnusedBuffers()
             if (buffer->GetUseTimer() > MAX_BUFFER_AGE)
             {
                 LOGDEBUG("Removed unused screen buffer size " + String(buffer->GetWidth()) + "x" + String(buffer->GetHeight()) + " format " + String(buffer->GetFormat()));
-                buffers.erase(j);
+                buffers.erase(buffers.begin()+j);
             }
         }
         if (buffers.empty())
@@ -1402,8 +1402,8 @@ void Renderer::RemoveUnusedBuffers()
 
 void Renderer::ResetShadowMapAllocations()
 {
-    for (auto & elem : shadowMapAllocations_)
-        elem.Clear();
+    for (PODVector<Light*> & elem : shadowMapAllocations_)
+        elem.clear();
 }
 
 void Renderer::ResetScreenBufferAllocations()
@@ -1562,7 +1562,7 @@ void Renderer::ReleaseMaterialShaders()
 
     cache->GetResources<Material>(materials);
 
-    for (unsigned i = 0; i < materials.Size(); ++i)
+    for (unsigned i = 0; i < materials.size(); ++i)
         materials[i]->ReleaseShaders();
 }
 
@@ -1572,11 +1572,11 @@ void Renderer::ReloadTextures()
     PODVector<Resource*> textures;
 
     cache->GetResources(textures, Texture2D::GetTypeStatic());
-    for (unsigned i = 0; i < textures.Size(); ++i)
+    for (unsigned i = 0; i < textures.size(); ++i)
         cache->ReloadResource(textures[i]);
 
     cache->GetResources(textures, TextureCube::GetTypeStatic());
-    for (unsigned i = 0; i < textures.Size(); ++i)
+    for (unsigned i = 0; i < textures.size(); ++i)
         cache->ReloadResource(textures[i]);
 }
 

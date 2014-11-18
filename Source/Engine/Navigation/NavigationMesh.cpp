@@ -511,7 +511,7 @@ void NavigationMesh::FindPath(PODVector<Vector3>& dest, const Vector3& start, co
 {
     PROFILE(FindPath);
 
-    dest.Clear();
+    dest.clear();
 
     if (!InitializeQuery())
         return;
@@ -550,7 +550,7 @@ void NavigationMesh::FindPath(PODVector<Vector3>& dest, const Vector3& start, co
 
     // Transform path result back to world space
     for (int i = 0; i < numPathPoints; ++i)
-        dest.Push(transform * pathData_->pathPoints_[i]);
+        dest.push_back(transform * pathData_->pathPoints_[i]);
 }
 
 Vector3 NavigationMesh::GetRandomPoint()
@@ -657,7 +657,7 @@ void NavigationMesh::SetNavigationDataAttr(PODVector<unsigned char> value)
 {
     ReleaseNavigationMesh();
 
-    if (value.Empty())
+    if (value.empty())
         return;
 
     MemoryBuffer buffer(value);
@@ -765,7 +765,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
     node_->GetComponents<Navigable>(navigables, true);
 
     QSet<Node*> processedNodes;
-    for (unsigned i = 0; i < navigables.Size(); ++i)
+    for (unsigned i = 0; i < navigables.size(); ++i)
     {
         if (navigables[i]->IsEnabledEffective())
             CollectGeometries(geometryList, navigables[i]->GetNode(), processedNodes, navigables[i]->IsRecursive());
@@ -776,7 +776,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
     PODVector<OffMeshConnection*> connections;
     node_->GetComponents<OffMeshConnection>(connections, true);
 
-    for (unsigned i = 0; i < connections.Size(); ++i)
+    for (unsigned i = 0; i < connections.size(); ++i)
     {
         OffMeshConnection* connection = connections[i];
         if (connection->IsEnabledEffective() && connection->GetEndPoint())
@@ -808,9 +808,8 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
     node->GetComponents<CollisionShape>(collisionShapes);
     bool collisionShapeFound = false;
 
-    for (unsigned i = 0; i < collisionShapes.Size(); ++i)
+    for (CollisionShape* shape : collisionShapes)
     {
-        CollisionShape* shape = collisionShapes[i];
         if (!shape->IsEnabledEffective())
             continue;
 
@@ -834,7 +833,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
         PODVector<Drawable*> drawables;
         node->GetDerivedComponents<Drawable>(drawables);
 
-        for (unsigned i = 0; i < drawables.Size(); ++i)
+        for (unsigned i = 0; i < drawables.size(); ++i)
         {
             /// \todo Evaluate whether should handle other types. Now StaticModel & TerrainPatch are supported, others skipped
             Drawable* drawable = drawables[i];
@@ -882,14 +881,14 @@ void NavigationMesh::GetTileGeometry(NavigationBuildData& build, Vector<Navigati
                 Vector3 start = inverse * connection->GetNode()->GetWorldPosition();
                 Vector3 end = inverse * connection->GetEndPoint()->GetWorldPosition();
 
-                build.offMeshVertices_.Push(start);
-                build.offMeshVertices_.Push(end);
-                build.offMeshRadii_.Push(connection->GetRadius());
+                build.offMeshVertices_.push_back(start);
+                build.offMeshVertices_.push_back(end);
+                build.offMeshRadii_.push_back(connection->GetRadius());
                 /// \todo Allow to define custom flags
-                build.offMeshFlags_.Push(0x1);
+                build.offMeshFlags_.push_back(0x1);
 
-                build.offMeshAreas_.Push(0);
-                build.offMeshDir_.Push(connection->IsBidirectional() ? DT_OFFMESH_CON_BIDIR : 0);
+                build.offMeshAreas_.push_back(0);
+                build.offMeshDir_.push_back(connection->IsBidirectional() ? DT_OFFMESH_CON_BIDIR : 0);
                 continue;
             }
 
@@ -919,28 +918,28 @@ void NavigationMesh::GetTileGeometry(NavigationBuildData& build, Vector<Navigati
 
                         unsigned numVertices = data->vertexCount_;
                         unsigned numIndices = data->indexCount_;
-                        unsigned destVertexStart = build.vertices_.Size();
+                        unsigned destVertexStart = build.vertices_.size();
 
                         for (unsigned j = 0; j < numVertices; ++j)
-                            build.vertices_.Push(transform * data->vertexData_[j]);
+                            build.vertices_.push_back(transform * data->vertexData_[j]);
 
                         for (unsigned j = 0; j < numIndices; ++j)
-                            build.indices_.Push(data->indexData_[j] + destVertexStart);
+                            build.indices_.push_back(data->indexData_[j] + destVertexStart);
                     }
                     break;
 
                 case SHAPE_BOX:
                     {
-                        unsigned destVertexStart = build.vertices_.Size();
+                        unsigned destVertexStart = build.vertices_.size();
 
-                        build.vertices_.Push(transform * Vector3(-0.5f, 0.5f, -0.5f));
-                        build.vertices_.Push(transform * Vector3(0.5f, 0.5f, -0.5f));
-                        build.vertices_.Push(transform * Vector3(0.5f, -0.5f, -0.5f));
-                        build.vertices_.Push(transform * Vector3(-0.5f, -0.5f, -0.5f));
-                        build.vertices_.Push(transform * Vector3(-0.5f, 0.5f, 0.5f));
-                        build.vertices_.Push(transform * Vector3(0.5f, 0.5f, 0.5f));
-                        build.vertices_.Push(transform * Vector3(0.5f, -0.5f, 0.5f));
-                        build.vertices_.Push(transform * Vector3(-0.5f, -0.5f, 0.5f));
+                        build.vertices_.push_back(transform * Vector3(-0.5f, 0.5f, -0.5f));
+                        build.vertices_.push_back(transform * Vector3(0.5f, 0.5f, -0.5f));
+                        build.vertices_.push_back(transform * Vector3(0.5f, -0.5f, -0.5f));
+                        build.vertices_.push_back(transform * Vector3(-0.5f, -0.5f, -0.5f));
+                        build.vertices_.push_back(transform * Vector3(-0.5f, 0.5f, 0.5f));
+                        build.vertices_.push_back(transform * Vector3(0.5f, 0.5f, 0.5f));
+                        build.vertices_.push_back(transform * Vector3(0.5f, -0.5f, 0.5f));
+                        build.vertices_.push_back(transform * Vector3(-0.5f, -0.5f, 0.5f));
 
                         const unsigned indices[] = {
                             0, 1, 2, 0, 2, 3, 1, 5, 6, 1, 6, 2, 4, 5, 1, 4, 1, 0, 5, 4, 7, 5, 7, 6,
@@ -948,7 +947,7 @@ void NavigationMesh::GetTileGeometry(NavigationBuildData& build, Vector<Navigati
                         };
 
                         for (auto & indice : indices)
-                            build.indices_.Push(indice + destVertexStart);
+                            build.indices_.push_back(indice + destVertexStart);
                     }
                     break;
 
@@ -994,12 +993,12 @@ void NavigationMesh::AddTriMeshGeometry(NavigationBuildData& build, Geometry* ge
     if (!srcIndexCount)
         return;
 
-    unsigned destVertexStart = build.vertices_.Size();
+    unsigned destVertexStart = build.vertices_.size();
 
     for (unsigned k = srcVertexStart; k < srcVertexStart + srcVertexCount; ++k)
     {
         Vector3 vertex = transform * *((const Vector3*)(&vertexData[k * vertexSize]));
-        build.vertices_.Push(vertex);
+        build.vertices_.push_back(vertex);
     }
 
     // Copy remapped indices
@@ -1010,7 +1009,7 @@ void NavigationMesh::AddTriMeshGeometry(NavigationBuildData& build, Geometry* ge
 
         while (indices < indicesEnd)
         {
-            build.indices_.Push(*indices - srcVertexStart + destVertexStart);
+            build.indices_.push_back(*indices - srcVertexStart + destVertexStart);
             ++indices;
         }
     }
@@ -1021,7 +1020,7 @@ void NavigationMesh::AddTriMeshGeometry(NavigationBuildData& build, Geometry* ge
 
         while (indices < indicesEnd)
         {
-            build.indices_.Push(*indices - srcVertexStart + destVertexStart);
+            build.indices_.push_back(*indices - srcVertexStart + destVertexStart);
             ++indices;
         }
     }
@@ -1079,7 +1078,7 @@ bool NavigationMesh::BuildTile(Vector<NavigationGeometryInfo>& geometryList, int
     BoundingBox expandedBox(*reinterpret_cast<Vector3*>(cfg.bmin), *reinterpret_cast<Vector3*>(cfg.bmax));
     GetTileGeometry(build, geometryList, expandedBox);
 
-    if (build.vertices_.Empty() || build.indices_.Empty())
+    if (build.vertices_.empty() || build.indices_.empty())
         return true; // Nothing to do
 
     build.heightField_ = rcAllocHeightfield();
@@ -1096,13 +1095,13 @@ bool NavigationMesh::BuildTile(Vector<NavigationGeometryInfo>& geometryList, int
         return false;
     }
 
-    unsigned numTriangles = build.indices_.Size() / 3;
+    unsigned numTriangles = build.indices_.size() / 3;
     SharedArrayPtr<unsigned char> triAreas(new unsigned char[numTriangles]);
     memset(triAreas.Get(), 0, numTriangles);
 
-    rcMarkWalkableTriangles(build.ctx_, cfg.walkableSlopeAngle, &build.vertices_[0].x_, build.vertices_.Size(),
+    rcMarkWalkableTriangles(build.ctx_, cfg.walkableSlopeAngle, &build.vertices_[0].x_, build.vertices_.size(),
         &build.indices_[0], numTriangles, triAreas.Get());
-    rcRasterizeTriangles(build.ctx_, &build.vertices_[0].x_, build.vertices_.Size(), &build.indices_[0],
+    rcRasterizeTriangles(build.ctx_, &build.vertices_[0].x_, build.vertices_.size(), &build.indices_[0],
         triAreas.Get(), numTriangles, *build.heightField_, cfg.walkableClimb);
     rcFilterLowHangingWalkableObstacles(build.ctx_, cfg.walkableClimb, *build.heightField_);
     rcFilterLedgeSpans(build.ctx_, cfg.walkableHeight, cfg.walkableClimb, *build.heightField_);
@@ -1212,9 +1211,9 @@ bool NavigationMesh::BuildTile(Vector<NavigationGeometryInfo>& geometryList, int
     params.buildBvTree = true;
 
     // Add off-mesh connections if have them
-    if (build.offMeshRadii_.Size())
+    if (build.offMeshRadii_.size())
     {
-        params.offMeshConCount = build.offMeshRadii_.Size();
+        params.offMeshConCount = build.offMeshRadii_.size();
         params.offMeshConVerts = &build.offMeshVertices_[0].x_;
         params.offMeshConRad = &build.offMeshRadii_[0];
         params.offMeshConFlags = &build.offMeshFlags_[0];

@@ -247,10 +247,10 @@ void Zone::OnMarkedDirty(Node* node)
     }
 
     Drawable::OnMarkedDirty(node);
-    
+
     // Clear zone reference from all drawables inside the bounding box, and mark gradient dirty in neighbor zones
     ClearDrawablesZone();
-    
+
     inverseWorldDirty_ = true;
 }
 
@@ -283,7 +283,7 @@ void Zone::UpdateAmbientGradient()
         // Gradient start position: get the highest priority zone that is not this zone
         int bestPriority = M_MIN_INT;
         Zone* bestZone = nullptr;
-        for (PODVector<Zone*>::ConstIterator i = result.begin(); i != result.end(); ++i)
+        for (PODVector<Zone*>::const_iterator i = result.begin(); i != result.end(); ++i)
         {
             Zone* zone = *i;
             int priority = zone->GetPriority();
@@ -308,7 +308,7 @@ void Zone::UpdateAmbientGradient()
         bestPriority = M_MIN_INT;
         bestZone = nullptr;
 
-        for (PODVector<Zone*>::ConstIterator i = result.begin(); i != result.end(); ++i)
+        for (PODVector<Zone*>::const_iterator i = result.begin(); i != result.end(); ++i)
         {
             Zone* zone = *i;
             int priority = zone->GetPriority();
@@ -342,7 +342,7 @@ void Zone::ClearDrawablesZone()
 
         for (auto drawable : result)
         {
-            
+
             unsigned drawableFlags = drawable->GetDrawableFlags();
             if (drawableFlags & (DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY))
                 drawable->SetZone(nullptr);

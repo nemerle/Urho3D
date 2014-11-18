@@ -209,7 +209,7 @@ void Light::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResul
     result.drawable_ = this;
     result.node_ = node_;
     result.subObject_ = M_MAX_UNSIGNED;
-    results.Push(result);
+    results.push_back(result);
 }
 
 void Light::UpdateBatches(const FrameInfo& frame)

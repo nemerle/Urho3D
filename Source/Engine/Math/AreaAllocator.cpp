@@ -47,10 +47,10 @@ void AreaAllocator::Reset(int width, int height, int maxWidth, int maxHeight, bo
     size_ = IntVector2(width, height);
     maxSize_ = IntVector2(maxWidth, maxHeight);
     fastMode_ = fastMode;
-    
-    freeAreas_.Clear();
+
+    freeAreas_.clear();
     IntRect initialArea(0, 0, width, height);
-    freeAreas_.Push(initialArea);
+    freeAreas_.push_back(initialArea);
 }
 
 bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
@@ -59,24 +59,24 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
         width = 0;
     if (height < 0)
         height = 0;
-    
-    PODVector<IntRect>::Iterator best;
+
+    PODVector<IntRect>::iterator best;
     int bestFreeArea;
-    
+
     for(;;)
     {
         best = freeAreas_.end();
         bestFreeArea = M_MAX_INT;
-        for (PODVector<IntRect>::Iterator i = freeAreas_.begin(); i != freeAreas_.end(); ++i)
+        for (PODVector<IntRect>::iterator i = freeAreas_.begin(); i != freeAreas_.end(); ++i)
         {
             int freeWidth = i->Width();
             int freeHeight = i->Height();
-            
+
             if (freeWidth >= width && freeHeight >= height)
             {
                 // Calculate rank for free area. Lower is better
                 int freeArea = freeWidth * freeHeight;
-                
+
                 if (freeArea < bestFreeArea)
                 {
                     best = i;
@@ -84,7 +84,7 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
                 }
             }
         }
-        
+
         if (best == freeAreas_.end())
         {
             if (doubleWidth_ && size_.x_ < maxSize_.x_)
@@ -92,13 +92,13 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
                 int oldWidth = size_.x_;
                 size_.x_ <<= 1;
                 // If no allocations yet, simply expand the single free area
-                IntRect& first = freeAreas_.Front();
-                if (freeAreas_.Size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == oldWidth && first.bottom_ == size_.y_)
+                IntRect& first = freeAreas_.front();
+                if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == oldWidth && first.bottom_ == size_.y_)
                     first.right_ = size_.x_;
                 else
                 {
                     IntRect newArea(oldWidth, 0, size_.x_, size_.y_);
-                    freeAreas_.Push(newArea);
+                    freeAreas_.push_back(newArea);
                 }
             }
             else if (!doubleWidth_ && size_.y_ < maxSize_.y_)
@@ -106,28 +106,28 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
                 int oldHeight = size_.y_;
                 size_.y_ <<= 1;
                 // If no allocations yet, simply expand the single free area
-                IntRect& first = freeAreas_.Front();
-                if (freeAreas_.Size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == size_.x_ && first.bottom_ == oldHeight)
+                IntRect& first = freeAreas_.front();
+                if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == size_.x_ && first.bottom_ == oldHeight)
                     first.bottom_ = size_.y_;
                 else
                 {
                     IntRect newArea(0, oldHeight, size_.x_, size_.y_);
-                    freeAreas_.Push(newArea);
+                    freeAreas_.push_back(newArea);
                 }
             }
             else
                 return false;
-            
+
             doubleWidth_ = !doubleWidth_;
         }
         else
             break;
     }
-    
+
     IntRect reserved(best->left_, best->top_, best->left_ + width, best->top_ + height);
     x = best->left_;
     y = best->top_;
-    
+
     if (fastMode_)
     {
         // Reserve the area by splitting up the remaining free area
@@ -136,23 +136,23 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
         {
             IntRect splitArea(reserved.left_, reserved.bottom_, best->right_, best->bottom_);
             best->bottom_ = reserved.bottom_;
-            freeAreas_.Push(splitArea);
+            freeAreas_.push_back(splitArea);
         }
     }
     else
     {
         // Remove the reserved area from all free areas
-        for (unsigned i = 0; i < freeAreas_.Size();)
+        for (unsigned i = 0; i < freeAreas_.size();)
         {
             if (SplitRect(freeAreas_[i], reserved))
-                freeAreas_.Erase(i);
+                freeAreas_.erase(freeAreas_.begin()+i);
             else
                 ++i;
         }
-        
+
         Cleanup();
     }
-    
+
     return true;
 }
 
@@ -162,54 +162,54 @@ bool AreaAllocator::SplitRect(IntRect original, const IntRect& reserve)
         reserve.top_ < original.bottom_)
     {
         // Check for splitting from the right
-        if (reserve.right_ < original.right_) 
+        if (reserve.right_ < original.right_)
         {
             IntRect newRect = original;
             newRect.left_ = reserve.right_;
-            freeAreas_.Push(newRect);
+            freeAreas_.push_back(newRect);
         }
         // Check for splitting from the left
         if (reserve.left_ > original.left_)
         {
             IntRect newRect = original;
             newRect.right_ = reserve.left_;
-            freeAreas_.Push(newRect);
+            freeAreas_.push_back(newRect);
         }
         // Check for splitting from the bottom
         if (reserve.bottom_ < original.bottom_)
         {
             IntRect newRect = original;
             newRect.top_ = reserve.bottom_;
-            freeAreas_.Push(newRect);
+            freeAreas_.push_back(newRect);
         }
         // Check for splitting from the top
         if (reserve.top_ > original.top_)
         {
             IntRect newRect = original;
             newRect.bottom_ = reserve.top_;
-            freeAreas_.Push(newRect);
+            freeAreas_.push_back(newRect);
         }
-        
+
         return true;
     }
-    
+
     return false;
 }
 
 void AreaAllocator::Cleanup()
 {
     // Remove rects which are contained within another rect
-    for (unsigned i = 0; i < freeAreas_.Size(); )
+    for (unsigned i = 0; i < freeAreas_.size(); )
     {
         bool erased = false;
-        for (unsigned j = i + 1; j < freeAreas_.Size(); )
+        for (unsigned j = i + 1; j < freeAreas_.size(); )
         {
             if ((freeAreas_[i].left_ >= freeAreas_[j].left_) &&
                 (freeAreas_[i].top_ >= freeAreas_[j].top_) &&
                 (freeAreas_[i].right_ <= freeAreas_[j].right_) &&
                 (freeAreas_[i].bottom_ <= freeAreas_[j].bottom_))
             {
-                freeAreas_.Erase(i);
+                freeAreas_.erase(freeAreas_.begin()+i);
                 erased = true;
                 break;
             }
@@ -217,7 +217,7 @@ void AreaAllocator::Cleanup()
                 (freeAreas_[j].top_ >= freeAreas_[i].top_) &&
                 (freeAreas_[j].right_ <= freeAreas_[i].right_) &&
                 (freeAreas_[j].bottom_ <= freeAreas_[i].bottom_))
-                freeAreas_.Erase(j);
+                freeAreas_.erase(freeAreas_.begin() + j);
             else
                 ++j;
         }

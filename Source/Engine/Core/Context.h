@@ -149,9 +149,9 @@ private:
     /// Set current event handler. Called by Object.
     void SetEventHandler(EventHandler* handler) { eventHandler_ = handler; }
     /// Begin event send.
-    void BeginSendEvent(Object* sender) { eventSenders_.Push(sender); }
+    void BeginSendEvent(Object* sender) { eventSenders_.push_back(sender); }
     /// End event send. Clean up event receivers removed in the meanwhile.
-    void EndSendEvent() { eventSenders_.Pop(); }
+    void EndSendEvent() { eventSenders_.pop_back(); }
 
     /// Object factories.
     QHash<StringHash, SharedPtr<ObjectFactory> > factories_;

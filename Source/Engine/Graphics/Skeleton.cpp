@@ -48,7 +48,7 @@ bool Skeleton::Load(Deserializer& source)
         return false;
 
     unsigned bones = source.ReadUInt();
-    bones_.Reserve(bones);
+    bones_.reserve(bones);
 
     for (unsigned i = 0; i < bones; ++i)
     {

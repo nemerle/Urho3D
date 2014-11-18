@@ -492,8 +492,8 @@ void ScriptInstance::ReleaseObject()
             scriptFile_->Execute(scriptObject_, methods_[METHOD_STOP]);
 
         PODVector<StringHash> exceptions;
-        exceptions.Push(E_RELOADSTARTED);
-        exceptions.Push(E_RELOADFINISHED);
+        exceptions.push_back(E_RELOADSTARTED);
+        exceptions.push_back(E_RELOADFINISHED);
         UnsubscribeFromAllEventsExcept(exceptions, false);
         if (node_)
             node_->RemoveListener(this);
@@ -712,7 +712,7 @@ void ScriptInstance::HandleSceneUpdate(StringHash eventType, VariantMap& eventDa
         }
 
         if (remove)
-            delayedCalls_.erase(i);
+            delayedCalls_.erase(delayedCalls_.begin()+i);
         else
             ++i;
     }

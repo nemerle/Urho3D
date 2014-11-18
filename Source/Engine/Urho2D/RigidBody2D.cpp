@@ -403,7 +403,7 @@ void RigidBody2D::AddCollisionShape2D(CollisionShape2D* collisionShape)
         return;
 
     WeakPtr<CollisionShape2D> collisionShapePtr(collisionShape);
-    if (collisionShapes_.Contains(collisionShapePtr))
+    if (collisionShapes_.contains(collisionShapePtr))
         return;
 
     collisionShapes_.push_back(collisionShapePtr);
@@ -415,7 +415,7 @@ void RigidBody2D::RemoveCollisionShape2D(CollisionShape2D* collisionShape)
         return;
 
     WeakPtr<CollisionShape2D> collisionShapePtr(collisionShape);
-    collisionShapes_.Remove(collisionShapePtr);
+    collisionShapes_.remove(collisionShapePtr);
 }
 
 void RigidBody2D::AddConstraint2D(Constraint2D* constraint)
@@ -424,7 +424,7 @@ void RigidBody2D::AddConstraint2D(Constraint2D* constraint)
         return;
 
     WeakPtr<Constraint2D> constraintPtr(constraint);
-    if (constraints_.Contains(constraintPtr))
+    if (constraints_.contains(constraintPtr))
         return;
     constraints_.push_back(constraintPtr);
 }
@@ -435,7 +435,7 @@ void RigidBody2D::RemoveConstraint2D(Constraint2D* constraint)
         return;
 
     WeakPtr<Constraint2D> constraintPtr(constraint);
-    constraints_.Remove(constraintPtr);
+    constraints_.remove(constraintPtr);
 }
 
 float RigidBody2D::GetMass() const

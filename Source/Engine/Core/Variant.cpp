@@ -317,7 +317,7 @@ void Variant::SetBuffer(const void* data, unsigned size)
 
     SetType(VAR_BUFFER);
     PODVector<unsigned char>& buffer = *(reinterpret_cast<PODVector<unsigned char>*>(&value_));
-    buffer.Resize(size);
+    buffer.resize(size);
     if (size)
         memcpy(&buffer[0], data, size);
 }
@@ -362,7 +362,7 @@ String Variant::ToString() const
         {
             const PODVector<unsigned char>& buffer = *(reinterpret_cast<const PODVector<unsigned char>*>(&value_));
             String ret;
-            BufferToString(ret, buffer.begin().ptr_, buffer.Size());
+            BufferToString(ret, buffer.data(), buffer.size());
             return ret;
         }
 
@@ -427,7 +427,7 @@ bool Variant::IsZero() const
         return reinterpret_cast<const String*>(&value_)->Empty();
 
     case VAR_BUFFER:
-        return reinterpret_cast<const PODVector<unsigned char>*>(&value_)->Empty();
+        return reinterpret_cast<const PODVector<unsigned char>*>(&value_)->empty();
 
     case VAR_VOIDPTR:
         return value_.ptr_ == nullptr;

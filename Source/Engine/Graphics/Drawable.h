@@ -244,22 +244,22 @@ public:
     {
         basePassFlags_ = 0;
         firstLight_ = 0;
-        lights_.Clear();
-        vertexLights_.Clear();
+        lights_.clear();
+        vertexLights_.clear();
     }
 
     // Add a per-pixel light affecting the object this frame.
     void AddLight(Light* light)
     {
-        if (lights_.Empty())
+        if (lights_.empty())
             firstLight_ = light;
-        lights_.Push(light);
+        lights_.push_back(light);
     }
 
     // Add a per-vertex light affecting the object this frame.
     void AddVertexLight(Light* light)
     {
-        vertexLights_.Push(light);
+        vertexLights_.push_back(light);
     }
 
 protected:

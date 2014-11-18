@@ -472,7 +472,7 @@ void Run(const Vector<String>& arguments)
             else
             {
                 if (i & 1)
-                    lodDistances.Push(Max(ToFloat(arguments[i]), 0.0f));
+                    lodDistances.push_back(Max(ToFloat(arguments[i]), 0.0f));
                 else
                     modelNames.push_back(GetInternalPath(arguments[i]));
             }
@@ -541,7 +541,7 @@ void CollectMeshes(OutModel& model, aiNode* node)
     for (unsigned i = 0; i < node->mNumMeshes; ++i)
     {
         aiMesh* mesh = scene_->mMeshes[node->mMeshes[i]];
-        for (unsigned j = 0; j < model.meshes_.Size(); ++j)
+        for (unsigned j = 0; j < model.meshes_.size(); ++j)
         {
             if (mesh == model.meshes_[j])
             {
@@ -551,8 +551,8 @@ void CollectMeshes(OutModel& model, aiNode* node)
         }
 
         model.meshIndices_.insert(node->mMeshes[i]);
-        model.meshes_.Push(mesh);
-        model.meshNodes_.Push(node);
+        model.meshes_.push_back(mesh);
+        model.meshNodes_.push_back(node);
         model.totalVertices_ += mesh->mNumVertices;
         model.totalIndices_ += GetNumValidFaces(mesh) * 3;
     }
@@ -566,7 +566,7 @@ void CollectBones(OutModel& model, bool animationOnly)
     QSet<aiNode*> necessary;
     QSet<aiNode*> rootNodes;
 
-    for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+    for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
         aiMesh* mesh = model.meshes_[i];
         aiNode* meshNode = model.meshNodes_[i];
@@ -620,9 +620,9 @@ void CollectBones(OutModel& model, bool animationOnly)
     model.rootBone_ = *rootNodes.begin();
     CollectBonesFinal(model.bones_, necessary, model.rootBone_);
     // Initialize the bone collision info
-    model.boneRadii_.Resize(model.bones_.Size());
-    model.boneHitboxes_.Resize(model.bones_.Size());
-    for (unsigned i = 0; i < model.bones_.Size(); ++i)
+    model.boneRadii_.resize(model.bones_.size());
+    model.boneHitboxes_.resize(model.bones_.size());
+    for (unsigned i = 0; i < model.bones_.size(); ++i)
     {
         model.boneRadii_[i] = 0.0f;
         model.boneHitboxes_[i] = BoundingBox(0.0f, 0.0f);
@@ -664,7 +664,7 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary,
     }
 
     if (includeBone)
-        dest.Push(node);
+        dest.push_back(node);
 
     for (unsigned i = 0; i < node->mNumChildren; ++i)
         CollectBonesFinal(dest, necessary, node->mChildren[i]);
@@ -694,13 +694,13 @@ void CollectAnimations(OutModel* model)
             }
             if (modelBoneFound)
             {
-                model->animations_.Push(anim);
+                model->animations_.push_back(anim);
                 allAnimations_.insert(anim);
             }
         }
         else
         {
-            sceneAnimations_.Push(anim);
+            sceneAnimations_.push_back(anim);
             allAnimations_.insert(anim);
         }
     }
@@ -710,7 +710,7 @@ void CollectAnimations(OutModel* model)
 
 void BuildBoneCollisionInfo(OutModel& model)
 {
-    for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+    for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
         aiMesh* mesh = model.meshes_[i];
         for (unsigned j = 0; j < mesh->mNumBones; ++j)
@@ -743,7 +743,7 @@ void BuildAndSaveModel(OutModel& model)
     if (!model.rootNode_)
         ErrorExit("Null root node for model");
     String rootNodeName = FromAIString(model.rootNode_->mName);
-    if (!model.meshes_.Size())
+    if (!model.meshes_.size())
         ErrorExit("No geometries found starting from node " + rootNodeName);
 
     PrintLine("Writing model " + rootNodeName);
@@ -757,7 +757,7 @@ void BuildAndSaveModel(OutModel& model)
     bool combineBuffers = true;
     // Check if buffers can be combined (same vertex element mask, under 65535 vertices)
     unsigned elementMask = GetElementMask(model.meshes_[0]);
-    for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+    for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
         if (GetNumValidFaces(model.meshes_[i]))
         {
@@ -770,7 +770,7 @@ void BuildAndSaveModel(OutModel& model)
     if (combineBuffers && model.totalVertices_ > 65535)
     {
         bool allUnder65k = true;
-        for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+        for (unsigned i = 0; i < model.meshes_.size(); ++i)
         {
             if (GetNumValidFaces(model.meshes_[i]))
             {
@@ -792,7 +792,7 @@ void BuildAndSaveModel(OutModel& model)
 
     outModel->SetNumGeometries(numValidGeometries);
 
-    for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+    for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
         aiMesh* mesh = model.meshes_[i];
         unsigned elementMask = GetElementMask(mesh);
@@ -865,7 +865,7 @@ void BuildAndSaveModel(OutModel& model)
         Vector<PODVector<unsigned char> > blendIndices;
         Vector<PODVector<float> > blendWeights;
         PODVector<unsigned> boneMappings;
-        if (model.bones_.Size())
+        if (model.bones_.size())
             GetBlendData(model, mesh, boneMappings, blendIndices, blendWeights);
 
         float* dest = (float*)((unsigned char*)vertexData + startVertexOffset * vb->GetVertexSize());
@@ -896,7 +896,7 @@ void BuildAndSaveModel(OutModel& model)
         outModel->SetNumGeometryLodLevels(destGeomIndex, 1);
         outModel->SetGeometry(destGeomIndex, 0, geom);
         outModel->SetGeometryCenter(destGeomIndex, center);
-        if (model.bones_.Size() > MAX_SKIN_MATRICES)
+        if (model.bones_.size() > MAX_SKIN_MATRICES)
             allBoneMappings.push_back(boneMappings);
 
         startVertexOffset += mesh->mNumVertices;
@@ -911,15 +911,15 @@ void BuildAndSaveModel(OutModel& model)
     outModel->SetBoundingBox(box);
 
     // Build skeleton if necessary
-    if (model.bones_.Size() && model.rootBone_)
+    if (model.bones_.size() && model.rootBone_)
     {
-        PrintLine("Writing skeleton with " + String(model.bones_.Size()) + " bones, rootbone " +
+        PrintLine("Writing skeleton with " + String(model.bones_.size()) + " bones, rootbone " +
             FromAIString(model.rootBone_->mName));
 
         Skeleton skeleton;
         Vector<Bone>& bones = skeleton.GetModifiableBones();
 
-        for (unsigned i = 0; i < model.bones_.Size(); ++i)
+        for (unsigned i = 0; i < model.bones_.size(); ++i)
         {
             aiNode* boneNode = model.bones_[i];
             String boneName(FromAIString(boneNode->mName));
@@ -943,7 +943,7 @@ void BuildAndSaveModel(OutModel& model)
             bones.push_back(newBone);
         }
         // Set the bone hierarchy
-        for (unsigned i = 1; i < model.bones_.Size(); ++i)
+        for (unsigned i = 1; i < model.bones_.size(); ++i)
         {
             String parentName = FromAIString(model.bones_[i]->mParent->mName);
             for (unsigned j = 0; j < bones.size(); ++j)
@@ -957,7 +957,7 @@ void BuildAndSaveModel(OutModel& model)
         }
 
         outModel->SetSkeleton(skeleton);
-        if (model.bones_.Size() > MAX_SKIN_MATRICES)
+        if (model.bones_.size() > MAX_SKIN_MATRICES)
             outModel->SetGeometryBoneMappings(allBoneMappings);
     }
 
@@ -973,7 +973,7 @@ void BuildAndSaveModel(OutModel& model)
         File listFile(context_);
         if (listFile.Open(materialListName, FILE_WRITE))
         {
-            for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+            for (unsigned i = 0; i < model.meshes_.size(); ++i)
                 listFile.WriteLine(GetMeshMaterialName(model.meshes_[i]));
         }
         else
@@ -985,7 +985,7 @@ void BuildAndSaveAnimations(OutModel* model)
 {
     const PODVector<aiAnimation*>& animations = model ? model->animations_ : sceneAnimations_;
 
-    for (unsigned i = 0; i < animations.Size(); ++i)
+    for (unsigned i = 0; i < animations.size(); ++i)
     {
         aiAnimation* anim = animations[i];
 
@@ -1212,8 +1212,8 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
             aiMesh* mesh = meshes[i].second_;
             unsigned meshIndex = GetMeshIndex(mesh);
             model.meshIndices_.insert(meshIndex);
-            model.meshes_.Push(mesh);
-            model.meshNodes_.Push(meshes[i].first_);
+            model.meshes_.push_back(mesh);
+            model.meshNodes_.push_back(meshes[i].first_);
             model.totalVertices_ += mesh->mNumVertices;
             model.totalIndices_ += GetNumValidFaces(mesh) * 3;
         }
@@ -1227,8 +1227,8 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
                 if (scene.models_[i].meshIndices_ == model.meshIndices_)
                 {
                     PrintLine("Added node " + FromAIString(node->mName));
-                    scene.nodes_.Push(node);
-                    scene.nodeModelIndices_.Push(i);
+                    scene.nodes_.push_back(node);
+                    scene.nodeModelIndices_.push_back(i);
                     unique = false;
                     break;
                 }
@@ -1247,8 +1247,8 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
             }
 
             scene.models_.push_back(model);
-            scene.nodes_.Push(node);
-            scene.nodeModelIndices_.Push(scene.models_.size() - 1);
+            scene.nodes_.push_back(node);
+            scene.nodeModelIndices_.push_back(scene.models_.size() - 1);
         }
     }
 
@@ -1349,11 +1349,11 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
         outRootNode = CreateSceneNode(outScene, rootNode_, nodeMapping);
 
     // Create geometry nodes
-    for (unsigned i = 0; i < scene.nodes_.Size(); ++i)
+    for (unsigned i = 0; i < scene.nodes_.size(); ++i)
     {
         const OutModel& model = scene.models_[scene.nodeModelIndices_[i]];
         Node* modelNode = CreateSceneNode(outScene, scene.nodes_[i], nodeMapping);
-        StaticModel* staticModel = model.bones_.Empty() ? modelNode->CreateComponent<StaticModel>() : modelNode->CreateComponent<AnimatedModel>();
+        StaticModel* staticModel = model.bones_.empty() ? modelNode->CreateComponent<StaticModel>() : modelNode->CreateComponent<AnimatedModel>();
 
         // Create a dummy model so that the reference can be stored
         String modelName = (useSubdirs_ ? "Models/" : "") + GetFileNameAndExtension(model.outName_);
@@ -1361,13 +1361,13 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
         {
             Model* dummyModel = new Model(context_);
             dummyModel->SetName(modelName);
-            dummyModel->SetNumGeometries(model.meshes_.Size());
+            dummyModel->SetNumGeometries(model.meshes_.size());
             cache->AddManualResource(dummyModel);
         }
         staticModel->SetModel(cache->GetResource<Model>(modelName));
 
         // Set materials if they are known
-        for (unsigned j = 0; j < model.meshes_.Size(); ++j)
+        for (unsigned j = 0; j < model.meshes_.size(); ++j)
         {
             String matName = GetMeshMaterialName(model.meshes_[j]);
             // Create a dummy material so that the reference can be stored
@@ -1767,12 +1767,12 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
             for (unsigned k = 0; k < geometry->GetNumVertexBuffers(); ++k)
             {
                 SharedPtr<VertexBuffer> vb(geometry->GetVertexBuffer(k));
-                if (!vbVector.Contains(vb))
+                if (!vbVector.contains(vb))
                     vbVector.push_back(vb);
             }
 
             SharedPtr<IndexBuffer> ib(geometry->GetIndexBuffer());
-            if (!ibVector.Contains(ib))
+            if (!ibVector.contains(ib))
                 ibVector.push_back(ib);
         }
     }
@@ -1810,7 +1810,7 @@ unsigned GetMeshIndex(aiMesh* mesh)
 
 unsigned GetBoneIndex(OutModel& model, const String& boneName)
 {
-    for (unsigned i = 0; i < model.bones_.Size(); ++i)
+    for (unsigned i = 0; i < model.bones_.size(); ++i)
     {
         if (boneName == model.bones_[i]->mName.data)
             return i;
@@ -1820,7 +1820,7 @@ unsigned GetBoneIndex(OutModel& model, const String& boneName)
 
 aiBone* GetMeshBone(OutModel& model, const String& boneName)
 {
-    for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+    for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
         aiMesh* mesh = model.meshes_[i];
         for (unsigned j = 0; j < mesh->mNumBones; ++j)
@@ -1835,7 +1835,7 @@ aiBone* GetMeshBone(OutModel& model, const String& boneName)
 
 Matrix3x4 GetOffsetMatrix(OutModel& model, const String& boneName)
 {
-    for (unsigned i = 0; i < model.meshes_.Size(); ++i)
+    for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
         aiMesh* mesh = model.meshes_[i];
         aiNode* node = model.meshNodes_[i];
@@ -1860,14 +1860,14 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
 {
     blendIndices.resize(mesh->mNumVertices);
     blendWeights.resize(mesh->mNumVertices);
-    boneMappings.Clear();
+    boneMappings.clear();
 
     // If model has more bones than can fit vertex shader parameters, write the per-geometry mappings
-    if (model.bones_.Size() > MAX_SKIN_MATRICES)
+    if (model.bones_.size() > MAX_SKIN_MATRICES)
     {
         if (mesh->mNumBones > MAX_SKIN_MATRICES)
             ErrorExit("Geometry has too many bone influences");
-        boneMappings.Resize(mesh->mNumBones);
+        boneMappings.resize(mesh->mNumBones);
         for (unsigned i = 0; i < mesh->mNumBones; ++i)
         {
             aiBone* bone = mesh->mBones[i];
@@ -1879,9 +1879,9 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
             for (unsigned j = 0; j < bone->mNumWeights; ++j)
             {
                 unsigned vertex = bone->mWeights[j].mVertexId;
-                blendIndices[vertex].Push(i);
-                blendWeights[vertex].Push(bone->mWeights[j].mWeight);
-                if (blendWeights[vertex].Size() > 4)
+                blendIndices[vertex].push_back(i);
+                blendWeights[vertex].push_back(bone->mWeights[j].mWeight);
+                if (blendWeights[vertex].size() > 4)
                     ErrorExit("More than 4 bone influences on vertex");
             }
         }
@@ -1898,9 +1898,9 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
             for (unsigned j = 0; j < bone->mNumWeights; ++j)
             {
                 unsigned vertex = bone->mWeights[j].mVertexId;
-                blendIndices[vertex].Push(globalIndex);
-                blendWeights[vertex].Push(bone->mWeights[j].mWeight);
-                if (blendWeights[vertex].Size() > 4)
+                blendIndices[vertex].push_back(globalIndex);
+                blendWeights[vertex].push_back(bone->mWeights[j].mWeight);
+                if (blendWeights[vertex].size() > 4)
                     ErrorExit("More than 4 bone influences on vertex");
             }
         }
@@ -2042,7 +2042,7 @@ void WriteVertex(float*& dest, aiMesh* mesh, unsigned index, unsigned elementMas
     {
         for (unsigned i = 0; i < 4; ++i)
         {
-            if (i < blendWeights[index].Size())
+            if (i < blendWeights[index].size())
                 *dest++ = blendWeights[index][i];
             else
                 *dest++ = 0.0f;
@@ -2054,7 +2054,7 @@ void WriteVertex(float*& dest, aiMesh* mesh, unsigned index, unsigned elementMas
         ++dest;
         for (unsigned i = 0; i < 4; ++i)
         {
-            if (i < blendIndices[index].Size())
+            if (i < blendIndices[index].size())
                 *destBytes++ = blendIndices[index][i];
             else
                 *destBytes++ = 0;

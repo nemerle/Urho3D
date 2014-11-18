@@ -247,8 +247,8 @@ StringHash Deserializer::ReadStringHash()
 PODVector<unsigned char> Deserializer::ReadBuffer()
 {
     PODVector<unsigned char> ret(ReadVLE());
-    if (ret.Size())
-        Read(&ret[0], ret.Size());
+    if (ret.size())
+        Read(&ret[0], ret.size());
     return ret;
 }
 

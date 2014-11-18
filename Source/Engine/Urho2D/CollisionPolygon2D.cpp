@@ -50,17 +50,17 @@ void CollisionPolygon2D::RegisterObject(Context* context)
 
 void CollisionPolygon2D::SetVertexCount(unsigned count)
 {
-    vertices_.Resize(count);
+    vertices_.resize(count);
 }
 
 void CollisionPolygon2D::SetVertex(unsigned index, const Vector2& vertex)
 {
-    if (index >= vertices_.Size())
+    if (index >= vertices_.size())
         return;
 
     vertices_[index] = vertex;
 
-    if (index == vertices_.Size() - 1)
+    if (index == vertices_.size() - 1)
     {
         MarkNetworkUpdate();
         RecreateFixture();
@@ -83,13 +83,13 @@ void CollisionPolygon2D::ApplyNodeWorldScale()
 void CollisionPolygon2D::RecreateFixture()
 {
     ReleaseFixture();
-    
-    if (vertices_.Size() < 3)
+
+    if (vertices_.size() < 3)
         return;
 
     PODVector<b2Vec2> b2Vertices;
-    unsigned count = vertices_.Size();
-    b2Vertices.Resize(count);
+    unsigned count = vertices_.size();
+    b2Vertices.resize(count);
 
     Vector2 worldScale(cachedWorldScale_.x_, cachedWorldScale_.y_);
     for (unsigned i = 0; i < count; ++i)

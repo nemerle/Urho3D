@@ -249,7 +249,7 @@ private:
     unsigned long long GetVertexLightQueueHash(const PODVector<Light*>& vertexLights)
     {
         unsigned long long hash = 0;
-        for (PODVector<Light*>::ConstIterator i = vertexLights.begin(); i != vertexLights.end(); ++i)
+        for (PODVector<Light*>::const_iterator i = vertexLights.begin(); i != vertexLights.end(); ++i)
             hash += (unsigned long long)(*i);
         return hash;
     }

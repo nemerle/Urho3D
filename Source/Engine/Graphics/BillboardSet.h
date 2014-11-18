@@ -97,7 +97,7 @@ public:
     /// Return material.
     Material* GetMaterial() const;
     /// Return number of billboards.
-    unsigned GetNumBillboards() const { return billboards_.Size(); }
+    unsigned GetNumBillboards() const { return billboards_.size(); }
     /// Return all billboards.
     PODVector<Billboard>& GetBillboards() { return billboards_; }
     /// Return billboard by index.

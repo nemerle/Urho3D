@@ -35,7 +35,7 @@
 #include "WorkQueue.h"
 
 #include "DebugNew.h"
-
+#include <algorithm>
 #ifdef _MSC_VER
 #pragma warning(disable:4355)
 #endif
@@ -106,10 +106,10 @@ Octant::~Octant()
         for (Drawable* elem : drawables_)
         {
             elem->SetOctant(root_);
-            root_->drawables_.Push(elem);
+            root_->drawables_.push_back(elem);
             root_->QueueUpdate(elem);
         }
-        drawables_.Clear();
+        drawables_.clear();
         numDrawables_ = 0;
     }
 
@@ -261,10 +261,10 @@ void Octant::GetDrawablesInternal(OctreeQuery& query, bool inside) const
         }
     }
 
-    if (drawables_.Size())
+    if (drawables_.size())
     {
         Drawable** start = const_cast<Drawable**>(&drawables_[0]);
-        Drawable** end = start + drawables_.Size();
+        Drawable** end = start + drawables_.size();
         query.TestDrawables(start, end, inside);
     }
 
@@ -281,10 +281,10 @@ void Octant::GetDrawablesInternal(RayOctreeQuery& query) const
     if (octantDist >= query.maxDistance_)
         return;
 
-    if (drawables_.Size())
+    if (drawables_.size())
     {
         Drawable** start = const_cast<Drawable**>(&drawables_[0]);
-        Drawable** end = start + drawables_.Size();
+        Drawable** end = start + drawables_.size();
 
         while (start != end)
         {
@@ -308,17 +308,17 @@ void Octant::GetDrawablesOnlyInternal(RayOctreeQuery& query, PODVector<Drawable*
     if (octantDist >= query.maxDistance_)
         return;
 
-    if (drawables_.Size())
+    if (drawables_.size())
     {
         Drawable** start = const_cast<Drawable**>(&drawables_[0]);
-        Drawable** end = start + drawables_.Size();
+        Drawable** end = start + drawables_.size();
 
         while (start != end)
         {
             Drawable* drawable = *start++;
 
             if ((drawable->GetDrawableFlags() & query.drawableFlags_) && (drawable->GetViewMask() & query.viewMask_))
-                drawables.Push(drawable);
+                drawables.push_back(drawable);
         }
     }
 
@@ -347,8 +347,8 @@ Octree::Octree(Context* context) :
 Octree::~Octree()
 {
     // Reset root pointer from all child octants now so that they do not move their drawables to root
-    drawableUpdates_.Clear();
-    drawableReinsertions_.Clear();
+    drawableUpdates_.clear();
+    drawableReinsertions_.clear();
     ResetRoot();
 }
 
@@ -390,14 +390,14 @@ void Octree::SetSize(const BoundingBox& box, unsigned numLevels)
         DeleteChild(i);
 
     Initialize(box);
-    numDrawables_ = drawables_.Size();
+    numDrawables_ = drawables_.size();
     numLevels_ = Max((int)numLevels, 1);
 }
 
 void Octree::Update(const FrameInfo& frame)
 {
     // Let drawables update themselves before reinsertion. This can be used for animation
-    if (!drawableUpdates_.Empty())
+    if (!drawableUpdates_.empty())
     {
         PROFILE(UpdateDrawables);
 
@@ -408,9 +408,9 @@ void Octree::Update(const FrameInfo& frame)
         scene->BeginThreadedUpdate();
 
         int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
-        int drawablesPerItem = Max((int)(drawableUpdates_.Size() / numWorkItems), 1);
+        int drawablesPerItem = Max((int)(drawableUpdates_.size() / numWorkItems), 1);
 
-        PODVector<Drawable*>::Iterator start = drawableUpdates_.begin();
+        PODVector<Drawable*>::iterator start = drawableUpdates_.begin();
         // Create a work item for each thread
         for (int i = 0; i < numWorkItems; ++i)
         {
@@ -419,7 +419,7 @@ void Octree::Update(const FrameInfo& frame)
             item->workFunction_ = UpdateDrawablesWork;
             item->aux_ = const_cast<FrameInfo*>(&frame);
 
-            PODVector<Drawable*>::Iterator end = drawableUpdates_.end();
+            PODVector<Drawable*>::iterator end = drawableUpdates_.end();
             if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                 end = start + drawablesPerItem;
 
@@ -448,7 +448,7 @@ void Octree::Update(const FrameInfo& frame)
 
     // Reinsert drawables that have been moved or resized, or that have been newly added to the octree and do not sit inside
     // the proper octant yet
-    if (!drawableUpdates_.Empty())
+    if (!drawableUpdates_.empty())
     {
         PROFILE(ReinsertToOctree);
 
@@ -480,7 +480,7 @@ void Octree::Update(const FrameInfo& frame)
         }
     }
 
-    drawableUpdates_.Clear();
+    drawableUpdates_.clear();
 }
 
 void Octree::AddManualDrawable(Drawable* drawable)
@@ -503,7 +503,7 @@ void Octree::RemoveManualDrawable(Drawable* drawable)
 
 void Octree::GetDrawables(OctreeQuery& query) const
 {
-    query.result_.Clear();
+    query.result_.clear();
     GetDrawablesInternal(query, false);
 }
 
@@ -511,7 +511,7 @@ void Octree::Raycast(RayOctreeQuery& query) const
 {
     PROFILE(Raycast);
 
-    query.result_.Clear();
+    query.result_.clear();
 
     WorkQueue* queue = GetSubsystem<WorkQueue>();
 
@@ -522,16 +522,16 @@ void Octree::Raycast(RayOctreeQuery& query) const
     {
         // Threaded ray query: first get the drawables
         rayQuery_ = &query;
-        rayQueryDrawables_.Clear();
+        rayQueryDrawables_.clear();
         GetDrawablesOnlyInternal(query, rayQueryDrawables_);
 
         // Check that amount of drawables is large enough to justify threading
-        if (rayQueryDrawables_.Size() >= RAYCASTS_PER_WORK_ITEM * 2)
+        if (rayQueryDrawables_.size() >= RAYCASTS_PER_WORK_ITEM * 2)
         {
             for (unsigned i = 0; i < rayQueryResults_.size(); ++i)
-                rayQueryResults_[i].Clear();
+                rayQueryResults_[i].clear();
 
-            PODVector<Drawable*>::Iterator start = rayQueryDrawables_.begin();
+            PODVector<Drawable*>::iterator start = rayQueryDrawables_.begin();
             while (start != rayQueryDrawables_.end())
             {
                 SharedPtr<WorkItem> item = queue->GetFreeItem();
@@ -539,7 +539,7 @@ void Octree::Raycast(RayOctreeQuery& query) const
                 item->workFunction_ = RaycastDrawablesWork;
                 item->aux_ = const_cast<Octree*>(this);
 
-                PODVector<Drawable*>::Iterator end = rayQueryDrawables_.end();
+                PODVector<Drawable*>::iterator end = rayQueryDrawables_.end();
                 if (end - start > RAYCASTS_PER_WORK_ITEM)
                     end = start + RAYCASTS_PER_WORK_ITEM;
 
@@ -553,7 +553,7 @@ void Octree::Raycast(RayOctreeQuery& query) const
             // Merge per-thread results
             queue->Complete(M_MAX_UNSIGNED);
             for (unsigned i = 0; i < rayQueryResults_.size(); ++i)
-                query.result_.Insert(query.result_.end(), rayQueryResults_[i].begin(), rayQueryResults_[i].end());
+                query.result_.insert(query.result_.end(), rayQueryResults_[i].begin(), rayQueryResults_[i].end());
         }
         else
         {
@@ -562,15 +562,15 @@ void Octree::Raycast(RayOctreeQuery& query) const
         }
     }
 
-    Sort(query.result_.begin(), query.result_.end(), CompareRayQueryResults);
+    std::sort(query.result_.begin(), query.result_.end(), CompareRayQueryResults);
 }
 
 void Octree::RaycastSingle(RayOctreeQuery& query) const
 {
     PROFILE(Raycast);
 
-    query.result_.Clear();
-    rayQueryDrawables_.Clear();
+    query.result_.clear();
+    rayQueryDrawables_.clear();
     GetDrawablesOnlyInternal(query, rayQueryDrawables_);
 
     // Sort by increasing hit distance to AABB
@@ -580,7 +580,7 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
         drawable->SetSortValue(query.ray_.HitDistance(drawable->GetWorldBoundingBox()));
     }
 
-    Sort(rayQueryDrawables_.begin(), rayQueryDrawables_.end(), CompareDrawables);
+    std::sort(rayQueryDrawables_.begin(), rayQueryDrawables_.end(), CompareDrawables);
 
     // Then do the actual test according to the query, and early-out as possible
     float closestHit = M_INFINITY;
@@ -589,19 +589,19 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
 
         if (drawable->GetSortValue() < Min(closestHit, query.maxDistance_))
         {
-            unsigned oldSize = query.result_.Size();
+            unsigned oldSize = query.result_.size();
             drawable->ProcessRayQuery(query, query.result_);
-            if (query.result_.Size() > oldSize)
-                closestHit = Min(closestHit, query.result_.Back().distance_);
+            if (query.result_.size() > oldSize)
+                closestHit = Min(closestHit, query.result_.back().distance_);
         }
         else
             break;
     }
 
-    if (query.result_.Size() > 1)
+    if (query.result_.size() > 1)
     {
-        Sort(query.result_.begin(), query.result_.end(), CompareRayQueryResults);
-        query.result_.Resize(1);
+        std::sort(query.result_.begin(), query.result_.end(), CompareRayQueryResults);
+        query.result_.resize(1);
     }
 }
 
@@ -611,17 +611,17 @@ void Octree::QueueUpdate(Drawable* drawable)
     if (scene && scene->IsThreadedUpdate())
     {
         MutexLock lock(octreeMutex_);
-        drawableUpdates_.Push(drawable);
+        drawableUpdates_.push_back(drawable);
     }
     else
-        drawableUpdates_.Push(drawable);
+        drawableUpdates_.push_back(drawable);
 
     drawable->updateQueued_ = true;
 }
 
 void Octree::CancelUpdate(Drawable* drawable)
 {
-    drawableUpdates_.Remove(drawable);
+    drawableUpdates_.remove(drawable);
     drawable->updateQueued_ = false;
 }
 

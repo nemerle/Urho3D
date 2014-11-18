@@ -26,6 +26,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <memory>
 
 namespace Urho3D
 {
@@ -45,6 +46,12 @@ public:
         ptr_(rhs.ptr_)
     {
         AddRef();
+    }
+    /// move-construct from another shared pointer.
+    SharedPtr(SharedPtr<T>&& rhs) :
+        ptr_(rhs.ptr_)
+    {
+        rhs.ptr_ = nullptr;
     }
 
     /// Construct from a raw pointer.
@@ -72,7 +79,17 @@ public:
 
         return *this;
     }
-
+    /// Assign from another shared pointer.
+    SharedPtr<T>& operator = (const SharedPtr<T>&& rhs)
+    {
+        SharedPtr<T>(rhs).swap(*this);
+        return *this;
+    }
+    void swap(SharedPtr<T>& rhs) {
+        T * tmp = ptr_;
+        ptr_ = rhs.ptr_;
+        rhs.ptr_ = tmp;
+    }
     /// Assign from a raw pointer.
     SharedPtr<T>& operator = (T* ptr)
     {

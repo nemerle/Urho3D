@@ -190,10 +190,10 @@ void JSONValue::SetBuffer(const String& name, const void* data, unsigned size)
 
 void JSONValue::SetBuffer(const String& name, const PODVector<unsigned char>& value)
 {
-    if (!value.Size())
+    if (!value.size())
         SetString(name, String::EMPTY);
     else
-        SetBuffer(name, &value[0], value.Size());
+        SetBuffer(name, &value[0], value.size());
 }
 
 void JSONValue::SetResourceRef(const String& name, const ResourceRef& value)
@@ -553,10 +553,10 @@ void JSONValue::AddString(const String& value)
 
 void JSONValue::AddBuffer(const PODVector<unsigned char>& value)
 {
-    if (!value.Size())
+    if (!value.size())
         AddString(String::EMPTY);
     else
-        AddBuffer(&value[0], value.Size());
+        AddBuffer(&value[0], value.size());
 }
 
 void JSONValue::AddBuffer(const void* data, unsigned size)

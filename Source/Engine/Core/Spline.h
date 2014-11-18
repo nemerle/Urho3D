@@ -87,7 +87,7 @@ public:
     /// Remove the last Knot on the Spline.
     void RemoveKnot() { knots_.pop_back(); }
     /// Remove the Knot at the specific index.
-    void RemoveKnot(unsigned index) { knots_.erase(index); }
+    void RemoveKnot(unsigned index) { knots_.erase(knots_.begin()+index); }
     /// Clear the Spline.
     void Clear() { knots_.clear(); }
 

@@ -123,7 +123,7 @@ void CustomGeometry::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQ
             result.drawable_ = this;
             result.node_ = node_;
             result.subObject_ = M_MAX_UNSIGNED;
-            results.Push(result);
+            results.push_back(result);
         }
         break;
     }
@@ -202,7 +202,7 @@ void CustomGeometry::Clear()
     elementMask_ = MASK_POSITION;
     batches_.clear();
     geometries_.clear();
-    primitiveTypes_.Clear();
+    primitiveTypes_.clear();
     vertices_.clear();
 }
 
@@ -210,7 +210,7 @@ void CustomGeometry::SetNumGeometries(unsigned num)
 {
     batches_.resize(num);
     geometries_.resize(num);
-    primitiveTypes_.Resize(num);
+    primitiveTypes_.resize(num);
     vertices_.resize(num);
 
     for (unsigned i = 0; i < geometries_.size(); ++i)
@@ -239,7 +239,7 @@ void CustomGeometry::BeginGeometry(unsigned index, PrimitiveType type)
 
     geometryIndex_ = index;
     primitiveTypes_[index] = type;
-    vertices_[index].Clear();
+    vertices_[index].clear();
 
     // If beginning the first geometry, reset the element mask
     if (!index)
@@ -251,43 +251,43 @@ void CustomGeometry::DefineVertex(const Vector3& position)
     if (vertices_.size() < geometryIndex_)
         return;
 
-    vertices_[geometryIndex_].Resize(vertices_[geometryIndex_].Size() + 1);
-    vertices_[geometryIndex_].Back().position_ = position;
+    vertices_[geometryIndex_].resize(vertices_[geometryIndex_].size() + 1);
+    vertices_[geometryIndex_].back().position_ = position;
 }
 
 void CustomGeometry::DefineNormal(const Vector3& normal)
 {
-    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].empty())
         return;
 
-    vertices_[geometryIndex_].Back().normal_ = normal;
+    vertices_[geometryIndex_].back().normal_ = normal;
     elementMask_ |= MASK_NORMAL;
 }
 
 void CustomGeometry::DefineColor(const Color& color)
 {
-    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].empty())
         return;
 
-    vertices_[geometryIndex_].Back().color_ = color.ToUInt();
+    vertices_[geometryIndex_].back().color_ = color.ToUInt();
     elementMask_ |= MASK_COLOR;
 }
 
 void CustomGeometry::DefineTexCoord(const Vector2& texCoord)
 {
-    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].empty())
         return;
 
-    vertices_[geometryIndex_].Back().texCoord_ = texCoord;
+    vertices_[geometryIndex_].back().texCoord_ = texCoord;
     elementMask_ |= MASK_TEXCOORD1;
 }
 
 void CustomGeometry::DefineTangent(const Vector4& tangent)
 {
-    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].Empty())
+    if (vertices_.size() < geometryIndex_ || vertices_[geometryIndex_].empty())
         return;
 
-    vertices_[geometryIndex_].Back().tangent_ = tangent;
+    vertices_[geometryIndex_].back().tangent_ = tangent;
     elementMask_ |= MASK_TANGENT;
 }
 
@@ -301,7 +301,7 @@ void CustomGeometry::DefineGeometry(unsigned index, PrimitiveType type, unsigned
 
     geometryIndex_ = index;
     primitiveTypes_[index] = type;
-    vertices_[index].Resize(numVertices);
+    vertices_[index].resize(numVertices);
 
     // If defining the first geometry, reset the element mask
     if (!index)
@@ -325,9 +325,9 @@ void CustomGeometry::Commit()
 
     for (unsigned i = 0; i < vertices_.size(); ++i)
     {
-        totalVertices += vertices_[i].Size();
+        totalVertices += vertices_[i].size();
 
-        for (unsigned j = 0; j < vertices_[i].Size(); ++j)
+        for (unsigned j = 0; j < vertices_[i].size(); ++j)
             boundingBox_.Merge(vertices_[i][j].position_);
     }
 
@@ -347,7 +347,7 @@ void CustomGeometry::Commit()
             {
                 unsigned vertexCount = 0;
 
-                for (unsigned j = 0; j < vertices_[i].Size(); ++j)
+                for (unsigned j = 0; j < vertices_[i].size(); ++j)
                 {
                     *((Vector3*)dest) = vertices_[i][j].position_;
                     dest += sizeof(Vector3);
@@ -421,7 +421,7 @@ bool CustomGeometry::SetMaterial(unsigned index, Material* material)
 
 unsigned CustomGeometry::GetNumVertices(unsigned index) const
 {
-    return index < vertices_.size() ? vertices_[index].Size() : 0;
+    return index < vertices_.size() ? vertices_[index].size() : 0;
 }
 
 Material* CustomGeometry::GetMaterial(unsigned index) const
@@ -431,13 +431,13 @@ Material* CustomGeometry::GetMaterial(unsigned index) const
 
 CustomGeometryVertex* CustomGeometry::GetVertex(unsigned geometryIndex, unsigned vertexNum)
 {
-    return (geometryIndex < vertices_.size() && vertexNum < vertices_[geometryIndex].Size()) ?
+    return (geometryIndex < vertices_.size() && vertexNum < vertices_[geometryIndex].size()) ?
         &vertices_[geometryIndex][vertexNum] : (CustomGeometryVertex*)nullptr;
 }
 
 void CustomGeometry::SetGeometryDataAttr(PODVector<unsigned char> value)
 {
-    if (value.Empty())
+    if (value.empty())
         return;
 
     MemoryBuffer buffer(value);
@@ -448,7 +448,7 @@ void CustomGeometry::SetGeometryDataAttr(PODVector<unsigned char> value)
     for (unsigned i = 0; i < geometries_.size(); ++i)
     {
         unsigned numVertices = buffer.ReadVLE();
-        vertices_[i].Resize(numVertices);
+        vertices_[i].resize(numVertices);
         primitiveTypes_[i] = (PrimitiveType)buffer.ReadUByte();
 
         for (unsigned j = 0; j < numVertices; ++j)
@@ -485,7 +485,7 @@ PODVector<unsigned char> CustomGeometry::GetGeometryDataAttr() const
 
     for (unsigned i = 0; i < geometries_.size(); ++i)
     {
-        unsigned numVertices = vertices_[i].Size();
+        unsigned numVertices = vertices_[i].size();
         ret.WriteVLE(numVertices);
         ret.WriteUByte(primitiveTypes_[i]);
 

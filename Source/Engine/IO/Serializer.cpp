@@ -189,7 +189,7 @@ bool Serializer::WriteStringHash(const StringHash& value)
 bool Serializer::WriteBuffer(const PODVector<unsigned char>& value)
 {
     bool success = true;
-    unsigned size = value.Size();
+    unsigned size = value.size();
 
     success &= WriteVLE(size);
     if (size)

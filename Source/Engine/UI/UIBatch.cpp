@@ -59,8 +59,8 @@ UIBatch::UIBatch(UIElement* element, BlendMode blendMode, const IntRect& scissor
     texture_(texture),
     invTextureSize_(texture ? Vector2(1.0f / (float)texture->GetWidth(), 1.0f / (float)texture->GetHeight()) : Vector2::ONE),
     vertexData_(vertexData),
-    vertexStart_(vertexData->Size()),
-    vertexEnd_(vertexData->Size())
+    vertexStart_(vertexData->size()),
+    vertexEnd_(vertexData->size())
 {
     SetDefaultColor();
 }
@@ -123,10 +123,10 @@ void UIBatch::AddQuad(int x, int y, int width, int height, int texOffsetX, int t
     float rightUV = (texOffsetX + (texWidth ? texWidth : width)) * invTextureSize_.x_;
     float bottomUV = (texOffsetY + (texHeight ? texHeight : height)) * invTextureSize_.y_;
     
-    unsigned begin = vertexData_->Size();
-    vertexData_->Resize(begin + 6 * UI_VERTEX_SIZE);
-    float* dest = &(vertexData_->At(begin));
-    vertexEnd_ = vertexData_->Size();
+    unsigned begin = vertexData_->size();
+    vertexData_->resize(begin + 6 * UI_VERTEX_SIZE);
+    float* dest = &(vertexData_->at(begin));
+    vertexEnd_ = vertexData_->size();
     
     dest[0] = left; dest[1] = top; dest[2] = 0.0f;
     ((unsigned&)dest[3]) = topLeftColor;
@@ -189,10 +189,10 @@ void UIBatch::AddQuad(const Matrix3x4& transform, int x, int y, int width, int h
     float rightUV = ((float)(texOffsetX + (texWidth ? texWidth : width))) * invTextureSize_.x_;
     float bottomUV = ((float)(texOffsetY + (texHeight ? texHeight : height))) * invTextureSize_.y_;
     
-    unsigned begin = vertexData_->Size();
-    vertexData_->Resize(begin + 6 * UI_VERTEX_SIZE);
-    float* dest = &(vertexData_->At(begin));
-    vertexEnd_ = vertexData_->Size();
+    unsigned begin = vertexData_->size();
+    vertexData_->resize(begin + 6 * UI_VERTEX_SIZE);
+    float* dest = &(vertexData_->at(begin));
+    vertexEnd_ = vertexData_->size();
 
     dest[0] = v1.x_; dest[1] = v1.y_; dest[2] = 0.0f;
     ((unsigned&)dest[3]) = topLeftColor;
@@ -294,10 +294,10 @@ void UIBatch::AddOrMerge(const UIBatch& batch, PODVector<UIBatch>& batches)
     if (batch.vertexEnd_ == batch.vertexStart_)
         return;
     
-    if (!batches.Empty() && batches.Back().Merge(batch))
+    if (!batches.empty() && batches.back().Merge(batch))
         return;
     
-    batches.Push(batch);
+    batches.push_back(batch);
 }
 
 }

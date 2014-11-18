@@ -303,7 +303,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     unsigned subMeshIndex = 0;
 
     PODVector<unsigned> vertexStarts;
-    vertexStarts.Resize(numSubMeshes_);
+    vertexStarts.resize(numSubMeshes_);
 
     while (subMesh)
     {
@@ -439,9 +439,9 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
             unsigned v1 = triangle.GetInt("v1");
             unsigned v2 = triangle.GetInt("v2");
             unsigned v3 = triangle.GetInt("v3");
-            iBuf->indices_.Push(v3 + vertexStart);
-            iBuf->indices_.Push(v2 + vertexStart);
-            iBuf->indices_.Push(v1 + vertexStart);
+            iBuf->indices_.push_back(v3 + vertexStart);
+            iBuf->indices_.push_back(v2 + vertexStart);
+            iBuf->indices_.push_back(v1 + vertexStart);
             triangle = triangle.GetNext("face");
         }
 
@@ -468,7 +468,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     // Source data might have 0 weights. Disregard these
                     if (assign.weight_ > 0.0f)
                     {
-                        subGeometryLodLevel.boneWeights_[vertex].Push(assign);
+                        subGeometryLodLevel.boneWeights_[vertex].push_back(assign);
 
                         // Require skinning weight to be sufficiently large before vertex contributes to bone hitbox
                         if (assign.weight_ > 0.33f)
@@ -504,10 +504,10 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     for (PODVector<BoneWeightAssignment> & elem : subGeometryLodLevel.boneWeights_)
                     {
                         // Sort the bone assigns by weight
-                        Sort(elem.begin(), elem.end(), CompareWeights);
+                        std::sort(elem.begin(), elem.end(), CompareWeights);
 
                         // Use only the first 4 weights
-                        for (unsigned j = 0; j < elem.Size() && j < 4; ++j)
+                        for (unsigned j = 0; j < elem.size() && j < 4; ++j)
                         {
                             unsigned originalIndex = elem[j].boneIndex_;
                             if (!usedBoneMap.contains(originalIndex))
@@ -524,7 +524,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                         ErrorExit("Too many bones in submesh " + String(subMeshIndex + 1));
 
                     // Write mapping of vertex buffer bone indices to original bone indices
-                    subGeometryLodLevel.boneMapping_.Resize(usedBoneMap.size());
+                    subGeometryLodLevel.boneMapping_.resize(usedBoneMap.size());
                     for (auto elem=usedBoneMap.begin(),fin=usedBoneMap.end(); elem!=fin; ++elem)
                         subGeometryLodLevel.boneMapping_[*elem] = elem.key();
 
@@ -537,25 +537,25 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     PODVector<BoneWeightAssignment> & elem = *iter;
                     // Sort the bone assigns by weight, if not sorted yet in bone remapping pass
                     if (!sorted)
-                        Sort(elem.begin(), elem.end(), CompareWeights);
+                        std::sort(elem.begin(), elem.end(), CompareWeights);
 
                     float totalWeight = 0.0f;
                     float normalizationFactor = 0.0f;
 
                     // Calculate normalization factor in case there are more than 4 blend weights, or they do not add up to 1
-                    for (unsigned j = 0; j < elem.Size() && j < 4; ++j)
+                    for (unsigned j = 0; j < elem.size() && j < 4; ++j)
                         totalWeight += elem[j].weight_;
                     if (totalWeight > 0.0f)
                         normalizationFactor = 1.0f / totalWeight;
 
-                    for (unsigned j = 0; j < elem.Size() && j < 4; ++j)
+                    for (unsigned j = 0; j < elem.size() && j < 4; ++j)
                     {
                         vBuf->vertices_[iter.key()].blendIndices_[j] = elem[j].boneIndex_;
                         vBuf->vertices_[iter.key()].blendWeights_[j] = elem[j].weight_ * normalizationFactor;
                     }
 
                     // If there are less than 4 blend weights, fill rest with zero
-                    for (unsigned j = elem.Size(); j < 4; ++j)
+                    for (unsigned j = elem.size(); j < 4; ++j)
                     {
                         vBuf->vertices_[iter.key()].blendIndices_[j] = 0;
                         vBuf->vertices_[iter.key()].blendWeights_[j] = 0.0f;
@@ -570,14 +570,14 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
 
         // Calculate center for the subgeometry
         Vector3 center = Vector3::ZERO;
-        for (unsigned i = 0; i < iBuf->indices_.Size(); i += 3)
+        for (unsigned i = 0; i < iBuf->indices_.size(); i += 3)
         {
             center += vBuf->vertices_[iBuf->indices_[i]].position_;
             center += vBuf->vertices_[iBuf->indices_[i + 1]].position_;
             center += vBuf->vertices_[iBuf->indices_[i + 2]].position_;
         }
-        if (iBuf->indices_.Size())
-            center /= (float)iBuf->indices_.Size();
+        if (iBuf->indices_.size())
+            center /= (float)iBuf->indices_.size();
         subGeometryCenters_.push_back(center);
 
         indexStart += indices;
@@ -636,7 +636,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                         iBuf = &indexBuffers_[subMeshIndex];
                     }
 
-                    unsigned indexStart = iBuf->indices_.Size();
+                    unsigned indexStart = iBuf->indices_.size();
                     unsigned indexCount = triangles * 3;
                     unsigned vertexStart = vertexStarts[subMeshIndex];
 
@@ -651,9 +651,9 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                         unsigned v1 = triangle.GetInt("v1");
                         unsigned v2 = triangle.GetInt("v2");
                         unsigned v3 = triangle.GetInt("v3");
-                        iBuf->indices_.Push(v3 + vertexStart);
-                        iBuf->indices_.Push(v2 + vertexStart);
-                        iBuf->indices_.Push(v1 + vertexStart);
+                        iBuf->indices_.push_back(v3 + vertexStart);
+                        iBuf->indices_.push_back(v2 + vertexStart);
+                        iBuf->indices_.push_back(v1 + vertexStart);
                         triangle = triangle.GetNext("face");
                     }
 
@@ -820,7 +820,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 unsigned indexCount = subGeometries_[i][j].indexCount_;
 
                 // If already has tangents, do not regenerate
-                if (vBuf.elementMask_ & MASK_TANGENT || vBuf.vertices_.empty() || iBuf.indices_.Empty())
+                if (vBuf.elementMask_ & MASK_TANGENT || vBuf.vertices_.empty() || iBuf.indices_.empty())
                     continue;
 
                 vBuf.elementMask_ |= MASK_TANGENT;
@@ -865,8 +865,8 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
         for (unsigned i = 0; i < subGeometries_.size(); ++i)
         {
             // Write bone mapping info from the first LOD level. It does not change for further LODs
-            dest.WriteUInt(subGeometries_[i][0].boneMapping_.Size());
-            for (unsigned k = 0; k < subGeometries_[i][0].boneMapping_.Size(); ++k)
+            dest.WriteUInt(subGeometries_[i][0].boneMapping_.size());
+            for (unsigned k = 0; k < subGeometries_[i][0].boneMapping_.size(); ++k)
                 dest.WriteUInt(subGeometries_[i][0].boneMapping_[k]);
 
             // Lod levels for this subgeometry
@@ -1005,7 +1005,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                     }
 
                     // Make sure keyframes are sorted from beginning to end
-                    Sort(newAnimationTrack.keyFrames_.begin(), newAnimationTrack.keyFrames_.end(), CompareKeyFrames);
+                    std::sort(newAnimationTrack.keyFrames_.begin(), newAnimationTrack.keyFrames_.end(), CompareKeyFrames);
 
                     // Do not add tracks with no keyframes
                     if (newAnimationTrack.keyFrames_.size())
@@ -1077,7 +1077,7 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
         vb->vertices_[triangle.v0_].useCount_++;
         vb->vertices_[triangle.v1_].useCount_++;
         vb->vertices_[triangle.v2_].useCount_++;
-        oldTriangles.Push(triangle);
+        oldTriangles.push_back(triangle);
     }
 
     for (unsigned i = 0; i < vb->vertices_.size(); ++i)
@@ -1085,13 +1085,13 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
 
     PODVector<unsigned> vertexCache;
 
-    while (oldTriangles.Size())
+    while (oldTriangles.size())
     {
         unsigned bestTriangle = M_MAX_UNSIGNED;
         float bestTriangleScore = -1.0f;
 
         // Find the best triangle at this point
-        for (unsigned i = 0; i < oldTriangles.Size(); ++i)
+        for (unsigned i = 0; i < oldTriangles.size(); ++i)
         {
             Triangle& triangle = oldTriangles[i];
             float triangleScore =
@@ -1114,8 +1114,8 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
 
         // Add the best triangle
         Triangle triangleCopy = oldTriangles[bestTriangle];
-        newTriangles.Push(triangleCopy);
-        oldTriangles.Erase(oldTriangles.begin() + bestTriangle);
+        newTriangles.push_back(triangleCopy);
+        oldTriangles.erase(oldTriangles.begin() + bestTriangle);
 
         // Reduce the use count
         vb->vertices_[triangleCopy.v0_].useCount_--;
@@ -1124,25 +1124,25 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
 
         // Model the LRU cache behaviour
         // Erase the triangle vertices from the middle of the cache, if they were there
-        for (unsigned i = 0; i < vertexCache.Size(); ++i)
+        for (unsigned i = 0; i < vertexCache.size(); ++i)
         {
             if ((vertexCache[i] == triangleCopy.v0_) ||
                 (vertexCache[i] == triangleCopy.v1_) ||
                 (vertexCache[i] == triangleCopy.v2_))
             {
-                vertexCache.Erase(vertexCache.begin() + i);
+                vertexCache.erase(vertexCache.begin() + i);
                 --i;
             }
         }
 
         // Then push them to the front
-        vertexCache.Insert(vertexCache.begin(), triangleCopy.v0_);
-        vertexCache.Insert(vertexCache.begin(), triangleCopy.v1_);
-        vertexCache.Insert(vertexCache.begin(), triangleCopy.v2_);
+        vertexCache.insert(vertexCache.begin(), triangleCopy.v0_);
+        vertexCache.insert(vertexCache.begin(), triangleCopy.v1_);
+        vertexCache.insert(vertexCache.begin(), triangleCopy.v2_);
 
         // Update positions & scores of all vertices in the cache
         // Give position -1 if vertex is going to be erased
-        for (unsigned i = 0; i < vertexCache.Size(); ++i)
+        for (unsigned i = 0; i < vertexCache.size(); ++i)
         {
             ModelVertex& vertex = vb->vertices_[vertexCache[i]];
             if (i >= VERTEX_CACHE_SIZE)
@@ -1153,13 +1153,13 @@ void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, M
         }
 
         // Finally erase the extra vertices
-        if (vertexCache.Size() > VERTEX_CACHE_SIZE)
-            vertexCache.Resize(VERTEX_CACHE_SIZE);
+        if (vertexCache.size() > VERTEX_CACHE_SIZE)
+            vertexCache.resize(VERTEX_CACHE_SIZE);
     }
 
     // Rewrite the index data now
     unsigned i = subGeom->indexStart_;
-    for (unsigned j = 0; j < newTriangles.Size(); ++j)
+    for (unsigned j = 0; j < newTriangles.size(); ++j)
     {
         ib->indices_[i++] = newTriangles[j].v0_;
         ib->indices_[i++] = newTriangles[j].v1_;

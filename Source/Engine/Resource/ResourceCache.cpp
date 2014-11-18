@@ -108,7 +108,7 @@ bool ResourceCache::AddResourceDir(const String& pathName, unsigned priority)
     }
 
     if (priority < resourceDirs_.size())
-        resourceDirs_.insert(priority, fixedPath);
+        resourceDirs_.insert(resourceDirs_.begin()+priority, fixedPath);
     else
         resourceDirs_.push_back(fixedPath);
 
@@ -133,7 +133,7 @@ void ResourceCache::AddPackageFile(PackageFile* package, unsigned priority)
         return;
 
     if (priority < packages_.size())
-        packages_.insert(priority, SharedPtr<PackageFile>(package));
+        packages_.insert(packages_.begin()+priority, SharedPtr<PackageFile>(package));
     else
         packages_.push_back(SharedPtr<PackageFile>(package));
 
@@ -166,16 +166,17 @@ void ResourceCache::RemoveResourceDir(const String& pathName)
     MutexLock lock(resourceMutex_);
 
     String fixedPath = SanitateResourceDirName(pathName);
-
-    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
+    Vector<String>::iterator i = resourceDirs_.begin(),
+            fin = resourceDirs_.end();
+    Vector<SharedPtr<FileWatcher> >::iterator j,fin_j = fileWatchers_.end();
+    while (i != fin)
     {
-        if (!resourceDirs_[i].Compare(fixedPath, false))
-        {
+        if (!i->Compare(fixedPath, false)) {
             resourceDirs_.erase(i);
             // Remove the filewatcher with the matching path
-            for (unsigned j = 0; j < fileWatchers_.size(); ++j)
+            for (j = fileWatchers_.begin(); j!=fin_j; ++j)
             {
-                if (!fileWatchers_[j]->GetPath().Compare(fixedPath, false))
+                if (!(*j)->GetPath().Compare(fixedPath, false))
                 {
                     fileWatchers_.erase(j);
                     break;
@@ -184,6 +185,7 @@ void ResourceCache::RemoveResourceDir(const String& pathName)
             LOGINFO("Removed resource path " + fixedPath);
             return;
         }
+        ++i;
     }
 }
 
@@ -397,7 +399,7 @@ void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
         // Reloading a resource may modify the dependency tracking structure. Therefore collect the
         // resources we need to reload first
         Vector<SharedPtr<Resource> > dependents;
-        dependents.Reserve(j->size());
+        dependents.reserve(j->size());
 
         for (const StringHash &k : *j)
         {
@@ -642,12 +644,12 @@ unsigned ResourceCache::GetNumBackgroundLoadResources() const
 
 void ResourceCache::GetResources(PODVector<Resource*>& result, StringHash type) const
 {
-    result.Clear();
+    result.clear();
     QHash<StringHash, ResourceGroup>::const_iterator i = resourceGroups_.find(type);
     if (i != resourceGroups_.end())
     {
         for (const auto & elem : i->resources_)
-            result.Push(elem);
+            result.push_back(elem);
     }
 }
 

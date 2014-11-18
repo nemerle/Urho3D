@@ -949,7 +949,7 @@ void PolyhedronAddFaceArray(CScriptArray* arr, Polyhedron* ptr)
     PODVector<Vector3> face;
     unsigned numVertices = arr->GetSize();
     
-    face.Resize(numVertices);
+    face.resize(numVertices);
     for (unsigned i = 0; i < numVertices; ++i)
         face[i] = *((Vector3*)arr->At(i));
     ptr->AddFace(face);

@@ -57,14 +57,14 @@ public:
     void AddDrawable(Drawable* drawable)
     {
         drawable->SetOctant(this);
-        drawables_.Push(drawable);
+        drawables_.push_back(drawable);
         IncDrawableCount();
     }
     
     /// Remove a drawable object from this octant.
     void RemoveDrawable(Drawable* drawable, bool resetOctant = true)
     {
-        if (drawables_.Remove(drawable))
+        if (drawables_.remove(drawable))
         {
             if (resetOctant)
                 drawable->SetOctant(0);

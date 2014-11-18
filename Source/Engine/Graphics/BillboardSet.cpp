@@ -128,7 +128,7 @@ void BillboardSet::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQue
     Matrix3x4 billboardTransform = relative_ ? worldTransform : Matrix3x4::IDENTITY;
     Vector3 billboardScale = scaled_ ? worldTransform.Scale() : Vector3::ONE;
 
-    for (unsigned i = 0; i < billboards_.Size(); ++i)
+    for (unsigned i = 0; i < billboards_.size(); ++i)
     {
         if (!billboards_[i].enabled_)
             continue;
@@ -149,7 +149,7 @@ void BillboardSet::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQue
             result.drawable_ = this;
             result.node_ = node_;
             result.subObject_ = i;
-            results.Push(result);
+            results.push_back(result);
         }
     }
 }
@@ -224,9 +224,9 @@ void BillboardSet::SetNumBillboards(unsigned num)
     if (num > MAX_BILLBOARDS)
         num = MAX_BILLBOARDS;
 
-    unsigned oldNum = billboards_.Size();
+    unsigned oldNum = billboards_.size();
 
-    billboards_.Resize(num);
+    billboards_.resize(num);
 
     // Set default values to new billboards
     for (unsigned i = oldNum; i < num; ++i)
@@ -286,7 +286,7 @@ Material* BillboardSet::GetMaterial() const
 
 Billboard* BillboardSet::GetBillboard(unsigned index)
 {
-    return index < billboards_.Size() ? &billboards_[index] : (Billboard*)nullptr;
+    return index < billboards_.size() ? &billboards_[index] : (Billboard*)nullptr;
 }
 
 void BillboardSet::SetMaterialAttr(ResourceRef value)
@@ -301,7 +301,7 @@ void BillboardSet::SetBillboardsAttr(VariantVector value)
     unsigned numBillboards = index < value.size() ? value[index++].GetUInt() : 0;
     SetNumBillboards(numBillboards);
 
-    for (PODVector<Billboard>::Iterator i = billboards_.begin(); i != billboards_.end() && index < value.size(); ++i)
+    for (PODVector<Billboard>::iterator i = billboards_.begin(); i != billboards_.end() && index < value.size(); ++i)
     {
         i->position_ = value[index++].GetVector3();
         i->size_ = value[index++].GetVector2();
@@ -342,8 +342,8 @@ ResourceRef BillboardSet::GetMaterialAttr() const
 VariantVector BillboardSet::GetBillboardsAttr() const
 {
     VariantVector ret;
-    ret.Reserve(billboards_.Size() * 6 + 1);
-    ret.push_back(billboards_.Size());
+    ret.reserve(billboards_.size() * 6 + 1);
+    ret.push_back(billboards_.size());
 
     for (const Billboard & elem : billboards_)
     {
@@ -361,7 +361,7 @@ VariantVector BillboardSet::GetBillboardsAttr() const
 const PODVector<unsigned char>& BillboardSet::GetNetBillboardsAttr() const
 {
     attrBuffer_.Clear();
-    attrBuffer_.WriteVLE(billboards_.Size());
+    attrBuffer_.WriteVLE(billboards_.size());
 
     for (const Billboard & elem : billboards_)
     {
@@ -384,7 +384,7 @@ void BillboardSet::OnWorldBoundingBoxUpdate()
     Vector3 billboardScale = scaled_ ? worldTransform.Scale() : Vector3::ONE;
     BoundingBox worldBox;
 
-    for (unsigned i = 0; i < billboards_.Size(); ++i)
+    for (unsigned i = 0; i < billboards_.size(); ++i)
     {
         if (!billboards_[i].enabled_)
             continue;
@@ -405,7 +405,7 @@ void BillboardSet::OnWorldBoundingBoxUpdate()
 
 void BillboardSet::UpdateBufferSize()
 {
-    unsigned numBillboards = billboards_.Size();
+    unsigned numBillboards = billboards_.size();
 
     if (vertexBuffer_->GetVertexCount() != numBillboards * 4)
         vertexBuffer_->SetSize(numBillboards * 4, MASK_POSITION | MASK_COLOR | MASK_TEXCOORD1 | MASK_TEXCOORD2, true);
@@ -454,7 +454,7 @@ void BillboardSet::UpdateVertexBuffer(const FrameInfo& frame)
         }
     }
 
-    unsigned numBillboards = billboards_.Size();
+    unsigned numBillboards = billboards_.size();
     unsigned enabledBillboards = 0;
     const Matrix3x4& worldTransform = node_->GetWorldTransform();
     Matrix3x4 billboardTransform = relative_ ? worldTransform : Matrix3x4::IDENTITY;
@@ -490,7 +490,7 @@ void BillboardSet::UpdateVertexBuffer(const FrameInfo& frame)
         return;
 
     if (sorted_)
-        Sort(sortedBillboards_.begin(), sortedBillboards_.end(), CompareBillboards);
+        std::sort(sortedBillboards_.begin(), sortedBillboards_.end(), CompareBillboards);
 
     float* dest = (float*)vertexBuffer_->Lock(0, enabledBillboards * 4, true);
     if (!dest)

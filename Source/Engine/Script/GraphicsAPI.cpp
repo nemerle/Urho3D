@@ -547,7 +547,7 @@ static CScriptArray* MaterialGetShaderParameterNames(Material* material)
     for (const MaterialShaderParameter & parameter : material->GetShaderParameters())
         result.push_back(parameter.name_);
 
-    Sort(result.begin(), result.end());
+    sort(result.begin(), result.end());
     return VectorToArray<String>(result, "Array<String>");
 }
 
@@ -1514,7 +1514,7 @@ static RayQueryResult OctreeRaycastSingle(const Ray& ray, RayQueryLevel level, f
     PODVector<RayQueryResult> result;
     RayOctreeQuery query(result, ray, level, maxDistance, drawableFlags, viewMask);
     ptr->RaycastSingle(query);
-    if (!query.result_.Empty())
+    if (!query.result_.empty())
         return query.result_[0];
     else
     {

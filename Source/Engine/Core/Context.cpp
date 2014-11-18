@@ -79,7 +79,7 @@ Context::~Context()
     // Delete allocated event data maps
     for (VariantMap* elem : eventDataMaps_)
         delete elem;
-    eventDataMaps_.Clear();
+    eventDataMaps_.clear();
 }
 
 SharedPtr<Object> Context::CreateObject(StringHash objectType)
@@ -151,9 +151,9 @@ void Context::UpdateAttributeDefaultValue(StringHash objectType, const char* nam
 
 VariantMap& Context::GetEventDataMap()
 {
-    unsigned nestingLevel = eventSenders_.Size();
-    while (eventDataMaps_.Size() < nestingLevel + 1)
-        eventDataMaps_.Push(new VariantMap());
+    unsigned nestingLevel = eventSenders_.size();
+    while (eventDataMaps_.size() < nestingLevel + 1)
+        eventDataMaps_.push_back(new VariantMap());
 
     VariantMap& ret = *eventDataMaps_[nestingLevel];
     ret.clear();
@@ -187,8 +187,8 @@ Object* Context::GetSubsystem(StringHash type) const
 
 Object* Context::GetEventSender() const
 {
-    if (!eventSenders_.Empty())
-        return eventSenders_.Back();
+    if (!eventSenders_.empty())
+        return eventSenders_.back();
     else
         return nullptr;
 }

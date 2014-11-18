@@ -43,6 +43,12 @@ public:
     {
     }
 
+    /// Copy-construct from another hash.
+    StringHash(StringHash&& rhs) :
+        value_(rhs.value_)
+    {
+        rhs.value_=0;
+    }
     /// Construct with an initial value.
     explicit StringHash(unsigned value) :
         value_(value)

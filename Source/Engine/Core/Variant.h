@@ -196,6 +196,12 @@ public:
     {
         *this = (int)value;
     }
+    /// Construct from size_t type //ERROR: truncates on 64 bit on OSes
+    Variant(size_t value) :
+        type_(VAR_NONE)
+    {
+        *this = (int)value;
+    }
 
     /// Construct from a string hash (convert to integer).
     Variant(const StringHash& value) :

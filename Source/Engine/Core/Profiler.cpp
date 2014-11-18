@@ -151,7 +151,7 @@ void Profiler::GetData(ProfilerBlock* block, String& output, unsigned depth, uns
         ++depth;
     }
 
-    for (PODVector<ProfilerBlock*>::ConstIterator i = block->children_.begin(); i != block->children_.end(); ++i)
+    for (PODVector<ProfilerBlock*>::const_iterator i = block->children_.begin(); i != block->children_.end(); ++i)
         GetData(*i, output, depth, maxDepth, showUnused, showTotal);
 }
 

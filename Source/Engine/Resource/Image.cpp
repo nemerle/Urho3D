@@ -673,7 +673,7 @@ bool Image::FlipHorizontal()
                     newData[y * rowSize + x * components_ + c] = data_[y * rowSize + (width_ - x - 1) * components_ + c];
             }
         }
-        
+
         data_ = newData;
     }
     else
@@ -683,11 +683,11 @@ bool Image::FlipHorizontal()
             LOGERROR("FlipHorizontal not yet implemented for other compressed formats than DXT1,3,5");
             return false;
         }
-        
+
         // Memory use = combined size of the compressed mip levels
         SharedArrayPtr<unsigned char> newData(new unsigned char[GetMemoryUse()]);
         unsigned dataOffset = 0;
-        
+
         for (unsigned i = 0; i < numCompressedLevels_; ++i)
         {
             CompressedLevel level = GetCompressedLevel(i);
@@ -696,7 +696,7 @@ bool Image::FlipHorizontal()
                 LOGERROR("Got compressed level with no data, aborting horizontal flip");
                 return false;
             }
-            
+
             for (unsigned y = 0; y < level.rows_; ++y)
             {
                 for (unsigned x = 0; x < level.rowSize_; x += level.blockSize_)
@@ -706,13 +706,13 @@ bool Image::FlipHorizontal()
                     FlipBlockHorizontal(dest, src, compressedFormat_);
                 }
             }
-            
+
             dataOffset += level.dataSize_;
         }
-        
+
         data_ = newData;
     }
-    
+
     return true;
 }
 
@@ -744,11 +744,11 @@ bool Image::FlipVertical()
             LOGERROR("FlipVertical not yet implemented for other compressed formats than DXT1,3,5");
             return false;
         }
-        
+
         // Memory use = combined size of the compressed mip levels
         SharedArrayPtr<unsigned char> newData(new unsigned char[GetMemoryUse()]);
         unsigned dataOffset = 0;
-        
+
         for (unsigned i = 0; i < numCompressedLevels_; ++i)
         {
             CompressedLevel level = GetCompressedLevel(i);
@@ -757,22 +757,22 @@ bool Image::FlipVertical()
                 LOGERROR("Got compressed level with no data, aborting vertical flip");
                 return false;
             }
-            
+
             for (unsigned y = 0; y < level.rows_; ++y)
             {
                 unsigned char* src = level.data_ + y * level.rowSize_;
                 unsigned char* dest = newData.Get() + dataOffset + (level.rows_ - y - 1) * level.rowSize_;
-                
+
                 for (unsigned x = 0; x < level.rowSize_; x += level.blockSize_)
                     FlipBlockVertical(dest + x, src + x, compressedFormat_);
             }
-            
+
             dataOffset += level.dataSize_;
         }
-        
+
         data_ = newData;
     }
-    
+
     return true;
 }
 
@@ -1432,13 +1432,13 @@ Image* Image::GetSubimage(const IntRect& rect) const
         LOGERROR("Subimage not supported for 3D images");
         return nullptr;
     }
-    
+
     if (rect.left_ < 0 || rect.top_ < 0 || rect.right_ > width_ || rect.bottom_ > height_ || !rect.Width() || !rect.Height())
     {
         LOGERROR("Can not get subimage from image " + GetName() + " with invalid region");
         return nullptr;
     }
-    
+
     if (!IsCompressed())
     {
         int x = rect.left_;
@@ -1457,7 +1457,7 @@ Image* Image::GetSubimage(const IntRect& rect) const
             dest += width * components_;
             src += width_ * components_;
         }
-    
+
         return image;
     }
     else
@@ -1469,10 +1469,10 @@ Image* Image::GetSubimage(const IntRect& rect) const
         paddedRect.right_ = (rect.right_ / 4) * 4;
         paddedRect.bottom_ = (rect.bottom_ / 4) * 4;
         IntRect currentRect = paddedRect;
-        
+
         PODVector<unsigned char> subimageData;
         unsigned subimageLevels = 0;
-        
+
         // Save as many mips as possible until the next mip would cross a block boundary
         for (unsigned i = 0; i < numCompressedLevels_; ++i)
         {
@@ -1481,22 +1481,22 @@ Image* Image::GetSubimage(const IntRect& rect) const
                 break;
 
             // Mips are stored continuously
-            unsigned destStartOffset = subimageData.Size();
+            unsigned destStartOffset = subimageData.size();
             unsigned destRowSize = currentRect.Width() / 4 * level.blockSize_;
             unsigned destSize = currentRect.Height() / 4 * destRowSize;
             if (!destSize)
                 break;
-            
-            subimageData.Resize(destStartOffset + destSize);
+
+            subimageData.resize(destStartOffset + destSize);
             unsigned char* dest = &subimageData[destStartOffset];
-            
+
             for (int y = currentRect.top_; y < currentRect.bottom_; y += 4)
             {
                 unsigned char* src = level.data_ + level.rowSize_ * (y / 4) + currentRect.left_ / 4 * level.blockSize_;
                 memcpy(dest, src, destRowSize);
                 dest += destRowSize;
             }
-            
+
             ++subimageLevels;
             if ((currentRect.left_ & 4) || (currentRect.right_ & 4) || (currentRect.top_ & 4) || (currentRect.bottom_ & 4))
                 break;
@@ -1508,13 +1508,13 @@ Image* Image::GetSubimage(const IntRect& rect) const
                 currentRect.bottom_ /= 2;
             }
         }
-        
+
         if (!subimageLevels)
         {
             LOGERROR("Subimage region from compressed image " + GetName() + " did not produce any data");
             return nullptr;
         }
-        
+
         Image* image = new Image(context_);
         image->width_ = paddedRect.Width();
         image->height_ = paddedRect.Height();
@@ -1522,10 +1522,10 @@ Image* Image::GetSubimage(const IntRect& rect) const
         image->compressedFormat_ = compressedFormat_;
         image->numCompressedLevels_ = subimageLevels;
         image->components_ = components_;
-        image->data_ = new unsigned char[subimageData.Size()];
-        memcpy(image->data_.Get(), &subimageData[0], subimageData.Size());
-        image->SetMemoryUse(subimageData.Size());
-        
+        image->data_ = new unsigned char[subimageData.size()];
+        memcpy(image->data_.Get(), &subimageData[0], subimageData.size());
+        image->SetMemoryUse(subimageData.size());
+
         return image;
     }
 }
@@ -1540,7 +1540,7 @@ SDL_Surface* Image::GetSDLSurface(const IntRect& rect) const
         LOGERROR("Can not get SDL surface from 3D image");
         return nullptr;
     }
-    
+
     if (IsCompressed())
     {
         LOGERROR("Can not get SDL surface from compressed image " + GetName());

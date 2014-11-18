@@ -35,7 +35,7 @@
 namespace Urho3D
 {
 
-const char* interpMethodNames[] = 
+const char* interpMethodNames[] =
 {
     "Linear",
     "Spline",
@@ -222,7 +222,7 @@ bool ValueAnimation::SetKeyFrame(float time, const Variant& value)
                 return false;
             if (time < keyFrames_[i].time_)
             {
-                keyFrames_.insert(i, keyFrame);
+                keyFrames_.insert(keyFrames_.begin()+i, keyFrame);
                 break;
             }
         }
@@ -250,7 +250,7 @@ void ValueAnimation::SetEventFrame(float time, const StringHash& eventType, cons
         {
             if (time < eventFrames_[i].time_)
             {
-                eventFrames_.insert(i, eventFrame);
+                eventFrames_.insert(eventFrames_.begin()+i, eventFrame);
                 break;
             }
         }
@@ -291,7 +291,7 @@ void ValueAnimation::GetEventFrames(float beginTime, float endTime, PODVector<co
             break;
 
         if (eventFrame.time_ >= beginTime)
-            eventFrames.Push(&eventFrame);
+            eventFrames.push_back(&eventFrame);
     }
 }
 
@@ -411,7 +411,7 @@ void ValueAnimation::UpdateSplineTangents()
     // If spline is not closed, make end point's tangent zero
     if (keyFrames_[0].value_ != keyFrames_[size - 1].value_)
         splineTangents_[0] = splineTangents_[size - 1] = SubstractAndMultiply(keyFrames_[0].value_, keyFrames_[0].value_, splineTension_);
-    else 
+    else
         splineTangents_[0] = splineTangents_[size - 1] = SubstractAndMultiply(keyFrames_[1].value_, keyFrames_[size - 2].value_, splineTension_);
 
     splineTangentsDirty_ = false;

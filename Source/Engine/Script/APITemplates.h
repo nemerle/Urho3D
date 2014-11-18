@@ -80,23 +80,6 @@ template <class T> CScriptArray* VectorToArray(const Vector<T>& vector, const ch
         return 0;
 }
 
-/// Template function for PODVector to array conversion.
-template <class T> CScriptArray* VectorToArray(const PODVector<T>& vector, const char* arrayName)
-{
-    asIScriptContext *context = asGetActiveContext();
-    if (context)
-    {
-        asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
-        CScriptArray* arr = CScriptArray::Create(type, vector.Size());
-
-        for (unsigned i = 0; i < arr->GetSize(); ++i)
-            *(static_cast<T*>(arr->At(i))) = vector[i];
-
-        return arr;
-    }
-    else
-        return 0;
-}
 /// Template function for QList to array conversion.
 template <class T> CScriptArray* VectorToArray(const QList<T>& list, const char* arrayName)
 {
@@ -140,30 +123,6 @@ template <class T> CScriptArray* VectorToHandleArray(const Vector<T*>& vector, c
     {
         asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
         CScriptArray* arr = CScriptArray::Create(type, vector.size());
-
-        for (unsigned i = 0; i < arr->GetSize(); ++i)
-        {
-            // Increment reference count for storing in the array
-            T* ptr = vector[i];
-            if (ptr)
-                ptr->AddRef();
-            *(static_cast<T**>(arr->At(i))) = ptr;
-        }
-
-        return arr;
-    }
-    else
-        return 0;
-}
-
-/// Template function for PODVector to handle array conversion.
-template <class T> CScriptArray* VectorToHandleArray(const PODVector<T*>& vector, const char* arrayName)
-{
-    asIScriptContext *context = asGetActiveContext();
-    if (context)
-    {
-        asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
-        CScriptArray* arr = CScriptArray::Create(type, vector.Size());
 
         for (unsigned i = 0; i < arr->GetSize(); ++i)
         {
@@ -288,7 +247,7 @@ template <class T> CScriptArray* DeserializerRead(unsigned size, T* ptr)
 {
     PODVector<unsigned char> vector(size);
     unsigned bytesRead = size ? ptr->Read(&vector[0], size) : 0;
-    vector.Resize(bytesRead);
+    vector.resize(bytesRead);
     return VectorToArray(vector, "Array<uint8>");
 }
 
@@ -587,7 +546,7 @@ static CScriptArray* NodeGetChildrenWithClassName(const String& className, bool 
     PODVector<Node*> result;
 
     ptr->GetChildrenWithComponent<ScriptInstance>(nodes, recursive);
-    for (PODVector<Node*>::Iterator i = nodes.begin(); i != nodes.end(); ++i)
+    for (PODVector<Node*>::iterator i = nodes.begin(); i != nodes.end(); ++i)
     {
         Node* node = *i;
         const Vector<SharedPtr<Component> >& components = node->GetComponents();
@@ -597,7 +556,7 @@ static CScriptArray* NodeGetChildrenWithClassName(const String& className, bool 
             {
                 ScriptInstance* instance = static_cast<ScriptInstance*>(j->Get());
                 if (instance->GetClassName() == className)
-                    result.Push(node);
+                    result.push_back(node);
             }
         }
     }

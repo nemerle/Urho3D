@@ -97,11 +97,11 @@ struct PhysicsQueryCallback : public btCollisionWorld::ContactResultCallback
     virtual btScalar addSingleResult(btManifoldPoint &, const btCollisionObjectWrapper *colObj0Wrap, int, int, const btCollisionObjectWrapper *colObj1Wrap, int, int) override
     {
         RigidBody* body = reinterpret_cast<RigidBody*>(colObj0Wrap->getCollisionObject()->getUserPointer());
-        if (body && !result_.Contains(body) && (body->GetCollisionLayer() & collisionMask_))
-            result_.Push(body);
+        if (body && !result_.contains(body) && (body->GetCollisionLayer() & collisionMask_))
+            result_.push_back(body);
         body = reinterpret_cast<RigidBody*>(colObj1Wrap->getCollisionObject()->getUserPointer());
-        if (body && !result_.Contains(body) && (body->GetCollisionLayer() & collisionMask_))
-            result_.Push(body);
+        if (body && !result_.contains(body) && (body->GetCollisionLayer() & collisionMask_))
+            result_.push_back(body);
         return 0.0f;
     }
 
@@ -353,10 +353,10 @@ void PhysicsWorld::Raycast(PODVector<PhysicsRaycastResult>& result, const Ray& r
         newResult.position_ = ToVector3(rayCallback.m_hitPointWorld[i]);
         newResult.normal_ = ToVector3(rayCallback.m_hitNormalWorld[i]);
         newResult.distance_ = (newResult.position_ - ray.origin_).Length();
-        result.Push(newResult);
+        result.push_back(newResult);
     }
 
-    Sort(result.begin(), result.end(), CompareRaycastResults);
+    std::sort(result.begin(), result.end(), CompareRaycastResults);
 }
 
 void PhysicsWorld::RaycastSingle(PhysicsRaycastResult& result, const Ray& ray, float maxDistance, unsigned collisionMask)
@@ -516,7 +516,7 @@ void PhysicsWorld::GetRigidBodies(PODVector<RigidBody*>& result, const Sphere& s
 {
     PROFILE(PhysicsSphereQuery);
 
-    result.Clear();
+    result.clear();
 
     btSphereShape sphereShape(sphere.radius_);
     btRigidBody* tempRigidBody = new btRigidBody(1.0f, nullptr, &sphereShape);
@@ -536,7 +536,7 @@ void PhysicsWorld::GetRigidBodies(PODVector<RigidBody*>& result, const BoundingB
 {
     PROFILE(PhysicsBoxQuery);
 
-    result.Clear();
+    result.clear();
 
     btBoxShape boxShape(ToBtVector3(box.HalfSize()));
     btRigidBody* tempRigidBody = new btRigidBody(1.0f, nullptr, &boxShape);
@@ -555,14 +555,14 @@ void PhysicsWorld::GetRigidBodies(PODVector<RigidBody*>& result, const RigidBody
 {
     PROFILE(GetCollidingBodies);
 
-    result.Clear();
+    result.clear();
 
     for (auto & elem : currentCollisions_.keys())
     {
         if (elem.first_ == body)
-            result.Push(elem.second_);
+            result.push_back(elem.second_);
         else if (elem.second_ == body)
-            result.Push(elem.first_);
+            result.push_back(elem.first_);
     }
 }
 
@@ -583,34 +583,34 @@ bool PhysicsWorld::GetSplitImpulse() const
 
 void PhysicsWorld::AddRigidBody(RigidBody* body)
 {
-    rigidBodies_.Push(body);
+    rigidBodies_.push_back(body);
 }
 
 void PhysicsWorld::RemoveRigidBody(RigidBody* body)
 {
-    rigidBodies_.Remove(body);
+    rigidBodies_.remove(body);
     // Remove possible dangling pointer from the delayedWorldTransforms structure
     delayedWorldTransforms_.remove(body);
 }
 
 void PhysicsWorld::AddCollisionShape(CollisionShape* shape)
 {
-    collisionShapes_.Push(shape);
+    collisionShapes_.push_back(shape);
 }
 
 void PhysicsWorld::RemoveCollisionShape(CollisionShape* shape)
 {
-    collisionShapes_.Remove(shape);
+    collisionShapes_.remove(shape);
 }
 
 void PhysicsWorld::AddConstraint(Constraint* constraint)
 {
-    constraints_.Push(constraint);
+    constraints_.push_back(constraint);
 }
 
 void PhysicsWorld::RemoveConstraint(Constraint* constraint)
 {
-    constraints_.Remove(constraint);
+    constraints_.remove(constraint);
 }
 
 void PhysicsWorld::AddDelayedWorldTransform(const DelayedWorldTransform& transform)

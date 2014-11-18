@@ -299,7 +299,7 @@ void FileSelector::RefreshFiles()
     fileSystem->ScanDir(directories, path_, "*", SCAN_DIRS, false);
     fileSystem->ScanDir(files, path_, GetFilter(), SCAN_FILES, false);
 
-    fileEntries_.Reserve(directories.size() + files.size());
+    fileEntries_.reserve(directories.size() + files.size());
 
     for (unsigned i = 0; i < directories.size(); ++i)
     {
@@ -319,7 +319,7 @@ void FileSelector::RefreshFiles()
 
     // Sort and add to the list view
     // While items are being added, disable layout update for performance optimization
-    Sort(fileEntries_.begin(), fileEntries_.end(), CompareEntries);
+    std::sort(fileEntries_.begin(), fileEntries_.end(), CompareEntries);
     UIElement* listContent = fileList_->GetContentElement();
     listContent->DisableLayoutUpdate();
     for (unsigned i = 0; i < fileEntries_.size(); ++i)

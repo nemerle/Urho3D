@@ -98,7 +98,7 @@ bool UnknownComponent::Load(Deserializer& source, bool setInstanceDefault)
 
     // Assume we are reading from a component data buffer, and the type has already been read
     unsigned dataSize = source.GetSize() - source.GetPosition();
-    binaryAttributes_.Resize(dataSize);
+    binaryAttributes_.resize(dataSize);
     return dataSize ? source.Read(&binaryAttributes_[0], dataSize) == dataSize : true;
 }
 
@@ -107,7 +107,7 @@ bool UnknownComponent::LoadXML(const XMLElement& source, bool setInstanceDefault
     useXML_ = true;
     xmlAttributes_.clear();
     xmlAttributeInfos_.clear();
-    binaryAttributes_.Clear();
+    binaryAttributes_.clear();
 
     XMLElement attrElem = source.GetChild("attribute");
     while (attrElem)
@@ -146,10 +146,10 @@ bool UnknownComponent::Save(Serializer& dest) const
     if (!dest.WriteUInt(id_))
         return false;
 
-    if (!binaryAttributes_.Size())
+    if (!binaryAttributes_.size())
         return true;
     else
-        return dest.Write(&binaryAttributes_[0], binaryAttributes_.Size()) == binaryAttributes_.Size();
+        return dest.Write(&binaryAttributes_[0], binaryAttributes_.size()) == binaryAttributes_.size();
 }
 
 bool UnknownComponent::SaveXML(XMLElement& dest) const

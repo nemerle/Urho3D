@@ -711,17 +711,17 @@ void Engine::ApplyFrameLimit()
 
     // Perform timestep smoothing
     timeStep_ = 0.0f;
-    lastTimeSteps_.Push(elapsed / 1000000.0f);
-    if (lastTimeSteps_.Size() > timeStepSmoothing_)
+    lastTimeSteps_.push_back(elapsed / 1000000.0f);
+    if (lastTimeSteps_.size() > timeStepSmoothing_)
     {
         // If the smoothing configuration was changed, ensure correct amount of samples
-        lastTimeSteps_.Erase(0, lastTimeSteps_.Size() - timeStepSmoothing_);
-        for (unsigned i = 0; i < lastTimeSteps_.Size(); ++i)
+        lastTimeSteps_.erase(lastTimeSteps_.begin(), lastTimeSteps_.begin() + lastTimeSteps_.size() - timeStepSmoothing_);
+        for (unsigned i = 0; i < lastTimeSteps_.size(); ++i)
             timeStep_ += lastTimeSteps_[i];
-        timeStep_ /= lastTimeSteps_.Size();
+        timeStep_ /= lastTimeSteps_.size();
     }
     else
-        timeStep_ = lastTimeSteps_.Back();
+        timeStep_ = lastTimeSteps_.back();
 }
 
 VariantMap Engine::ParseParameters(const Vector<String>& arguments)

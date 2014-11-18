@@ -134,7 +134,7 @@ void DrawableProxy2D::UpdateGeometry(const FrameInfo& frame)
         Vertex2D* dest = reinterpret_cast<Vertex2D*>(vertexBuffer_->Lock(0, vertexCount_, true));
         if (dest)
         {
-            for (unsigned d = 0; d < drawables_.Size(); ++d)
+            for (unsigned d = 0; d < drawables_.size(); ++d)
             {
                 if (!drawables_[d]->GetVisibility())
                     continue;
@@ -162,10 +162,10 @@ void DrawableProxy2D::AddDrawable(Drawable2D* drawable)
     if (!drawable)
         return;
 
-    if (drawables_.Contains(drawable))
+    if (drawables_.contains(drawable))
         return;
 
-    drawables_.Push(drawable);
+    drawables_.push_back(drawable);
     orderDirty_ = true;
 }
 
@@ -174,7 +174,7 @@ void DrawableProxy2D::RemoveDrawable(Drawable2D* drawable)
     if (!drawable)
         return;
 
-    drawables_.Remove(drawable);
+    drawables_.remove(drawable);
     orderDirty_ = true;
 }
 
@@ -222,7 +222,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
 
     if (orderDirty_)
     {
-        Sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
+        std::sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
         orderDirty_ = false;
     }
 
@@ -240,9 +240,9 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
 
         WorkQueue* queue = GetSubsystem<WorkQueue>();
         int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
-        int drawablesPerItem = drawables_.Size() / numWorkItems;
+        int drawablesPerItem = drawables_.size() / numWorkItems;
 
-        PODVector<Drawable2D*>::Iterator start = drawables_.begin();
+        PODVector<Drawable2D*>::iterator start = drawables_.begin();
         for (int i = 0; i < numWorkItems; ++i)
         {
             SharedPtr<WorkItem> item = queue->GetFreeItem();
@@ -250,7 +250,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
             item->workFunction_ = CheckDrawableVisibility;
             item->aux_ = this;
 
-            PODVector<Drawable2D*>::Iterator end = drawables_.end();
+            PODVector<Drawable2D*>::iterator end = drawables_.end();
             if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                 end = start + drawablesPerItem;
 
@@ -265,7 +265,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     }
 
     vertexCount_ = 0;
-    for (unsigned i = 0; i < drawables_.Size(); ++i)
+    for (unsigned i = 0; i < drawables_.size(); ++i)
     {
         if (drawables_[i]->GetVisibility())
             vertexCount_ += drawables_[i]->GetVertices().size();
@@ -281,7 +281,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     unsigned vStart = 0;
     unsigned vCount = 0;
 
-    for (unsigned d = 0; d < drawables_.Size(); ++d)
+    for (unsigned d = 0; d < drawables_.size(); ++d)
     {
         if (!drawables_[d]->GetVisibility())
             continue;

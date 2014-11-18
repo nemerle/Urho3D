@@ -150,7 +150,7 @@ struct BatchGroup : public Batch
         for (unsigned i = 0; i < batch.numWorldTransforms_; ++i)
         {
             newInstance.worldTransform_ = &batch.worldTransform_[i];
-            instances_.Push(newInstance);
+            instances_.push_back(newInstance);
         }
     }
 
@@ -221,7 +221,7 @@ public:
     /// Return the combined amount of instances.
     unsigned GetNumInstances() const;
     /// Return whether the batch group is empty.
-    bool IsEmpty() const { return batches_.Empty() && batchGroups_.isEmpty(); }
+    bool IsEmpty() const { return batches_.empty() && batchGroups_.isEmpty(); }
 
     /// Instanced draw calls.
     QHash<BatchGroupKey, BatchGroup> batchGroups_;

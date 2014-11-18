@@ -312,7 +312,7 @@ void Technique::ReleaseShaders()
 {
     PODVector<SharedPtr<Pass>*> allPasses = passes_.Values();
 
-    for (unsigned i = 0; i < allPasses.Size(); ++i)
+    for (unsigned i = 0; i < allPasses.size(); ++i)
         allPasses[i]->Get()->ReleaseShaders();
 }
 
@@ -342,8 +342,8 @@ Vector<StringHash> Technique::GetPassTypes() const
     // Convert PODVector<unsigned> to Vector<StringHash>
     PODVector<unsigned> vectorIn = passes_.Keys();
     Vector<StringHash> vectorOut;
-    vectorOut.Reserve(vectorIn.Size());
-    for (unsigned i = 0; i < vectorIn.Size(); ++i)
+    vectorOut.reserve(vectorIn.size());
+    for (unsigned i = 0; i < vectorIn.size(); ++i)
         vectorOut.push_back(StringHash(vectorIn[i]));
 
     return vectorOut;
@@ -354,9 +354,9 @@ PODVector<Pass*> Technique::GetPasses() const
     // Convert PODVector<SharedPtr<Pass>*> to PODVector<Pass*>
     PODVector<SharedPtr<Pass>*> vectorIn = passes_.Values();
     PODVector<Pass*> vectorOut;
-    vectorOut.Reserve(vectorIn.Size());
-    for (unsigned i = 0; i < vectorIn.Size(); ++i)
-        vectorOut.Push(vectorIn[i]->Get());
+    vectorOut.reserve(vectorIn.size());
+    for (unsigned i = 0; i < vectorIn.size(); ++i)
+        vectorOut.push_back(vectorIn[i]->Get());
 
     return vectorOut;
 }

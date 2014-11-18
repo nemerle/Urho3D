@@ -288,10 +288,10 @@ bool XMLElement::SetBuffer(const String& name, const void* data, unsigned size)
 
 bool XMLElement::SetBuffer(const String& name, const PODVector<unsigned char>& value)
 {
-    if (!value.Size())
+    if (!value.size())
         return SetAttribute(name, String::EMPTY);
     else
-        return SetBuffer(name, &value[0], value.Size());
+        return SetBuffer(name, &value[0], value.size());
 }
 
 bool XMLElement::SetColor(const String& name, const Color& value)

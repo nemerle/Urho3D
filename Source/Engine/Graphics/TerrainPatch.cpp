@@ -104,7 +104,7 @@ void TerrainPatch::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQue
             result.drawable_ = this;
             result.node_ = node_;
             result.subObject_ = M_MAX_UNSIGNED;
-            results.Push(result);
+            results.push_back(result);
         }
         break;
     }
@@ -122,7 +122,7 @@ void TerrainPatch::UpdateBatches(const FrameInfo& frame)
     batches_[0].worldTransform_ = &worldTransform;
     
     unsigned newLodLevel = 0;
-    for (unsigned i = 0; i < lodErrors_.Size(); ++i)
+    for (unsigned i = 0; i < lodErrors_.size(); ++i)
     {
         if (lodErrors_[i] / lodDistance_ > LOD_CONSTANT)
             break;

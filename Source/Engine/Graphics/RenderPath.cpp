@@ -351,7 +351,7 @@ void RenderPath::AddRenderTarget(const RenderTargetInfo& info)
 
 void RenderPath::RemoveRenderTarget(unsigned index)
 {
-    renderTargets_.erase(index);
+    renderTargets_.erase(renderTargets_.begin()+index);
 }
 
 void RenderPath::RemoveRenderTarget(const String& name)
@@ -360,7 +360,7 @@ void RenderPath::RemoveRenderTarget(const String& name)
     {
         if (!renderTargets_[i].name_.Compare(name, false))
         {
-            renderTargets_.erase(i);
+            renderTargets_.erase(renderTargets_.begin()+i);
             return;
         }
     }
@@ -371,7 +371,7 @@ void RenderPath::RemoveRenderTargets(const String& tag)
     for (unsigned i = renderTargets_.size() - 1; i < renderTargets_.size(); --i)
     {
         if (!renderTargets_[i].tag_.Compare(tag, false))
-            renderTargets_.erase(i);
+            renderTargets_.erase(renderTargets_.begin()+i);
     }
 }
 
@@ -390,12 +390,12 @@ void RenderPath::AddCommand(const RenderPathCommand& command)
 
 void RenderPath::InsertCommand(unsigned index, const RenderPathCommand& command)
 {
-    commands_.insert(index, command);
+    commands_.insert(commands_.begin()+index, command);
 }
 
 void RenderPath::RemoveCommand(unsigned index)
 {
-    commands_.erase(index);
+    commands_.erase(commands_.begin()+index);
 }
 
 void RenderPath::RemoveCommands(const String& tag)
@@ -403,7 +403,7 @@ void RenderPath::RemoveCommands(const String& tag)
     for (unsigned i = commands_.size() - 1; i < commands_.size(); --i)
     {
         if (!commands_[i].tag_.Compare(tag, false))
-            commands_.erase(i);
+            commands_.erase(commands_.begin()+i);
     }
 }
 

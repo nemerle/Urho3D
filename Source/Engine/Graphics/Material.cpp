@@ -615,7 +615,7 @@ SharedPtr<Material> Material::Clone(const String& cloneName) const
 
 void Material::SortTechniques()
 {
-    Sort(techniques_.begin(), techniques_.end(), CompareTechniqueEntries);
+    std::sort(techniques_.begin(), techniques_.end(), CompareTechniqueEntries);
 }
 
 void Material::MarkForAuxView(unsigned frameNumber)

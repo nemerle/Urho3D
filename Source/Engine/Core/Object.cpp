@@ -199,7 +199,7 @@ void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& excepti
     {
         EventHandler* next = eventHandlers_.Next(handler);
 
-        if ((!onlyUserData || handler->GetUserData()) && !exceptions.Contains(handler->GetEventType()))
+        if ((!onlyUserData || handler->GetUserData()) && !exceptions.contains(handler->GetEventType()))
         {
             if (handler->GetSender())
                 context_->RemoveEventReceiver(this, handler->GetSender(), handler->GetEventType());
@@ -365,7 +365,7 @@ const String& Object::GetCategory() const
     const QHash<String, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
     for (auto iter = objectCategories.begin(),fin=objectCategories.end(); iter!=fin; ++iter)
     {
-        if (iter->Contains(GetType()))
+        if (iter->contains(GetType()))
             return iter.key();
     }
 

@@ -227,13 +227,13 @@ void Animation::AddTrigger(float time, bool timeIsNormalized, const Variant& dat
     newTrigger.data_ = data;
     triggers_.push_back(newTrigger);
 
-    Sort(triggers_.begin(), triggers_.end(), CompareTriggers);
+    std::sort(triggers_.begin(), triggers_.end(), CompareTriggers);
 }
 
 void Animation::RemoveTrigger(unsigned index)
 {
     if (index < triggers_.size())
-        triggers_.erase(index);
+        triggers_.erase(triggers_.begin()+index);
 }
 
 void Animation::RemoveAllTriggers()

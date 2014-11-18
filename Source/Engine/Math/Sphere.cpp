@@ -95,8 +95,8 @@ void Sphere::Merge(const Polyhedron& poly)
     for (unsigned i = 0; i < poly.faces_.size(); ++i)
     {
         const PODVector<Vector3>& face = poly.faces_[i];
-        if (!face.Empty())
-            Merge(&face[0], face.Size());
+        if (!face.empty())
+            Merge(&face[0], face.size());
     }
 }
 

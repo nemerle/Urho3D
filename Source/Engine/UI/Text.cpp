@@ -99,9 +99,9 @@ void Text::ApplyAttributes()
     UIElement::ApplyAttributes();
 
     // Decode to Unicode now
-    unicodeText_.Clear();
+    unicodeText_.clear();
     for (unsigned i = 0; i < text_.Length();)
-        unicodeText_.Push(text_.NextUTF8Char(i));
+        unicodeText_.push_back(text_.NextUTF8Char(i));
 
     fontSize_ = Max(fontSize_, 1);
     ValidateSelection();
@@ -123,7 +123,7 @@ void Text::GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData,
     // If face uses mutable glyphs mechanism, reacquire glyphs before rendering to make sure they are in the texture
     else if (face->HasMutableGlyphs())
     {
-        for (unsigned i = 0; i < printText_.Size(); ++i)
+        for (unsigned i = 0; i < printText_.size(); ++i)
             face->GetGlyph(printText_[i]);
     }
 
@@ -139,7 +139,7 @@ void Text::GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData,
     }
 
     // Partial selection batch
-    if (!selected_ && selectionLength_ && charLocations_.Size() >= selectionStart_ + selectionLength_ && selectionColor_.a_ > 0.0f)
+    if (!selected_ && selectionLength_ && charLocations_.size() >= selectionStart_ + selectionLength_ && selectionColor_.a_ > 0.0f)
     {
         UIBatch batch(this, BLEND_ALPHA, currentScissor, nullptr, &vertexData);
         batch.SetColor(selectionColor_);
@@ -257,9 +257,9 @@ void Text::SetText(const String& text)
     text_ = text;
 
     // Decode to Unicode now
-    unicodeText_.Clear();
+    unicodeText_.clear();
     for (unsigned i = 0; i < text_.Length();)
-        unicodeText_.Push(text_.NextUTF8Char(i));
+        unicodeText_.push_back(text_.NextUTF8Char(i));
 
     ValidateSelection();
     UpdateText();
@@ -337,18 +337,18 @@ void Text::SetEffectDepthBias(float bias)
 
 int Text::GetRowWidth(unsigned index) const
 {
-    return index < rowWidths_.Size() ? rowWidths_[index] : 0;
+    return index < rowWidths_.size() ? rowWidths_[index] : 0;
 }
 
 IntVector2 Text::GetCharPosition(unsigned index)
 {
     if (charLocationsDirty_)
         UpdateCharLocations();
-    if (charLocations_.Empty())
+    if (charLocations_.empty())
         return IntVector2::ZERO;
     // For convenience, return the position of the text ending if index exceeded
-    if (index > charLocations_.Size() - 1)
-        index = charLocations_.Size() - 1;
+    if (index > charLocations_.size() - 1)
+        index = charLocations_.size() - 1;
     return charLocations_[index].position_;
 }
 
@@ -356,11 +356,11 @@ IntVector2 Text::GetCharSize(unsigned index)
 {
     if (charLocationsDirty_)
         UpdateCharLocations();
-    if (charLocations_.Size() < 2)
+    if (charLocations_.size() < 2)
         return IntVector2::ZERO;
     // For convenience, return the size of the last char if index exceeded (last size entry is zero)
-    if (index > charLocations_.Size() - 2)
-        index = charLocations_.Size() - 2;
+    if (index > charLocations_.size() - 2)
+        index = charLocations_.size() - 2;
     return charLocations_[index].size_;
 }
 
@@ -395,8 +395,8 @@ bool Text::FilterImplicitAttributes(XMLElement& dest) const
 
 void Text::UpdateText(bool onResize)
 {
-    rowWidths_.Clear();
-    printText_.Clear();
+    rowWidths_.clear();
+    printText_.clear();
 
     if (font_)
     {
@@ -415,8 +415,8 @@ void Text::UpdateText(bool onResize)
         if (!wordWrap_)
         {
             printText_ = unicodeText_;
-            printToText_.Resize(printText_.Size());
-            for (unsigned i = 0; i < printText_.Size(); ++i)
+            printToText_.resize(printText_.size());
+            for (unsigned i = 0; i < printText_.size(); ++i)
                 printToText_[i] = i;
         }
         else
@@ -424,9 +424,9 @@ void Text::UpdateText(bool onResize)
             int maxWidth = GetWidth();
             unsigned nextBreak = 0;
             unsigned lineStart = 0;
-            printToText_.Clear();
+            printToText_.clear();
 
-            for (unsigned i = 0; i < unicodeText_.Size(); ++i)
+            for (unsigned i = 0; i < unicodeText_.size(); ++i)
             {
                 unsigned j;
                 unsigned c = unicodeText_[i];
@@ -438,7 +438,7 @@ void Text::UpdateText(bool onResize)
                     if (nextBreak <= i)
                     {
                         int futureRowWidth = rowWidth;
-                        for (j = i; j < unicodeText_.Size(); ++j)
+                        for (j = i; j < unicodeText_.size(); ++j)
                         {
                             unsigned d = unicodeText_[j];
                             if (d == ' ' || d == '\n')
@@ -450,7 +450,7 @@ void Text::UpdateText(bool onResize)
                             if (glyph)
                             {
                                 futureRowWidth += glyph->advanceX_;
-                                if (j < unicodeText_.Size() - 1)
+                                if (j < unicodeText_.size() - 1)
                                     futureRowWidth += face->GetKerning(d, unicodeText_[j + 1]);
                             }
                             if (d == '-' && futureRowWidth <= maxWidth)
@@ -473,24 +473,24 @@ void Text::UpdateText(bool onResize)
                         {
                             while (i < j)
                             {
-                                printText_.Push(unicodeText_[i]);
-                                printToText_.Push(i);
+                                printText_.push_back(unicodeText_[i]);
+                                printToText_.push_back(i);
                                 ++i;
                             }
                         }
                         // Eliminate spaces that have been copied before the forced break
-                        while (printText_.Size() && printText_.Back() == ' ')
+                        while (printText_.size() && printText_.back() == ' ')
                         {
-                            printText_.Pop();
-                            printToText_.Pop();
+                            printText_.pop_back();
+                            printToText_.pop_back();
                         }
-                        printText_.Push('\n');
-                        printToText_.Push(Min((int)i, (int)unicodeText_.Size() - 1));
+                        printText_.push_back('\n');
+                        printToText_.push_back(Min((int)i, (int)unicodeText_.size() - 1));
                         rowWidth = 0;
                         nextBreak = lineStart = i;
                     }
 
-                    if (i < unicodeText_.Size())
+                    if (i < unicodeText_.size())
                     {
                         // When copying a space, position is allowed to be over row width
                         c = unicodeText_[i];
@@ -498,20 +498,20 @@ void Text::UpdateText(bool onResize)
                         if (glyph)
                         {
                             rowWidth += glyph->advanceX_;
-                            if (i < unicodeText_.Size() - 1)
+                            if (i < unicodeText_.size() - 1)
                                 rowWidth += face->GetKerning(c, unicodeText_[i + 1]);
                         }
                         if (rowWidth <= maxWidth)
                         {
-                            printText_.Push(c);
-                            printToText_.Push(i);
+                            printText_.push_back(c);
+                            printToText_.push_back(i);
                         }
                     }
                 }
                 else
                 {
-                    printText_.Push('\n');
-                    printToText_.Push(Min((int)i, (int)unicodeText_.Size() - 1));
+                    printText_.push_back('\n');
+                    printToText_.push_back(Min((int)i, (int)unicodeText_.size() - 1));
                     rowWidth = 0;
                     nextBreak = lineStart = i;
                 }
@@ -520,7 +520,7 @@ void Text::UpdateText(bool onResize)
 
         rowWidth = 0;
 
-        for (unsigned i = 0; i < printText_.Size(); ++i)
+        for (unsigned i = 0; i < printText_.size(); ++i)
         {
             unsigned c = printText_[i];
 
@@ -530,7 +530,7 @@ void Text::UpdateText(bool onResize)
                 if (glyph)
                 {
                     rowWidth += glyph->advanceX_;
-                    if (i < printText_.Size() - 1)
+                    if (i < printText_.size() - 1)
                         rowWidth += face->GetKerning(c, printText_[i + 1]);
                 }
             }
@@ -538,7 +538,7 @@ void Text::UpdateText(bool onResize)
             {
                 width = Max(width, rowWidth);
                 height += rowHeight;
-                rowWidths_.Push(rowWidth);
+                rowWidths_.push_back(rowWidth);
                 rowWidth = 0;
             }
         }
@@ -547,7 +547,7 @@ void Text::UpdateText(bool onResize)
         {
             width = Max(width, rowWidth);
             height += rowHeight;
-            rowWidths_.Push(rowWidth);
+            rowWidths_.push_back(rowWidth);
         }
 
         // Set at least one row height even if text is empty
@@ -591,11 +591,11 @@ void Text::UpdateCharLocations()
     int rowHeight = (int)(rowSpacing_ * rowHeight_);
 
     // Store position & size of each character, and locations per texture page
-    unsigned numChars = unicodeText_.Size();
-    charLocations_.Resize(numChars + 1);
+    unsigned numChars = unicodeText_.size();
+    charLocations_.resize(numChars + 1);
     pageGlyphLocations_.resize(face->GetTextures().size());
     for (unsigned i = 0; i < pageGlyphLocations_.size(); ++i)
-        pageGlyphLocations_[i].Clear();
+        pageGlyphLocations_[i].clear();
 
     IntVector2 offset = font_->GetTotalGlyphOffset(fontSize_);
 
@@ -604,7 +604,7 @@ void Text::UpdateCharLocations()
     int x = GetRowStartPosition(rowIndex) + offset.x_;
     int y = offset.y_;
 
-    for (unsigned i = 0; i < printText_.Size(); ++i)
+    for (unsigned i = 0; i < printText_.size(); ++i)
     {
         CharLocation loc;
         loc.position_ = IntVector2(x, y);
@@ -618,9 +618,9 @@ void Text::UpdateCharLocations()
             {
                 // Store glyph's location for rendering. Verify that glyph page is valid
                 if (glyph->page_ < pageGlyphLocations_.size())
-                    pageGlyphLocations_[glyph->page_].Push(GlyphLocation(x, y, glyph));
+                    pageGlyphLocations_[glyph->page_].push_back(GlyphLocation(x, y, glyph));
                 x += glyph->advanceX_;
-                if (i < printText_.Size() - 1)
+                if (i < printText_.size() - 1)
                     x += face->GetKerning(c, printText_[i + 1]);
             }
         }
@@ -645,7 +645,7 @@ void Text::UpdateCharLocations()
 
 void Text::ValidateSelection()
 {
-    unsigned textLength = unicodeText_.Size();
+    unsigned textLength = unicodeText_.size();
 
     if (textLength)
     {
@@ -665,7 +665,7 @@ int Text::GetRowStartPosition(unsigned rowIndex) const
 {
     int rowWidth = 0;
 
-    if (rowIndex < rowWidths_.Size())
+    if (rowIndex < rowWidths_.size())
         rowWidth = rowWidths_[rowIndex];
 
     int ret = GetIndentWidth();
@@ -688,14 +688,14 @@ int Text::GetRowStartPosition(unsigned rowIndex) const
 void Text::ConstructBatch(UIBatch& pageBatch, const PODVector<GlyphLocation>& pageGlyphLocation, int dx, int dy, Color* color,
     float depthBias)
 {
-    unsigned startDataSize = pageBatch.vertexData_->Size();
+    unsigned startDataSize = pageBatch.vertexData_->size();
 
     if (!color)
         pageBatch.SetDefaultColor();
     else
         pageBatch.SetColor(*color);
 
-    for (unsigned i = 0; i < pageGlyphLocation.Size(); ++i)
+    for (unsigned i = 0; i < pageGlyphLocation.size(); ++i)
     {
         const GlyphLocation& glyphLocation = pageGlyphLocation[i];
         const FontGlyph& glyph = *glyphLocation.glyph_;
@@ -705,9 +705,9 @@ void Text::ConstructBatch(UIBatch& pageBatch, const PODVector<GlyphLocation>& pa
 
     if (depthBias != 0.0f)
     {
-        unsigned dataSize = pageBatch.vertexData_->Size();
+        unsigned dataSize = pageBatch.vertexData_->size();
         for (unsigned i = startDataSize; i < dataSize; i += UI_VERTEX_SIZE)
-            pageBatch.vertexData_->At(i + 2) += depthBias;
+            pageBatch.vertexData_->at(i + 2) += depthBias;
     }
 }
 

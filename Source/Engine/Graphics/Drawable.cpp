@@ -120,7 +120,7 @@ void Drawable::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryRe
         result.drawable_ = this;
         result.node_ = GetNode();
         result.subObject_ = M_MAX_UNSIGNED;
-        results.Push(result);
+        results.push_back(result);
     }
 }
 
@@ -326,30 +326,30 @@ void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
 void Drawable::LimitLights()
 {
     // Maximum lights value 0 means unlimited
-    if (!maxLights_ || lights_.Size() <= maxLights_)
+    if (!maxLights_ || lights_.size() <= maxLights_)
         return;
 
     // If more lights than allowed, move to vertex lights and cut the list
     const BoundingBox& box = GetWorldBoundingBox();
-    for (unsigned i = 0; i < lights_.Size(); ++i)
+    for (unsigned i = 0; i < lights_.size(); ++i)
         lights_[i]->SetIntensitySortValue(box);
 
-    Sort(lights_.begin(), lights_.end(), CompareDrawables);
-    vertexLights_.Insert(vertexLights_.end(), lights_.begin() + maxLights_, lights_.end());
-    lights_.Resize(maxLights_);
+    std::sort(lights_.begin(), lights_.end(), CompareDrawables);
+    vertexLights_.insert(vertexLights_.end(), lights_.begin() + maxLights_, lights_.end());
+    lights_.resize(maxLights_);
 }
 
 void Drawable::LimitVertexLights()
 {
-    if (vertexLights_.Size() <= MAX_VERTEX_LIGHTS)
+    if (vertexLights_.size() <= MAX_VERTEX_LIGHTS)
         return;
 
     const BoundingBox& box = GetWorldBoundingBox();
-    for (unsigned i = vertexLights_.Size() - 1; i < vertexLights_.Size(); --i)
+    for (unsigned i = vertexLights_.size() - 1; i < vertexLights_.size(); --i)
         vertexLights_[i]->SetIntensitySortValue(box);
 
-    Sort(vertexLights_.begin(), vertexLights_.end(), CompareDrawables);
-    vertexLights_.Resize(MAX_VERTEX_LIGHTS);
+    std::sort(vertexLights_.begin(), vertexLights_.end(), CompareDrawables);
+    vertexLights_.resize(MAX_VERTEX_LIGHTS);
 }
 
 void Drawable::OnNodeSet(Node* node)

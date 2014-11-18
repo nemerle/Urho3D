@@ -195,7 +195,7 @@ void AnimatedModel::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQu
         result.drawable_ = this;
         result.node_ = node_;
         result.subObject_ = i;
-        results.Push(result);
+        results.push_back(result);
     }
 }
 
@@ -316,7 +316,7 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
         // Copy geometry bone mappings
         const Vector<PODVector<unsigned> >& geometryBoneMappings = model->GetGeometryBoneMappings();
         geometryBoneMappings_.clear();
-        geometryBoneMappings_.Reserve(geometryBoneMappings.size());
+        geometryBoneMappings_.reserve(geometryBoneMappings.size());
         for (unsigned i = 0; i < geometryBoneMappings.size(); ++i)
             geometryBoneMappings_.push_back(geometryBoneMappings[i]);
 
@@ -324,7 +324,7 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
         morphVertexBuffers_.clear();
         morphs_.clear();
         const Vector<ModelMorph>& morphs = model->GetMorphs();
-        morphs_.Reserve(morphs.size());
+        morphs_.reserve(morphs.size());
         morphElementMask_ = 0;
         for (unsigned i = 0; i < morphs.size(); ++i)
         {
@@ -349,20 +349,20 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
         // Enable skinning in batches
         for (unsigned i = 0; i < batches_.size(); ++i)
         {
-            if (skinMatrices_.Size())
+            if (skinMatrices_.size())
             {
                 batches_[i].geometryType_ = GEOM_SKINNED;
                 // Check if model has per-geometry bone mappings
-                if (geometrySkinMatrices_.size() && geometrySkinMatrices_[i].Size())
+                if (geometrySkinMatrices_.size() && geometrySkinMatrices_[i].size())
                 {
                     batches_[i].worldTransform_ = &geometrySkinMatrices_[i][0];
-                    batches_[i].numWorldTransforms_ = geometrySkinMatrices_[i].Size();
+                    batches_[i].numWorldTransforms_ = geometrySkinMatrices_[i].size();
                 }
                 // If not, use the global skin matrices
                 else
                 {
                     batches_[i].worldTransform_ = &skinMatrices_[0];
-                    batches_[i].numWorldTransforms_ = skinMatrices_.Size();
+                    batches_[i].numWorldTransforms_ = skinMatrices_.size();
                 }
             }
             else
@@ -470,7 +470,7 @@ void AnimatedModel::RemoveAnimationState(unsigned index)
 {
     if (index < animationStates_.size())
     {
-        animationStates_.erase(index);
+        animationStates_.erase(animationStates_.begin()+index);
         MarkAnimationDirty();
     }
 }
@@ -519,7 +519,7 @@ void AnimatedModel::SetMorphWeight(unsigned index, float weight)
             GetComponents<AnimatedModel>(models);
 
             // Indexing might not be the same, so use the name hash instead
-            for (unsigned i = 1; i < models.Size(); ++i)
+            for (unsigned i = 1; i < models.size(); ++i)
             {
                 if (!models[i]->isMaster_)
                     models[i]->SetMorphWeight(morphs_[index].nameHash_, weight);
@@ -566,7 +566,7 @@ void AnimatedModel::ResetMorphWeights()
         PODVector<AnimatedModel*> models;
         GetComponents<AnimatedModel>(models);
 
-        for (unsigned i = 1; i < models.Size(); ++i)
+        for (unsigned i = 1; i < models.size(); ++i)
         {
             if (!models[i]->isMaster_)
                 models[i]->ResetMorphWeights();
@@ -740,7 +740,7 @@ void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
     }
 
     // Reserve space for skinning matrices
-    skinMatrices_.Resize(skeleton_.GetNumBones());
+    skinMatrices_.resize(skeleton_.GetNumBones());
     SetGeometryBoneMappings();
 
     assignBonesPending_ = !createBones;
@@ -772,7 +772,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
     if (numStates > MAX_ANIMATION_STATES)
         numStates = MAX_ANIMATION_STATES;
 
-    animationStates_.Reserve(numStates);
+    animationStates_.reserve(numStates);
     while (numStates--)
     {
         if (index + 5 < value.size())
@@ -805,7 +805,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
 
 void AnimatedModel::SetMorphsAttr(const PODVector<unsigned char>& value)
 {
-    for (unsigned index = 0; index < value.Size(); ++index)
+    for (unsigned index = 0; index < value.size(); ++index)
         SetMorphWeight(index, (float)value[index] / 255.0f);
 }
 
@@ -818,7 +818,7 @@ VariantVector AnimatedModel::GetBonesEnabledAttr() const
 {
     VariantVector ret;
     const Vector<Bone>& bones = skeleton_.GetBones();
-    ret.Reserve(bones.size());
+    ret.reserve(bones.size());
     for (const Bone &bone : bones)
         ret.push_back(bone.animated_);
     return ret;
@@ -827,7 +827,7 @@ VariantVector AnimatedModel::GetBonesEnabledAttr() const
 VariantVector AnimatedModel::GetAnimationStatesAttr() const
 {
     VariantVector ret;
-    ret.Reserve(animationStates_.size() * 6 + 1);
+    ret.reserve(animationStates_.size() * 6 + 1);
     ret.push_back(animationStates_.size());
     for (const SharedPtr<AnimationState> &i : animationStates_)
     {
@@ -1086,7 +1086,7 @@ void AnimatedModel::SetGeometryBoneMappings()
     // Check if all mappings are empty, then we do not need to use mapped skinning
     bool allEmpty = true;
     for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
-        if (geometryBoneMappings_[i].Size())
+        if (geometryBoneMappings_[i].size())
             allEmpty = false;
 
     if (allEmpty)
@@ -1095,15 +1095,15 @@ void AnimatedModel::SetGeometryBoneMappings()
     // Reserve space for per-geometry skinning matrices
     geometrySkinMatrices_.resize(geometryBoneMappings_.size());
     for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
-        geometrySkinMatrices_[i].Resize(geometryBoneMappings_[i].Size());
+        geometrySkinMatrices_[i].resize(geometryBoneMappings_[i].size());
 
     // Build original-to-skinindex matrix pointer mapping for fast copying
     // Note: at this point layout of geometrySkinMatrices_ cannot be modified or pointers become invalid
     geometrySkinMatrixPtrs_.resize(skeleton_.GetNumBones());
     for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
     {
-        for (unsigned j = 0; j < geometryBoneMappings_[i].Size(); ++j)
-            geometrySkinMatrixPtrs_[geometryBoneMappings_[i][j]].Push(&geometrySkinMatrices_[i][j]);
+        for (unsigned j = 0; j < geometryBoneMappings_[i].size(); ++j)
+            geometrySkinMatrixPtrs_[geometryBoneMappings_[i][j]].push_back(&geometrySkinMatrices_[i][j]);
     }
 }
 
@@ -1128,7 +1128,7 @@ void AnimatedModel::UpdateAnimation(const FrameInfo& frame)
     // Make sure animations are in ascending priority order
     if (animationOrderDirty_)
     {
-        Sort(animationStates_.begin(), animationStates_.end(), CompareAnimationOrder);
+        std::sort(animationStates_.begin(), animationStates_.end(), CompareAnimationOrder);
         animationOrderDirty_ = false;
     }
 
@@ -1208,7 +1208,7 @@ void AnimatedModel::UpdateSkinning()
                 skinMatrices_[i] = worldTransform;
 
             // Copy the skin matrix to per-geometry matrices as needed
-            for (unsigned j = 0; j < geometrySkinMatrixPtrs_[i].Size(); ++j)
+            for (unsigned j = 0; j < geometrySkinMatrixPtrs_[i].size(); ++j)
                 *geometrySkinMatrixPtrs_[i][j] = skinMatrices_[i];
         }
     }

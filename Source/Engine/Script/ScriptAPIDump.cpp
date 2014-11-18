@@ -202,7 +202,7 @@ void Script::DumpAPI(DumpMode mode)
         if (!headerFiles.empty())
         {
             Log::WriteRaw("\n\\page EventList Event list\n");
-            Sort(headerFiles.begin(), headerFiles.end());
+            std::sort(headerFiles.begin(), headerFiles.end());
 
             for (unsigned i = 0; i < headerFiles.size(); ++i)
             {
@@ -251,7 +251,7 @@ void Script::DumpAPI(DumpMode mode)
         for (const auto & attribute : attributes.keys())
             objectTypes.push_back(context_->GetTypeName(attribute));
 
-        Sort(objectTypes.begin(), objectTypes.end());
+        std::sort(objectTypes.begin(), objectTypes.end());
 
         for (unsigned i = 0; i < objectTypes.size(); ++i)
         {
@@ -319,7 +319,7 @@ void Script::DumpAPI(DumpMode mode)
             sortedTypes.push_back(MakePair(typeName, i));
         }
     }
-    Sort(sortedTypes.begin(), sortedTypes.end());
+    std::sort(sortedTypes.begin(), sortedTypes.end());
 
     if (mode == DOXYGEN)
     {
@@ -427,8 +427,8 @@ void Script::DumpAPI(DumpMode mode)
                 propertyInfos.push_back(newInfo);
             }
 
-            Sort(methodDeclarations.begin(), methodDeclarations.end(), ComparePropertyStrings);
-            Sort(propertyInfos.begin(), propertyInfos.end(), ComparePropertyInfos);
+            std::sort(methodDeclarations.begin(), methodDeclarations.end(), ComparePropertyStrings);
+            std::sort(propertyInfos.begin(), propertyInfos.end(), ComparePropertyInfos);
 
             if (!methodDeclarations.empty())
             {
@@ -494,8 +494,8 @@ void Script::DumpAPI(DumpMode mode)
             globalFunctions.push_back(declaration);
     }
 
-    Sort(globalFunctions.begin(), globalFunctions.end(), ComparePropertyStrings);
-    Sort(globalPropertyInfos.begin(), globalPropertyInfos.end(), ComparePropertyInfos);
+    std::sort(globalFunctions.begin(), globalFunctions.end(), ComparePropertyStrings);
+    std::sort(globalPropertyInfos.begin(), globalPropertyInfos.end(), ComparePropertyInfos);
 
     if (mode == DOXYGEN)
         Log::WriteRaw("\\section ScriptAPI_Enums Enumerations\n");
@@ -509,7 +509,7 @@ void Script::DumpAPI(DumpMode mode)
         int typeId;
         sortedEnums.push_back(MakePair(String(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
     }
-    Sort(sortedEnums.begin(), sortedEnums.end());
+    std::sort(sortedEnums.begin(), sortedEnums.end());
 
     for (unsigned i = 0; i < sortedEnums.size(); ++i)
     {
@@ -567,7 +567,7 @@ void Script::DumpAPI(DumpMode mode)
         globalConstants.push_back(type + " " + String(propertyName));
     }
 
-    Sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);
+    std::sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);
 
     for (unsigned i = 0; i < globalConstants.size(); ++i)
         OutputAPIRow(mode, globalConstants[i], true);

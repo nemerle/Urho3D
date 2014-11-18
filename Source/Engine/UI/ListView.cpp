@@ -370,9 +370,9 @@ void ListView::InsertItem(unsigned index, UIElement* item, UIElement* parentItem
     }
 
     // If necessary, shift the following selections
-    if (!selections_.Empty())
+    if (!selections_.empty())
     {
-        for (unsigned i = 0; i < selections_.Size(); ++i)
+        for (unsigned i = 0; i < selections_.size(); ++i)
         {
             if (selections_[i] >= index)
                 ++selections_[i];
@@ -393,7 +393,7 @@ void ListView::RemoveItem(UIElement* item, unsigned index)
         if (GetItem(i) == item)
         {
             item->SetSelected(false);
-            selections_.Remove(i);
+            selections_.remove(i);
 
             unsigned removed = 1;
             if (hierarchyMode_)
@@ -410,7 +410,7 @@ void ListView::RemoveItem(UIElement* item, unsigned index)
                         if (childItem->GetIndent() > baseIndent)
                         {
                             childItem->SetSelected(false);
-                            selections_.Erase(j);
+                            selections_.erase(selections_.begin()+j);
                             contentElement_->RemoveChildAtIndex(i + 1);
                             overlayContainer_->RemoveChildAtIndex(i + 1);
                             ++removed;
@@ -441,9 +441,9 @@ void ListView::RemoveItem(UIElement* item, unsigned index)
             }
 
             // If necessary, shift the following selections
-            if (!selections_.Empty())
+            if (!selections_.empty())
             {
-                for (unsigned j = 0; j < selections_.Size(); ++j)
+                for (unsigned j = 0; j < selections_.size(); ++j)
                 {
                     if (selections_[j] > i)
                         selections_[j] -= removed;
@@ -479,7 +479,7 @@ void ListView::RemoveAllItems()
 void ListView::SetSelection(unsigned index)
 {
     PODVector<unsigned> indices;
-    indices.Push(index);
+    indices.push_back(index);
     SetSelections(indices);
     EnsureItemVisibility(index);
 }
@@ -492,12 +492,12 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
     unsigned numItems = GetNumItems();
 
     // Remove first items that should no longer be selected
-    for (PODVector<unsigned>::Iterator i = selections_.begin(); i != selections_.end();)
+    for (PODVector<unsigned>::iterator i = selections_.begin(); i != selections_.end();)
     {
         unsigned index = *i;
-        if (!indices.Contains(index))
+        if (!indices.contains(index))
         {
-            i = selections_.Erase(i);
+            i = selections_.erase(i);
 
             using namespace ItemSelected;
 
@@ -522,12 +522,12 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
         if (index < numItems)
         {
             // In singleselect mode, resend the event even for the same selection
-            bool duplicate = selections_.Contains(index);
+            bool duplicate = selections_.contains(index);
             if (!duplicate || !multiselect_)
             {
                 if (!duplicate)
                 {
-                    selections_.Push(index);
+                    selections_.push_back(index);
                     added = true;
                 }
 
@@ -549,7 +549,7 @@ void ListView::SetSelections(const PODVector<unsigned>& indices)
 
     // Re-sort selections if necessary
     if (added)
-        Sort(selections_.begin(), selections_.end());
+        std::sort(selections_.begin(), selections_.end());
 
     UpdateSelectionEffect();
     SendEvent(E_SELECTIONCHANGED);
@@ -567,9 +567,9 @@ void ListView::AddSelection(unsigned index)
         if (index >= GetNumItems())
             return;
 
-        if (!selections_.Contains(index))
+        if (!selections_.contains(index))
         {
-            selections_.Push(index);
+            selections_.push_back(index);
 
             using namespace ItemSelected;
 
@@ -581,7 +581,7 @@ void ListView::AddSelection(unsigned index)
             if (self.Expired())
                 return;
 
-            Sort(selections_.begin(), selections_.end());
+            std::sort(selections_.begin(), selections_.end());
         }
 
         EnsureItemVisibility(index);
@@ -595,7 +595,7 @@ void ListView::RemoveSelection(unsigned index)
     if (index >= GetNumItems())
         return;
 
-    if (selections_.Remove(index))
+    if (selections_.remove(index))
     {
         using namespace ItemSelected;
 
@@ -616,7 +616,7 @@ void ListView::ToggleSelection(unsigned index)
     if (index >= numItems)
         return;
 
-    if (selections_.Contains(index))
+    if (selections_.contains(index))
         RemoveSelection(index);
     else
         AddSelection(index);
@@ -625,7 +625,7 @@ void ListView::ToggleSelection(unsigned index)
 void ListView::ChangeSelection(int delta, bool additive)
 {
     unsigned numItems = GetNumItems();
-    if (selections_.Empty())
+    if (selections_.empty())
     {
         // Select first item if there is no selection yet
         if (numItems > 0)
@@ -637,7 +637,7 @@ void ListView::ChangeSelection(int delta, bool additive)
         additive = false;
 
     // If going downwards, use the last selection as a base. Otherwise use first
-    unsigned selection = delta > 0 ? selections_.Back() : selections_.Front();
+    unsigned selection = delta > 0 ? selections_.back() : selections_.front();
     int direction = delta > 0 ? 1 : -1;
     unsigned newSelection = selection;
     unsigned okSelection = selection;
@@ -652,7 +652,7 @@ void ListView::ChangeSelection(int delta, bool additive)
         UIElement* item = GetItem(newSelection);
         if (item->IsVisible())
         {
-            indices.Push(okSelection = newSelection);
+            indices.push_back(okSelection = newSelection);
             delta -= direction;
         }
     }
@@ -773,8 +773,8 @@ void ListView::Expand(unsigned index, bool enable, bool recursive)
         bool visible = enable && expanded[indent - 1];
         item->SetVisible(visible);
 
-        if (indent >= (int)expanded.Size())
-            expanded.Resize(indent + 1);
+        if (indent >= (int)expanded.size())
+            expanded.resize(indent + 1);
         expanded[indent] = visible && GetItemExpanded(item);
     }
 
@@ -853,10 +853,10 @@ unsigned ListView::FindItem(UIElement* item) const
 
 unsigned ListView::GetSelection() const
 {
-    if (selections_.Empty())
+    if (selections_.empty())
         return M_MAX_UNSIGNED;
     else
-        return GetSelections().Front();
+        return GetSelections().front();
 }
 
 UIElement* ListView::GetSelectedItem() const
@@ -872,7 +872,7 @@ PODVector<UIElement*> ListView::GetSelectedItems() const
     {
         UIElement* item = GetItem(elem);
         if (item)
-            ret.Push(item);
+            ret.push_back(item);
     }
 
     return ret;
@@ -895,7 +895,7 @@ void ListView::CopySelectedItemsToClipboard() const
 
 bool ListView::IsSelected(unsigned index) const
 {
-    return selections_.Contains(index);
+    return selections_.contains(index);
 }
 
 bool ListView::IsExpanded(unsigned index) const
@@ -954,7 +954,7 @@ void ListView::UpdateSelectionEffect()
     for (unsigned i = 0; i < numItems; ++i)
     {
         UIElement* item = GetItem(i);
-        if (highlightMode_ != HM_NEVER && selections_.Contains(i))
+        if (highlightMode_ != HM_NEVER && selections_.contains(i))
             item->SetSelected(highlighted);
         else
             item->SetSelected(false);
@@ -1020,40 +1020,40 @@ void ListView::HandleUIMouseClick(StringHash eventType, VariantMap& eventData)
         {
             if (qualifiers & QUAL_SHIFT)
             {
-                if (selections_.Empty())
+                if (selections_.empty())
                     SetSelection(i);
                 else
                 {
-                    unsigned first = selections_.Front();
-                    unsigned last = selections_.Back();
+                    unsigned first = selections_.front();
+                    unsigned last = selections_.back();
                     PODVector<unsigned> newSelections = selections_;
                     if (i == first || i == last)
                     {
                         for (unsigned j = first; j <= last; ++j)
-                            newSelections.Push(j);
+                            newSelections.push_back(j);
                     }
                     else if (i < first)
                     {
                         for (unsigned j = i; j <= first; ++j)
-                            newSelections.Push(j);
+                            newSelections.push_back(j);
                     }
                     else if (i < last)
                     {
                         if ((abs((int)i - (int)first)) <= (abs((int)i - (int)last)))
                         {
                             for (unsigned j = first; j <= i; ++j)
-                                newSelections.Push(j);
+                                newSelections.push_back(j);
                         }
                         else
                         {
                             for (unsigned j = i; j <= last; ++j)
-                                newSelections.Push(j);
+                                newSelections.push_back(j);
                         }
                     }
                     else if (i > last)
                     {
                         for (unsigned j = last; j <= i; ++j)
-                            newSelections.Push(j);
+                            newSelections.push_back(j);
                     }
                     SetSelections(newSelections);
                 }

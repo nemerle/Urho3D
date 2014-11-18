@@ -270,7 +270,7 @@ bool Console::PopulateInterpreter()
     Vector<String> names;
     for (const Object* receiver : *receivers)
         names.push_back(receiver->GetTypeName());
-    Sort(names.begin(), names.end());
+    std::sort(names.begin(), names.end());
 
     unsigned selection = M_MAX_UNSIGNED;
     for (unsigned i = 0; i < names.size(); ++i)

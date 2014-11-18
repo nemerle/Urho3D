@@ -210,7 +210,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
     {
         const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
         const Vector<StringHash>& factoryHashes = *i;
-        components.Reserve(factoryHashes.size());
+        components.reserve(factoryHashes.size());
 
         for (unsigned j = 0; j < factoryHashes.size(); ++j)
         {
@@ -220,7 +220,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
         }
     }
 
-    Sort(components.begin(), components.end());
+    std::sort(components.begin(), components.end());
     return VectorToArray<String>(components, "Array<String>");
 }
 

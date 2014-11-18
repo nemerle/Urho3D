@@ -117,7 +117,7 @@ void StaticModel::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQuer
             result.drawable_ = this;
             result.node_ = node_;
             result.subObject_ = M_MAX_UNSIGNED;
-            results.Push(result);
+            results.push_back(result);
         }
         break;
     }
@@ -367,7 +367,7 @@ void StaticModel::SetNumGeometries(unsigned num)
 {
     batches_.resize(num);
     geometries_.resize(num);
-    geometryData_.Resize(num);
+    geometryData_.resize(num);
     ResetLodLevels();
 }
 

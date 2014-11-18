@@ -513,7 +513,7 @@ AnimationState* AnimationController::GetAnimationState(StringHash nameHash) cons
 void AnimationController::SetAnimationsAttr(VariantVector value)
 {
     animations_.clear();
-    animations_.Reserve(value.size() / 5);  // Incomplete data is discarded
+    animations_.reserve(value.size() / 5);  // Incomplete data is discarded
     unsigned index = 0;
     while (index + 4 < value.size())    // Prevent out-of-bound index access
     {
@@ -637,7 +637,7 @@ void AnimationController::SetNodeAnimationStatesAttr(VariantVector value)
     if (numStates > MAX_NODE_ANIMATION_STATES)
         numStates = MAX_NODE_ANIMATION_STATES;
 
-    nodeAnimationStates_.Reserve(numStates);
+    nodeAnimationStates_.reserve(numStates);
     while (numStates--)
     {
         if (index + 2 < value.size())
@@ -662,7 +662,7 @@ void AnimationController::SetNodeAnimationStatesAttr(VariantVector value)
 VariantVector AnimationController::GetAnimationsAttr() const
 {
     VariantVector ret;
-    ret.Reserve(animations_.size() * 5);
+    ret.reserve(animations_.size() * 5);
     for (const AnimationControl & elem : animations_)
     {
         ret.push_back(elem.name_);
@@ -735,7 +735,7 @@ const PODVector<unsigned char>& AnimationController::GetNetAnimationsAttr() cons
 VariantVector AnimationController::GetNodeAnimationStatesAttr() const
 {
     VariantVector ret;
-    ret.Reserve(nodeAnimationStates_.size() * 3 + 1);
+    ret.reserve(nodeAnimationStates_.size() * 3 + 1);
     ret.push_back(nodeAnimationStates_.size());
     for (const auto & elem : nodeAnimationStates_)
     {

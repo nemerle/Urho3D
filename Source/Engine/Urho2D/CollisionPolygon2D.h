@@ -48,9 +48,9 @@ public:
     void SetVertices(const PODVector<Vector2>& vertices);
 
     /// Return vertex count.
-    unsigned GetVertexCount() const { return vertices_.Size(); }
+    unsigned GetVertexCount() const { return vertices_.size(); }
     /// Return vertex.
-    const Vector2& GetVertex(unsigned index) const { return (index < vertices_.Size()) ? vertices_[index] : Vector2::ZERO; }
+    const Vector2& GetVertex(unsigned index) const { return (index < vertices_.size()) ? vertices_[index] : Vector2::ZERO; }
     /// Return vertices.
     const PODVector<Vector2>& GetVertices() const { return vertices_; }
 

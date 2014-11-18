@@ -314,7 +314,7 @@ void Batch::Prepare(View* view, bool setModelTransform) const
             Vector4 vertexLights[MAX_VERTEX_LIGHTS * 3];
             const PODVector<Light*>& lights = lightQueue_->vertexLights_;
 
-            for (unsigned i = 0; i < lights.Size(); ++i)
+            for (unsigned i = 0; i < lights.size(); ++i)
             {
                 Light* vertexLight = lights[i];
                 Node* vertexLightNode = vertexLight->GetNode();
@@ -356,8 +356,8 @@ void Batch::Prepare(View* view, bool setModelTransform) const
                 vertexLights[i * 3 + 2] = Vector4(vertexLightNode->GetWorldPosition(), invCutoff);
             }
 
-            if (lights.Size())
-                graphics->SetShaderParameter(VSP_VERTEXLIGHTS, vertexLights[0].Data(), lights.Size() * 3 * 4);
+            if (lights.size())
+                graphics->SetShaderParameter(VSP_VERTEXLIGHTS, vertexLights[0].Data(), lights.size() * 3 * 4);
         }
     }
 
@@ -623,10 +623,10 @@ void BatchGroup::SetTransforms(void* lockedData, unsigned& freeIndex)
     Matrix3x4* dest = (Matrix3x4*)lockedData;
     dest += freeIndex;
 
-    for (unsigned i = 0; i < instances_.Size(); ++i)
+    for (unsigned i = 0; i < instances_.size(); ++i)
         *dest++ = *instances_[i].worldTransform_;
 
-    freeIndex += instances_.Size();
+    freeIndex += instances_.size();
 }
 
 void BatchGroup::Draw(View* view) const
@@ -634,7 +634,7 @@ void BatchGroup::Draw(View* view) const
     Graphics* graphics = view->GetGraphics();
     Renderer* renderer = view->GetRenderer();
 
-    if (instances_.Size() && !geometry_->IsEmpty())
+    if (instances_.size() && !geometry_->IsEmpty())
     {
         // Draw as individual objects if instancing not supported
         VertexBuffer* instanceBuffer = renderer->GetInstancingBuffer();
@@ -645,7 +645,7 @@ void BatchGroup::Draw(View* view) const
             graphics->SetIndexBuffer(geometry_->GetIndexBuffer());
             graphics->SetVertexBuffers(geometry_->GetVertexBuffers(), geometry_->GetVertexElementMasks());
 
-            for (unsigned i = 0; i < instances_.Size(); ++i)
+            for (unsigned i = 0; i < instances_.size(); ++i)
             {
                 if (graphics->NeedParameterUpdate(SP_OBJECTTRANSFORM, instances_[i].worldTransform_))
                     graphics->SetShaderParameter(VSP_MODEL, *instances_[i].worldTransform_);
@@ -664,15 +664,15 @@ void BatchGroup::Draw(View* view) const
                 (geometry_->GetVertexBuffers());
             PODVector<unsigned>& elementMasks = const_cast<PODVector<unsigned>&>(geometry_->GetVertexElementMasks());
             vertexBuffers.push_back(SharedPtr<VertexBuffer>(instanceBuffer));
-            elementMasks.Push(instanceBuffer->GetElementMask());
+            elementMasks.push_back(instanceBuffer->GetElementMask());
 
             // No stream offset support, instancing buffer not pre-filled with transforms: have to fill now
             if (startIndex_ == M_MAX_UNSIGNED)
             {
                 unsigned startIndex = 0;
-                while (startIndex < instances_.Size())
+                while (startIndex < instances_.size())
                 {
-                    unsigned instances = instances_.Size() - startIndex;
+                    unsigned instances = instances_.size() - startIndex;
                     if (instances > instanceBuffer->GetVertexCount())
                         instances = instanceBuffer->GetVertexCount();
 
@@ -699,12 +699,12 @@ void BatchGroup::Draw(View* view) const
                 graphics->SetIndexBuffer(geometry_->GetIndexBuffer());
                 graphics->SetVertexBuffers(vertexBuffers, elementMasks, startIndex_);
                 graphics->DrawInstanced(geometry_->GetPrimitiveType(), geometry_->GetIndexStart(), geometry_->GetIndexCount(),
-                    geometry_->GetVertexStart(), geometry_->GetVertexCount(), instances_.Size());
+                    geometry_->GetVertexStart(), geometry_->GetVertexCount(), instances_.size());
             }
 
             // Remove the instancing buffer & element mask now
             vertexBuffers.pop_back();
-            elementMasks.Pop();
+            elementMasks.pop_back();
         }
     }
 }
@@ -720,23 +720,23 @@ unsigned BatchGroupKey::ToHash() const
 
 void BatchQueue::Clear(int maxSortedInstances)
 {
-    batches_.Clear();
-    sortedBatches_.Clear();
+    batches_.clear();
+    sortedBatches_.clear();
     batchGroups_.clear();
     maxSortedInstances_ = maxSortedInstances;
 }
 
 void BatchQueue::SortBackToFront()
 {
-    sortedBatches_.Resize(batches_.Size());
+    sortedBatches_.resize(batches_.size());
 
-    for (unsigned i = 0; i < batches_.Size(); ++i)
+    for (unsigned i = 0; i < batches_.size(); ++i)
         sortedBatches_[i] = &batches_[i];
 
-    Sort(sortedBatches_.begin(), sortedBatches_.end(), CompareBatchesBackToFront);
+    std::sort(sortedBatches_.begin(), sortedBatches_.end(), CompareBatchesBackToFront);
 
     // Do not actually sort batch groups, just list them
-    sortedBatchGroups_.Resize(batchGroups_.size());
+    sortedBatchGroups_.resize(batchGroups_.size());
 
     unsigned index = 0;
     for (auto & elem : batchGroups_)
@@ -745,32 +745,32 @@ void BatchQueue::SortBackToFront()
 
 void BatchQueue::SortFrontToBack()
 {
-    sortedBatches_.Clear();
+    sortedBatches_.clear();
 
-    for (unsigned i = 0; i < batches_.Size(); ++i)
-        sortedBatches_.Push(&batches_[i]);
+    for (unsigned i = 0; i < batches_.size(); ++i)
+        sortedBatches_.push_back(&batches_[i]);
 
     SortFrontToBack2Pass(sortedBatches_);
 
     // Sort each group front to back
     for (BatchGroup & elem : batchGroups_)
     {
-        if (elem.instances_.Size() <= maxSortedInstances_)
+        if (elem.instances_.size() <= maxSortedInstances_)
         {
-            Sort(elem.instances_.begin(), elem.instances_.end(), CompareInstancesFrontToBack);
-            if (elem.instances_.Size())
+            std::sort(elem.instances_.begin(), elem.instances_.end(), CompareInstancesFrontToBack);
+            if (elem.instances_.size())
                 elem.distance_ = elem.instances_[0].distance_;
         }
         else
         {
             float minDistance = M_INFINITY;
-            for (PODVector<InstanceData>::ConstIterator j = elem.instances_.begin(); j != elem.instances_.end(); ++j)
-                minDistance = Min(minDistance, j->distance_);
+            for (const InstanceData & j : elem.instances_)
+                minDistance = Min(minDistance, j.distance_);
             elem.distance_ = minDistance;
         }
     }
 
-    sortedBatchGroups_.Resize(batchGroups_.size());
+    sortedBatchGroups_.resize(batchGroups_.size());
 
     unsigned index = 0;
     for (BatchGroup & elem : batchGroups_)
@@ -787,7 +787,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
     Sort(batches.begin(), batches.end(), CompareBatchesState);
     #else
     // For desktop, first sort by distance and remap shader/material/geometry IDs in the sort key
-    Sort(batches.begin(), batches.end(), CompareBatchesFrontToBack);
+    std::sort(batches.begin(), batches.end(), CompareBatchesFrontToBack);
 
     unsigned freeShaderID = 0;
     unsigned short freeMaterialID = 0;
@@ -835,7 +835,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
     geometryRemapping_.clear();
 
     // Finally sort again with the rewritten ID's
-    Sort(batches.begin(), batches.end(), CompareBatchesState);
+    std::sort(batches.begin(), batches.end(), CompareBatchesState);
     #endif
 }
 
@@ -895,7 +895,7 @@ unsigned BatchQueue::GetNumInstances() const
     for (const BatchGroup & elem : batchGroups_)
     {
        if (elem.geometryType_ == GEOM_INSTANCED)
-            total += elem.instances_.Size();
+            total += elem.instances_.size();
     }
 
     return total;

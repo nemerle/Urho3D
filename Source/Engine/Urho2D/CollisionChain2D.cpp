@@ -61,17 +61,17 @@ void CollisionChain2D::SetLoop(bool loop)
 
 void CollisionChain2D::SetVertexCount(unsigned count)
 {
-    vertices_.Resize(count);
+    vertices_.resize(count);
 }
 
 void CollisionChain2D::SetVertex(unsigned index, const Vector2& vertex)
 {
-    if (index >= vertices_.Size())
+    if (index >= vertices_.size())
         return;
 
     vertices_[index] = vertex;
 
-    if (index == vertices_.Size() - 1)
+    if (index == vertices_.size() - 1)
     {
         MarkNetworkUpdate();
         RecreateFixture();
@@ -96,8 +96,8 @@ void CollisionChain2D::RecreateFixture()
     ReleaseFixture();
 
     PODVector<b2Vec2> b2Vertices;
-    unsigned count = vertices_.Size();
-    b2Vertices.Resize(count);
+    unsigned count = vertices_.size();
+    b2Vertices.resize(count);
 
     Vector2 worldScale(cachedWorldScale_.x_, cachedWorldScale_.y_);
     for (unsigned i = 0; i < count; ++i)

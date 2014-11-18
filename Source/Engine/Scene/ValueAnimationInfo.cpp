@@ -89,7 +89,7 @@ bool ValueAnimationInfo::Update(float timeStep)
         PODVector<const VAnimEventFrame*> eventFrames;
         GetEventFrames(lastScaledTime_, scaledTime, eventFrames);
 
-        for (unsigned i = 0; i < eventFrames.Size(); ++i)
+        for (unsigned i = 0; i < eventFrames.size(); ++i)
             target_->SendEvent(eventFrames[i]->eventType_, const_cast<VariantMap&>(eventFrames[i]->eventData_));
     }
 

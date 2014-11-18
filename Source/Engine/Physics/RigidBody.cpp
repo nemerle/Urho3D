@@ -696,7 +696,7 @@ void RigidBody::GetCollidingBodies(PODVector<RigidBody*>& result) const
     if (physicsWorld_)
         physicsWorld_->GetRigidBodies(result, this);
     else
-        result.Clear();
+        result.clear();
 }
 
 void RigidBody::ApplyWorldTransform(const Vector3& newWorldPosition, const Quaternion& newWorldRotation)
@@ -842,12 +842,12 @@ const PODVector<unsigned char>& RigidBody::GetNetAngularVelocityAttr() const
 
 void RigidBody::AddConstraint(Constraint* constraint)
 {
-    constraints_.Push(constraint);
+    constraints_.push_back(constraint);
 }
 
 void RigidBody::RemoveConstraint(Constraint* constraint)
 {
-    constraints_.Remove(constraint);
+    constraints_.remove(constraint);
     // A constraint being removed should possibly cause the object to eg. start falling, so activate
     Activate();
 }

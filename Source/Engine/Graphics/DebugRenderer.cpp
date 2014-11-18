@@ -81,13 +81,13 @@ void DebugRenderer::AddLine(const Vector3& start, const Vector3& end, const Colo
 
 void DebugRenderer::AddLine(const Vector3& start, const Vector3& end, unsigned color, bool depthTest)
 {
-    if (lines_.Size() + noDepthLines_.Size() >= MAX_LINES)
+    if (lines_.size() + noDepthLines_.size() >= MAX_LINES)
         return;
 
     if (depthTest)
-        lines_.Push(DebugLine(start, end, color));
+        lines_.push_back(DebugLine(start, end, color));
     else
-        noDepthLines_.Push(DebugLine(start, end, color));
+        noDepthLines_.push_back(DebugLine(start, end, color));
 }
 
 void DebugRenderer::AddTriangle(const Vector3& v1, const Vector3& v2, const Vector3& v3,  const Color& color, bool depthTest)
@@ -97,13 +97,13 @@ void DebugRenderer::AddTriangle(const Vector3& v1, const Vector3& v2, const Vect
 
 void DebugRenderer::AddTriangle(const Vector3& v1, const Vector3& v2, const Vector3& v3, unsigned color, bool depthTest)
 {
-    if (triangles_.Size() + noDepthTriangles_.Size() >= MAX_TRIANGLES)
+    if (triangles_.size() + noDepthTriangles_.size() >= MAX_TRIANGLES)
         return;
 
     if (depthTest)
-        triangles_.Push(DebugTriangle(v1, v2, v3, color));
+        triangles_.push_back(DebugTriangle(v1, v2, v3, color));
     else
-        noDepthTriangles_.Push(DebugTriangle(v1, v2, v3, color));
+        noDepthTriangles_.push_back(DebugTriangle(v1, v2, v3, color));
 }
 
 void DebugRenderer::AddNode(Node* node, float scale, bool depthTest)
@@ -204,10 +204,10 @@ void DebugRenderer::AddPolyhedron(const Polyhedron& poly, const Color& color, bo
     for (unsigned i = 0; i < poly.faces_.size(); ++i)
     {
         const PODVector<Vector3>& face = poly.faces_[i];
-        if (face.Size() >= 3)
+        if (face.size() >= 3)
         {
-            for (unsigned j = 0; j < face.Size(); ++j)
-                AddLine(face[j], face[(j + 1) % face.Size()], uintColor, depthTest);
+            for (unsigned j = 0; j < face.size(); ++j)
+                AddLine(face[j], face[(j + 1) % face.size()], uintColor, depthTest);
         }
     }
 }
@@ -224,7 +224,7 @@ static Vector3 PointOnSphere(const Sphere& sphere, unsigned theta, unsigned phi)
 void DebugRenderer::AddSphere(const Sphere& sphere, const Color& color, bool depthTest)
 {
     unsigned uintColor = color.ToUInt();
-    
+
     for (unsigned j = 0; j < 180; j += 45)
     {
         for (unsigned i = 0; i < 360; i += 45)
@@ -233,7 +233,7 @@ void DebugRenderer::AddSphere(const Sphere& sphere, const Color& color, bool dep
             Vector3 p2 = PointOnSphere(sphere, i + 45, j);
             Vector3 p3 = PointOnSphere(sphere, i, j + 45);
             Vector3 p4 = PointOnSphere(sphere, i + 45, j + 45);
-            
+
             AddLine(p1, p2, uintColor, depthTest);
             AddLine(p3, p4, uintColor, depthTest);
             AddLine(p1, p3, uintColor, depthTest);
@@ -323,7 +323,7 @@ void DebugRenderer::AddTriangleMesh(const void* vertexData, unsigned vertexSize,
 
 void DebugRenderer::Render()
 {
-    if (lines_.Empty() && noDepthLines_.Empty() && triangles_.Empty() && noDepthTriangles_.Empty())
+    if (lines_.empty() && noDepthLines_.empty() && triangles_.empty() && noDepthTriangles_.empty())
         return;
 
     Graphics* graphics = GetSubsystem<Graphics>();
@@ -334,8 +334,8 @@ void DebugRenderer::Render()
 
     ShaderVariation* vs = graphics->GetShader(VS, "Basic", "VERTEXCOLOR");
     ShaderVariation* ps = graphics->GetShader(PS, "Basic", "VERTEXCOLOR");
-    
-    unsigned numVertices = (lines_.Size() + noDepthLines_.Size()) * 2 + (triangles_.Size() + noDepthTriangles_.Size()) * 3;
+
+    unsigned numVertices = (lines_.size() + noDepthLines_.size()) * 2 + (triangles_.size() + noDepthTriangles_.size()) * 3;
     // Resize the vertex buffer if too small or much too large
     if (vertexBuffer_->GetVertexCount() < numVertices || vertexBuffer_->GetVertexCount() > numVertices * 2)
         vertexBuffer_->SetSize(numVertices, MASK_POSITION | MASK_COLOR, true);
@@ -344,7 +344,7 @@ void DebugRenderer::Render()
     if (!dest)
         return;
 
-    for (unsigned i = 0; i < lines_.Size(); ++i)
+    for (unsigned i = 0; i < lines_.size(); ++i)
     {
         const DebugLine& line = lines_[i];
 
@@ -356,7 +356,7 @@ void DebugRenderer::Render()
         dest += 8;
     }
 
-    for (unsigned i = 0; i < noDepthLines_.Size(); ++i)
+    for (unsigned i = 0; i < noDepthLines_.size(); ++i)
     {
         const DebugLine& line = noDepthLines_[i];
 
@@ -368,7 +368,7 @@ void DebugRenderer::Render()
         dest += 8;
     }
 
-    for (unsigned i = 0; i < triangles_.Size(); ++i)
+    for (unsigned i = 0; i < triangles_.size(); ++i)
     {
         const DebugTriangle& triangle = triangles_[i];
 
@@ -377,14 +377,14 @@ void DebugRenderer::Render()
 
         dest[4] = triangle.v2_.x_; dest[5] = triangle.v2_.y_; dest[6] = triangle.v2_.z_;
         ((unsigned&)dest[7]) = triangle.color_;
-        
+
         dest[8] = triangle.v3_.x_; dest[9] = triangle.v3_.y_; dest[10] = triangle.v3_.z_;
         ((unsigned&)dest[11]) = triangle.color_;
 
         dest += 12;
     }
 
-    for (unsigned i = 0; i < noDepthTriangles_.Size(); ++i)
+    for (unsigned i = 0; i < noDepthTriangles_.size(); ++i)
     {
         const DebugTriangle& triangle = noDepthTriangles_[i];
 
@@ -417,33 +417,33 @@ void DebugRenderer::Render()
 
     unsigned start = 0;
     unsigned count = 0;
-    if (lines_.Size())
+    if (lines_.size())
     {
-        count = lines_.Size() * 2;
+        count = lines_.size() * 2;
         graphics->SetDepthTest(CMP_LESSEQUAL);
         graphics->Draw(LINE_LIST, start, count);
         start += count;
     }
-    if (noDepthLines_.Size())
+    if (noDepthLines_.size())
     {
-        count = noDepthLines_.Size() * 2;
+        count = noDepthLines_.size() * 2;
         graphics->SetDepthTest(CMP_ALWAYS);
         graphics->Draw(LINE_LIST, start, count);
         start += count;
     }
-    
+
     graphics->SetBlendMode(BLEND_ALPHA);
-    
-    if (triangles_.Size())
+
+    if (triangles_.size())
     {
-        count = triangles_.Size() * 3;
+        count = triangles_.size() * 3;
         graphics->SetDepthTest(CMP_LESSEQUAL);
         graphics->Draw(TRIANGLE_LIST, start, count);
         start += count;
     }
-    if (noDepthTriangles_.Size())
+    if (noDepthTriangles_.size())
     {
-        count = noDepthTriangles_.Size() * 3;
+        count = noDepthTriangles_.size() * 3;
         graphics->SetDepthTest(CMP_ALWAYS);
         graphics->Draw(TRIANGLE_LIST, start, count);
     }
@@ -457,24 +457,24 @@ bool DebugRenderer::IsInside(const BoundingBox& box) const
 void DebugRenderer::HandleEndFrame(StringHash eventType, VariantMap& eventData)
 {
     // When the amount of debug geometry is reduced, release memory
-    unsigned linesSize = lines_.Size();
-    unsigned noDepthLinesSize = noDepthLines_.Size();
-    unsigned trianglesSize = triangles_.Size();
-    unsigned noDepthTrianglesSize = noDepthTriangles_.Size();
+    unsigned linesSize = lines_.size();
+    unsigned noDepthLinesSize = noDepthLines_.size();
+    unsigned trianglesSize = triangles_.size();
+    unsigned noDepthTrianglesSize = noDepthTriangles_.size();
 
-    lines_.Clear();
-    noDepthLines_.Clear();
-    triangles_.Clear();
-    noDepthTriangles_.Clear();
+    lines_.clear();
+    noDepthLines_.clear();
+    triangles_.clear();
+    noDepthTriangles_.clear();
 
-    if (lines_.Capacity() > linesSize * 2)
-        lines_.Reserve(linesSize);
-    if (noDepthLines_.Capacity() > noDepthLinesSize * 2)
-        noDepthLines_.Reserve(noDepthLinesSize);
-    if (triangles_.Capacity() > trianglesSize * 2)
-        triangles_.Reserve(trianglesSize);
-    if (noDepthTriangles_.Capacity() > noDepthTrianglesSize * 2)
-        noDepthTriangles_.Reserve(noDepthTrianglesSize);
+    if (lines_.capacity() > linesSize * 2)
+        lines_.reserve(linesSize);
+    if (noDepthLines_.capacity() > noDepthLinesSize * 2)
+        noDepthLines_.reserve(noDepthLinesSize);
+    if (triangles_.capacity() > trianglesSize * 2)
+        triangles_.reserve(trianglesSize);
+    if (noDepthTriangles_.capacity() > noDepthTrianglesSize * 2)
+        noDepthTriangles_.reserve(noDepthTrianglesSize);
 }
 
 }

@@ -504,9 +504,9 @@ void Terrain::CreatePatchGeometry(TerrainPatch* patch)
 
     patch->SetBoundingBox(box);
 
-    if (drawRanges_.Size())
+    if (drawRanges_.size())
     {
-        unsigned lastDrawRange = drawRanges_.Size() - 1;
+        unsigned lastDrawRange = drawRanges_.size() - 1;
 
         geometry->SetIndexBuffer(indexBuffer_);
         geometry->SetDrawRange(TRIANGLE_LIST, drawRanges_[0].first_, drawRanges_[0].second_, false);
@@ -548,7 +548,7 @@ void Terrain::UpdatePatchLod(TerrainPatch* patch)
             drawRangeIndex |= STITCH_EAST;
     }
 
-    if (drawRangeIndex < drawRanges_.Size())
+    if (drawRangeIndex < drawRanges_.size())
         geometry->SetDrawRange(TRIANGLE_LIST, drawRanges_[drawRangeIndex].first_, drawRanges_[drawRangeIndex].second_, false);
 }
 
@@ -673,7 +673,7 @@ void Terrain::CreateGeometry()
 
     // Keep track of which patches actually need an update
     PODVector<bool> dirtyPatches(numPatches_.x_ * numPatches_.y_);
-    for (unsigned i = 0; i < dirtyPatches.Size(); ++i)
+    for (unsigned i = 0; i < dirtyPatches.size(); ++i)
         dirtyPatches[i] = updateAll;
 
     patches_.clear();
@@ -755,7 +755,7 @@ void Terrain::CreateGeometry()
             }
         }
 
-        patches_.Reserve(numPatches_.x_ * numPatches_.y_);
+        patches_.reserve(numPatches_.x_ * numPatches_.y_);
 
         bool enabled = IsEnabledEffective();
 
@@ -876,7 +876,7 @@ void Terrain::CreateIndexData()
     PROFILE(CreateIndexData);
 
     PODVector<unsigned short> indices;
-    drawRanges_.Clear();
+    drawRanges_.clear();
     unsigned row = patchSize_ + 1;
 
     /* Build index data for each LOD level. Each LOD level except the lowest can stitch to the next lower LOD from the edges:
@@ -897,7 +897,7 @@ void Terrain::CreateIndexData()
 
         for (unsigned j = 0; j < combinations; ++j)
         {
-            unsigned indexStart = indices.Size();
+            unsigned indexStart = indices.size();
 
             int zStart = 0;
             int xStart = 0;
@@ -918,12 +918,12 @@ void Terrain::CreateIndexData()
             {
                 for (int x = xStart; x < xEnd; x += skip)
                 {
-                    indices.Push((z + skip) * row + x);
-                    indices.Push(z * row + x + skip);
-                    indices.Push(z * row + x);
-                    indices.Push((z + skip) * row + x);
-                    indices.Push((z + skip) * row + x + skip);
-                    indices.Push(z * row + x + skip);
+                    indices.push_back((z + skip) * row + x);
+                    indices.push_back(z * row + x + skip);
+                    indices.push_back(z * row + x);
+                    indices.push_back((z + skip) * row + x);
+                    indices.push_back((z + skip) * row + x + skip);
+                    indices.push_back(z * row + x + skip);
                 }
             }
 
@@ -935,18 +935,18 @@ void Terrain::CreateIndexData()
                 {
                     if (x > 0 || (j & STITCH_WEST) == 0)
                     {
-                        indices.Push((z + skip) * row + x);
-                        indices.Push(z * row + x + skip);
-                        indices.Push(z * row + x);
+                        indices.push_back((z + skip) * row + x);
+                        indices.push_back(z * row + x + skip);
+                        indices.push_back(z * row + x);
                     }
-                    indices.Push((z + skip) * row + x);
-                    indices.Push((z + skip) * row + x + 2 * skip);
-                    indices.Push(z * row + x + skip);
+                    indices.push_back((z + skip) * row + x);
+                    indices.push_back((z + skip) * row + x + 2 * skip);
+                    indices.push_back(z * row + x + skip);
                     if (x < patchSize_ - skip * 2 || (j & STITCH_EAST) == 0)
                     {
-                        indices.Push((z + skip) * row + x + 2 * skip);
-                        indices.Push(z * row + x + 2 * skip);
-                        indices.Push(z * row + x + skip);
+                        indices.push_back((z + skip) * row + x + 2 * skip);
+                        indices.push_back(z * row + x + 2 * skip);
+                        indices.push_back(z * row + x + skip);
                     }
                 }
             }
@@ -959,18 +959,18 @@ void Terrain::CreateIndexData()
                 {
                     if (x > 0 || (j & STITCH_WEST) == 0)
                     {
-                        indices.Push((z + skip) * row + x);
-                        indices.Push((z + skip) * row + x + skip);
-                        indices.Push(z * row + x);
+                        indices.push_back((z + skip) * row + x);
+                        indices.push_back((z + skip) * row + x + skip);
+                        indices.push_back(z * row + x);
                     }
-                    indices.Push(z * row + x);
-                    indices.Push((z + skip) * row + x + skip);
-                    indices.Push(z * row + x + 2 * skip);
+                    indices.push_back(z * row + x);
+                    indices.push_back((z + skip) * row + x + skip);
+                    indices.push_back(z * row + x + 2 * skip);
                     if (x < patchSize_ - skip * 2 || (j & STITCH_EAST) == 0)
                     {
-                        indices.Push((z + skip) * row + x + skip);
-                        indices.Push((z + skip) * row + x + 2 * skip);
-                        indices.Push(z * row + x + 2 * skip);
+                        indices.push_back((z + skip) * row + x + skip);
+                        indices.push_back((z + skip) * row + x + 2 * skip);
+                        indices.push_back(z * row + x + 2 * skip);
                     }
                 }
             }
@@ -983,18 +983,18 @@ void Terrain::CreateIndexData()
                 {
                     if (z > 0 || (j & STITCH_SOUTH) == 0)
                     {
-                        indices.Push(z * row + x);
-                        indices.Push((z + skip) * row + x + skip);
-                        indices.Push(z * row + x + skip);
+                        indices.push_back(z * row + x);
+                        indices.push_back((z + skip) * row + x + skip);
+                        indices.push_back(z * row + x + skip);
                     }
-                    indices.Push((z + 2 * skip) * row + x);
-                    indices.Push((z + skip) * row + x + skip);
-                    indices.Push(z * row + x);
+                    indices.push_back((z + 2 * skip) * row + x);
+                    indices.push_back((z + skip) * row + x + skip);
+                    indices.push_back(z * row + x);
                     if (x < patchSize_ - skip * 2 || (j & STITCH_NORTH) == 0)
                     {
-                        indices.Push((z + 2 * skip) * row + x);
-                        indices.Push((z + 2 * skip) * row + x + skip);
-                        indices.Push((z + skip) * row + x + skip);
+                        indices.push_back((z + 2 * skip) * row + x);
+                        indices.push_back((z + 2 * skip) * row + x + skip);
+                        indices.push_back((z + skip) * row + x + skip);
                     }
                 }
             }
@@ -1007,27 +1007,27 @@ void Terrain::CreateIndexData()
                 {
                     if (z > 0 || (j & STITCH_SOUTH) == 0)
                     {
-                        indices.Push(z * row + x);
-                        indices.Push((z + skip) * row + x);
-                        indices.Push(z * row + x + skip);
+                        indices.push_back(z * row + x);
+                        indices.push_back((z + skip) * row + x);
+                        indices.push_back(z * row + x + skip);
                     }
-                    indices.Push((z + skip) * row + x);
-                    indices.Push((z + 2 * skip) * row + x + skip);
-                    indices.Push(z * row + x + skip);
+                    indices.push_back((z + skip) * row + x);
+                    indices.push_back((z + 2 * skip) * row + x + skip);
+                    indices.push_back(z * row + x + skip);
                     if (z < patchSize_ - skip * 2 || (j & STITCH_NORTH) == 0)
                     {
-                        indices.Push((z + skip) * row + x);
-                        indices.Push((z + 2 * skip) * row + x);
-                        indices.Push((z + 2 * skip) * row + x + skip);
+                        indices.push_back((z + skip) * row + x);
+                        indices.push_back((z + 2 * skip) * row + x);
+                        indices.push_back((z + 2 * skip) * row + x + skip);
                     }
                 }
             }
 
-            drawRanges_.Push(MakePair(indexStart, indices.Size() - indexStart));
+            drawRanges_.emplace_back(indexStart, indices.size() - indexStart);
         }
     }
 
-    indexBuffer_->SetSize(indices.Size(), false);
+    indexBuffer_->SetSize(indices.size(), false);
     indexBuffer_->SetData(&indices[0]);
 }
 
@@ -1106,8 +1106,8 @@ void Terrain::CalculateLodErrors(TerrainPatch* patch)
 
     const IntVector2& coords = patch->GetCoordinates();
     PODVector<float>& lodErrors = patch->GetLodErrors();
-    lodErrors.Clear();
-    lodErrors.Reserve(numLodLevels_);
+    lodErrors.clear();
+    lodErrors.reserve(numLodLevels_);
 
     int xStart = coords.x_ * patchSize_;
     int zStart = coords.y_ * patchSize_;
@@ -1137,7 +1137,7 @@ void Terrain::CalculateLodErrors(TerrainPatch* patch)
             maxError = Max(maxError, 0.25f * (spacing_.x_ + spacing_.z_) * (float)(1 << i));
         }
 
-        lodErrors.Push(maxError);
+        lodErrors.push_back(maxError);
     }
 }
 

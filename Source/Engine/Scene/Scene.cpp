@@ -655,20 +655,20 @@ void Scene::EndThreadedUpdate()
 
     threadedUpdate_ = false;
 
-    if (!delayedDirtyComponents_.Empty())
+    if (!delayedDirtyComponents_.empty())
     {
         PROFILE(EndThreadedUpdate);
 
-        for (PODVector<Component*>::ConstIterator i = delayedDirtyComponents_.begin(); i != delayedDirtyComponents_.end(); ++i)
-            (*i)->OnMarkedDirty((*i)->GetNode());
-        delayedDirtyComponents_.Clear();
+        for (Component* i : delayedDirtyComponents_)
+            i->OnMarkedDirty(i->GetNode());
+        delayedDirtyComponents_.clear();
     }
 }
 
 void Scene::DelayedMarkedDirty(Component* component)
 {
     MutexLock lock(sceneMutex_);
-    delayedDirtyComponents_.Push(component);
+    delayedDirtyComponents_.push_back(component);
 }
 
 unsigned Scene::GetFreeNodeID(CreateMode mode)

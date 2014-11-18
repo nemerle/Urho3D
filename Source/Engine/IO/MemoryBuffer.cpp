@@ -49,15 +49,15 @@ MemoryBuffer::MemoryBuffer(const void* data, unsigned size) :
 }
 
 MemoryBuffer::MemoryBuffer(PODVector<unsigned char>& data) :
-    Deserializer(data.Size()),
-    buffer_(data.begin().ptr_),
+    Deserializer(data.size()),
+    buffer_(data.data()),
     readOnly_(false)
 {
 }
 
 MemoryBuffer::MemoryBuffer(const PODVector<unsigned char>& data) :
-    Deserializer(data.Size()),
-    buffer_(data.begin().ptr_),
+    Deserializer(data.size()),
+    buffer_((unsigned char *)data.data()), // TODO: const cast !!!
     readOnly_(true)
 {
 }
@@ -68,11 +68,11 @@ unsigned MemoryBuffer::Read(void* dest, unsigned size)
         size = size_ - position_;
     if (!size)
         return 0;
-    
+
     unsigned char* srcPtr = &buffer_[position_];
     unsigned char* destPtr = (unsigned char*)dest;
     position_ += size;
-    
+
     unsigned copySize = size;
     while (copySize >= sizeof(unsigned))
     {
@@ -89,7 +89,7 @@ unsigned MemoryBuffer::Read(void* dest, unsigned size)
     }
     if (copySize & 1)
         *destPtr = *srcPtr;
-    
+
     return size;
 }
 
@@ -97,7 +97,7 @@ unsigned MemoryBuffer::Seek(unsigned position)
 {
     if (position > size_)
         position = size_;
-    
+
     position_ = position;
     return position_;
 }
@@ -108,11 +108,11 @@ unsigned MemoryBuffer::Write(const void* data, unsigned size)
         size = size_ - position_;
     if (!size)
         return 0;
-    
+
     unsigned char* srcPtr = (unsigned char*)data;
     unsigned char* destPtr = &buffer_[position_];
     position_ += size;
-    
+
     unsigned copySize = size;
     while (copySize >= sizeof(unsigned))
     {
@@ -129,7 +129,7 @@ unsigned MemoryBuffer::Write(const void* data, unsigned size)
     }
     if (copySize & 1)
         *destPtr = *srcPtr;
-    
+
     return size;
 }
 

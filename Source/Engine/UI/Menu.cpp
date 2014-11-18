@@ -311,7 +311,7 @@ void Menu::ShowPopup(bool enable)
         // If the popup has child menus, hide their popups as well
         PODVector<UIElement*> children;
         popup_->GetChildren(children, true);
-        for (PODVector<UIElement*>::ConstIterator i = children.begin(); i != children.end(); ++i)
+        for (PODVector<UIElement*>::const_iterator i = children.begin(); i != children.end(); ++i)
         {
             Menu* menu = dynamic_cast<Menu*>(*i);
             if (menu)

@@ -361,14 +361,14 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     if (fullscreen)
     {
         PODVector<IntVector2> resolutions = GetResolutions();
-        if (resolutions.Empty())
+        if (resolutions.empty())
             fullscreen = false;
         else
         {
             unsigned best = 0;
             unsigned bestError = M_MAX_UNSIGNED;
 
-            for (unsigned i = 0; i < resolutions.Size(); ++i)
+            for (unsigned i = 0; i < resolutions.size(); ++i)
             {
                 unsigned error = Abs(resolutions[i].x_ - width) + Abs(resolutions[i].y_ - height);
                 if (error < bestError)
@@ -850,12 +850,12 @@ void Graphics::SetVertexBuffer(VertexBuffer* buffer)
 bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const PODVector<unsigned>& elementMasks,
     unsigned instanceOffset)
 {
-    if (buffers.Size() > MAX_VERTEX_STREAMS)
+    if (buffers.size() > MAX_VERTEX_STREAMS)
     {
         LOGERROR("Too many vertex buffers");
         return false;
     }
-    if (buffers.Size() != elementMasks.Size())
+    if (buffers.size() != elementMasks.size())
     {
         LOGERROR("Amount of element masks and vertex buffers does not match");
         return false;
@@ -869,7 +869,7 @@ bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, const P
         VertexBuffer* buffer = nullptr;
         unsigned elementMask = 0;
 
-        if (i < buffers.Size() && buffers[i])
+        if (i < buffers.size() && buffers[i])
         {
             buffer = buffers[i];
             if (elementMasks[i] == MASK_DEFAULT)
@@ -953,7 +953,7 @@ bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers,
         LOGERROR("Too many vertex buffers");
         return false;
     }
-    if (buffers.size() != elementMasks.Size())
+    if (buffers.size() != elementMasks.size())
     {
         LOGERROR("Amount of element masks and vertex buffers does not match");
         return false;
@@ -2006,7 +2006,7 @@ PODVector<IntVector2> Graphics::GetResolutions() const
 
         // Store mode if unique
         bool unique = true;
-        for (unsigned j = 0; j < ret.Size(); ++j)
+        for (unsigned j = 0; j < ret.size(); ++j)
         {
             if (ret[j].x_ == width && ret[j].y_ == height)
             {
@@ -2016,7 +2016,7 @@ PODVector<IntVector2> Graphics::GetResolutions() const
         }
 
         if (unique)
-            ret.Push(IntVector2(width, height));
+            ret.push_back(IntVector2(width, height));
     }
 
     return ret;
@@ -2026,7 +2026,7 @@ PODVector<int> Graphics::GetMultiSampleLevels() const
 {
     PODVector<int> ret;
     // No multisampling always supported
-    ret.Push(1);
+    ret.push_back(1);
     /// \todo Implement properly, if possible
 
     return ret;
@@ -2229,7 +2229,7 @@ void Graphics::RemoveGPUObject(GPUObject* object)
 {
     MutexLock lock(gpuObjectMutex_);
 
-    gpuObjects_.Remove(object);
+    gpuObjects_.remove(object);
 }
 
 void* Graphics::ReserveScratchBuffer(unsigned size)

@@ -123,7 +123,7 @@ void Audio::Update(float timeStep)
     PROFILE(UpdateAudio);
 
     // Update in reverse order, because sound sources might remove themselves
-    for (unsigned i = soundSources_.Size() - 1; i < soundSources_.Size(); --i)
+    for (unsigned i = soundSources_.size() - 1; i < soundSources_.size(); --i)
         soundSources_[i]->Update(timeStep);
 }
 
@@ -187,16 +187,16 @@ SoundListener* Audio::GetListener() const
 void Audio::AddSoundSource(SoundSource* channel)
 {
     MutexLock lock(audioMutex_);
-    soundSources_.Push(channel);
+    soundSources_.push_back(channel);
 }
 
 void Audio::RemoveSoundSource(SoundSource* channel)
 {
-    PODVector<SoundSource*>::Iterator i = soundSources_.Find(channel);
+    PODVector<SoundSource*>::iterator i = soundSources_.find(channel);
     if (i != soundSources_.end())
     {
         MutexLock lock(audioMutex_);
-        soundSources_.Erase(i);
+        soundSources_.erase(i);
     }
 }
 

@@ -155,7 +155,7 @@ public:
             Node* ptr = ptrs_[i];
             while (ptr)
             {
-                ret.Push(ptr->hash_);
+                ret.push_back(ptr->hash_);
                 ptr = ptr->next_;
             }
         }
@@ -173,7 +173,7 @@ public:
             Node* ptr = ptrs_[i];
             while (ptr)
             {
-                ret.Push(&ptr->value_);
+                ret.push_back(&ptr->value_);
                 ptr = ptr->next_;
             }
         }

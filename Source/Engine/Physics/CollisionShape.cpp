@@ -134,7 +134,7 @@ public:
         unsigned totalVertexCount = 0;
 
         for (unsigned i = 0; i < srcVertices.size(); ++i)
-            totalVertexCount += srcVertices[i].Size();
+            totalVertexCount += srcVertices[i].size();
 
         if (totalVertexCount)
         {
@@ -150,7 +150,7 @@ public:
 
             for (unsigned i = 0; i < srcVertices.size(); ++i)
             {
-                for (unsigned j = 0; j < srcVertices[i].Size(); ++j)
+                for (unsigned j = 0; j < srcVertices[i].size(); ++j)
                 {
                     *destVertex++ = srcVertices[i][j].position_;
                     *destIndex++ = k++;
@@ -245,7 +245,7 @@ ConvexData::ConvexData(Model* model, unsigned lodLevel)
         for (unsigned j = 0; j < vertexCount; ++j)
         {
             const Vector3& v = *((const Vector3*)(&vertexData[(vertexStart + j) * vertexSize]));
-            vertices.Push(v);
+            vertices.push_back(v);
         }
     }
 
@@ -259,8 +259,8 @@ ConvexData::ConvexData(CustomGeometry* custom)
 
     for (unsigned i = 0; i < srcVertices.size(); ++i)
     {
-        for (unsigned j = 0; j < srcVertices[i].Size(); ++j)
-            vertices.Push(srcVertices[i][j].position_);
+        for (unsigned j = 0; j < srcVertices[i].size(); ++j)
+            vertices.push_back(srcVertices[i][j].position_);
     }
 
     BuildHull(vertices);
@@ -268,12 +268,12 @@ ConvexData::ConvexData(CustomGeometry* custom)
 
 void ConvexData::BuildHull(const PODVector<Vector3>& vertices)
 {
-    if (vertices.Size())
+    if (vertices.size())
     {
         // Build the convex hull from the raw geometry
         StanHull::HullDesc desc;
         desc.SetHullFlag(StanHull::QF_TRIANGLES);
-        desc.mVcount = vertices.Size();
+        desc.mVcount = vertices.size();
         desc.mVertices = vertices[0].Data();
         desc.mVertexStride = 3 * sizeof(float);
         desc.mSkinWidth = 0.0f;

@@ -85,19 +85,19 @@ struct JoystickState
     /// Return whether is a game controller. Game controllers will use standardized axis and button mappings.
     bool IsController() const { return controller_ != 0; }
     /// Return number of buttons.
-    unsigned GetNumButtons() const { return buttons_.Size(); }
+    unsigned GetNumButtons() const { return buttons_.size(); }
     /// Return number of axes.
-    unsigned GetNumAxes() const { return axes_.Size(); }
+    unsigned GetNumAxes() const { return axes_.size(); }
     /// Return number of hats.
-    unsigned GetNumHats() const { return hats_.Size(); }
+    unsigned GetNumHats() const { return hats_.size(); }
     /// Check if a button is held down.
-    bool GetButtonDown(unsigned index) const { return index < buttons_.Size() ? buttons_[index] : false; }
+    bool GetButtonDown(unsigned index) const { return index < buttons_.size() ? buttons_[index] : false; }
     /// Check if a button has been pressed on this frame.
-    bool GetButtonPress(unsigned index) const { return index < buttonPress_.Size() ? buttonPress_[index] : false; }
+    bool GetButtonPress(unsigned index) const { return index < buttonPress_.size() ? buttonPress_[index] : false; }
     /// Return axis position.
-    float GetAxisPosition(unsigned index) const { return index < axes_.Size() ? axes_[index] : 0.0f; }
+    float GetAxisPosition(unsigned index) const { return index < axes_.size() ? axes_[index] : 0.0f; }
     /// Return hat position.
-    int GetHatPosition(unsigned index) const { return index < hats_.Size() ? hats_[index] : HAT_CENTER; }
+    int GetHatPosition(unsigned index) const { return index < hats_.size() ? hats_[index] : HAT_CENTER; }
 
     /// SDL joystick.
     SDL_Joystick* joystick_;

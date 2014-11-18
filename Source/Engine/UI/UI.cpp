@@ -397,14 +397,14 @@ void UI::RenderUpdate()
     bool osCursorVisible = GetSubsystem<Input>()->IsMouseVisible();
 
     // Get rendering batches from the non-modal UI elements
-    batches_.Clear();
-    vertexData_.Clear();
+    batches_.clear();
+    vertexData_.clear();
     const IntVector2& rootSize = rootElement_->GetSize();
     IntRect currentScissor = IntRect(0, 0, rootSize.x_, rootSize.y_);
     GetBatches(rootElement_, currentScissor);
 
     // Save the batch size of the non-modal batches for later use
-    nonModalBatchSize_ = batches_.Size();
+    nonModalBatchSize_ = batches_.size();
 
     // Get rendering batches from the modal UI elements
     GetBatches(rootModalElement_, currentScissor);
@@ -433,13 +433,13 @@ void UI::Render()
     // Render non-modal batches
     Render(vertexBuffer_, batches_, 0, nonModalBatchSize_);
     // Render debug draw
-    Render(debugVertexBuffer_, debugDrawBatches_, 0, debugDrawBatches_.Size());
+    Render(debugVertexBuffer_, debugDrawBatches_, 0, debugDrawBatches_.size());
     // Render modal batches
-    Render(vertexBuffer_, batches_, nonModalBatchSize_, batches_.Size());
+    Render(vertexBuffer_, batches_, nonModalBatchSize_, batches_.size());
 
     // Clear the debug draw batches and data
-    debugDrawBatches_.Clear();
-    debugVertexData_.Clear();
+    debugDrawBatches_.clear();
+    debugVertexData_.clear();
 }
 
 void UI::DebugDraw(UIElement* element)
@@ -718,12 +718,12 @@ void UI::Update(float timeStep, UIElement* element)
 
 void UI::SetVertexData(VertexBuffer* dest, const PODVector<float>& vertexData)
 {
-    if (vertexData.Empty())
+    if (vertexData.empty())
         return;
 
     // Update quad geometry into the vertex buffer
     // Resize the vertex buffer first if too small or much too large
-    unsigned numVertices = vertexData.Size() / UI_VERTEX_SIZE;
+    unsigned numVertices = vertexData.size() / UI_VERTEX_SIZE;
     if (dest->GetVertexCount() < numVertices || dest->GetVertexCount() > numVertices * 2)
         dest->SetSize(numVertices, MASK_POSITION | MASK_COLOR | MASK_TEXCOORD1, true);
 
@@ -735,7 +735,7 @@ void UI::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigne
     // Engine does not render when window is closed or device is lost
     assert(graphics_ && graphics_->IsInitialized() && !graphics_->IsDeviceLost());
 
-    if (batches.Empty())
+    if (batches.empty())
         return;
 
     Vector2 invScreenSize(1.0f / (float)graphics_->GetWidth(), 1.0f / (float)graphics_->GetHeight());
@@ -979,7 +979,7 @@ void UI::ReleaseFontFaces()
     PODVector<Font*> fonts;
     GetSubsystem<ResourceCache>()->GetResources<Font>(fonts);
 
-    for (unsigned i = 0; i < fonts.Size(); ++i)
+    for (unsigned i = 0; i < fonts.size(); ++i)
         fonts[i]->ReleaseFaces();
 }
 
@@ -1583,19 +1583,19 @@ void UI::HandleKeyDown(StringHash eventType, VariantMap& eventData)
             if (topLevel)
             {
                 topLevel->GetChildren(tempElements_, true);
-                for (PODVector<UIElement*>::Iterator i = tempElements_.begin(); i != tempElements_.end();)
+                for (PODVector<UIElement*>::iterator i = tempElements_.begin(); i != tempElements_.end();)
                 {
                     if ((*i)->GetFocusMode() < FM_FOCUSABLE)
-                        i = tempElements_.Erase(i);
+                        i = tempElements_.erase(i);
                     else
                         ++i;
                 }
-                for (unsigned i = 0; i < tempElements_.Size(); ++i)
+                for (unsigned i = 0; i < tempElements_.size(); ++i)
                 {
                     if (tempElements_[i] == element)
                     {
                         int dir = (qualifiers_ & QUAL_SHIFT) ? -1 : 1;
-                        unsigned nextIndex = (tempElements_.Size() + i + dir) % tempElements_.Size();
+                        unsigned nextIndex = (tempElements_.size() + i + dir) % tempElements_.size();
                         UIElement* next = tempElements_[nextIndex];
                         SetFocusElement(next, true);
                         return;

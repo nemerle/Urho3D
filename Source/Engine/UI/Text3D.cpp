@@ -131,9 +131,9 @@ void Text3D::UpdateGeometry(const FrameInfo& frame)
         }
     }
 
-    if ((geometryDirty_ || vertexBuffer_->IsDataLost()) && uiVertexData_.Size())
+    if ((geometryDirty_ || vertexBuffer_->IsDataLost()) && uiVertexData_.size())
     {
-        unsigned vertexCount = uiVertexData_.Size() / UI_VERTEX_SIZE;
+        unsigned vertexCount = uiVertexData_.size() / UI_VERTEX_SIZE;
         if (vertexBuffer_->GetVertexCount() != vertexCount)
             vertexBuffer_->SetSize(vertexCount, MASK_POSITION | MASK_COLOR | MASK_TEXCOORD1);
         vertexBuffer_->SetData(&uiVertexData_[0]);
@@ -451,8 +451,8 @@ ResourceRef Text3D::GetFontAttr() const
 
 void Text3D::UpdateTextBatches()
 {
-    uiBatches_.Clear();
-    uiVertexData_.Clear();
+    uiBatches_.clear();
+    uiVertexData_.clear();
 
     text_.GetBatches(uiBatches_, uiVertexData_, IntRect::ZERO);
 
@@ -489,7 +489,7 @@ void Text3D::UpdateTextBatches()
     boundingBox_.defined_ = false;
     boundingBox_.min_ = boundingBox_.max_ = Vector3::ZERO;
 
-    for (unsigned i = 0; i < uiVertexData_.Size(); i += UI_VERTEX_SIZE)
+    for (unsigned i = 0; i < uiVertexData_.size(); i += UI_VERTEX_SIZE)
     {
         Vector3& position = *(reinterpret_cast<Vector3*>(&uiVertexData_[i]));
         position += offset;
@@ -504,8 +504,8 @@ void Text3D::UpdateTextBatches()
 
 void Text3D::UpdateTextMaterials(bool forceUpdate)
 {
-    batches_.resize(uiBatches_.Size());
-    geometries_.resize(uiBatches_.Size());
+    batches_.resize(uiBatches_.size());
+    geometries_.resize(uiBatches_.size());
 
     for (unsigned i = 0; i < batches_.size(); ++i)
     {

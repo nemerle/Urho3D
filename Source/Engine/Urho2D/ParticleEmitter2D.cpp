@@ -149,7 +149,7 @@ void ParticleEmitter2D::SetMaxParticles(unsigned maxParticles)
     maxParticles = Max(maxParticles, 1);
 
     particles_.resize(maxParticles);
-    vertices_.Reserve(maxParticles * 4);
+    vertices_.reserve(maxParticles * 4);
 
     numParticles_ = Min(maxParticles, numParticles_);
 }

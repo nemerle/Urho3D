@@ -35,7 +35,7 @@ int main(int argc, char** argv)
         Vector<String> cmdArgs;
         cmdArgs.push_back(files[i]);
         cmdArgs.push_back(ReplaceExtension(files[i], ".mdl"));
-        cmdArgs.push_back(args);
+        cmdArgs.insert(cmdArgs.end(),args.begin(),args.end());
 
         String cmdPreview = ogreImporterName;
         for (unsigned j = 0; j < cmdArgs.size(); j++)

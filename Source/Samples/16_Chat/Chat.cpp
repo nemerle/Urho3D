@@ -154,7 +154,7 @@ Button* Chat::CreateButton(const String& text, int width)
 
 void Chat::ShowChatText(const String& row)
 {
-    chatHistory_.erase(0);
+    chatHistory_.erase(chatHistory_.begin());
     chatHistory_.push_back(row);
 
     // Concatenate all the rows in history

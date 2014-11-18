@@ -130,7 +130,7 @@ void Component::AddReplicationState(ComponentReplicationState* state)
     if (!networkState_)
         AllocateNetworkState();
 
-    networkState_->replicationStates_.Push(state);
+    networkState_->replicationStates_.push_back(state);
 }
 
 void Component::PrepareNetworkUpdate()
@@ -192,10 +192,10 @@ void Component::CleanupConnection(Connection* connection)
 {
     if (networkState_)
     {
-        for (unsigned i = networkState_->replicationStates_.Size() - 1; i < networkState_->replicationStates_.Size(); --i)
+        for (unsigned i = networkState_->replicationStates_.size() - 1; i < networkState_->replicationStates_.size(); --i)
         {
             if (networkState_->replicationStates_[i]->connection_ == connection)
-                networkState_->replicationStates_.Erase(i);
+                networkState_->replicationStates_.erase(networkState_->replicationStates_.begin() + i);
         }
     }
 }
@@ -250,7 +250,7 @@ void Component::GetComponents(PODVector<Component*>& dest, StringHash type) cons
     if (node_)
         node_->GetComponents(dest, type);
     else
-        dest.Clear();
+        dest.clear();
 }
 
 void Component::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& eventData)

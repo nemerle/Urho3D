@@ -198,10 +198,10 @@ struct ModelIndexBuffer
 
     void WriteData(Serializer& dest)
     {
-        dest.WriteUInt(indices_.Size());
+        dest.WriteUInt(indices_.size());
         dest.WriteUInt(indexSize_);
 
-        for (unsigned i = 0; i < indices_.Size(); ++i)
+        for (unsigned i = 0; i < indices_.size(); ++i)
         {
             if (indexSize_ == sizeof(unsigned short))
                 dest.WriteUShort(indices_[i]);

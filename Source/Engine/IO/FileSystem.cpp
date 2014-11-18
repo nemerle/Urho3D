@@ -158,10 +158,10 @@ int DoSystemRun(const String& fileName, const Vector<String>& arguments)
     if (!pid)
     {
         PODVector<const char*> argPtrs;
-        argPtrs.Push(fixedFileName.CString());
+        argPtrs.push_back(fixedFileName.CString());
         for (unsigned i = 0; i < arguments.size(); ++i)
-            argPtrs.Push(arguments[i].CString());
-        argPtrs.Push(nullptr);
+            argPtrs.push_back(arguments[i].CString());
+        argPtrs.push_back(nullptr);
 
         execvp(argPtrs[0], (char**)&argPtrs[0]);
         return -1; // Return -1 if we could not spawn the process

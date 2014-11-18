@@ -221,7 +221,7 @@ void Node::AddReplicationState(NodeReplicationState* state)
     if (!networkState_)
         AllocateNetworkState();
 
-    networkState_->replicationStates_.Push(state);
+    networkState_->replicationStates_.push_back(state);
 }
 
 bool Node::SaveXML(Serializer& dest) const
@@ -581,9 +581,9 @@ void Node::AddChild(Node* node, unsigned index)
             return;
         parent = parent->parent_;
     }
-
+    auto location = (index != M_MAX_UNSIGNED) ? children_.begin()+index : children_.end();
     // Add first, then remove from old parent, to ensure the node does not get deleted
-    children_.insert(index, SharedPtr<Node>(node));
+    children_.emplace(location, node);
     node->Remove();
 
     // Add to the scene if not added yet
@@ -919,12 +919,12 @@ unsigned Node::GetNumChildren(bool recursive) const
 
 void Node::GetChildren(PODVector<Node*>& dest, bool recursive) const
 {
-    dest.Clear();
+    dest.clear();
 
     if (!recursive)
     {
         for (const auto & elem : children_)
-            dest.Push(elem);
+            dest.push_back(elem);
     }
     else
         GetChildrenRecursive(dest);
@@ -932,14 +932,14 @@ void Node::GetChildren(PODVector<Node*>& dest, bool recursive) const
 
 void Node::GetChildrenWithComponent(PODVector<Node*>& dest, StringHash type, bool recursive) const
 {
-    dest.Clear();
+    dest.clear();
 
     if (!recursive)
     {
         for (const auto & elem : children_)
         {
             if ((elem)->HasComponent(type))
-                dest.Push(elem);
+                dest.push_back(elem);
         }
     }
     else
@@ -993,14 +993,14 @@ unsigned Node::GetNumNetworkComponents() const
 
 void Node::GetComponents(PODVector<Component*>& dest, StringHash type, bool recursive) const
 {
-    dest.Clear();
+    dest.clear();
 
     if (!recursive)
     {
         for (const auto & elem : components_)
         {
             if ((elem)->GetType() == type)
-                dest.Push(elem);
+                dest.push_back(elem);
         }
     }
     else
@@ -1163,7 +1163,7 @@ bool Node::Load(Deserializer& source, SceneResolver& resolver, bool readChildren
         unsigned compID = compBuffer.ReadUInt();
 
         Component* newComponent = SafeCreateComponent(String::EMPTY, compType,
-            (mode == REPLICATED && compID < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, rewriteIDs ? 0 : compID);
+                                                      (mode == REPLICATED && compID < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, rewriteIDs ? 0 : compID);
         if (newComponent)
         {
             resolver.AddComponent(compID, newComponent);
@@ -1180,7 +1180,7 @@ bool Node::Load(Deserializer& source, SceneResolver& resolver, bool readChildren
     {
         unsigned nodeID = source.ReadUInt();
         Node* newNode = CreateChild(rewriteIDs ? 0 : nodeID, (mode == REPLICATED && nodeID < FIRST_LOCAL_ID) ? REPLICATED :
-            LOCAL);
+                                                                                                               LOCAL);
         resolver.AddNode(nodeID, newNode);
         if (!newNode->Load(source, resolver, readChildren, rewriteIDs, mode))
             return false;
@@ -1204,7 +1204,7 @@ bool Node::LoadXML(const XMLElement& source, SceneResolver& resolver, bool readC
         String typeName = compElem.GetAttribute("type");
         unsigned compID = compElem.GetInt("id");
         Component* newComponent = SafeCreateComponent(typeName, StringHash(typeName),
-            (mode == REPLICATED && compID < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, rewriteIDs ? 0 : compID);
+                                                      (mode == REPLICATED && compID < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, rewriteIDs ? 0 : compID);
         if (newComponent)
         {
             resolver.AddComponent(compID, newComponent);
@@ -1223,7 +1223,7 @@ bool Node::LoadXML(const XMLElement& source, SceneResolver& resolver, bool readC
     {
         unsigned nodeID = childElem.GetInt("id");
         Node* newNode = CreateChild(rewriteIDs ? 0 : nodeID, (mode == REPLICATED && nodeID < FIRST_LOCAL_ID) ? REPLICATED :
-            LOCAL);
+                                                                                                               LOCAL);
         resolver.AddNode(nodeID, newNode);
         if (!newNode->LoadXML(childElem, resolver, readChildren, rewriteIDs, mode))
             return false;
@@ -1238,7 +1238,7 @@ bool Node::LoadXML(const XMLElement& source, SceneResolver& resolver, bool readC
 void Node::PrepareNetworkUpdate()
 {
     // Update dependency nodes list first
-    dependencyNodes_.Clear();
+    dependencyNodes_.clear();
 
     // Add the parent node, but if it is local, traverse to the first non-local node
     if (parent_ && parent_ != scene_)
@@ -1247,7 +1247,7 @@ void Node::PrepareNetworkUpdate()
         while (current->id_ >= FIRST_LOCAL_ID)
             current = current->parent_;
         if (current && current != scene_)
-            dependencyNodes_.Push(current);
+            dependencyNodes_.push_back(current);
     }
 
     // Let the components add their dependencies
@@ -1335,28 +1335,28 @@ void Node::CleanupConnection(Connection* connection)
     if (owner_ == connection)
         owner_ = nullptr;
 
-    if (networkState_)
+    if (!networkState_)
+        return;
+    for (auto i = networkState_->replicationStates_.begin(),fin=networkState_->replicationStates_.end(); i!=fin ; )
     {
-        for (unsigned i = networkState_->replicationStates_.Size() - 1; i < networkState_->replicationStates_.Size(); --i)
-        {
-            if (networkState_->replicationStates_[i]->connection_ == connection)
-                networkState_->replicationStates_.Erase(i);
-        }
+        if ((*i)->connection_ == connection)
+            i = networkState_->replicationStates_.erase(i);
+        else
+            ++i;
     }
 }
 
 void Node::MarkReplicationDirty()
 {
-    if (networkState_)
+    if (!networkState_)
+        return;
+    for (auto & elem : networkState_->replicationStates_)
     {
-        for (auto & elem : networkState_->replicationStates_)
+        NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
+        if (!nodeState->markedDirty_)
         {
-            NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
-            if (!nodeState->markedDirty_)
-            {
-                nodeState->markedDirty_ = true;
-                nodeState->sceneState_->dirtyNodes_.insert(id_);
-            }
+            nodeState->markedDirty_ = true;
+            nodeState->sceneState_->dirtyNodes_.insert(id_);
         }
     }
 }
@@ -1522,7 +1522,7 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
             unsigned index = ToInt(componentNames[1]);
             PODVector<Component*> components;
             node->GetComponents(components, StringHash(componentNames.front()));
-            if (index >= components.Size())
+            if (index >= components.size())
             {
                 LOGERROR("Could not find component by name " + name);
                 return;
@@ -1666,7 +1666,7 @@ void Node::GetChildrenRecursive(PODVector<Node*>& dest) const
     for (const auto & elem : children_)
     {
         Node* node = elem;
-        dest.Push(node);
+        dest.push_back(node);
         if (!node->children_.empty())
             node->GetChildrenRecursive(dest);
     }
@@ -1678,7 +1678,7 @@ void Node::GetChildrenWithComponentRecursive(PODVector<Node*>& dest, StringHash 
     {
         Node* node = elem;
         if (node->HasComponent(type))
-            dest.Push(node);
+            dest.push_back(node);
         if (!node->children_.empty())
             node->GetChildrenWithComponentRecursive(dest, type);
     }
@@ -1689,7 +1689,7 @@ void Node::GetComponentsRecursive(PODVector<Component*>& dest, StringHash type) 
     for (const auto & elem : components_)
     {
         if ((elem)->GetType() == type)
-            dest.Push(elem);
+            dest.push_back(elem);
     }
     for (const auto & elem : children_)
         (elem)->GetComponentsRecursive(dest, type);
@@ -1720,7 +1720,7 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     {
         Component* component = *i;
         Component* cloneComponent = cloneNode->CloneComponent(component,
-            (mode == REPLICATED && component->GetID() < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, 0);
+                                                              (mode == REPLICATED && component->GetID() < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, 0);
         if (cloneComponent)
             resolver.AddComponent(component->GetID(), cloneComponent);
     }

@@ -547,12 +547,12 @@ void StringToBuffer(PODVector<unsigned char>& dest, const char* source)
 {
     if (!source)
     {
-        dest.Clear();
+        dest.clear();
         return;
     }
     
     unsigned size = CountElements(source, ' ');
-    dest.Resize(size);
+    dest.resize(size);
     
     bool inSpace = true;
     unsigned index = 0;

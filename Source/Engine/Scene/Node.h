@@ -561,13 +561,13 @@ template <class T> T* Node::GetDerivedComponent() const
 
 template <class T> void Node::GetDerivedComponents(PODVector<T*>& dest) const
 {
-    dest.Clear();
+    dest.clear();
 
     for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
     {
         T* component = dynamic_cast<T*>(i->Get());
         if (component)
-            dest.Push(component);
+            dest.push_back(component);
     }
 }
 

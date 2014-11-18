@@ -82,7 +82,7 @@ bool FontFaceBitmap::Load(const unsigned char* fontData, unsigned fontDataSize, 
     XMLElement commonElem = root.GetChild("common");
     rowHeight_ = commonElem.GetInt("lineHeight");
     unsigned pages = commonElem.GetInt("pages");
-    textures_.Reserve(pages);
+    textures_.reserve(pages);
 
     ResourceCache* resourceCache = font_->GetSubsystem<ResourceCache>();
     String fontPath = GetPath(font_->GetName());

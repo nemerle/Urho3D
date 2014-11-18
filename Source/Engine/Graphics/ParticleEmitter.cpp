@@ -99,8 +99,8 @@ void ParticleEmitter::Update(const FrameInfo& frame)
         return;
 
     // If there is an amount mismatch between particles and billboards, correct it
-    if (particles_.Size() != billboards_.Size())
-        SetNumBillboards(particles_.Size());
+    if (particles_.size() != billboards_.size())
+        SetNumBillboards(particles_.size());
 
     bool needCommit = false;
 
@@ -162,7 +162,7 @@ void ParticleEmitter::Update(const FrameInfo& frame)
     if (scaled_ && !relative_)
         scaleVector = node_->GetWorldScale();
 
-    for (unsigned i = 0; i < particles_.Size(); ++i)
+    for (unsigned i = 0; i < particles_.size(); ++i)
     {
         Particle& particle = particles_[i];
         Billboard& billboard = billboards_[i];
@@ -275,7 +275,7 @@ void ParticleEmitter::SetNumParticles(unsigned num)
     if (num > MAX_BILLBOARDS)
         num = MAX_BILLBOARDS;
 
-    particles_.Resize(num);
+    particles_.resize(num);
     SetNumBillboards(num);
 }
 
@@ -344,7 +344,7 @@ void ParticleEmitter::SetParticlesAttr(VariantVector value)
     unsigned index = 0;
     SetNumParticles(index < value.size() ? value[index++].GetUInt() : 0);
 
-    for (PODVector<Particle>::Iterator i = particles_.begin(); i != particles_.end() && index < value.size(); ++i)
+    for (PODVector<Particle>::iterator i = particles_.begin(); i != particles_.end() && index < value.size(); ++i)
     {
         i->velocity_ = value[index++].GetVector3();
         i->size_ = value[index++].GetVector2();
@@ -362,12 +362,12 @@ VariantVector ParticleEmitter::GetParticlesAttr() const
     VariantVector ret;
     if (!serializeParticles_)
     {
-        ret.push_back(particles_.Size());
+        ret.push_back(particles_.size());
         return ret;
     }
 
-    ret.Reserve(particles_.Size() * 8 + 1);
-    ret.push_back(particles_.Size());
+    ret.reserve(particles_.size() * 8 + 1);
+    ret.push_back(particles_.size());
     for (const Particle & elem : particles_)
     {
         ret.push_back(elem.velocity_);
@@ -387,12 +387,12 @@ VariantVector ParticleEmitter::GetParticleBillboardsAttr() const
     VariantVector ret;
     if (!serializeParticles_)
     {
-        ret.push_back(billboards_.Size());
+        ret.push_back(billboards_.size());
         return ret;
     }
 
-    ret.Reserve(billboards_.Size() * 6 + 1);
-    ret.push_back(billboards_.Size());
+    ret.reserve(billboards_.size() * 6 + 1);
+    ret.push_back(billboards_.size());
 
     for (const Billboard & elem : billboards_)
     {
@@ -424,7 +424,7 @@ bool ParticleEmitter::EmitNewParticle()
     unsigned index = GetFreeParticle();
     if (index == M_MAX_UNSIGNED)
         return false;
-    assert(index < particles_.Size());
+    assert(index < particles_.size());
     Particle& particle = particles_[index];
     Billboard& billboard = billboards_[index];
 
@@ -490,7 +490,7 @@ bool ParticleEmitter::EmitNewParticle()
 
 unsigned ParticleEmitter::GetFreeParticle() const
 {
-    for (unsigned i = 0; i < billboards_.Size(); ++i)
+    for (unsigned i = 0; i < billboards_.size(); ++i)
     {
         if (!billboards_[i].enabled_)
             return i;

@@ -812,7 +812,7 @@ void ScriptFile::HandleUpdate(StringHash eventType, VariantMap& eventData)
         }
 
         if (remove)
-            delayedCalls_.erase(i);
+            delayedCalls_.erase(delayedCalls_.begin()+i);
         else
             ++i;
     }

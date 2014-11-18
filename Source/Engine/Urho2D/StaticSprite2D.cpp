@@ -42,7 +42,7 @@ StaticSprite2D::StaticSprite2D(Context* context) :
     useHotSpot_(false),
     hotSpot_(0.5f, 0.5f)
 {
-    vertices_.Reserve(6);
+    vertices_.reserve(6);
 }
 
 StaticSprite2D::~StaticSprite2D()

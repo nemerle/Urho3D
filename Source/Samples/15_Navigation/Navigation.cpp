@@ -63,10 +63,10 @@ void Navigation::Start()
 
     // Create the scene content
     CreateScene();
-    
+
     // Create the UI content
     CreateUI();
-    
+
     // Setup the viewport for displaying the scene
     SetupViewport();
 
@@ -77,21 +77,21 @@ void Navigation::Start()
 void Navigation::CreateScene()
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    
+
     scene_ = new Scene(context_);
-    
+
     // Create octree, use default volume (-1000, -1000, -1000) to (1000, 1000, 1000)
     // Also create a DebugRenderer component so that we can draw debug geometry
     scene_->CreateComponent<Octree>();
     scene_->CreateComponent<DebugRenderer>();
-    
+
     // Create scene node & StaticModel component for showing a static plane
     Node* planeNode = scene_->CreateChild("Plane");
     planeNode->SetScale(Vector3(100.0f, 1.0f, 100.0f));
     StaticModel* planeObject = planeNode->CreateComponent<StaticModel>();
     planeObject->SetModel(cache->GetResource<Model>("Models/Plane.mdl"));
     planeObject->SetMaterial(cache->GetResource<Material>("Materials/StoneTiled.xml"));
-    
+
     // Create a Zone component for ambient lighting & fog control
     Node* zoneNode = scene_->CreateChild("Zone");
     Zone* zone = zoneNode->CreateComponent<Zone>();
@@ -100,7 +100,7 @@ void Navigation::CreateScene()
     zone->SetFogColor(Color(0.5f, 0.5f, 0.7f));
     zone->SetFogStart(100.0f);
     zone->SetFogEnd(300.0f);
-    
+
     // Create a directional light to the world. Enable cascaded shadows on it
     Node* lightNode = scene_->CreateChild("DirectionalLight");
     lightNode->SetDirection(Vector3(0.6f, -1.0f, 0.8f));
@@ -110,12 +110,12 @@ void Navigation::CreateScene()
     light->SetShadowBias(BiasParameters(0.00025f, 0.5f));
     // Set cascade splits at 10, 50 and 200 world units, fade shadows out at 80% of maximum shadow distance
     light->SetShadowCascade(CascadeParameters(10.0f, 50.0f, 200.0f, 0.0f, 0.8f));
-    
+
     // Create some mushrooms
     const unsigned NUM_MUSHROOMS = 100;
     for (unsigned i = 0; i < NUM_MUSHROOMS; ++i)
         CreateMushroom(Vector3(Random(90.0f) - 45.0f, 0.0f, Random(90.0f) - 45.0f));
-    
+
     // Create randomly sized boxes. If boxes are big enough, make them occluders
     const unsigned NUM_BOXES = 20;
     for (unsigned i = 0; i < NUM_BOXES; ++i)
@@ -152,12 +152,12 @@ void Navigation::CreateScene()
     // physics geometry from the scene nodes, as it often is simpler, but if it can not find any (like in this example)
     // it will use renderable geometry instead
     navMesh->Build();
-    
+
     // Create the camera. Limit far clip distance to match the fog
     cameraNode_ = scene_->CreateChild("Camera");
     Camera* camera = cameraNode_->CreateComponent<Camera>();
     camera->SetFarClip(300.0f);
-    
+
     // Set an initial position for the camera scene node above the plane
     cameraNode_->SetPosition(Vector3(0.0f, 5.0f, 0.0f));
 }
@@ -166,7 +166,7 @@ void Navigation::CreateUI()
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     UI* ui = GetSubsystem<UI>();
-    
+
     // Create a Cursor UI element because we want to be able to hide and show it at will. When hidden, the mouse cursor will
     // control the camera, and when visible, it will point the raycast target
     XMLFile* style = cache->GetResource<XMLFile>("UI/DefaultStyle.xml");
@@ -177,7 +177,7 @@ void Navigation::CreateUI()
     // Set starting position of the cursor at the rendering window center
     Graphics* graphics = GetSubsystem<Graphics>();
     cursor->SetPosition(graphics->GetWidth() / 2, graphics->GetHeight() / 2);
-    
+
     // Construct new Text object, set string to display and font to use
     Text* instructionText = ui->GetRoot()->CreateChild<Text>();
     instructionText->SetText(
@@ -189,7 +189,7 @@ void Navigation::CreateUI()
     instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
     // The text has multiple rows. Center them in relation to each other
     instructionText->SetTextAlignment(HA_CENTER);
-    
+
     // Position the text relative to the screen center
     instructionText->SetHorizontalAlignment(HA_CENTER);
     instructionText->SetVerticalAlignment(VA_CENTER);
@@ -199,7 +199,7 @@ void Navigation::CreateUI()
 void Navigation::SetupViewport()
 {
     Renderer* renderer = GetSubsystem<Renderer>();
-    
+
     // Set up a viewport to the Renderer subsystem so that the 3D scene can be seen
     SharedPtr<Viewport> viewport(new Viewport(context_, scene_, cameraNode_->GetComponent<Camera>()));
     renderer->SetViewport(0, viewport);
@@ -209,7 +209,7 @@ void Navigation::SubscribeToEvents()
 {
     // Subscribe HandleUpdate() function for processing update events
     SubscribeToEvent(E_UPDATE, HANDLER(Navigation, HandleUpdate));
-    
+
     // Subscribe HandlePostRenderUpdate() function for processing the post-render update event, during which we request
     // debug geometry
     SubscribeToEvent(E_POSTRENDERUPDATE, HANDLER(Navigation, HandlePostRenderUpdate));
@@ -221,16 +221,16 @@ void Navigation::MoveCamera(float timeStep)
     UI* ui = GetSubsystem<UI>();
     Input* input = GetSubsystem<Input>();
     ui->GetCursor()->SetVisible(!input->GetMouseButtonDown(MOUSEB_RIGHT));
-    
+
     // Do not move if the UI has a focused element (the console)
     if (ui->GetFocusElement())
         return;
-    
+
     // Movement speed as world units per second
     const float MOVE_SPEED = 20.0f;
     // Mouse sensitivity as degrees per pixel
     const float MOUSE_SENSITIVITY = 0.1f;
-    
+
     // Use this frame's mouse motion to adjust camera node yaw and pitch. Clamp the pitch between -90 and 90 degrees
     // Only move the camera when the cursor is hidden
     if (!ui->GetCursor()->IsVisible())
@@ -239,11 +239,11 @@ void Navigation::MoveCamera(float timeStep)
         yaw_ += MOUSE_SENSITIVITY * mouseMove.x_;
         pitch_ += MOUSE_SENSITIVITY * mouseMove.y_;
         pitch_ = Clamp(pitch_, -90.0f, 90.0f);
-        
+
         // Construct new orientation for the camera scene node from yaw and pitch. Roll is fixed to zero
         cameraNode_->SetRotation(Quaternion(pitch_, yaw_, 0.0f));
     }
-    
+
     // Read WASD keys and move the camera scene node to the corresponding direction if they are pressed
     if (input->GetKeyDown('W'))
         cameraNode_->Translate(Vector3::FORWARD * MOVE_SPEED * timeStep);
@@ -253,14 +253,14 @@ void Navigation::MoveCamera(float timeStep)
         cameraNode_->Translate(Vector3::LEFT * MOVE_SPEED * timeStep);
     if (input->GetKeyDown('D'))
         cameraNode_->Translate(Vector3::RIGHT * MOVE_SPEED * timeStep);
-    
+
     // Set destination or teleport with left mouse button
     if (input->GetMouseButtonPress(MOUSEB_LEFT))
         SetPathPoint();
     // Add or remove objects with middle mouse button, then rebuild navigation mesh partially
     if (input->GetMouseButtonPress(MOUSEB_MIDDLE))
         AddOrRemoveObject();
-        
+
     // Toggle debug geometry with space
     if (input->GetKeyPress(KEY_SPACE))
         drawDebug_ = !drawDebug_;
@@ -271,7 +271,7 @@ void Navigation::SetPathPoint()
     Vector3 hitPos;
     Drawable* hitDrawable;
     NavigationMesh* navMesh = scene_->GetComponent<NavigationMesh>();
-    
+
     if (Raycast(250.0f, hitPos, hitDrawable))
     {
         Vector3 pathPos = navMesh->FindNearestPoint(hitPos, Vector3(1.0f, 1.0f, 1.0f));
@@ -279,7 +279,7 @@ void Navigation::SetPathPoint()
         if (GetSubsystem<Input>()->GetQualifierDown(QUAL_SHIFT))
         {
             // Teleport
-            currentPath_.Clear();
+            currentPath_.clear();
             jackNode_->LookAt(Vector3(pathPos.x_, jackNode_->GetPosition().y_, pathPos.z_), Vector3::UP);
             jackNode_->SetPosition(pathPos);
         }
@@ -297,13 +297,13 @@ void Navigation::AddOrRemoveObject()
     // Raycast and check if we hit a mushroom node. If yes, remove it, if no, create a new one
     Vector3 hitPos;
     Drawable* hitDrawable;
-    
+
     if (Raycast(250.0f, hitPos, hitDrawable))
     {
         // The part of the navigation mesh we must update, which is the world bounding box of the associated
         // drawable component
         BoundingBox updateBox;
-        
+
         Node* hitNode = hitDrawable->GetNode();
         if (hitNode->GetName() == "Mushroom")
         {
@@ -315,11 +315,11 @@ void Navigation::AddOrRemoveObject()
             Node* newNode = CreateMushroom(hitPos);
             updateBox = newNode->GetComponent<StaticModel>()->GetWorldBoundingBox();
         }
-        
+
         // Rebuild part of the navigation mesh, then recalculate path if applicable
         NavigationMesh* navMesh = scene_->GetComponent<NavigationMesh>();
         navMesh->Build(updateBox);
-        if (currentPath_.Size())
+        if (currentPath_.size())
             navMesh->FindPath(currentPath_, jackNode_->GetPosition(), endPos_);
     }
 }
@@ -327,7 +327,7 @@ void Navigation::AddOrRemoveObject()
 Node* Navigation::CreateMushroom(const Vector3& pos)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    
+
     Node* mushroomNode = scene_->CreateChild("Mushroom");
     mushroomNode->SetPosition(pos);
     mushroomNode->SetRotation(Quaternion(0.0f, Random(360.0f), 0.0f));
@@ -336,20 +336,20 @@ Node* Navigation::CreateMushroom(const Vector3& pos)
     mushroomObject->SetModel(cache->GetResource<Model>("Models/Mushroom.mdl"));
     mushroomObject->SetMaterial(cache->GetResource<Material>("Materials/Mushroom.xml"));
     mushroomObject->SetCastShadows(true);
-    
+
     return mushroomNode;
 }
 
 bool Navigation::Raycast(float maxDistance, Vector3& hitPos, Drawable*& hitDrawable)
 {
     hitDrawable = 0;
-    
+
     UI* ui = GetSubsystem<UI>();
     IntVector2 pos = ui->GetCursorPosition();
     // Check the cursor is visible and there is no UI element in front of the cursor
     if (!ui->GetCursor()->IsVisible() || ui->GetElementAt(pos, true))
         return false;
-    
+
     Graphics* graphics = GetSubsystem<Graphics>();
     Camera* camera = cameraNode_->GetComponent<Camera>();
     Ray cameraRay = camera->GetScreenRay((float)pos.x_ / graphics->GetWidth(), (float)pos.y_ / graphics->GetHeight());
@@ -357,36 +357,35 @@ bool Navigation::Raycast(float maxDistance, Vector3& hitPos, Drawable*& hitDrawa
     PODVector<RayQueryResult> results;
     RayOctreeQuery query(results, cameraRay, RAY_TRIANGLE, maxDistance, DRAWABLE_GEOMETRY);
     scene_->GetComponent<Octree>()->RaycastSingle(query);
-    if (results.Size())
+    if (results.size())
     {
         RayQueryResult& result = results[0];
         hitPos = result.position_;
         hitDrawable = result.drawable_;
         return true;
     }
-    
+
     return false;
 }
 
 void Navigation::FollowPath(float timeStep)
 {
-    if (currentPath_.Size())
-    {
-        Vector3 nextWaypoint = currentPath_[0]; // NB: currentPath[0] is the next waypoint in order
+    if (currentPath_.empty())
+        return;
+    Vector3 nextWaypoint = currentPath_[0]; // NB: currentPath[0] is the next waypoint in order
 
-        // Rotate Jack toward next waypoint to reach and move. Check for not overshooting the target
-        float move = 5.0f * timeStep;
-        float distance = (jackNode_->GetPosition() - nextWaypoint).Length();
-        if (move > distance)
-            move = distance;
-        
-        jackNode_->LookAt(nextWaypoint, Vector3::UP);
-        jackNode_->Translate(Vector3::FORWARD * move);
+    // Rotate Jack toward next waypoint to reach and move. Check for not overshooting the target
+    float move = 5.0f * timeStep;
+    float distance = (jackNode_->GetPosition() - nextWaypoint).Length();
+    if (move > distance)
+        move = distance;
 
-        // Remove waypoint if reached it
-        if ((jackNode_->GetPosition() - nextWaypoint).Length() < 0.1f)
-            currentPath_.Erase(0);
-    }
+    jackNode_->LookAt(nextWaypoint, Vector3::UP);
+    jackNode_->Translate(Vector3::FORWARD * move);
+
+    // Remove waypoint if reached it
+    if ((jackNode_->GetPosition() - nextWaypoint).Length() < 0.1f)
+        currentPath_.erase(currentPath_.begin());
 }
 
 void Navigation::HandleUpdate(StringHash eventType, VariantMap& eventData)
@@ -395,7 +394,7 @@ void Navigation::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
     // Take the frame time step, which is stored as a float
     float timeStep = eventData[P_TIMESTEP].GetFloat();
-    
+
     // Move the camera, scale movement with time step
     MoveCamera(timeStep);
 
@@ -408,8 +407,8 @@ void Navigation::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventD
     // If draw debug mode is enabled, draw navigation mesh debug geometry
     if (drawDebug_)
         scene_->GetComponent<NavigationMesh>()->DrawDebugGeometry(true);
-    
-    if (currentPath_.Size())
+
+    if (currentPath_.size())
     {
         // Visualize the current calculated path
         DebugRenderer* debug = scene_->GetComponent<DebugRenderer>();
@@ -420,9 +419,9 @@ void Navigation::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventD
         Vector3 bias(0.0f, 0.05f, 0.0f);
         debug->AddLine(jackNode_->GetPosition() + bias, currentPath_[0] + bias, Color(1.0f, 1.0f, 1.0f));
 
-        if (currentPath_.Size() > 1)
+        if (currentPath_.size() > 1)
         {
-            for (unsigned i = 0; i < currentPath_.Size() - 1; ++i)
+            for (unsigned i = 0; i < currentPath_.size() - 1; ++i)
                 debug->AddLine(currentPath_[i] + bias, currentPath_[i + 1] + bias, Color(1.0f, 1.0f, 1.0f));
         }
     }

@@ -156,7 +156,7 @@ void Constraint::OnSetEnabled()
 void Constraint::GetDependencyNodes(PODVector<Node*>& dest)
 {
     if (otherBody_ && otherBody_->GetNode())
-        dest.Push(otherBody_->GetNode());
+        dest.push_back(otherBody_->GetNode());
 }
 
 void Constraint::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)

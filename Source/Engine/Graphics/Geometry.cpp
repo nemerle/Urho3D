@@ -63,7 +63,7 @@ bool Geometry::SetNumVertexBuffers(unsigned num)
 
     unsigned oldSize = vertexBuffers_.size();
     vertexBuffers_.resize(num);
-    elementMasks_.Resize(num);
+    elementMasks_.resize(num);
 
     for (unsigned i = oldSize; i < num; ++i)
         elementMasks_[i] = MASK_NONE;
@@ -205,7 +205,7 @@ VertexBuffer* Geometry::GetVertexBuffer(unsigned index) const
 
 unsigned Geometry::GetVertexElementMask(unsigned index) const
 {
-    return index < elementMasks_.Size() ? elementMasks_[index] : 0;
+    return index < elementMasks_.size() ? elementMasks_[index] : 0;
 }
 
 unsigned short Geometry::GetBufferHash() const

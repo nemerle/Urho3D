@@ -79,24 +79,24 @@ UIElement* TouchState::GetTouchedElement()
 
 void JoystickState::Initialize(unsigned numButtons, unsigned numAxes, unsigned numHats)
 {
-    buttons_.Resize(numButtons);
-    buttonPress_.Resize(numButtons);
-    axes_.Resize(numAxes);
-    hats_.Resize(numHats);
+    buttons_.resize(numButtons);
+    buttonPress_.resize(numButtons);
+    axes_.resize(numAxes);
+    hats_.resize(numHats);
 
     Reset();
 }
 
 void JoystickState::Reset()
 {
-    for (unsigned i = 0; i < buttons_.Size(); ++i)
+    for (unsigned i = 0; i < buttons_.size(); ++i)
     {
         buttons_[i] = false;
         buttonPress_[i] = false;
     }
-    for (unsigned i = 0; i < axes_.Size(); ++i)
+    for (unsigned i = 0; i < axes_.size(); ++i)
         axes_[i] = 0.0f;
-    for (unsigned i = 0; i < hats_.Size(); ++i)
+    for (unsigned i = 0; i < hats_.size(); ++i)
         hats_[i] = HAT_CENTER;
 }
 
@@ -147,7 +147,7 @@ void Input::Update()
     mouseMoveWheel_ = 0;
     for (JoystickState & elem : joysticks_)
     {
-        for (unsigned j = 0; j < elem.buttonPress_.Size(); ++j)
+        for (unsigned j = 0; j < elem.buttonPress_.size(); ++j)
             elem.buttonPress_[j] = false;
     }
 
@@ -1506,7 +1506,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
                 eventData[P_JOYSTICKID] = joystickID;
                 eventData[P_BUTTON] = button;
 
-                if (button < state.buttons_.Size())
+                if (button < state.buttons_.size())
                 {
                     state.buttons_[button] = true;
                     state.buttonPress_[button] = true;
@@ -1530,7 +1530,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
                 eventData[P_JOYSTICKID] = joystickID;
                 eventData[P_BUTTON] = button;
 
-                if (button < state.buttons_.Size())
+                if (button < state.buttons_.size())
                 {
                     if (!state.controller_)
                         state.buttons_[button] = false;
@@ -1554,7 +1554,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
                 eventData[P_AXIS] = evt.jaxis.axis;
                 eventData[P_POSITION] = Clamp((float)evt.jaxis.value / 32767.0f, -1.0f, 1.0f);
 
-                if (evt.jaxis.axis < state.axes_.Size())
+                if (evt.jaxis.axis < state.axes_.size())
                 {
                     // If the joystick is a controller, only use the controller axis mappings
                     // (we'll also get the controller event)
@@ -1578,7 +1578,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
             eventData[P_HAT] = evt.jhat.hat;
             eventData[P_POSITION] = evt.jhat.value;
 
-            if (evt.jhat.hat < state.hats_.Size())
+            if (evt.jhat.hat < state.hats_.size())
             {
                 state.hats_[evt.jhat.hat] = evt.jhat.value;
                 SendEvent(E_JOYSTICKHATMOVE, eventData);
@@ -1598,7 +1598,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
             eventData[P_JOYSTICKID] = joystickID;
             eventData[P_BUTTON] = button;
 
-            if (button < state.buttons_.Size())
+            if (button < state.buttons_.size())
             {
                 state.buttons_[button] = true;
                 state.buttonPress_[button] = true;
@@ -1619,7 +1619,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
             eventData[P_JOYSTICKID] = joystickID;
             eventData[P_BUTTON] = button;
 
-            if (button < state.buttons_.Size())
+            if (button < state.buttons_.size())
             {
                 state.buttons_[button] = false;
                 SendEvent(E_JOYSTICKBUTTONUP, eventData);
@@ -1639,7 +1639,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
             eventData[P_AXIS] = evt.caxis.axis;
             eventData[P_POSITION] = Clamp((float)evt.caxis.value / 32767.0f, -1.0f, 1.0f);
 
-            if (evt.caxis.axis < state.axes_.Size())
+            if (evt.caxis.axis < state.axes_.size())
             {
                 state.axes_[evt.caxis.axis] = eventData[P_POSITION].GetFloat();
                 SendEvent(E_JOYSTICKAXISMOVE, eventData);

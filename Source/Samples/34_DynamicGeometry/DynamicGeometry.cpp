@@ -117,13 +117,13 @@ void DynamicGeometry::CreateScene()
         for (unsigned i = 0; i < numVertices; ++i)
         {
             const Vector3& src = *reinterpret_cast<const Vector3*>(vertexData + i * vertexSize);
-            originalVertices_.Push(src);
+            originalVertices_.push_back(src);
         }
         buffer->Unlock();
 
         // Detect duplicate vertices to allow seamless animation
-        vertexDuplicates_.Resize(originalVertices_.Size());
-        for (unsigned i = 0; i < originalVertices_.Size(); ++i)
+        vertexDuplicates_.resize(originalVertices_.size());
+        for (unsigned i = 0; i < originalVertices_.size(); ++i)
         {
             vertexDuplicates_[i] = i; // Assume not a duplicate
             for (unsigned j = 0; j < i; ++j)

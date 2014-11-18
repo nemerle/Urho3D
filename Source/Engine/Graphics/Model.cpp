@@ -84,7 +84,7 @@ bool Model::BeginLoad(Deserializer& source)
 
     geometries_.clear();
     geometryBoneMappings_.clear();
-    geometryCenters_.Clear();
+    geometryCenters_.clear();
     morphs_.clear();
     vertexBuffers_.clear();
     indexBuffers_.clear();
@@ -94,9 +94,9 @@ bool Model::BeginLoad(Deserializer& source)
 
     // Read vertex buffers
     unsigned numVertexBuffers = source.ReadUInt();
-    vertexBuffers_.Reserve(numVertexBuffers);
-    morphRangeStarts_.Resize(numVertexBuffers);
-    morphRangeCounts_.Resize(numVertexBuffers);
+    vertexBuffers_.reserve(numVertexBuffers);
+    morphRangeStarts_.resize(numVertexBuffers);
+    morphRangeCounts_.resize(numVertexBuffers);
     loadVBData_.resize(numVertexBuffers);
     for (unsigned i = 0; i < numVertexBuffers; ++i)
     {
@@ -134,7 +134,7 @@ bool Model::BeginLoad(Deserializer& source)
 
     // Read index buffers
     unsigned numIndexBuffers = source.ReadUInt();
-    indexBuffers_.Reserve(numIndexBuffers);
+    indexBuffers_.reserve(numIndexBuffers);
     loadIBData_.resize(numIndexBuffers);
     for (unsigned i = 0; i < numIndexBuffers; ++i)
     {
@@ -169,9 +169,9 @@ bool Model::BeginLoad(Deserializer& source)
 
     // Read geometries
     unsigned numGeometries = source.ReadUInt();
-    geometries_.Reserve(numGeometries);
-    geometryBoneMappings_.Reserve(numGeometries);
-    geometryCenters_.Reserve(numGeometries);
+    geometries_.reserve(numGeometries);
+    geometryBoneMappings_.reserve(numGeometries);
+    geometryCenters_.reserve(numGeometries);
     loadGeometries_.resize(numGeometries);
     for (unsigned i = 0; i < numGeometries; ++i)
     {
@@ -184,8 +184,8 @@ bool Model::BeginLoad(Deserializer& source)
 
         unsigned numLodLevels = source.ReadUInt();
         Vector<SharedPtr<Geometry> > geometryLodLevels;
-        geometryLodLevels.Reserve(numLodLevels);
-        loadGeometries_[i].Resize(numLodLevels);
+        geometryLodLevels.reserve(numLodLevels);
+        loadGeometries_[i].resize(numLodLevels);
 
         for (unsigned j = 0; j < numLodLevels; ++j)
         {
@@ -233,7 +233,7 @@ bool Model::BeginLoad(Deserializer& source)
 
     // Read morphs
     unsigned numMorphs = source.ReadUInt();
-    morphs_.Reserve(numMorphs);
+    morphs_.reserve(numMorphs);
     for (unsigned i = 0; i < numMorphs; ++i)
     {
         ModelMorph newMorph;
@@ -282,9 +282,9 @@ bool Model::BeginLoad(Deserializer& source)
 
     // Read geometry centers
     for (unsigned i = 0; i < geometries_.size() && !source.IsEof(); ++i)
-        geometryCenters_.Push(source.ReadVector3());
-    while (geometryCenters_.Size() < geometries_.size())
-        geometryCenters_.Push(Vector3::ZERO);
+        geometryCenters_.push_back(source.ReadVector3());
+    while (geometryCenters_.size() < geometries_.size())
+        geometryCenters_.push_back(Vector3::ZERO);
     memoryUse += sizeof(Vector3) * geometries_.size();
 
     SetMemoryUse(memoryUse);
@@ -369,8 +369,8 @@ bool Model::Save(Serializer& dest) const
     for (unsigned i = 0; i < geometries_.size(); ++i)
     {
         // Write bone mappings
-        dest.WriteUInt(geometryBoneMappings_[i].Size());
-        for (unsigned j = 0; j < geometryBoneMappings_[i].Size(); ++j)
+        dest.WriteUInt(geometryBoneMappings_[i].size());
+        for (unsigned j = 0; j < geometryBoneMappings_[i].size(); ++j)
             dest.WriteUInt(geometryBoneMappings_[i][j]);
 
         // Write the LOD levels
@@ -422,7 +422,7 @@ bool Model::Save(Serializer& dest) const
     dest.WriteBoundingBox(boundingBox_);
 
     // Write geometry centers
-    for (unsigned i = 0; i < geometryCenters_.Size(); ++i)
+    for (unsigned i = 0; i < geometryCenters_.size(); ++i)
         dest.WriteVector3(geometryCenters_[i]);
 
     return true;
@@ -450,14 +450,14 @@ bool Model::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers, co
     }
 
     vertexBuffers_ = buffers;
-    morphRangeStarts_.Resize(buffers.size());
-    morphRangeCounts_.Resize(buffers.size());
+    morphRangeStarts_.resize(buffers.size());
+    morphRangeCounts_.resize(buffers.size());
 
     // If morph ranges are not specified for buffers, assume to be zero
     for (unsigned i = 0; i < buffers.size(); ++i)
     {
-        morphRangeStarts_[i] = i < morphRangeStarts.Size() ? morphRangeStarts[i] : 0;
-        morphRangeCounts_[i] = i < morphRangeCounts.Size() ? morphRangeCounts[i] : 0;
+        morphRangeStarts_[i] = i < morphRangeStarts.size() ? morphRangeStarts[i] : 0;
+        morphRangeCounts_[i] = i < morphRangeCounts.size() ? morphRangeCounts[i] : 0;
     }
 
     return true;
@@ -487,7 +487,7 @@ void Model::SetNumGeometries(unsigned num)
 {
     geometries_.resize(num);
     geometryBoneMappings_.resize(num);
-    geometryCenters_.Resize(num);
+    geometryCenters_.resize(num);
 
     // For easier creation of from-scratch geometry, ensure that all geometries start with at least 1 LOD level (0 makes no sense)
     for (unsigned i = 0; i < geometries_.size(); ++i)
@@ -533,7 +533,7 @@ bool Model::SetGeometry(unsigned index, unsigned lodLevel, Geometry* geometry)
 
 bool Model::SetGeometryCenter(unsigned index, const Vector3& center)
 {
-    if (index >= geometryCenters_.Size())
+    if (index >= geometryCenters_.size())
     {
         LOGERROR("Geometry index out of bounds");
         return false;

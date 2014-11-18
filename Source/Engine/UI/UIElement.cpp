@@ -1059,12 +1059,12 @@ void UIElement::UpdateLayout()
         {
             if (!children_[i]->IsVisible())
                 continue;
-            positions.Push(baseIndentWidth);
+            positions.push_back(baseIndentWidth);
             unsigned indent = children_[i]->GetIndentWidth();
-            sizes.Push(children_[i]->GetWidth() + indent);
-            minSizes.Push(children_[i]->GetMinWidth() + indent);
-            maxSizes.Push(children_[i]->GetMaxWidth() + indent);
-            flexScales.Push(children_[i]->GetLayoutFlexScale().x_);
+            sizes.push_back(children_[i]->GetWidth() + indent);
+            minSizes.push_back(children_[i]->GetMinWidth() + indent);
+            maxSizes.push_back(children_[i]->GetMaxWidth() + indent);
+            flexScales.push_back(children_[i]->GetLayoutFlexScale().x_);
             minChildHeight = Max(minChildHeight, children_[i]->GetMinHeight());
         }
 
@@ -1102,11 +1102,11 @@ void UIElement::UpdateLayout()
         {
             if (!children_[i]->IsVisible())
                 continue;
-            positions.Push(0);
-            sizes.Push(children_[i]->GetHeight());
-            minSizes.Push(children_[i]->GetMinHeight());
-            maxSizes.Push(children_[i]->GetMaxHeight());
-            flexScales.Push(children_[i]->GetLayoutFlexScale().y_);
+            positions.push_back(0);
+            sizes.push_back(children_[i]->GetHeight());
+            minSizes.push_back(children_[i]->GetMinHeight());
+            maxSizes.push_back(children_[i]->GetMaxHeight());
+            flexScales.push_back(children_[i]->GetLayoutFlexScale().y_);
             minChildWidth = Max(minChildWidth, children_[i]->GetMinWidth() + children_[i]->GetIndentWidth());
         }
 
@@ -1287,27 +1287,26 @@ void UIElement::RemoveChild(UIElement* element, unsigned index)
 {
     for (unsigned i = index; i < children_.size(); ++i)
     {
-        if (children_[i] == element)
+        if (children_[i] != element)
+            continue;
+        // Send change event if not already being destroyed
+        UIElement* sender = Refs() > 0 ? GetElementEventSender() : nullptr;
+        if (sender)
         {
-            // Send change event if not already being destroyed
-            UIElement* sender = Refs() > 0 ? GetElementEventSender() : nullptr;
-            if (sender)
-            {
-                using namespace ElementRemoved;
+            using namespace ElementRemoved;
 
-                VariantMap& eventData = GetEventDataMap();
-                eventData[P_ROOT] = GetRoot();
-                eventData[P_PARENT] = this;
-                eventData[P_ELEMENT] = element;
+            VariantMap& eventData = GetEventDataMap();
+            eventData[P_ROOT] = GetRoot();
+            eventData[P_PARENT] = this;
+            eventData[P_ELEMENT] = element;
 
-                sender->SendEvent(E_ELEMENTREMOVED, eventData);
-            }
-
-            element->Detach();
-            children_.erase(i);
-            UpdateLayout();
-            return;
+            sender->SendEvent(E_ELEMENTREMOVED, eventData);
         }
+
+        element->Detach();
+        children_.erase(children_.begin()+i);
+        UpdateLayout();
+        return;
     }
 }
 
@@ -1331,7 +1330,7 @@ void UIElement::RemoveChildAtIndex(unsigned index)
     }
 
     children_[index]->Detach();
-    children_.erase(index);
+    children_.erase(children_.begin()+index);
     UpdateLayout();
 }
 
@@ -1450,13 +1449,13 @@ XMLFile* UIElement::GetDefaultStyle(bool recursiveUp) const
 
 void UIElement::GetChildren(PODVector<UIElement*>& dest, bool recursive) const
 {
-    dest.Clear();
+    dest.clear();
 
     if (!recursive)
     {
-        dest.Reserve(children_.size());
+        dest.reserve(children_.size());
         for (const auto & elem : children_)
-            dest.Push(elem);
+            dest.push_back(elem);
     }
     else
         GetChildrenRecursive(dest);
@@ -1608,7 +1607,7 @@ void UIElement::SortChildren()
     {
         // Only sort when there is no layout
         if (layoutMode_ == LM_FREE)
-            Sort(children_.begin(), children_.end(), CompareUIElements);
+            std::sort(children_.begin(), children_.end(), CompareUIElements);
         sortOrderDirty_ = false;
     }
 }
@@ -1649,10 +1648,10 @@ void UIElement::GetBatchesWithOffset(IntVector2& offset, PODVector<UIBatch>& bat
     currentScissor)
 {
     Vector2 floatOffset((float)offset.x_, (float)offset.y_);
-    unsigned initialSize = vertexData.Size();
+    unsigned initialSize = vertexData.size();
 
     GetBatches(batches, vertexData, currentScissor);
-    for (unsigned i = initialSize; i < vertexData.Size(); i += 6)
+    for (unsigned i = initialSize; i < vertexData.size(); i += 6)
     {
         vertexData[i] += floatOffset.x_;
         vertexData[i + 1] += floatOffset.y_;
@@ -1835,7 +1834,7 @@ void UIElement::GetChildrenRecursive(PODVector<UIElement*>& dest) const
     for (const auto & elem : children_)
     {
         UIElement* element = elem;
-        dest.Push(element);
+        dest.push_back(element);
         if (!element->children_.empty())
             element->GetChildrenRecursive(dest);
     }
@@ -1844,10 +1843,10 @@ void UIElement::GetChildrenRecursive(PODVector<UIElement*>& dest) const
 int UIElement::CalculateLayoutParentSize(const PODVector<int>& sizes, int begin, int end, int spacing)
 {
     int width = begin + end;
-    if (sizes.Empty())
+    if (sizes.empty())
         return width;
 
-    for (unsigned i = 0; i < sizes.Size(); ++i)
+    for (unsigned i = 0; i < sizes.size(); ++i)
     {
         // If calculating maximum size, and the default is specified, do not overflow it
         if (sizes[i] == M_MAX_INT)
@@ -1861,7 +1860,7 @@ int UIElement::CalculateLayoutParentSize(const PODVector<int>& sizes, int begin,
 void UIElement::CalculateLayout(PODVector<int>& positions, PODVector<int>& sizes, const PODVector<int>& minSizes,
         const PODVector<int>& maxSizes, const PODVector<float>& flexScales, int targetSize, int begin, int end, int spacing)
 {
-    int numChildren = sizes.Size();
+    int numChildren = sizes.size();
     if (!numChildren)
         return;
     int targetTotalSize = targetSize - begin - end - (numChildren - 1) * spacing;
@@ -1905,14 +1904,14 @@ void UIElement::CalculateLayout(PODVector<int>& positions, PODVector<int>& sizes
         for (int i = 0; i < numChildren; ++i)
         {
             if (error < 0 && sizes[i] > minSizes[i])
-                resizable.Push(i);
+                resizable.push_back(i);
             else if (error > 0 && sizes[i] < maxSizes[i])
-                resizable.Push(i);
+                resizable.push_back(i);
         }
-        if (resizable.Empty())
+        if (resizable.empty())
             break;
 
-        int numResizable = resizable.Size();
+        int numResizable = resizable.size();
         int errorPerChild = error / numResizable;
         remainder = (abs(error)) % numResizable;
         add = (float)remainder / numResizable;

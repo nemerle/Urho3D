@@ -83,7 +83,7 @@ public:
                 (drawable->GetViewMask() & viewMask_))
             {
                 if (inside || frustum_.IsInsideFast(drawable->GetWorldBoundingBox()))
-                    result_.Push(drawable);
+                    result_.push_back(drawable);
             }
         }
     }
@@ -112,7 +112,7 @@ public:
                 drawable->IsOccluder())) && (drawable->GetViewMask() & viewMask_))
             {
                 if (inside || frustum_.IsInsideFast(drawable->GetWorldBoundingBox()))
-                    result_.Push(drawable);
+                    result_.push_back(drawable);
             }
         }
     }
@@ -154,7 +154,7 @@ public:
             if ((drawable->GetDrawableFlags() & drawableFlags_) && (drawable->GetViewMask() & viewMask_))
             {
                 if (inside || frustum_.IsInsideFast(drawable->GetWorldBoundingBox()))
-                    result_.Push(drawable);
+                    result_.push_back(drawable);
             }
         }
     }
@@ -223,14 +223,14 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
                     result.maxZ_ = Max(result.maxZ_, maxZ);
                 }
 
-                result.geometries_.Push(drawable);
+                result.geometries_.push_back(drawable);
             }
             else if (drawable->GetDrawableFlags() & DRAWABLE_LIGHT)
             {
                 Light* light = static_cast<Light*>(drawable);
                 // Skip lights with zero brightness or black color
                 if (!light->GetEffectiveColor().Equals(Color::BLACK))
-                    result.lights_.Push(light);
+                    result.lights_.push_back(light);
             }
         }
     }
@@ -488,10 +488,10 @@ void View::Update(const FrameInfo& frame)
 
     // Clear buffers, geometry, light, occluder & batch list
     renderTargets_.clear();
-    geometries_.Clear();
-    lights_.Clear();
-    zones_.Clear();
-    occluders_.Clear();
+    geometries_.clear();
+    lights_.clear();
+    zones_.clear();
+    occluders_.clear();
     vertexLightQueues_.clear();
     for (auto & elem : batchQueues_)
         elem.Clear(maxSortedInstances);
@@ -724,7 +724,7 @@ void View::GetDrawables()
     int bestPriority = M_MIN_INT;
     Vector3 cameraPos = cameraNode_->GetWorldPosition();
 
-    for (PODVector<Drawable*>::ConstIterator i = tempDrawables.begin(); i != tempDrawables.end(); ++i)
+    for (PODVector<Drawable*>::const_iterator i = tempDrawables.begin(); i != tempDrawables.end(); ++i)
     {
         Drawable* drawable = *i;
         unsigned char flags = drawable->GetDrawableFlags();
@@ -732,7 +732,7 @@ void View::GetDrawables()
         if (flags & DRAWABLE_ZONE)
         {
             Zone* zone = static_cast<Zone*>(drawable);
-            zones_.Push(zone);
+            zones_.push_back(zone);
             int priority = zone->GetPriority();
             if (priority > highestZonePriority_)
                 highestZonePriority_ = priority;
@@ -743,7 +743,7 @@ void View::GetDrawables()
             }
         }
         else
-            occluders_.Push(drawable);
+            occluders_.push_back(drawable);
     }
 
     // Determine the zone at far clip distance. If not found, or camera zone has override mode, use camera zone
@@ -771,7 +771,7 @@ void View::GetDrawables()
     if (maxOccluderTriangles_ > 0)
     {
         UpdateOccluders(occluders_, camera_);
-        if (occluders_.Size())
+        if (occluders_.size())
         {
             PROFILE(DrawOcclusion);
 
@@ -800,17 +800,17 @@ void View::GetDrawables()
         {
             PerThreadSceneResult& result = sceneResults_[i];
 
-            result.geometries_.Clear();
-            result.lights_.Clear();
+            result.geometries_.clear();
+            result.lights_.clear();
             result.minZ_ = M_INFINITY;
             result.maxZ_ = 0.0f;
         }
-        if(!tempDrawables.Empty())
+        if(!tempDrawables.empty())
         {
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
-            int drawablesPerItem = tempDrawables.Size() / numWorkItems;
+            int drawablesPerItem = tempDrawables.size() / numWorkItems;
 
-            PODVector<Drawable*>::Iterator start = tempDrawables.begin();
+            PODVector<Drawable*>::iterator start = tempDrawables.begin();
             // Create a work item for each thread
             for (int i = 0; i < numWorkItems; ++i)
             {
@@ -819,7 +819,7 @@ void View::GetDrawables()
                 item->workFunction_ = CheckVisibilityWork;
                 item->aux_ = this;
 
-                PODVector<Drawable*>::Iterator end = tempDrawables.end();
+                PODVector<Drawable*>::iterator end = tempDrawables.end();
                 if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                     end = start + drawablesPerItem;
 
@@ -835,8 +835,8 @@ void View::GetDrawables()
     }
 
     // Combine lights, geometries & scene Z range from the threads
-    geometries_.Clear();
-    lights_.Clear();
+    geometries_.clear();
+    lights_.clear();
     minZ_ = M_INFINITY;
     maxZ_ = 0.0f;
 
@@ -845,8 +845,8 @@ void View::GetDrawables()
         for (unsigned i = 0; i < sceneResults_.size(); ++i)
         {
             PerThreadSceneResult& result = sceneResults_[i];
-            geometries_.Push(result.geometries_);
-            lights_.Push(result.lights_);
+            geometries_.insert(geometries_.end(),result.geometries_.begin(),result.geometries_.end());
+            lights_.insert(lights_.end(),result.lights_.begin(),result.lights_.end());
             minZ_ = Min(minZ_, result.minZ_);
             maxZ_ = Max(maxZ_, result.maxZ_);
         }
@@ -865,14 +865,14 @@ void View::GetDrawables()
         minZ_ = 0.0f;
 
     // Sort the lights to brightest/closest first, and per-vertex lights first so that per-vertex base pass can be evaluated first
-    for (unsigned i = 0; i < lights_.Size(); ++i)
+    for (unsigned i = 0; i < lights_.size(); ++i)
     {
         Light* light = lights_[i];
         light->SetIntensitySortValue(camera_->GetDistance(light->GetNode()->GetWorldPosition()));
         light->SetLightQueue(nullptr);
     }
 
-    Sort(lights_.begin(), lights_.end(), CompareLights);
+    std::sort(lights_.begin(), lights_.end(), CompareLights);
 }
 
 void View::GetBatches()
@@ -880,8 +880,8 @@ void View::GetBatches()
     if (!octree_ || !camera_)
         return;
 
-    nonThreadedGeometries_.Clear();
-    threadedGeometries_.Clear();
+    nonThreadedGeometries_.clear();
+    threadedGeometries_.clear();
 
     WorkQueue* queue = GetSubsystem<WorkQueue>();
     PODVector<Light*> vertexLights;
@@ -891,7 +891,7 @@ void View::GetBatches()
     {
         PROFILE(ProcessLights);
 
-        lightQueryResults_.resize(lights_.Size());
+        lightQueryResults_.resize(lights_.size());
 
         for (unsigned i = 0; i < lightQueryResults_.size(); ++i)
         {
@@ -920,7 +920,7 @@ void View::GetBatches()
         unsigned usedLightQueues = 0;
         for (Vector<LightQueryResult>::const_iterator i = lightQueryResults_.begin(); i != lightQueryResults_.end(); ++i)
         {
-            if (!i->light_->GetPerVertex() && i->litGeometries_.Size())
+            if (!i->light_->GetPerVertex() && i->litGeometries_.size())
                 ++numLightQueues;
         }
 
@@ -933,7 +933,7 @@ void View::GetBatches()
 
 
             // If light has no affected geometries, no need to process further
-            if (query.litGeometries_.Empty())
+            if (query.litGeometries_.empty())
                 continue;
 
             Light* light = query.light_;
@@ -950,7 +950,7 @@ void View::GetBatches()
                 lightQueue.shadowMap_ = nullptr;
                 lightQueue.litBaseBatches_.Clear(maxSortedInstances);
                 lightQueue.litBatches_.Clear(maxSortedInstances);
-                lightQueue.volumeBatches_.Clear();
+                lightQueue.volumeBatches_.clear();
 
                 // Allocate shadow map now
                 if (shadowSplits > 0)
@@ -977,7 +977,7 @@ void View::GetBatches()
                     FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, query.shadowCasterBox_[j]);
 
                     // Loop through shadow casters
-                    for (PODVector<Drawable*>::ConstIterator k = query.shadowCasters_.begin() + query.shadowCasterBegin_[j];
+                    for (PODVector<Drawable*>::const_iterator k = query.shadowCasters_.begin() + query.shadowCasterBegin_[j];
                         k < query.shadowCasters_.begin() + query.shadowCasterEnd_[j]; ++k)
                     {
                         Drawable* drawable = *k;
@@ -987,9 +987,9 @@ void View::GetBatches()
                             drawable->MarkInView(frame_.frameNumber_, nullptr);
                             UpdateGeometryType type = drawable->GetUpdateGeometryType();
                             if (type == UPDATE_MAIN_THREAD)
-                                nonThreadedGeometries_.Push(drawable);
+                                nonThreadedGeometries_.push_back(drawable);
                             else if (type == UPDATE_WORKER_THREAD)
-                                threadedGeometries_.Push(drawable);
+                                threadedGeometries_.push_back(drawable);
                         }
 
                         Zone* zone = GetZone(drawable);
@@ -1020,7 +1020,7 @@ void View::GetBatches()
                 }
 
                 // Process lit geometries
-                for (PODVector<Drawable*>::ConstIterator j = query.litGeometries_.begin(); j != query.litGeometries_.end(); ++j)
+                for (PODVector<Drawable*>::const_iterator j = query.litGeometries_.begin(); j != query.litGeometries_.end(); ++j)
                 {
                     Drawable* drawable = *j;
                     drawable->AddLight(light);
@@ -1048,14 +1048,14 @@ void View::GetBatches()
                     volumeBatch.pass_ = nullptr;
                     volumeBatch.zone_ = nullptr;
                     renderer_->SetLightVolumeBatchShaders(volumeBatch, lightVolumeVSName_, lightVolumePSName_);
-                    lightQueue.volumeBatches_.Push(volumeBatch);
+                    lightQueue.volumeBatches_.push_back(volumeBatch);
                 }
             }
             // Per-vertex light
             else
             {
                 // Add the vertex light to lit drawables. It will be processed later during base pass batch generation
-                for (PODVector<Drawable*>::ConstIterator j = query.litGeometries_.begin(); j != query.litGeometries_.end(); ++j)
+                for (PODVector<Drawable*>::const_iterator j = query.litGeometries_.begin(); j != query.litGeometries_.end(); ++j)
                 {
                     Drawable* drawable = *j;
                     drawable->AddVertexLight(light);
@@ -1074,7 +1074,7 @@ void View::GetBatches()
             drawable->LimitLights();
             const PODVector<Light*>& lights = drawable->GetLights();
 
-            for (unsigned i = 0; i < lights.Size(); ++i)
+            for (unsigned i = 0; i < lights.size(); ++i)
             {
                 Light* light = lights[i];
                 // Find the correct light queue again
@@ -1089,20 +1089,20 @@ void View::GetBatches()
     {
         PROFILE(GetBaseBatches);
 
-        for (PODVector<Drawable*>::ConstIterator i = geometries_.begin(); i != geometries_.end(); ++i)
+        for (PODVector<Drawable*>::const_iterator i = geometries_.begin(); i != geometries_.end(); ++i)
         {
             Drawable* drawable = *i;
             UpdateGeometryType type = drawable->GetUpdateGeometryType();
             if (type == UPDATE_MAIN_THREAD)
-                nonThreadedGeometries_.Push(drawable);
+                nonThreadedGeometries_.push_back(drawable);
             else if (type == UPDATE_WORKER_THREAD)
-                threadedGeometries_.Push(drawable);
+                threadedGeometries_.push_back(drawable);
 
             Zone* zone = GetZone(drawable);
             const Vector<SourceBatch>& batches = drawable->GetBatches();
 
             const PODVector<Light*>& drawableVertexLights = drawable->GetVertexLights();
-            if (!drawableVertexLights.Empty())
+            if (!drawableVertexLights.empty())
                 drawable->LimitVertexLights();
 
             for (unsigned j = 0; j < batches.size(); ++j)
@@ -1137,23 +1137,23 @@ void View::GetBatches()
                     if (info.pass_ == basePassName_ && j < 32 && drawable->HasBasePass(j))
                         continue;
 
-                    if (info.vertexLights_ && !drawableVertexLights.Empty())
+                    if (info.vertexLights_ && !drawableVertexLights.empty())
                     {
                         // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
                         // them to prevent double-lighting
                         if (deferred_ && destBatch.pass_->GetBlendMode() == BLEND_REPLACE)
                         {
-                            vertexLights.Clear();
-                            for (unsigned i = 0; i < drawableVertexLights.Size(); ++i)
+                            vertexLights.clear();
+                            for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
                             {
                                 if (drawableVertexLights[i]->GetPerVertex())
-                                    vertexLights.Push(drawableVertexLights[i]);
+                                    vertexLights.push_back(drawableVertexLights[i]);
                             }
                         }
                         else
                             vertexLights = drawableVertexLights;
 
-                        if (!vertexLights.Empty())
+                        if (!vertexLights.empty())
                         {
                             // Find a vertex light queue. If not found, create new
                             unsigned long long hash = GetVertexLightQueueHash(vertexLights);
@@ -1229,27 +1229,27 @@ void View::UpdateGeometries()
 
     // Update geometries. Split into threaded and non-threaded updates.
     {
-        if (threadedGeometries_.Size())
+        if (threadedGeometries_.size())
         {
             // In special cases (context loss, multi-view) a drawable may theoretically first have reported a threaded update, but will actually
             // require a main thread update. Check these cases first and move as applicable. The threaded work routine will tolerate the null
             // pointer holes that we leave to the threaded update queue.
-            for (PODVector<Drawable*>::Iterator i = threadedGeometries_.begin(); i != threadedGeometries_.end(); ++i)
+            for (PODVector<Drawable*>::iterator i = threadedGeometries_.begin(); i != threadedGeometries_.end(); ++i)
             {
                 if ((*i)->GetUpdateGeometryType() == UPDATE_MAIN_THREAD)
                 {
-                    nonThreadedGeometries_.Push(*i);
+                    nonThreadedGeometries_.push_back(*i);
                     *i = 0;
                 }
             }
 
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
-            int drawablesPerItem = threadedGeometries_.Size() / numWorkItems;
+            int drawablesPerItem = threadedGeometries_.size() / numWorkItems;
 
-            PODVector<Drawable*>::Iterator start = threadedGeometries_.begin();
+            PODVector<Drawable*>::iterator start = threadedGeometries_.begin();
             for (int i = 0; i < numWorkItems; ++i)
             {
-                PODVector<Drawable*>::Iterator end = threadedGeometries_.end();
+                PODVector<Drawable*>::iterator end = threadedGeometries_.end();
                 if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                     end = start + drawablesPerItem;
 
@@ -1266,7 +1266,7 @@ void View::UpdateGeometries()
         }
 
         // While the work queue is processed, update non-threaded geometries
-        for (PODVector<Drawable*>::ConstIterator i = nonThreadedGeometries_.begin(); i != nonThreadedGeometries_.end(); ++i)
+        for (PODVector<Drawable*>::const_iterator i = nonThreadedGeometries_.cbegin(); i != nonThreadedGeometries_.cend(); ++i)
             (*i)->UpdateGeometry(frame_);
     }
 
@@ -1284,7 +1284,7 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
     // Shadows on transparencies can only be rendered if shadow maps are not reused
     bool allowTransparentShadows = !renderer_->GetReuseShadowMaps();
     bool allowLitBase = useLitBase_ && !light->IsNegative() && light == drawable->GetFirstLight() &&
-        drawable->GetVertexLights().Empty() && !hasAmbientGradient;
+        drawable->GetVertexLights().empty() && !hasAmbientGradient;
 
     for (unsigned i = 0; i < batches.size(); ++i)
     {
@@ -1546,7 +1546,7 @@ void View::ExecuteRenderPathCommands()
 
                         SetTextures(command);
 
-                        for (unsigned j = 0; j < elem.volumeBatches_.Size(); ++j)
+                        for (unsigned j = 0; j < elem.volumeBatches_.size(); ++j)
                         {
                             SetupLightVolumeBatch(elem.volumeBatches_[j]);
                             elem.volumeBatches_[j].Draw(this);
@@ -1989,7 +1989,7 @@ void View::UpdateOccluders(PODVector<Drawable*>& occluders, Camera* camera)
     float halfViewSize = camera->GetHalfViewSize();
     float invOrthoSize = 1.0f / camera->GetOrthoSize();
 
-    for (PODVector<Drawable*>::Iterator i = occluders.begin(); i != occluders.end();)
+    for (PODVector<Drawable*>::iterator i = occluders.begin(); i != occluders.end();)
     {
         Drawable* occluder = *i;
         bool erase = false;
@@ -2023,14 +2023,14 @@ void View::UpdateOccluders(PODVector<Drawable*>& occluders, Camera* camera)
             erase = true;
 
         if (erase)
-            i = occluders.Erase(i);
+            i = occluders.erase(i);
         else
             ++i;
     }
 
     // Sort occluders so that if triangle budget is exceeded, best occluders have been drawn
-    if (occluders.Size())
-        Sort(occluders.begin(), occluders.end(), CompareDrawables);
+    if (occluders.size())
+        std::sort(occluders.begin(), occluders.end(), CompareDrawables);
 }
 
 void View::DrawOccluders(OcclusionBuffer* buffer, const PODVector<Drawable*>& occluders)
@@ -2038,7 +2038,7 @@ void View::DrawOccluders(OcclusionBuffer* buffer, const PODVector<Drawable*>& oc
     buffer->SetMaxTriangles(maxOccluderTriangles_);
     buffer->Clear();
 
-    for (unsigned i = 0; i < occluders.Size(); ++i)
+    for (unsigned i = 0; i < occluders.size(); ++i)
     {
         Drawable* occluder = occluders[i];
         if (i > 0)
@@ -2074,15 +2074,15 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     #endif
     // Get lit geometries. They must match the light mask and be inside the main camera frustum to be considered
     PODVector<Drawable*>& tempDrawables = tempDrawables_[threadIndex];
-    query.litGeometries_.Clear();
+    query.litGeometries_.clear();
 
     switch (type)
     {
     case LIGHT_DIRECTIONAL:
-        for (unsigned i = 0; i < geometries_.Size(); ++i)
+        for (unsigned i = 0; i < geometries_.size(); ++i)
         {
             if (GetLightMask(geometries_[i]) & light->GetLightMask())
-                query.litGeometries_.Push(geometries_[i]);
+                query.litGeometries_.push_back(geometries_[i]);
         }
         break;
 
@@ -2091,10 +2091,10 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
             FrustumOctreeQuery octreeQuery(tempDrawables, light->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY,
                 camera_->GetViewMask());
             octree_->GetDrawables(octreeQuery);
-            for (unsigned i = 0; i < tempDrawables.Size(); ++i)
+            for (unsigned i = 0; i < tempDrawables.size(); ++i)
             {
                 if (tempDrawables[i]->IsInView(frame_) && (GetLightMask(tempDrawables[i]) & light->GetLightMask()))
-                    query.litGeometries_.Push(tempDrawables[i]);
+                    query.litGeometries_.push_back(tempDrawables[i]);
             }
         }
         break;
@@ -2104,17 +2104,17 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
             SphereOctreeQuery octreeQuery(tempDrawables, Sphere(light->GetNode()->GetWorldPosition(), light->GetRange()),
                 DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY, camera_->GetViewMask());
             octree_->GetDrawables(octreeQuery);
-            for (unsigned i = 0; i < tempDrawables.Size(); ++i)
+            for (unsigned i = 0; i < tempDrawables.size(); ++i)
             {
                 if (tempDrawables[i]->IsInView(frame_) && (GetLightMask(tempDrawables[i]) & light->GetLightMask()))
-                    query.litGeometries_.Push(tempDrawables[i]);
+                    query.litGeometries_.push_back(tempDrawables[i]);
             }
         }
         break;
     }
 
     // If no lit geometries or not shadowed, no need to process shadow cameras
-    if (query.litGeometries_.Empty() || !isShadowed)
+    if (query.litGeometries_.empty() || !isShadowed)
     {
         query.numSplits_ = 0;
         return;
@@ -2124,12 +2124,12 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     SetupShadowCameras(query);
 
     // Process each split for shadow casters
-    query.shadowCasters_.Clear();
+    query.shadowCasters_.clear();
     for (unsigned i = 0; i < query.numSplits_; ++i)
     {
         Camera* shadowCamera = query.shadowCameras_[i];
         const Frustum& shadowCameraFrustum = shadowCamera->GetFrustum();
-        query.shadowCasterBegin_[i] = query.shadowCasterEnd_[i] = query.shadowCasters_.Size();
+        query.shadowCasterBegin_[i] = query.shadowCasterEnd_[i] = query.shadowCasters_.size();
 
         // For point light check that the face is visible: if not, can skip the split
         if (type == LIGHT_POINT && frustum.IsInsideFast(BoundingBox(shadowCameraFrustum)) == OUTSIDE)
@@ -2155,7 +2155,7 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
 
     // If no shadow casters, the light can be rendered unshadowed. At this point we have not allocated a shadow map yet, so the
     // only cost has been the shadow camera setup & queries
-    if (query.shadowCasters_.Empty())
+    if (query.shadowCasters_.empty())
         query.numSplits_ = 0;
 }
 
@@ -2239,11 +2239,11 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
                 lightProjBox = lightViewBox.Projected(lightProj);
                 query.shadowCasterBox_[splitIndex].Merge(lightProjBox);
             }
-            query.shadowCasters_.Push(drawable);
+            query.shadowCasters_.push_back(drawable);
         }
     }
 
-    query.shadowCasterEnd_[splitIndex] = query.shadowCasters_.Size();
+    query.shadowCasterEnd_[splitIndex] = query.shadowCasters_.size();
 }
 
 bool View::IsShadowCasterVisible(Drawable* drawable, BoundingBox lightViewBox, Camera* shadowCamera, const Matrix3x4& lightView,
@@ -2420,7 +2420,7 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
     if (parameters.focus_)
     {
         BoundingBox litGeometriesBox;
-        for (unsigned i = 0; i < geometries_.Size(); ++i)
+        for (unsigned i = 0; i < geometries_.size(); ++i)
         {
             Drawable* drawable = geometries_[i];
 
@@ -2694,22 +2694,22 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
             newGroup.CalculateSortKey();
             i = batchQueue.batchGroups_.insert(key, newGroup);
         }
-
-        int oldSize = i->instances_.Size();
-        i->AddTransforms(batch);
+        BatchGroup &group(*i);
+        int oldSize = group.instances_.size();
+        group.AddTransforms(batch);
         // Convert to using instancing shaders when the instancing limit is reached
-        if (oldSize < minInstances_ && (int)i->instances_.Size() >= minInstances_)
+        if (oldSize < minInstances_ && (int)group.instances_.size() >= minInstances_)
         {
-            i->geometryType_ = GEOM_INSTANCED;
+            group.geometryType_ = GEOM_INSTANCED;
             renderer_->SetBatchShaders(*i, tech, allowShadows);
-            i->CalculateSortKey();
+            group.CalculateSortKey();
         }
     }
     else
     {
         renderer_->SetBatchShaders(batch, tech, allowShadows);
         batch.CalculateSortKey();
-        batchQueue.batches_.Push(batch);
+        batchQueue.batches_.push_back(batch);
     }
 }
 

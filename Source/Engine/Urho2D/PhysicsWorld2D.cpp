@@ -342,7 +342,7 @@ void PhysicsWorld2D::AddRigidBody(RigidBody2D* rigidBody)
         return;
 
     WeakPtr<RigidBody2D> rigidBodyPtr(rigidBody);
-    if (rigidBodies_.Contains(rigidBodyPtr))
+    if (rigidBodies_.contains(rigidBodyPtr))
         return;
 
     rigidBodies_.push_back(rigidBodyPtr);
@@ -354,7 +354,7 @@ void PhysicsWorld2D::RemoveRigidBody(RigidBody2D* rigidBody)
         return;
 
     WeakPtr<RigidBody2D> rigidBodyPtr(rigidBody);
-    rigidBodies_.Remove(rigidBodyPtr);
+    rigidBodies_.remove(rigidBodyPtr);
 }
 
 // Ray cast call back class.
@@ -385,7 +385,7 @@ public:
         result.distance_ = (result.position_ - startPoint_).Length();
         result.body_ = (RigidBody2D*)(fixture->GetBody()->GetUserData());
 
-        results_.Push(result);
+        results_.push_back(result);
         return true;
     }
 
@@ -400,7 +400,7 @@ protected:
 
 void PhysicsWorld2D::Raycast(PODVector<PhysicsRaycastResult2D>& results, const Vector2& startPoint, const Vector2& endPoint, unsigned collisionMask)
 {
-    results.Clear();
+    results.clear();
 
     RayCastCallback callback(results, startPoint, collisionMask);
     world_->RayCast(&callback, ToB2Vec2(startPoint), ToB2Vec2(endPoint));
@@ -556,7 +556,7 @@ public:
         if ((fixture->GetFilterData().maskBits & collisionMask_) == 0)
             return true;
 
-        results_.Push((RigidBody2D*)(fixture->GetBody()->GetUserData()));
+        results_.push_back((RigidBody2D*)(fixture->GetBody()->GetUserData()));
         return true;
     }
 

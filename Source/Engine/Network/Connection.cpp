@@ -611,7 +611,7 @@ void Connection::ProcessSceneUpdate(int msgID, MemoryBuffer& msg)
             {
                 // Latest data messages may be received out-of-order relative to node creation, so cache if necessary
                 PODVector<unsigned char>& data = nodeLatestData_[nodeID];
-                data.Resize(msg.GetSize());
+                data.resize(msg.GetSize());
                 memcpy(&data[0], msg.GetData(), msg.GetSize());
             }
         }
@@ -688,7 +688,7 @@ void Connection::ProcessSceneUpdate(int msgID, MemoryBuffer& msg)
             {
                 // Latest data messages may be received out-of-order relative to component creation, so cache if necessary
                 PODVector<unsigned char>& data = componentLatestData_[componentID];
-                data.Resize(msg.GetSize());
+                data.resize(msg.GetSize());
                 memcpy(&data[0], msg.GetData(), msg.GetSize());
             }
         }

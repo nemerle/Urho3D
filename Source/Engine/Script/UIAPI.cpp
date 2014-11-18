@@ -254,10 +254,10 @@ void ListViewSetSelections(CScriptArray* selections, ListView* ptr)
 {
     unsigned numItems = selections->GetSize();
     PODVector<unsigned> dest;
-    dest.Reserve(numItems);
+    dest.reserve(numItems);
 
     for (unsigned i = 0; i < numItems; ++i)
-        dest.Push(*((unsigned*)selections->At(i)));
+        dest.push_back(*((unsigned*)selections->At(i)));
 
     ptr->SetSelections(dest);
 }

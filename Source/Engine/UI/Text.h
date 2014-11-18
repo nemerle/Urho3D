@@ -145,9 +145,9 @@ public:
     /// Return row height.
     int GetRowHeight() const { return rowHeight_; }
     /// Return number of rows.
-    unsigned GetNumRows() const { return rowWidths_.Size(); }
+    unsigned GetNumRows() const { return rowWidths_.size(); }
     /// Return number of characters.
-    unsigned GetNumChars() const { return unicodeText_.Size(); }
+    unsigned GetNumChars() const { return unicodeText_.size(); }
     /// Return width of row by index.
     int GetRowWidth(unsigned index) const;
     /// Return position of character by index relative to the text element origin.
