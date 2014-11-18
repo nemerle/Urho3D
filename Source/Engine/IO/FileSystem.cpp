@@ -369,7 +369,7 @@ unsigned FileSystem::SystemCommandAsync(const String& commandLine)
     {
         unsigned requestID = nextAsyncExecID_;
         AsyncSystemCommand* cmd = new AsyncSystemCommand(nextAsyncExecID_, commandLine);
-        asyncExecQueue_.Push(cmd);
+        asyncExecQueue_.push_back(cmd);
         return requestID;
     }
     else
@@ -385,7 +385,7 @@ unsigned FileSystem::SystemRunAsync(const String& fileName, const Vector<String>
     {
         unsigned requestID = nextAsyncExecID_;
         AsyncSystemRun* cmd = new AsyncSystemRun(nextAsyncExecID_, fileName, arguments);
-        asyncExecQueue_.Push(cmd);
+        asyncExecQueue_.push_back(cmd);
         return requestID;
     }
     else
@@ -823,7 +823,7 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
 void FileSystem::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
     /// Go through the execution queue and post + remove completed requests
-    for (List<AsyncExecRequest*>::Iterator i = asyncExecQueue_.begin(); i != asyncExecQueue_.end();)
+    for (List<AsyncExecRequest*>::iterator i = asyncExecQueue_.begin(); i != asyncExecQueue_.end();)
     {
         AsyncExecRequest* request = *i;
         if (request->IsCompleted())

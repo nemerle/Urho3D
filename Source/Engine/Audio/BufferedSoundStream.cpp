@@ -48,7 +48,7 @@ unsigned BufferedSoundStream::GetData(signed char* dest, unsigned numBytes)
     while (numBytes && buffers_.size())
     {
         // Copy as much from the front buffer as possible, then discard it and move to the next
-        List<Pair<SharedArrayPtr<signed char>, unsigned> >::Iterator front = buffers_.begin();
+        List<Pair<SharedArrayPtr<signed char>, unsigned> >::iterator front = buffers_.begin();
 
         unsigned copySize = front->second_ - position_;
         if (copySize > numBytes)
@@ -78,7 +78,7 @@ void BufferedSoundStream::AddData(void* data, unsigned numBytes)
 
         SharedArrayPtr<signed char> newBuffer(new signed char[numBytes]);
         memcpy(newBuffer.Get(), data, numBytes);
-        buffers_.Push(MakePair(newBuffer, numBytes));
+        buffers_.push_back(MakePair(newBuffer, numBytes));
     }
 }
 
@@ -88,7 +88,7 @@ void BufferedSoundStream::AddData(SharedArrayPtr<signed char> data, unsigned num
     {
         MutexLock lock(bufferMutex_);
 
-        buffers_.Push(MakePair(data, numBytes));
+        buffers_.push_back(MakePair(data, numBytes));
     }
 }
 
@@ -98,7 +98,7 @@ void BufferedSoundStream::AddData(SharedArrayPtr<signed short> data, unsigned nu
     {
         MutexLock lock(bufferMutex_);
 
-        buffers_.Push(MakePair(ReinterpretCast<signed char>(data), numBytes));
+        buffers_.push_back(MakePair(ReinterpretCast<signed char>(data), numBytes));
     }
 }
 

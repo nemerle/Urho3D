@@ -364,8 +364,7 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
     decalFrustum.DefineOrtho(size, aspectRatio, 1.0, 0.0f, depth, frustumTransform);
 
     Vector3 decalNormal = (targetTransform * Vector4(worldRotation * Vector3::BACK, 0.0f)).Normalized();
-
-    decals_.resize(decals_.size() + 1);
+    decals_.push_back(Decal());
     Decal& newDecal = decals_.back();
     newDecal.timeToLive_ = timeToLive;
 
@@ -521,7 +520,7 @@ void DecalSet::SetDecalsAttr(PODVector<unsigned char> value)
 
     while (numDecals--)
     {
-        decals_.resize(decals_.size() + 1);
+        decals_.push_back(Decal());
         Decal& newDecal = decals_.back();
 
         newDecal.timer_ = buffer.ReadFloat();
@@ -968,7 +967,7 @@ void DecalSet::TransformVertices(Decal& decal, const Matrix3x4& transform)
     }
 }
 
-List<Decal>::Iterator DecalSet::RemoveDecal(List<Decal>::Iterator i)
+List<Decal>::iterator DecalSet::RemoveDecal(List<Decal>::iterator i)
 {
     numVertices_ -= i->vertices_.size();
     numIndices_ -= i->indices_.size();
@@ -989,7 +988,7 @@ void DecalSet::MarkDecalsDirty()
 void DecalSet::CalculateBoundingBox()
 {
     boundingBox_.Clear();
-    for (List<Decal>::ConstIterator i = decals_.begin(); i != decals_.end(); ++i)
+    for (List<Decal>::const_iterator i = decals_.begin(); i != decals_.end(); ++i)
         boundingBox_.Merge(i->boundingBox_);
 
     boundingBoxDirty_ = false;
@@ -1016,7 +1015,7 @@ void DecalSet::UpdateBuffers()
     {
         unsigned short indexStart = 0;
 
-        for (List<Decal>::ConstIterator i = decals_.begin(); i != decals_.end(); ++i)
+        for (List<Decal>::const_iterator i = decals_.begin(); i != decals_.end(); ++i)
         {
             for (unsigned j = 0; j < i->vertices_.size(); ++j)
             {
@@ -1119,7 +1118,7 @@ void DecalSet::UpdateEventSubscription(bool checkAllDecals)
     {
         bool hasTimeLimitedDecals = false;
 
-        for (List<Decal>::ConstIterator i = decals_.begin(); i != decals_.end(); ++i)
+        for (List<Decal>::const_iterator i = decals_.begin(); i != decals_.end(); ++i)
         {
             if (i->timeToLive_ > 0.0f)
             {
@@ -1150,7 +1149,7 @@ void DecalSet::HandleScenePostUpdate(StringHash eventType, VariantMap& eventData
 
     float timeStep = eventData[P_TIMESTEP].GetFloat();
 
-    for (List<Decal>::Iterator i = decals_.begin(); i != decals_.end();)
+    for (List<Decal>::iterator i = decals_.begin(); i != decals_.end();)
     {
         i->timer_ += timeStep;
 

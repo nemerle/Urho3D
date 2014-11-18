@@ -23,10 +23,18 @@
 #pragma once
 
 #include "ListBase.h"
-
+#include <QtCore/QLinkedList>
+#include <list>
 namespace Urho3D
 {
-
+template<typename T>
+class List : public std::list<T> {
+public:
+    bool contains(const T &v) const { return std::find(this->begin(),this->end(),v)!=this->end();}
+};
+//template<typename T>
+//using List = QLinkedList<T> ;
+#if 0
 /// Doubly-linked list template class.
 template <class T> class List : public ListBase
 {
@@ -156,7 +164,7 @@ public:
     /// Add-assign an element.
     List& operator += (const T& rhs)
     {
-        Push(rhs);
+        push_back(rhs);
         return *this;
     }
 
@@ -206,9 +214,9 @@ public:
     }
 
     /// Insert an element to the end.
-    void Push(const T& value) { InsertNode(Tail(), value); }
+    void push_back(const T& value) { InsertNode(Tail(), value); }
     /// Insert an element to the beginning.
-    void PushFront(const T& value) { InsertNode(Head(), value); }
+    void push_front(const T& value) { InsertNode(Head(), value); }
     /// Insert an element at position.
     void insert(const Iterator& dest, const T& value) { InsertNode(static_cast<Node*>(dest.ptr_), value); }
 
@@ -315,7 +323,7 @@ public:
     }
 
     /// Return whether contains a specific value.
-    bool Contains(const T& value) const { return find(value) != end(); }
+    bool contains(const T& value) const { return find(value) != end(); }
     /// Return iterator to the first element.
     Iterator begin() { return Iterator(Head()); }
     /// Return iterator to the first element.
@@ -410,5 +418,5 @@ private:
         AllocatorFree(allocator_, node);
     }
 };
-
+#endif
 }

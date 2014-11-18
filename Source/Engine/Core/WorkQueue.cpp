@@ -127,11 +127,11 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
     }
 
     // Check for duplicate items.
-    assert(!workItems_.Contains(item));
+    assert(!workItems_.contains(item));
 
     // Push to the main thread list to keep item alive
     // Clear completed flag in case item is reused
-    workItems_.Push(item);
+    workItems_.push_back(item);
     item->completed_ = false;
 
     // Make sure worker threads' list is safe to modify
@@ -140,10 +140,10 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
 
     // Find position for new item
     if (queue_.empty())
-        queue_.Push(item);
+        queue_.push_back(item);
     else
     {
-        for (List<WorkItem*>::Iterator i = queue_.begin(); i != queue_.end(); ++i)
+        for (List<WorkItem*>::iterator i = queue_.begin(); i != queue_.end(); ++i)
         {
             if ((*i)->priority_ <= item->priority_)
             {
@@ -283,7 +283,7 @@ void WorkQueue::PurgeCompleted(unsigned priority)
     // Purge completed work items and send completion events. Do not signal items lower than priority threshold,
     // as those may be user submitted and lead to eg. scene manipulation that could happen in the middle of the
     // render update, which is not allowed
-    for (List<SharedPtr<WorkItem> >::Iterator i = workItems_.begin(); i != workItems_.end();)
+    for (List<SharedPtr<WorkItem> >::iterator i = workItems_.begin(); i != workItems_.end();)
     {
         if ((*i)->completed_ && (*i)->priority_ >= priority)
         {
@@ -311,7 +311,7 @@ void WorkQueue::PurgeCompleted(unsigned priority)
                 (*i)->sendEvent_ = false;
                 (*i)->completed_ = false;
 
-                poolItems_.Push(*i);
+                poolItems_.push_back(*i);
             }
 
             i = workItems_.erase(i);
