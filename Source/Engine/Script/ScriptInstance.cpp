@@ -121,7 +121,7 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
     {
         // If a cached ID value has been stored, return it instead of querying from the actual object
         // (the object handle is likely null at that point)
-        QHash<AttributeInfo*, unsigned>::ConstIterator i = idAttributes_.find(attrPtr);
+        QHash<AttributeInfo*, unsigned>::const_iterator i = idAttributes_.find(attrPtr);
         if (i != idAttributes_.end())
             dest = *i;
         else if (attr.mode_ & AM_NODEID)
@@ -584,7 +584,7 @@ void ScriptInstance::GetScriptAttributes()
             // For a handle type, check if it's an Object subclass with a registered factory
             StringHash typeHash(typeName);
             const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
-            QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator j = factories.find(typeHash);
+            QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator j = factories.find(typeHash);
             if (j != factories.end())
             {
                 // Check base class type. Node & Component are supported as ID attributes, Resource as a resource reference

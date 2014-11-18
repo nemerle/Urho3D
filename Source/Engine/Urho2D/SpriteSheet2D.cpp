@@ -84,7 +84,7 @@ bool SpriteSheet2D::EndLoad()
 
 Sprite2D* SpriteSheet2D::GetSprite(const String& name) const
 {
-    QHash<String, SharedPtr<Sprite2D> >::ConstIterator i = spriteMapping_.find(name);
+    QHash<String, SharedPtr<Sprite2D> >::const_iterator i = spriteMapping_.find(name);
     if (i == spriteMapping_.end())
         return nullptr;
 

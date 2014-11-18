@@ -346,7 +346,7 @@ bool Animatable::IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const
 
 AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const String& name) const
 {
-    QHash<String, SharedPtr<AttributeAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.find(name);
+    QHash<String, SharedPtr<AttributeAnimationInfo> >::const_iterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
         return *i;
 

@@ -241,9 +241,9 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
     const QSet<Object*>* group = context->GetEventReceivers(this, eventType);
     if (group)
     {
-        for (QSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
+        for (QSet<Object*>::const_iterator i = group->cbegin(); i != group->cend();)
         {
-            QSet<Object*>::ConstIterator current = i++;
+            QSet<Object*>::const_iterator current = i++;
             Object* receiver = *current;
             Object* next = nullptr;
             if (i != group->end())
@@ -274,9 +274,9 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
     {
         if (processed.isEmpty())
         {
-            for (QSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
+            for (QSet<Object*>::const_iterator i = group->cbegin(); i != group->cend();)
             {
-                QSet<Object*>::ConstIterator current = i++;
+                QSet<Object*>::const_iterator current = i++;
                 Object* receiver = *current;
                 Object* next = nullptr;
                 if (i != group->end())
@@ -298,9 +298,9 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
         else
         {
             // If there were specific receivers, check that the event is not sent doubly to them
-            for (QSet<Object*>::ConstIterator i = group->begin(); i != group->end();)
+            for (QSet<Object*>::const_iterator i = group->cbegin(); i != group->cend();)
             {
-                QSet<Object*>::ConstIterator current = i++;
+                QSet<Object*>::const_iterator current = i++;
                 Object* receiver = *current;
                 Object* next = nullptr;
                 if (i != group->end())

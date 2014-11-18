@@ -205,7 +205,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
     const QHash<String, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
     Vector<String> components;
 
-    QHash<String, Vector<StringHash> >::ConstIterator i = categories.find(category);
+    QHash<String, Vector<StringHash> >::const_iterator i = categories.find(category);
     if (i != categories.end())
     {
         const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
@@ -214,7 +214,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
 
         for (unsigned j = 0; j < factoryHashes.size(); ++j)
         {
-            QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator k = factories.find(factoryHashes[j]);
+            QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator k = factories.find(factoryHashes[j]);
             if (k != factories.end())
                 components.Push((*k)->GetTypeName());
         }

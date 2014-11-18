@@ -775,10 +775,11 @@ void Material::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& 
     float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
 
     Vector<String> finishedNames;
-    for (QHash<StringHash, SharedPtr<ShaderParameterAnimationInfo> >::ConstIterator i = shaderParameterAnimationInfos_.begin(); i != shaderParameterAnimationInfos_.end(); ++i)
+
+    for (SharedPtr<ShaderParameterAnimationInfo> &i : shaderParameterAnimationInfos_)
     {
-        if ((*i)->Update(timeStep))
-            finishedNames.Push((*i)->GetName());
+        if (i->Update(timeStep))
+            finishedNames.Push(i->GetName());
     }
 
     // Remove finished animations

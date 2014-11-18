@@ -251,7 +251,7 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
     for (unsigned i = 0; i < newImages.size(); ++i)
         textures_[i] = LoadFaceTexture(newImages[i]);
 
-    for (QHash<unsigned, short>::ConstIterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
+    for (QHash<unsigned, short>::const_iterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
     {
         unsigned first = (i.key()) >> 16;
         unsigned second = (i.key()) & 0xffff;

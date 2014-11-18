@@ -1813,8 +1813,8 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
     DeleteAll();
 
     // Do a shallow copy of the dictionary
-    QHash<String, CScriptDictValue>::ConstIterator it;
-    for( it = other.dict.begin(); it != other.dict.end(); it++ )
+    QHash<String, CScriptDictValue>::const_iterator it;
+    for( it = other.dict.cbegin(); it != other.dict.cend(); it++ )
     {
         if( it->m_typeId & asTYPEID_OBJHANDLE )
             Set(it.key(), (void*)&it->m_valueObj, it->m_typeId);
@@ -1840,7 +1840,7 @@ CScriptDictValue *CScriptDictionary::operator[](const String &key)
 const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 {
     // Return the existing value if it exists
-    QHash<String, CScriptDictValue>::ConstIterator it = dict.find(key);
+    QHash<String, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
         return &(*it);
 
@@ -1883,7 +1883,7 @@ void CScriptDictionary::Set(const String &key, const double &value)
 // Returns true if the value was successfully retrieved
 bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 {
-    QHash<String, CScriptDictValue>::ConstIterator it = dict.find(key);
+    QHash<String, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
         return it->Get(engine, value, typeId);
 
@@ -1897,7 +1897,7 @@ bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 // Returns the type id of the stored value
 int CScriptDictionary::GetTypeId(const String &key) const
 {
-    QHash<String, CScriptDictValue>::ConstIterator it = dict.find(key);
+    QHash<String, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
         return it->m_typeId;
 

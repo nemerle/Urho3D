@@ -58,7 +58,7 @@ unsigned BufferedSoundStream::GetData(signed char* dest, unsigned numBytes)
         position_ += copySize;
         if (position_ >= front->second_)
         {
-            buffers_.PopFront();
+            buffers_.pop_front();
             position_ = 0;
         }
 
@@ -106,7 +106,7 @@ void BufferedSoundStream::Clear()
 {
     MutexLock lock(bufferMutex_);
 
-    buffers_.Clear();
+    buffers_.clear();
     position_ = 0;
 }
 

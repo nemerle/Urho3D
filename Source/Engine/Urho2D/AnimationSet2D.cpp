@@ -233,7 +233,7 @@ bool AnimationSet2D::LoadFolders(const XMLElement& rootElem)
 Sprite2D* AnimationSet2D::GetSprite(unsigned folderId, unsigned fileId) const
 {
     unsigned key = (folderId << 16) + fileId;
-    QHash<unsigned, SharedPtr<Sprite2D> >::ConstIterator i = sprites_.find(key);
+    QHash<unsigned, SharedPtr<Sprite2D> >::const_iterator i = sprites_.find(key);
     if (i != sprites_.end())
         return *i;
     return nullptr;

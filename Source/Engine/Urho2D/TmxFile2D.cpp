@@ -419,7 +419,7 @@ bool TmxFile2D::EndLoad()
 
 Sprite2D* TmxFile2D::GetTileSprite(int gid) const
 {
-    QHash<int, SharedPtr<Sprite2D> >::ConstIterator i = gidToSpriteMapping_.find(gid);
+    QHash<int, SharedPtr<Sprite2D> >::const_iterator i = gidToSpriteMapping_.find(gid);
     if (i == gidToSpriteMapping_.end())
         return nullptr;
 
@@ -428,7 +428,7 @@ Sprite2D* TmxFile2D::GetTileSprite(int gid) const
 
 PropertySet2D* TmxFile2D::GetTilePropertySet(int gid) const
 {
-    QHash<int, SharedPtr<PropertySet2D> >::ConstIterator i = gidToPropertySetMapping_.find(gid);
+    QHash<int, SharedPtr<PropertySet2D> >::const_iterator i = gidToPropertySetMapping_.find(gid);
     if (i == gidToPropertySetMapping_.end())
         return nullptr;
     return (*i);

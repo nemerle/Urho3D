@@ -190,8 +190,8 @@ void Scene::AddReplicationState(NodeReplicationState* state)
     Node::AddReplicationState(state);
 
     // This is the first update for a new connection. Mark all replicated nodes dirty
-    for (QHash<unsigned, Node*>::ConstIterator i = replicatedNodes_.begin(); i != replicatedNodes_.end(); ++i)
-        state->sceneState_->dirtyNodes_.insert(i.key());
+    for (unsigned id : replicatedNodes_.keys())
+        state->sceneState_->dirtyNodes_.insert(id);
 }
 
 bool Scene::LoadXML(Deserializer& source)
@@ -541,19 +541,17 @@ Node* Scene::GetNode(unsigned id) const
 {
     if (id < FIRST_LOCAL_ID)
     {
-        QHash<unsigned, Node*>::ConstIterator i = replicatedNodes_.find(id);
+        QHash<unsigned, Node*>::const_iterator i = replicatedNodes_.find(id);
         if (i != replicatedNodes_.end())
             return *i;
-        else
-            return nullptr;
+        return nullptr;
     }
     else
     {
-        QHash<unsigned, Node*>::ConstIterator i = localNodes_.find(id);
+        QHash<unsigned, Node*>::const_iterator i = localNodes_.find(id);
         if (i != localNodes_.end())
             return *i;
-        else
-            return nullptr;
+        return nullptr;
     }
 }
 
@@ -561,20 +559,17 @@ Component* Scene::GetComponent(unsigned id) const
 {
     if (id < FIRST_LOCAL_ID)
     {
-        QHash<unsigned, Component*>::ConstIterator i = replicatedComponents_.find(id);
+        QHash<unsigned, Component*>::const_iterator i = replicatedComponents_.find(id);
         if (i != replicatedComponents_.end())
             return *i;
-        else
-            return nullptr;
     }
     else
     {
-        QHash<unsigned, Component*>::ConstIterator i = localComponents_.find(id);
+        QHash<unsigned, Component*>::const_iterator i = localComponents_.find(id);
         if (i != localComponents_.end())
             return *i;
-        else
-            return nullptr;
     }
+    return nullptr;
 }
 
 float Scene::GetAsyncProgress() const
@@ -590,7 +585,7 @@ float Scene::GetAsyncProgress() const
 
 const String& Scene::GetVarName(StringHash hash) const
 {
-    QHash<StringHash, String>::ConstIterator i = varNames_.find(hash);
+    QHash<StringHash, String>::const_iterator i = varNames_.find(hash);
     return i != varNames_.end() ? *i : String::EMPTY;
 }
 

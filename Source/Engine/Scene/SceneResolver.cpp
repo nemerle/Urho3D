@@ -62,9 +62,8 @@ void SceneResolver::Resolve()
 {
     // Nodes do not have component or node ID attributes, so only have to go through components
     QSet<StringHash> noIDAttributes;
-    for (QHash<unsigned, WeakPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
+    for (Component * component : components_)
     {
-        Component* component = *i;
         if (!component || noIDAttributes.contains(component->GetType()))
             continue;
 

@@ -182,7 +182,7 @@ float ObjectAnimation::GetAttributeAnimationSpeed(const String& name) const
 
 ValueAnimationInfo* ObjectAnimation::GetAttributeAnimationInfo(const String& name) const
 {
-    QHash<String, SharedPtr<ValueAnimationInfo> >::ConstIterator i = attributeAnimationInfos_.find(name);
+    QHash<String, SharedPtr<ValueAnimationInfo> >::const_iterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
         return *i;
     return nullptr;

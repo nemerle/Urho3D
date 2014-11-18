@@ -68,7 +68,7 @@ Log::Log(Context* context) :
     quiet_(false)
 {
     logInstance = this;
-    
+
     SubscribeToEvent(E_ENDFRAME, HANDLER(Log, HandleEndFrame));
 }
 
@@ -141,7 +141,7 @@ void Log::Write(int level, const String& message)
             MutexLock lock(logInstance->logMutex_);
             logInstance->threadMessages_.Push(StoredLogMessage(message, level, false));
         }
-        
+
         return;
     }
 
@@ -200,10 +200,10 @@ void Log::WriteRaw(const String& message, bool error)
             MutexLock lock(logInstance->logMutex_);
             logInstance->threadMessages_.Push(StoredLogMessage(message, LOG_RAW, error));
         }
-        
+
         return;
     }
-    
+
     // Prevent recursion during log event
     if (!logInstance || logInstance->inWrite_)
         return;
@@ -252,18 +252,18 @@ void Log::WriteRaw(const String& message, bool error)
 void Log::HandleEndFrame(StringHash eventType, VariantMap& eventData)
 {
     MutexLock lock(logMutex_);
-    
+
     // Process messages accumulated from other threads (if any)
     while (!threadMessages_.empty())
     {
         const StoredLogMessage& stored = threadMessages_.front();
-        
+
         if (stored.level_ != LOG_RAW)
             Write(stored.level_, stored.message_);
         else
             WriteRaw(stored.message_, stored.error_);
-        
-        threadMessages_.PopFront();
+
+        threadMessages_.pop_front();
     }
 }
 

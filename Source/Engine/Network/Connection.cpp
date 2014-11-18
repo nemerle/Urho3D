@@ -1180,7 +1180,7 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
             const VariantMap& vars = node->GetVars();
             for (const StringHash & v: nodeState.dirtyVars_)
             {
-                VariantMap::ConstIterator j = vars.find(v);
+                VariantMap::const_iterator j = vars.find(v);
                 if (j != vars.end())
                 {
                     msg_.WriteStringHash(j.key());

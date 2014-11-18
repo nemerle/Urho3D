@@ -239,8 +239,8 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
                         unsigned rightIndex = deserializer.ReadUShort();
                         short amount = (short)(deserializer.ReadShort() >> 6);
 
-                        QHash<unsigned, unsigned>::ConstIterator leftIter = indexToCharMapping.find(leftIndex);
-                        QHash<unsigned, unsigned>::ConstIterator rightIter = indexToCharMapping.find(rightIndex);
+                        QHash<unsigned, unsigned>::const_iterator leftIter = indexToCharMapping.find(leftIndex);
+                        QHash<unsigned, unsigned>::const_iterator rightIter = indexToCharMapping.find(rightIndex);
                         if (leftIter != indexToCharMapping.end() && rightIter != indexToCharMapping.end())
                         {
                             unsigned value = (*leftIter << 16) + *rightIter;

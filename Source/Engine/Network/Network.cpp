@@ -393,11 +393,10 @@ Connection* Network::GetConnection(kNet::MessageConnection* connection) const
         return serverConnection_;
     else
     {
-        QHash<kNet::MessageConnection*, SharedPtr<Connection> >::ConstIterator i = clientConnections_.find(connection);
+        QHash<kNet::MessageConnection*, SharedPtr<Connection> >::const_iterator i = clientConnections_.find(connection);
         if (i != clientConnections_.end())
             return *i;
-        else
-            return nullptr;
+        return nullptr;
     }
 }
 

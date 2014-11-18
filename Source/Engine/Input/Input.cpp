@@ -881,7 +881,7 @@ TouchState* Input::GetTouch(unsigned index) const
     if (index >= touches_.size())
         return nullptr;
 
-    QHash<int, TouchState>::ConstIterator i = touches_.begin();
+    QHash<int, TouchState>::const_iterator i = touches_.begin();
     while (index--)
         ++i;
 
@@ -908,7 +908,7 @@ JoystickState* Input::GetJoystick(SDL_JoystickID id)
 
 bool Input::IsScreenJoystickVisible(SDL_JoystickID id) const
 {
-    QHash<SDL_JoystickID, JoystickState>::ConstIterator i = joysticks_.find(id);
+    QHash<SDL_JoystickID, JoystickState>::const_iterator i = joysticks_.find(id);
     return i != joysticks_.end() && i->screenJoystick_ && i->screenJoystick_->IsVisible();
 }
 
@@ -1085,7 +1085,7 @@ unsigned Input::PopTouchIndex()
 
 void Input::PushTouchIndex(int touchID)
 {
-    QHash<int, int>::ConstIterator ci = touchIDMap_.find(touchID);
+    QHash<int, int>::const_iterator ci = touchIDMap_.find(touchID);
     if (ci == touchIDMap_.end())
         return;
 

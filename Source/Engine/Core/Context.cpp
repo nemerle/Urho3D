@@ -84,7 +84,7 @@ Context::~Context()
 
 SharedPtr<Object> Context::CreateObject(StringHash objectType)
 {
-    QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
+    QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
     if (i != factories_.end())
         return (*i)->CreateObject();
     else
@@ -178,7 +178,7 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
 
 Object* Context::GetSubsystem(StringHash type) const
 {
-    QHash<StringHash, SharedPtr<Object> >::ConstIterator i = subsystems_.find(type);
+    QHash<StringHash, SharedPtr<Object> >::const_iterator i = subsystems_.find(type);
     if (i != subsystems_.end())
         return *i;
     else
@@ -196,7 +196,7 @@ Object* Context::GetEventSender() const
 const String& Context::GetTypeName(StringHash objectType) const
 {
     // Search factories to find the hash-to-name mapping
-    QHash<StringHash, SharedPtr<ObjectFactory> >::ConstIterator i = factories_.find(objectType);
+    QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
     return i != factories_.end() ? (*i)->GetTypeName() : String::EMPTY;
 }
 

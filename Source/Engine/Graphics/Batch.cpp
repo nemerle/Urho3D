@@ -798,7 +798,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
 
         unsigned shaderID = (batch->sortKey_ >> 32);
-        QHash<unsigned, unsigned>::ConstIterator j = shaderRemapping_.find(shaderID);
+        QHash<unsigned, unsigned>::const_iterator j = shaderRemapping_.find(shaderID);
         if (j != shaderRemapping_.end())
             shaderID = j.value();
         else
@@ -808,7 +808,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         }
 
         unsigned short materialID = (unsigned short)(batch->sortKey_ & 0xffff0000);
-        QHash<unsigned short, unsigned short>::ConstIterator k = materialRemapping_.find(materialID);
+        QHash<unsigned short, unsigned short>::const_iterator k = materialRemapping_.find(materialID);
         if (k != materialRemapping_.end())
             materialID = k.value();
         else
@@ -818,7 +818,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         }
 
         unsigned short geometryID = (unsigned short)(batch->sortKey_ & 0xffff);
-        QHash<unsigned short, unsigned short>::ConstIterator l = geometryRemapping_.find(geometryID);
+        QHash<unsigned short, unsigned short>::const_iterator l = geometryRemapping_.find(geometryID);
         if (l != geometryRemapping_.end())
             geometryID = l.value();
         else

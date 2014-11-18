@@ -239,7 +239,7 @@ const String& RenderPathCommand::GetTextureName(TextureUnit unit) const
 
 const Variant& RenderPathCommand::GetShaderParameter(const String& name) const
 {
-    VariantMap::ConstIterator i = shaderParameters_.find(name);
+    VariantMap::const_iterator i = shaderParameters_.find(name);
     return i != shaderParameters_.end() ? *i : Variant::EMPTY;
 }
 
@@ -425,7 +425,7 @@ const Variant& RenderPath::GetShaderParameter(const String& name) const
 
     for (unsigned i = 0; i < commands_.size(); ++i)
     {
-        VariantMap::ConstIterator j = commands_[i].shaderParameters_.find(nameHash);
+        VariantMap::const_iterator j = commands_[i].shaderParameters_.find(nameHash);
         if (j != commands_[i].shaderParameters_.end())
             return *j;
     }

@@ -139,7 +139,7 @@ public:
     /// Destruct.
     ~List()
     {
-        Clear();
+        clear();
         FreeNode(Tail());
         AllocatorUninitialize(allocator_);
     }
@@ -148,8 +148,8 @@ public:
     List& operator = (const List<T>& rhs)
     {
         // Clear, then insert the nodes of the other list
-        Clear();
-        Insert(end(), rhs);
+        clear();
+        insert(end(), rhs);
         return *this;
     }
 
@@ -163,7 +163,7 @@ public:
     /// Add-assign a list.
     List& operator += (const List<T>& rhs)
     {
-        Insert(end(), rhs);
+        insert(end(), rhs);
         return *this;
     }
 
@@ -210,10 +210,10 @@ public:
     /// Insert an element to the beginning.
     void PushFront(const T& value) { InsertNode(Head(), value); }
     /// Insert an element at position.
-    void Insert(const Iterator& dest, const T& value) { InsertNode(static_cast<Node*>(dest.ptr_), value); }
+    void insert(const Iterator& dest, const T& value) { InsertNode(static_cast<Node*>(dest.ptr_), value); }
 
     /// Insert a list at position.
-    void Insert(const Iterator& dest, const List<T>& list)
+    void insert(const Iterator& dest, const List<T>& list)
     {
         Node* destNode = static_cast<Node*>(dest.ptr_);
         ConstIterator it = list.begin();
@@ -223,7 +223,7 @@ public:
     }
 
     /// Insert elements by iterators.
-    void Insert(const Iterator& dest, const ConstIterator& start, const ConstIterator& end)
+    void insert(const Iterator& dest, const ConstIterator& start, const ConstIterator& end)
     {
         Node* destNode = static_cast<Node*>(dest.ptr_);
         ConstIterator it = start;
@@ -232,7 +232,7 @@ public:
     }
 
     /// Insert elements.
-    void Insert(const Iterator& dest, const T* start, const T* end)
+    void insert(const Iterator& dest, const T* start, const T* end)
     {
         Node* destNode = static_cast<Node*>(dest.ptr_);
         const T* ptr = start;
@@ -241,27 +241,27 @@ public:
     }
 
     /// Erase the last element.
-    void Pop()
+    void pop_back()
     {
         if (size_)
-            Erase(--end());
+            erase(--end());
     }
 
     /// Erase the first element.
-    void PopFront()
+    void pop_front()
     {
         if (size_)
-            Erase(begin());
+            erase(begin());
     }
 
     /// Erase an element by iterator. Return iterator to the next element.
-    Iterator Erase(Iterator it)
+    Iterator erase(Iterator it)
     {
         return Iterator(EraseNode(static_cast<Node*>(it.ptr_)));
     }
 
     /// Erase a range by iterators. Return an iterator to the next element.
-    Iterator Erase(const Iterator& start, const Iterator& end)
+    Iterator erase(const Iterator& start, const Iterator& end)
     {
         Iterator it = start;
         while (it != end)
@@ -271,7 +271,7 @@ public:
     }
 
     /// Clear the list.
-    void Clear()
+    void clear()
     {
         if (size())
         {
@@ -290,7 +290,7 @@ public:
     void resize(unsigned newSize)
     {
         while (size_ > newSize)
-            Pop();
+            pop_back();
 
         while (size_ < newSize)
             InsertNode(Tail(), T());

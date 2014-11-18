@@ -415,7 +415,7 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
     // Check if resulted in no triangles
     if (newDecal.vertices_.Empty())
     {
-        decals_.Pop();
+        decals_.pop_back();
         return true;
     }
 
@@ -423,14 +423,14 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
     {
         LOGWARNING("Can not add decal, vertex count " + String(newDecal.vertices_.Size()) + " exceeds maximum " +
             String(maxVertices_));
-        decals_.Pop();
+        decals_.pop_back();
         return false;
     }
     if (newDecal.indices_.Size() > maxIndices_)
     {
         LOGWARNING("Can not add decal, index count " + String(newDecal.indices_.Size()) + " exceeds maximum " +
             String(maxIndices_));
-        decals_.Pop();
+        decals_.pop_back();
         return false;
     }
 
@@ -478,7 +478,7 @@ void DecalSet::RemoveAllDecals()
 {
     if (!decals_.empty())
     {
-        decals_.Clear();
+        decals_.clear();
         numVertices_ = 0;
         numIndices_ = 0;
         MarkDecalsDirty();
@@ -973,7 +973,7 @@ List<Decal>::Iterator DecalSet::RemoveDecal(List<Decal>::Iterator i)
     numVertices_ -= i->vertices_.Size();
     numIndices_ -= i->indices_.Size();
     MarkDecalsDirty();
-    return decals_.Erase(i);
+    return decals_.erase(i);
 }
 
 void DecalSet::MarkDecalsDirty()

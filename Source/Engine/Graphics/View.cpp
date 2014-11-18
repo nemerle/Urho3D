@@ -1626,7 +1626,7 @@ void View::SetTextures(RenderPathCommand& command)
         }
 
         // Bind a rendertarget
-        QHash<StringHash, Texture2D*>::ConstIterator j = renderTargets_.find(command.textureNames_[i]);
+        QHash<StringHash, Texture2D*>::const_iterator j = renderTargets_.find(command.textureNames_[i]);
         if (j != renderTargets_.end())
         {
             graphics_->SetTexture(i, *j);
@@ -1675,7 +1675,7 @@ void View::RenderQuad(RenderPathCommand& command)
     graphics_->SetShaders(vs, ps);
 
     const VariantMap& parameters = command.shaderParameters_;
-    for (VariantMap::ConstIterator parameter=parameters.begin(),fin=parameters.end(); parameter!=fin; ++parameter)
+    for (VariantMap::const_iterator parameter=parameters.begin(),fin=parameters.end(); parameter!=fin; ++parameter)
         graphics_->SetShaderParameter(parameter.key(), parameter.value());
 
     SetGlobalShaderParameters();

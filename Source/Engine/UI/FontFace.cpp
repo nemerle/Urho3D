@@ -82,7 +82,7 @@ short FontFace::GetKerning(unsigned c, unsigned d) const
 
     unsigned value = (c << 16) + d;
 
-    QHash<unsigned, short>::ConstIterator i = kerningMapping_.find(value);
+    QHash<unsigned, short>::const_iterator i = kerningMapping_.find(value);
     if (i != kerningMapping_.end())
         return *i;
 

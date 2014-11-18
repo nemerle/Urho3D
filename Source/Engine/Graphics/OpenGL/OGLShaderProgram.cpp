@@ -223,7 +223,7 @@ bool ShaderProgram::HasParameter(StringHash param) const
 
 const ShaderParameter* ShaderProgram::GetParameter(StringHash param) const
 {
-    QHash<StringHash, ShaderParameter>::ConstIterator i = shaderParameters_.find(param);
+    QHash<StringHash, ShaderParameter>::const_iterator i = shaderParameters_.find(param);
     if (i != shaderParameters_.end())
         return &(*i);
     else

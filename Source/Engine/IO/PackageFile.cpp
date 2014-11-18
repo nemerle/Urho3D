@@ -121,7 +121,7 @@ bool PackageFile::Exists(const String& fileName) const
 
 const PackageEntry* PackageFile::GetEntry(const String& fileName) const
 {
-    QHash<String, PackageEntry>::ConstIterator i = entries_.find(fileName.ToLower());
+    QHash<String, PackageEntry>::const_iterator i = entries_.find(fileName.ToLower());
     if (i != entries_.end())
         return &(*i);
     else

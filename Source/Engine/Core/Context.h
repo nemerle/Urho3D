@@ -101,14 +101,14 @@ public:
     /// Return attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetAttributes(StringHash type) const
     {
-        QHash<StringHash, Vector<AttributeInfo> >::ConstIterator i = attributes_.find(type);
+        QHash<StringHash, Vector<AttributeInfo> >::const_iterator i = attributes_.find(type);
         return i != attributes_.end() ? &(*i) : 0;
     }
 
     /// Return network replication attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetNetworkAttributes(StringHash type) const
     {
-        QHash<StringHash, Vector<AttributeInfo> >::ConstIterator i = networkAttributes_.find(type);
+        QHash<StringHash, Vector<AttributeInfo> >::const_iterator i = networkAttributes_.find(type);
         return i != networkAttributes_.end() ? &(*i) : 0;
     }
 

@@ -416,7 +416,7 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
 
     // Ensure that the type implements the "ScriptObject" interface, so it can be returned to script properly
     bool found = false;
-    QHash<asIObjectType*, bool>::ConstIterator i = validClasses_.find(type);
+    QHash<asIObjectType*, bool>::const_iterator i = validClasses_.find(type);
     if (i != validClasses_.end())
         found = *i;
     else
@@ -463,7 +463,7 @@ asIScriptFunction* ScriptFile::GetFunction(const String& declaration)
     if (!compiled_)
         return nullptr;
 
-    QHash<String, asIScriptFunction*>::ConstIterator i = functions_.find(declaration);
+    QHash<String, asIScriptFunction*>::const_iterator i = functions_.find(declaration);
     if (i != functions_.end())
         return *i;
 
@@ -480,10 +480,10 @@ asIScriptFunction* ScriptFile::GetMethod(asIScriptObject* object, const String& 
     asIObjectType* type = object->GetObjectType();
     if (!type)
         return nullptr;
-    QHash<asIObjectType*, QHash<String, asIScriptFunction*> >::ConstIterator i = methods_.find(type);
+    QHash<asIObjectType*, QHash<String, asIScriptFunction*> >::const_iterator i = methods_.find(type);
     if (i != methods_.end())
     {
-        QHash<String, asIScriptFunction*>::ConstIterator j = i->find(declaration);
+        QHash<String, asIScriptFunction*>::const_iterator j = i->find(declaration);
         if (j != i->end())
             return *j;
     }

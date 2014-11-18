@@ -140,7 +140,7 @@ bool PropertySet2D::HasProperty(const String& name) const
 
 const String& PropertySet2D::GetProperty(const String& name) const
 {
-    QHash<String, String>::ConstIterator i = nameToValueMapping_.find(name);
+    QHash<String, String>::const_iterator i = nameToValueMapping_.find(name);
     if (i == nameToValueMapping_.end())
         return String::EMPTY;
 

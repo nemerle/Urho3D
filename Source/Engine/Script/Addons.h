@@ -260,11 +260,11 @@ public:
 
         CIterator();
         CIterator(const CScriptDictionary &dict,
-                  QHash<String, CScriptDictValue>::ConstIterator it);
+                  QHash<String, CScriptDictValue>::const_iterator it);
 
         CIterator &operator=(const CIterator &) {return *this;} // Not used
 
-        QHash<String, CScriptDictValue>::ConstIterator m_it;
+        QHash<String, CScriptDictValue>::const_iterator m_it;
         const CScriptDictionary &m_dict;
     };
 

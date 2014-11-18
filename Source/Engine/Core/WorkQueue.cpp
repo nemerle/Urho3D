@@ -106,7 +106,7 @@ SharedPtr<WorkItem> WorkQueue::GetFreeItem()
     if (poolItems_.size() > 0)
     {
         SharedPtr<WorkItem> item = poolItems_.front();
-        poolItems_.PopFront();
+        poolItems_.pop_front();
         return item;
     }
     else
@@ -147,7 +147,7 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
         {
             if ((*i)->priority_ <= item->priority_)
             {
-                queue_.Insert(i, item);
+                queue_.insert(i, item);
                 break;
             }
         }
@@ -196,7 +196,7 @@ void WorkQueue::Complete(unsigned priority)
             if (!queue_.empty() && queue_.front()->priority_ >= priority)
             {
                 WorkItem* item = queue_.front();
-                queue_.PopFront();
+                queue_.pop_front();
                 queueMutex_.Release();
                 item->workFunction_(item, 0);
                 item->completed_ = true;
@@ -223,7 +223,7 @@ void WorkQueue::Complete(unsigned priority)
         while (!queue_.empty() && queue_.front()->priority_ >= priority)
         {
             WorkItem* item = queue_.front();
-            queue_.PopFront();
+            queue_.pop_front();
             item->workFunction_(item, 0);
             item->completed_ = true;
         }
@@ -262,7 +262,7 @@ void WorkQueue::ProcessItems(unsigned threadIndex)
                 wasActive = true;
 
                 WorkItem* item = queue_.front();
-                queue_.PopFront();
+                queue_.pop_front();
                 queueMutex_.Release();
                 item->workFunction_(item, threadIndex);
                 item->completed_ = true;
@@ -314,7 +314,7 @@ void WorkQueue::PurgeCompleted(unsigned priority)
                 poolItems_.Push(*i);
             }
 
-            i = workItems_.Erase(i);
+            i = workItems_.erase(i);
         }
         else
             ++i;
@@ -328,7 +328,7 @@ void WorkQueue::PurgePool()
 
     // Difference tolerance, should be fairly significant to reduce the pool size.
     for (unsigned i = 0; poolItems_.size() > 0 && difference > tolerance_ && i < (unsigned)difference; i++)
-        poolItems_.PopFront();
+        poolItems_.pop_front();
 
     lastSize_ = currentSize;
 }
@@ -345,7 +345,7 @@ void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
         while (!queue_.empty() && timer.GetUSec(false) < maxNonThreadedWorkMs_ * 1000)
         {
             WorkItem* item = queue_.front();
-            queue_.PopFront();
+            queue_.pop_front();
             item->workFunction_(item, 0);
             item->completed_ = true;
         }

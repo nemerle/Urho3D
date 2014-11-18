@@ -390,7 +390,7 @@ void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
     if (!resource || GetExtension(resource->GetName()) == ".xml")
     {
         // Check if this is a dependency resource, reload dependents
-        QHash<StringHash, QSet<StringHash> >::ConstIterator j = dependentResources_.find(fileNameHash);
+        QHash<StringHash, QSet<StringHash> >::const_iterator j = dependentResources_.find(fileNameHash);
         if (j == dependentResources_.end())
             return;
 

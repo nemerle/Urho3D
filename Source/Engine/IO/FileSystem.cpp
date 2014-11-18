@@ -278,7 +278,7 @@ FileSystem::~FileSystem()
         for (auto & elem : asyncExecQueue_)
             delete(elem);
 
-        asyncExecQueue_.Clear();
+        asyncExecQueue_.clear();
     }
 }
 
@@ -836,7 +836,7 @@ void FileSystem::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
             SendEvent(E_ASYNCEXECFINISHED, eventData);
 
             delete request;
-            i = asyncExecQueue_.Erase(i);
+            i = asyncExecQueue_.erase(i);
         }
         else
             ++i;
