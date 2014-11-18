@@ -81,7 +81,7 @@ BillboardSet::BillboardSet(Context* context) :
     geometry_->SetVertexBuffer(0, vertexBuffer_, MASK_POSITION | MASK_COLOR | MASK_TEXCOORD1 | MASK_TEXCOORD2);
     geometry_->SetIndexBuffer(indexBuffer_);
 
-    batches_.Resize(1);
+    batches_.resize(1);
     batches_[0].geometry_ = geometry_;
     batches_[0].geometryType_ = GEOM_BILLBOARD;
     batches_[0].worldTransform_ = &transforms_[0];
@@ -343,16 +343,16 @@ VariantVector BillboardSet::GetBillboardsAttr() const
 {
     VariantVector ret;
     ret.Reserve(billboards_.Size() * 6 + 1);
-    ret.Push(billboards_.Size());
+    ret.push_back(billboards_.Size());
 
     for (const Billboard & elem : billboards_)
     {
-        ret.Push(elem.position_);
-        ret.Push(elem.size_);
-        ret.Push(Vector4(elem.uv_.min_.x_, elem.uv_.min_.y_, elem.uv_.max_.x_, elem.uv_.max_.y_));
-        ret.Push(elem.color_);
-        ret.Push(elem.rotation_);
-        ret.Push(elem.enabled_);
+        ret.push_back(elem.position_);
+        ret.push_back(elem.size_);
+        ret.push_back(Vector4(elem.uv_.min_.x_, elem.uv_.min_.y_, elem.uv_.max_.x_, elem.uv_.max_.y_));
+        ret.push_back(elem.color_);
+        ret.push_back(elem.rotation_);
+        ret.push_back(elem.enabled_);
     }
 
     return ret;
@@ -467,7 +467,7 @@ void BillboardSet::UpdateVertexBuffer(const FrameInfo& frame)
             ++enabledBillboards;
     }
 
-    sortedBillboards_.Resize(enabledBillboards);
+    sortedBillboards_.resize(enabledBillboards);
     unsigned index = 0;
 
     // Then set initial sort order and distances

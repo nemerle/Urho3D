@@ -353,9 +353,9 @@ void Run(const Vector<String>& arguments)
                     for (unsigned i = 0; i < filters.size(); ++i)
                     {
                         if (filters[i][0] == '-')
-                            nonSkinningBoneExcludes_.Push(filters[i].Substring(1));
+                            nonSkinningBoneExcludes_.push_back(filters[i].Substring(1));
                         else
-                            nonSkinningBoneIncludes_.Push(filters[i]);
+                            nonSkinningBoneIncludes_.push_back(filters[i]);
                     }
                 }
             }
@@ -474,7 +474,7 @@ void Run(const Vector<String>& arguments)
                 if (i & 1)
                     lodDistances.Push(Max(ToFloat(arguments[i]), 0.0f));
                 else
-                    modelNames.Push(GetInternalPath(arguments[i]));
+                    modelNames.push_back(GetInternalPath(arguments[i]));
             }
         }
 
@@ -823,8 +823,8 @@ void BuildAndSaveModel(OutModel& model)
                 vb->SetSize(mesh->mNumVertices, elementMask);
             }
 
-            vbVector.Push(vb);
-            ibVector.Push(ib);
+            vbVector.push_back(vb);
+            ibVector.push_back(ib);
             startVertexOffset = 0;
             startIndexOffset = 0;
         }
@@ -897,7 +897,7 @@ void BuildAndSaveModel(OutModel& model)
         outModel->SetGeometry(destGeomIndex, 0, geom);
         outModel->SetGeometryCenter(destGeomIndex, center);
         if (model.bones_.Size() > MAX_SKIN_MATRICES)
-            allBoneMappings.Push(boneMappings);
+            allBoneMappings.push_back(boneMappings);
 
         startVertexOffset += mesh->mNumVertices;
         startIndexOffset += validFaces * 3;
@@ -940,7 +940,7 @@ void BuildAndSaveModel(OutModel& model)
             newBone.boundingBox_ = model.boneHitboxes_[i];
             newBone.collisionMask_ = BONECOLLISION_SPHERE | BONECOLLISION_BOX;
             newBone.parentIndex_ = i;
-            bones.Push(newBone);
+            bones.push_back(newBone);
         }
         // Set the bone hierarchy
         for (unsigned i = 1; i < model.bones_.Size(); ++i)
@@ -1156,10 +1156,10 @@ void BuildAndSaveAnimations(OutModel* model)
                 if (track.channelMask_ & CHANNEL_SCALE)
                     kf.scale_ = ToVector3(scale);
 
-                track.keyFrames_.Push(kf);
+                track.keyFrames_.push_back(kf);
             }
 
-            tracks.Push(track);
+            tracks.push_back(track);
         }
 
         outAnim->SetTracks(tracks);
@@ -1246,7 +1246,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
                 BuildAndSaveAnimations(&model);
             }
 
-            scene.models_.Push(model);
+            scene.models_.push_back(model);
             scene.nodes_.Push(node);
             scene.nodeModelIndices_.Push(scene.models_.size() - 1);
         }
@@ -1714,7 +1714,7 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
         SharedPtr<Model> srcModel(new Model(context_));
         if (!srcModel->Load(srcFile))
             ErrorExit("Could not load input model " + modelNames[i]);
-        srcModels.Push(srcModel);
+        srcModels.push_back(srcModel);
     }
 
     // Check that none of the models already has LOD levels
@@ -1768,12 +1768,12 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
             {
                 SharedPtr<VertexBuffer> vb(geometry->GetVertexBuffer(k));
                 if (!vbVector.Contains(vb))
-                    vbVector.Push(vb);
+                    vbVector.push_back(vb);
             }
 
             SharedPtr<IndexBuffer> ib(geometry->GetIndexBuffer());
             if (!ibVector.Contains(ib))
-                ibVector.Push(ib);
+                ibVector.push_back(ib);
         }
     }
 
@@ -1795,7 +1795,7 @@ void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& mod
 void GetMeshesUnderNode(Vector<Pair<aiNode*, aiMesh*> >& dest, aiNode* node)
 {
     for (unsigned i = 0; i < node->mNumMeshes; ++i)
-        dest.Push(MakePair(node, scene_->mMeshes[node->mMeshes[i]]));
+        dest.push_back(MakePair(node, scene_->mMeshes[node->mMeshes[i]]));
 }
 
 unsigned GetMeshIndex(aiMesh* mesh)
@@ -1858,8 +1858,8 @@ Matrix3x4 GetOffsetMatrix(OutModel& model, const String& boneName)
 void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappings, Vector<PODVector<unsigned char> >&
     blendIndices, Vector<PODVector<float> >& blendWeights)
 {
-    blendIndices.Resize(mesh->mNumVertices);
-    blendWeights.Resize(mesh->mNumVertices);
+    blendIndices.resize(mesh->mNumVertices);
+    blendWeights.resize(mesh->mNumVertices);
     boneMappings.Clear();
 
     // If model has more bones than can fit vertex shader parameters, write the per-geometry mappings

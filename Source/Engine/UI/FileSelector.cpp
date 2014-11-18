@@ -108,7 +108,7 @@ FileSelector::FileSelector(Context* context) :
     window_->AddChild(buttonLayout_);
 
     Vector<String> defaultFilters;
-    defaultFilters.Push("*.*");
+    defaultFilters.push_back("*.*");
     SetFilters(defaultFilters, 0);
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
     SetPath(fileSystem->GetCurrentDir());
@@ -292,7 +292,7 @@ void FileSelector::RefreshFiles()
     ignoreEvents_ = true;
 
     fileList_->RemoveAllItems();
-    fileEntries_.Clear();
+    fileEntries_.clear();
 
     Vector<String> directories;
     Vector<String> files;
@@ -306,7 +306,7 @@ void FileSelector::RefreshFiles()
         FileSelectorEntry newEntry;
         newEntry.name_ = directories[i];
         newEntry.directory_ = true;
-        fileEntries_.Push(newEntry);
+        fileEntries_.push_back(newEntry);
     }
 
     for (unsigned i = 0; i < files.size(); ++i)
@@ -314,7 +314,7 @@ void FileSelector::RefreshFiles()
         FileSelectorEntry newEntry;
         newEntry.name_ = files[i];
         newEntry.directory_ = false;
-        fileEntries_.Push(newEntry);
+        fileEntries_.push_back(newEntry);
     }
 
     // Sort and add to the list view

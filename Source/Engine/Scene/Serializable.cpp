@@ -249,7 +249,7 @@ bool Serializable::Load(Deserializer& source, bool setInstanceDefault)
 
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (!(attr.mode_ & AM_FILE))
             continue;
 
@@ -279,7 +279,7 @@ bool Serializable::Save(Serializer& dest) const
 
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (!(attr.mode_ & AM_FILE))
             continue;
 
@@ -318,7 +318,7 @@ bool Serializable::LoadXML(const XMLElement& source, bool setInstanceDefault)
 
         while (attempts)
         {
-            const AttributeInfo& attr = attributes->At(i);
+            const AttributeInfo& attr = attributes->at(i);
             if ((attr.mode_ & AM_FILE) && !attr.name_.Compare(name, true))
             {
                 Variant varValue;
@@ -391,7 +391,7 @@ bool Serializable::SaveXML(XMLElement& dest) const
 
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (!(attr.mode_ & AM_FILE))
             continue;
 
@@ -431,7 +431,7 @@ bool Serializable::SetAttribute(unsigned index, const Variant& value)
         return false;
     }
 
-    const AttributeInfo& attr = attributes->At(index);
+    const AttributeInfo& attr = attributes->at(index);
 
     // Check that the new value's type matches the attribute type
     if (value.GetType() == attr.type_)
@@ -456,7 +456,7 @@ bool Serializable::SetAttribute(const String& name, const Variant& value)
         return false;
     }
 
-    for (Vector<AttributeInfo>::ConstIterator i = attributes->begin(); i != attributes->end(); ++i)
+    for (Vector<AttributeInfo>::const_iterator i = attributes->begin(); i != attributes->end(); ++i)
     {
         if (!i->name_.Compare(name, true))
         {
@@ -487,7 +487,7 @@ void Serializable::ResetToDefault()
 
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (attr.mode_ & (AM_NOEDIT | AM_NODEID | AM_COMPONENTID | AM_NODEIDVECTOR))
             continue;
 
@@ -548,7 +548,7 @@ void Serializable::WriteInitialDeltaUpdate(Serializer& dest)
     // Compare against defaults
     for (unsigned i = 0; i < numAttributes; ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (networkState_->currentValues_[i] != attr.defaultValue_)
             attributeBits.Set(i);
     }
@@ -604,7 +604,7 @@ void Serializable::WriteLatestDataUpdate(Serializer& dest)
 
     for (unsigned i = 0; i < numAttributes; ++i)
     {
-        if (attributes->At(i).mode_ & AM_LATESTDATA)
+        if (attributes->at(i).mode_ & AM_LATESTDATA)
             dest.WriteVariantData(networkState_->currentValues_[i]);
     }
 }
@@ -624,7 +624,7 @@ void Serializable::ReadDeltaUpdate(Deserializer& source)
     {
         if (attributeBits.IsSet(i))
         {
-            const AttributeInfo& attr = attributes->At(i);
+            const AttributeInfo& attr = attributes->at(i);
             OnSetAttribute(attr, source.ReadVariant(attr.type_));
         }
     }
@@ -640,7 +640,7 @@ void Serializable::ReadLatestDataUpdate(Deserializer& source)
 
     for (unsigned i = 0; i < numAttributes && !source.IsEof(); ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (attr.mode_ & AM_LATESTDATA)
             OnSetAttribute(attr, source.ReadVariant(attr.type_));
     }
@@ -662,7 +662,7 @@ Variant Serializable::GetAttribute(unsigned index) const
         return ret;
     }
 
-    OnGetAttribute(attributes->At(index), ret);
+    OnGetAttribute(attributes->at(index), ret);
     return ret;
 }
 
@@ -704,7 +704,7 @@ Variant Serializable::GetAttributeDefault(unsigned index) const
         return Variant::EMPTY;
     }
 
-    AttributeInfo attr = attributes->At(index);
+    AttributeInfo attr = attributes->at(index);
     Variant defaultValue = GetInstanceDefault(attr.name_);
     return defaultValue.IsEmpty() ? attr.defaultValue_ : defaultValue;
 }

@@ -130,7 +130,7 @@ void Connection::SendRemoteEvent(StringHash eventType, bool inOrder, const Varia
     queuedEvent.eventType_ = eventType;
     queuedEvent.eventData_ = eventData;
     queuedEvent.inOrder_ = inOrder;
-    remoteEvents_.Push(queuedEvent);
+    remoteEvents_.push_back(queuedEvent);
 }
 
 void Connection::SendRemoteEvent(Node* node, StringHash eventType, bool inOrder, const VariantMap& eventData)
@@ -156,7 +156,7 @@ void Connection::SendRemoteEvent(Node* node, StringHash eventType, bool inOrder,
     queuedEvent.eventType_ = eventType;
     queuedEvent.eventData_ = eventData;
     queuedEvent.inOrder_ = inOrder;
-    remoteEvents_.Push(queuedEvent);
+    remoteEvents_.push_back(queuedEvent);
 }
 
 void Connection::SetScene(Scene* newScene)
@@ -297,7 +297,7 @@ void Connection::SendRemoteEvents()
 
     PROFILE(SendRemoteEvents);
 
-    for (Vector<RemoteEvent>::ConstIterator i = remoteEvents_.begin(); i != remoteEvents_.end(); ++i)
+    for (Vector<RemoteEvent>::const_iterator i = remoteEvents_.begin(); i != remoteEvents_.end(); ++i)
     {
         msg_.Clear();
         if (!i->senderID_)
@@ -315,7 +315,7 @@ void Connection::SendRemoteEvents()
         }
     }
 
-    remoteEvents_.Clear();
+    remoteEvents_.clear();
 }
 
 void Connection::SendPackages()
@@ -1151,7 +1151,7 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
 
         for (unsigned i = 0; i < numAttributes; ++i)
         {
-            if (nodeState.dirtyAttributes_.IsSet(i) && (attributes->At(i).mode_ & AM_LATESTDATA))
+            if (nodeState.dirtyAttributes_.IsSet(i) && (attributes->at(i).mode_ & AM_LATESTDATA))
             {
                 hasLatestData = true;
                 nodeState.dirtyAttributes_.Clear(i);
@@ -1229,7 +1229,7 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
 
                 for (unsigned i = 0; i < numAttributes; ++i)
                 {
-                    if (componentState.dirtyAttributes_.IsSet(i) && (attributes->At(i).mode_ & AM_LATESTDATA))
+                    if (componentState.dirtyAttributes_.IsSet(i) && (attributes->at(i).mode_ & AM_LATESTDATA))
                     {
                         hasLatestData = true;
                         componentState.dirtyAttributes_.Clear(i);

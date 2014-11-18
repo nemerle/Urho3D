@@ -167,7 +167,7 @@ DecalSet::DecalSet(Context* context) :
 {
     geometry_->SetIndexBuffer(indexBuffer_);
 
-    batches_.Resize(1);
+    batches_.resize(1);
     batches_[0].geometry_ = geometry_;
     batches_[0].geometryType_ = GEOM_STATIC_NOINSTANCING;
 }
@@ -491,7 +491,7 @@ void DecalSet::RemoveAllDecals()
             elem.node_->RemoveListener(this);
     }
 
-    bones_.Clear();
+    bones_.clear();
     skinMatrices_.Clear();
     UpdateBatch();
 }
@@ -556,7 +556,7 @@ void DecalSet::SetDecalsAttr(PODVector<unsigned char> value)
     {
         unsigned numBones = buffer.ReadVLE();
         skinMatrices_.Resize(numBones);
-        bones_.Resize(numBones);
+        bones_.resize(numBones);
 
         for (unsigned i = 0; i < numBones; ++i)
         {
@@ -663,7 +663,7 @@ void DecalSet::OnWorldBoundingBoxUpdate()
         // When using skinning, update world bounding box based on the bones
         BoundingBox worldBox;
 
-        for (Vector<Bone>::ConstIterator i = bones_.begin(); i != bones_.end(); ++i)
+        for (Vector<Bone>::const_iterator i = bones_.begin(); i != bones_.end(); ++i)
         {
             Node* boneNode = i->node_;
             if (!boneNode)
@@ -835,8 +835,8 @@ void DecalSet::GetFace(Vector<PODVector<DecalVertex> >& faces, Drawable* target,
             return;
     }
 
-    faces.Resize(faces.size() + 1);
-    PODVector<DecalVertex>& face = faces.Back();
+    faces.resize(faces.size() + 1);
+    PODVector<DecalVertex>& face = faces.back();
     if (!hasSkinning)
     {
         face.Reserve(3);
@@ -923,7 +923,7 @@ bool DecalSet::GetBones(Drawable* target, unsigned batchIndex, const float* blen
                 {
                     // Copy the bone from the model to the decal
                     index = bones_.size();
-                    bones_.Resize(bones_.size() + 1);
+                    bones_.resize(bones_.size() + 1);
                     bones_[index] = *bone;
                     skinMatrices_.Resize(skinMatrices_.Size() + 1);
                     skinningDirty_ = true;

@@ -107,7 +107,7 @@ bool TmxTileLayer2D::Load(const XMLElement& element, const TileMapInfo2D& info)
     }
 
     XMLElement tileElem = dataElem.GetChild("tile");
-    tiles_.Resize(width_ * height_);
+    tiles_.resize(width_ * height_);
 
     for (int y = 0; y < height_; ++y)
     {
@@ -194,7 +194,7 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
                 return false;
 
             Vector<String> points = childElem.GetAttribute("points").Split(' ');
-            object->points_.Resize(points.size());
+            object->points_.resize(points.size());
 
             for (unsigned i = 0; i < points.size(); ++i)
             {
@@ -210,7 +210,7 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
             object->propertySet_->Load(objectElem.GetChild("properties"));
         }
 
-        objects_.Push(object);
+        objects_.push_back(object);
     }
 
     if (element.HasChild("properties"))
@@ -373,7 +373,7 @@ bool TmxFile2D::EndLoad()
 
     for (unsigned i = 0; i < layers_.size(); ++i)
         delete layers_[i];
-    layers_.Clear();
+    layers_.clear();
 
     for (XMLElement childElement = rootElem.GetChild(); childElement; childElement = childElement.GetNext())
     {
@@ -386,14 +386,14 @@ bool TmxFile2D::EndLoad()
             TmxTileLayer2D* tileLayer = new TmxTileLayer2D(this);
             ret = tileLayer->Load(childElement, info_);
 
-            layers_.Push(tileLayer);
+            layers_.push_back(tileLayer);
         }
         else if (name == "objectgroup")
         {
             TmxObjectGroup2D* objectGroup = new TmxObjectGroup2D(this);
             ret = objectGroup->Load(childElement, info_);
 
-            layers_.Push(objectGroup);
+            layers_.push_back(objectGroup);
 
         }
         else if (name == "imagelayer")
@@ -401,7 +401,7 @@ bool TmxFile2D::EndLoad()
             TmxImageLayer2D* imageLayer = new TmxImageLayer2D(this);
             ret = imageLayer->Load(childElement, info_);
 
-            layers_.Push(imageLayer);
+            layers_.push_back(imageLayer);
         }
 
         if (!ret)
@@ -493,7 +493,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
         return false;
     }
 
-    tileSetTextures_.Push(texture);
+    tileSetTextures_.push_back(texture);
 
     int tileWidth = tileSetElem.GetInt("tilewidth");
     int tileHeight = tileSetElem.GetInt("tileheight");

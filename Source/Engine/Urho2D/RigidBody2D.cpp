@@ -406,7 +406,7 @@ void RigidBody2D::AddCollisionShape2D(CollisionShape2D* collisionShape)
     if (collisionShapes_.Contains(collisionShapePtr))
         return;
 
-    collisionShapes_.Push(collisionShapePtr);
+    collisionShapes_.push_back(collisionShapePtr);
 }
 
 void RigidBody2D::RemoveCollisionShape2D(CollisionShape2D* collisionShape)
@@ -426,7 +426,7 @@ void RigidBody2D::AddConstraint2D(Constraint2D* constraint)
     WeakPtr<Constraint2D> constraintPtr(constraint);
     if (constraints_.Contains(constraintPtr))
         return;
-    constraints_.Push(constraintPtr);
+    constraints_.push_back(constraintPtr);
 }
 
 void RigidBody2D::RemoveConstraint2D(Constraint2D* constraint)
@@ -486,7 +486,7 @@ void RigidBody2D::OnNodeSet(Node* node)
         node->AddListener(this);
         Scene* scene = GetScene();
         physicsWorld_ = scene->GetOrCreateComponent<PhysicsWorld2D>();
-        
+
         CreateBody();
         physicsWorld_->AddRigidBody(this);
     }

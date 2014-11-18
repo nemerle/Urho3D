@@ -410,7 +410,7 @@ bool FileSystem::SystemOpen(const String& fileName, const String& mode)
             GetWideNativePath(fileName).CString(), 0, 0, SW_SHOW) > 32;
         #else
         Vector<String> arguments;
-        arguments.Push(fileName);
+        arguments.push_back(fileName);
         bool success = SystemRun(
         #if defined(__APPLE__)
                 "/usr/bin/open",
@@ -619,7 +619,7 @@ bool FileSystem::DirExists(const String& pathName) const
 
 void FileSystem::ScanDir(Vector<String>& result, const String& pathName, const String& filter, unsigned flags, bool recursive) const
 {
-    result.Clear();
+    result.clear();
 
     if (CheckAccess(pathName))
     {
@@ -804,14 +804,14 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
                 if (st.st_mode & S_IFDIR)
                 {
                     if (flags & SCAN_DIRS)
-                        result.Push(deltaPath + fileName);
+                        result.push_back(deltaPath + fileName);
                     if (recursive && normalEntry)
                         ScanDirInternal(result, path + fileName, startPath, filter, flags, recursive);
                 }
                 else if (flags & SCAN_FILES)
                 {
                     if (filterExtension.Empty() || fileName.EndsWith(filterExtension))
-                        result.Push(deltaPath + fileName);
+                        result.push_back(deltaPath + fileName);
                 }
             }
         }

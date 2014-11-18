@@ -286,7 +286,7 @@ Vector<String> JSONValue::GetChildNames() const
     {
         // Only reutrn name for child object and array
         if (i->value.GetType() == kArrayType || i->value.GetType() == kObjectType)
-            ret.Push(i->name.GetString());
+            ret.push_back(i->name.GetString());
     }
 
     return ret;
@@ -301,7 +301,7 @@ Vector<String> JSONValue::GetValueNames() const
     for (Value::ConstMemberIterator i = value_->MemberBegin(); i != value_->MemberEnd(); ++i)
     {
         if (i->value.GetType() != kArrayType && i->value.GetType() != kObjectType)
-            ret.Push(i->name.GetString());
+            ret.push_back(i->name.GetString());
     }
 
     return ret;
@@ -404,7 +404,7 @@ ResourceRefList JSONValue::GetResourceRefList(const String& name) const
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
-        ret.names_.Resize(values.size() - 1);
+        ret.names_.resize(values.size() - 1);
         for (unsigned i = 1; i < values.size(); ++i)
             ret.names_[i - 1] = values[i];
     }
@@ -750,7 +750,7 @@ ResourceRefList JSONValue::GetResourceRefList(unsigned index) const
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
-        ret.names_.Resize(values.size() - 1);
+        ret.names_.resize(values.size() - 1);
         for (unsigned i = 1; i < values.size(); ++i)
             ret.names_[i - 1] = values[i];
     }

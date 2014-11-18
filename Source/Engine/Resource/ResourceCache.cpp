@@ -108,16 +108,16 @@ bool ResourceCache::AddResourceDir(const String& pathName, unsigned priority)
     }
 
     if (priority < resourceDirs_.size())
-        resourceDirs_.Insert(priority, fixedPath);
+        resourceDirs_.insert(priority, fixedPath);
     else
-        resourceDirs_.Push(fixedPath);
+        resourceDirs_.push_back(fixedPath);
 
     // If resource auto-reloading active, create a file watcher for the directory
     if (autoReloadResources_)
     {
         SharedPtr<FileWatcher> watcher(new FileWatcher(context_));
         watcher->StartWatching(fixedPath, true);
-        fileWatchers_.Push(watcher);
+        fileWatchers_.push_back(watcher);
     }
 
     LOGINFO("Added resource path " + fixedPath);
@@ -133,9 +133,9 @@ void ResourceCache::AddPackageFile(PackageFile* package, unsigned priority)
         return;
 
     if (priority < packages_.size())
-        packages_.Insert(priority, SharedPtr<PackageFile>(package));
+        packages_.insert(priority, SharedPtr<PackageFile>(package));
     else
-        packages_.Push(SharedPtr<PackageFile>(package));
+        packages_.push_back(SharedPtr<PackageFile>(package));
 
     LOGINFO("Added resource package " + package->GetName());
 }
@@ -171,13 +171,13 @@ void ResourceCache::RemoveResourceDir(const String& pathName)
     {
         if (!resourceDirs_[i].Compare(fixedPath, false))
         {
-            resourceDirs_.Erase(i);
+            resourceDirs_.erase(i);
             // Remove the filewatcher with the matching path
             for (unsigned j = 0; j < fileWatchers_.size(); ++j)
             {
                 if (!fileWatchers_[j]->GetPath().Compare(fixedPath, false))
                 {
-                    fileWatchers_.Erase(j);
+                    fileWatchers_.erase(j);
                     break;
                 }
             }
@@ -191,14 +191,14 @@ void ResourceCache::RemovePackageFile(PackageFile* package, bool releaseResource
 {
     MutexLock lock(resourceMutex_);
 
-    for (Vector<SharedPtr<PackageFile> >::Iterator i = packages_.begin(); i != packages_.end(); ++i)
+    for (Vector<SharedPtr<PackageFile> >::iterator i = packages_.begin(); i != packages_.end(); ++i)
     {
         if (*i == package)
         {
             if (releaseResources)
                 ReleasePackageResources(*i, forceRelease);
             LOGINFO("Removed resource package " + (*i)->GetName());
-            packages_.Erase(i);
+            packages_.erase(i);
             return;
         }
     }
@@ -211,14 +211,14 @@ void ResourceCache::RemovePackageFile(const String& fileName, bool releaseResour
     // Compare the name and extension only, not the path
     String fileNameNoPath = GetFileNameAndExtension(fileName);
 
-    for (Vector<SharedPtr<PackageFile> >::Iterator i = packages_.begin(); i != packages_.end(); ++i)
+    for (Vector<SharedPtr<PackageFile> >::iterator i = packages_.begin(); i != packages_.end(); ++i)
     {
         if (!GetFileNameAndExtension((*i)->GetName()).Compare(fileNameNoPath, false))
         {
             if (releaseResources)
                 ReleasePackageResources(*i, forceRelease);
             LOGINFO("Removed resource package " + (*i)->GetName());
-            packages_.Erase(i);
+            packages_.erase(i);
             return;
         }
     }
@@ -403,7 +403,7 @@ void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
         {
             const SharedPtr<Resource>& dependent = FindResource(k);
             if (dependent)
-                dependents.Push(dependent);
+                dependents.push_back(dependent);
         }
 
         for (unsigned k = 0; k < dependents.size(); ++k)
@@ -429,11 +429,11 @@ void ResourceCache::SetAutoReloadResources(bool enable)
             {
                 SharedPtr<FileWatcher> watcher(new FileWatcher(context_));
                 watcher->StartWatching(resourceDirs_[i], true);
-                fileWatchers_.Push(watcher);
+                fileWatchers_.push_back(watcher);
             }
         }
         else
-            fileWatchers_.Clear();
+            fileWatchers_.clear();
 
         autoReloadResources_ = enable;
     }

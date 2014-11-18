@@ -315,14 +315,14 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
 
         // Copy geometry bone mappings
         const Vector<PODVector<unsigned> >& geometryBoneMappings = model->GetGeometryBoneMappings();
-        geometryBoneMappings_.Clear();
+        geometryBoneMappings_.clear();
         geometryBoneMappings_.Reserve(geometryBoneMappings.size());
         for (unsigned i = 0; i < geometryBoneMappings.size(); ++i)
-            geometryBoneMappings_.Push(geometryBoneMappings[i]);
+            geometryBoneMappings_.push_back(geometryBoneMappings[i]);
 
         // Copy morphs. Note: morph vertex buffers will be created later on-demand
-        morphVertexBuffers_.Clear();
-        morphs_.Clear();
+        morphVertexBuffers_.clear();
+        morphs_.clear();
         const Vector<ModelMorph>& morphs = model->GetMorphs();
         morphs_.Reserve(morphs.size());
         morphElementMask_ = 0;
@@ -335,7 +335,7 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
             newMorph.buffers_ = morphs[i].buffers_;
             for (const auto & elem : morphs[i].buffers_)
                 morphElementMask_ |= elem.elementMask_;
-            morphs_.Push(newMorph);
+            morphs_.push_back(newMorph);
         }
 
         // Copy bounding box & skeleton
@@ -377,9 +377,9 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
     {
         RemoveRootBone(); // Remove existing root bone if any
         SetNumGeometries(0);
-        geometryBoneMappings_.Clear();
-        morphVertexBuffers_.Clear();
-        morphs_.Clear();
+        geometryBoneMappings_.clear();
+        morphVertexBuffers_.clear();
+        morphs_.clear();
         morphElementMask_ = 0;
         SetBoundingBox(BoundingBox());
         SetSkeleton(Skeleton(), false);
@@ -405,7 +405,7 @@ AnimationState* AnimatedModel::AddAnimationState(Animation* animation)
         return existing;
 
     SharedPtr<AnimationState> newState(new AnimationState(this, animation));
-    animationStates_.Push(newState);
+    animationStates_.push_back(newState);
     MarkAnimationOrderDirty();
     return newState;
 }
@@ -416,12 +416,12 @@ void AnimatedModel::RemoveAnimationState(Animation* animation)
         RemoveAnimationState(animation->GetNameHash());
     else
     {
-        for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
+        for (Vector<SharedPtr<AnimationState> >::iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
         {
             AnimationState* state = *i;
             if (!state->GetAnimation())
             {
-                animationStates_.Erase(i);
+                animationStates_.erase(i);
                 MarkAnimationDirty();
                 return;
             }
@@ -436,7 +436,7 @@ void AnimatedModel::RemoveAnimationState(const String& animationName)
 
 void AnimatedModel::RemoveAnimationState(StringHash animationNameHash)
 {
-    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
+    for (Vector<SharedPtr<AnimationState> >::iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
     {
         AnimationState* state = *i;
         Animation* animation = state->GetAnimation();
@@ -445,7 +445,7 @@ void AnimatedModel::RemoveAnimationState(StringHash animationNameHash)
             // Check both the animation and the resource name
             if (animation->GetNameHash() == animationNameHash || animation->GetAnimationNameHash() == animationNameHash)
             {
-                animationStates_.Erase(i);
+                animationStates_.erase(i);
                 MarkAnimationDirty();
                 return;
             }
@@ -455,11 +455,11 @@ void AnimatedModel::RemoveAnimationState(StringHash animationNameHash)
 
 void AnimatedModel::RemoveAnimationState(AnimationState* state)
 {
-    for (Vector<SharedPtr<AnimationState> >::Iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
+    for (Vector<SharedPtr<AnimationState> >::iterator i = animationStates_.begin(); i != animationStates_.end(); ++i)
     {
         if (*i == state)
         {
-            animationStates_.Erase(i);
+            animationStates_.erase(i);
             MarkAnimationDirty();
             return;
         }
@@ -470,7 +470,7 @@ void AnimatedModel::RemoveAnimationState(unsigned index)
 {
     if (index < animationStates_.size())
     {
-        animationStates_.Erase(index);
+        animationStates_.erase(index);
         MarkAnimationDirty();
     }
 }
@@ -479,7 +479,7 @@ void AnimatedModel::RemoveAllAnimationStates()
 {
     if (animationStates_.size())
     {
-        animationStates_.Clear();
+        animationStates_.clear();
         MarkAnimationDirty();
     }
 }
@@ -780,7 +780,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
             // Note: null animation is allowed here for editing
             const ResourceRef& animRef = value[index++].GetResourceRef();
             SharedPtr<AnimationState> newState(new AnimationState(this, cache->GetResource<Animation>(animRef.name_)));
-            animationStates_.Push(newState);
+            animationStates_.push_back(newState);
 
             newState->SetStartBone(skeleton_.GetBone(value[index++].GetString()));
             newState->SetLooped(value[index++].GetBool());
@@ -792,7 +792,7 @@ void AnimatedModel::SetAnimationStatesAttr(VariantVector value)
         {
             // If not enough data, just add an empty animation state
             SharedPtr<AnimationState> newState(new AnimationState(this, nullptr));
-            animationStates_.Push(newState);
+            animationStates_.push_back(newState);
         }
     }
 
@@ -820,7 +820,7 @@ VariantVector AnimatedModel::GetBonesEnabledAttr() const
     const Vector<Bone>& bones = skeleton_.GetBones();
     ret.Reserve(bones.size());
     for (const Bone &bone : bones)
-        ret.Push(bone.animated_);
+        ret.push_back(bone.animated_);
     return ret;
 }
 
@@ -828,18 +828,18 @@ VariantVector AnimatedModel::GetAnimationStatesAttr() const
 {
     VariantVector ret;
     ret.Reserve(animationStates_.size() * 6 + 1);
-    ret.Push(animationStates_.size());
+    ret.push_back(animationStates_.size());
     for (const SharedPtr<AnimationState> &i : animationStates_)
     {
         AnimationState* state = i.Get();
         Animation* animation = state->GetAnimation();
         Bone* startBone = state->GetStartBone();
-        ret.Push(GetResourceRef(animation, Animation::GetTypeStatic()));
-        ret.Push(startBone ? startBone->name_ : String::EMPTY);
-        ret.Push(state->IsLooped());
-        ret.Push(state->GetWeight());
-        ret.Push(state->GetTime());
-        ret.Push((int)state->GetLayer());
+        ret.push_back(GetResourceRef(animation, Animation::GetTypeStatic()));
+        ret.push_back(startBone ? startBone->name_ : String::EMPTY);
+        ret.push_back(state->IsLooped());
+        ret.push_back(state->GetWeight());
+        ret.push_back(state->GetTime());
+        ret.push_back((int)state->GetLayer());
     }
     return ret;
 }
@@ -962,7 +962,7 @@ void AnimatedModel::CloneGeometries()
 {
     const Vector<SharedPtr<VertexBuffer> >& originalVertexBuffers = model_->GetVertexBuffers();
     QHash<VertexBuffer*, SharedPtr<VertexBuffer> > clonedVertexBuffers;
-    morphVertexBuffers_.Resize(originalVertexBuffers.size());
+    morphVertexBuffers_.resize(originalVertexBuffers.size());
 
     for (unsigned i = 0; i < originalVertexBuffers.size(); ++i)
     {
@@ -1077,8 +1077,8 @@ void AnimatedModel::CopyMorphVertices(void* destVertexData, void* srcVertexData,
 
 void AnimatedModel::SetGeometryBoneMappings()
 {
-    geometrySkinMatrices_.Clear();
-    geometrySkinMatrixPtrs_.Clear();
+    geometrySkinMatrices_.clear();
+    geometrySkinMatrixPtrs_.clear();
 
     if (!geometryBoneMappings_.size())
         return;
@@ -1093,13 +1093,13 @@ void AnimatedModel::SetGeometryBoneMappings()
         return;
 
     // Reserve space for per-geometry skinning matrices
-    geometrySkinMatrices_.Resize(geometryBoneMappings_.size());
+    geometrySkinMatrices_.resize(geometryBoneMappings_.size());
     for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
         geometrySkinMatrices_[i].Resize(geometryBoneMappings_[i].Size());
 
     // Build original-to-skinindex matrix pointer mapping for fast copying
     // Note: at this point layout of geometrySkinMatrices_ cannot be modified or pointers become invalid
-    geometrySkinMatrixPtrs_.Resize(skeleton_.GetNumBones());
+    geometrySkinMatrixPtrs_.resize(skeleton_.GetNumBones());
     for (unsigned i = 0; i < geometryBoneMappings_.size(); ++i)
     {
         for (unsigned j = 0; j < geometryBoneMappings_[i].Size(); ++j)

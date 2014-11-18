@@ -109,8 +109,8 @@ public:
             }
 
             // Keep shared pointers to the vertex/index data so that if it's unloaded or changes size, we don't crash
-            dataArrays_.Push(vertexData);
-            dataArrays_.Push(indexData);
+            dataArrays_.push_back(vertexData);
+            dataArrays_.push_back(indexData);
 
             unsigned indexStart = geometry->GetIndexStart();
             unsigned indexCount = geometry->GetIndexCount();
@@ -141,8 +141,8 @@ public:
             // CustomGeometry vertex data is unindexed, so build index data here
             SharedArrayPtr<unsigned char> vertexData(new unsigned char[totalVertexCount * sizeof(Vector3)]);
             SharedArrayPtr<unsigned char> indexData(new unsigned char[totalVertexCount * sizeof(unsigned)]);
-            dataArrays_.Push(vertexData);
-            dataArrays_.Push(indexData);
+            dataArrays_.push_back(vertexData);
+            dataArrays_.push_back(indexData);
 
             Vector3* destVertex = reinterpret_cast<Vector3*>(&vertexData[0]);
             unsigned* destIndex = reinterpret_cast<unsigned*>(&indexData[0]);

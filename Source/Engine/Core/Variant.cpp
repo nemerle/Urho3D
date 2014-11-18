@@ -273,7 +273,7 @@ void Variant::FromString(VariantType type, const char* value)
                 SetType(VAR_RESOURCEREFLIST);
                 ResourceRefList& refList = *(reinterpret_cast<ResourceRefList*>(&value_));
                 refList.type_ = values[0];
-                refList.names_.Resize(values.size() - 1);
+                refList.names_.resize(values.size() - 1);
                 for (unsigned i = 1; i < values.size(); ++i)
                     refList.names_[i - 1] = values[i];
             }

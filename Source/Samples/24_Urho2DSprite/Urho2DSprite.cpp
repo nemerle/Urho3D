@@ -115,7 +115,7 @@ void Urho2DSprite::CreateScene()
         spriteNode->SetVar(VAR_ROTATESPEED, Random(-90.0f, 90.0f));
 
         // Add to sprite node vector
-        spriteNodes_.Push(spriteNode);
+        spriteNodes_.push_back(spriteNode);
     }
 
     // Get animation set

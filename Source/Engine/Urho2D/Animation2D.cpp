@@ -50,22 +50,22 @@ Transform2D::Transform2D() :
 }
 
 Transform2D::Transform2D(const Vector2& position, float angle, const Vector2& scale) :
-    position_(position), 
-    angle_(angle), 
+    position_(position),
+    angle_(angle),
     scale_(scale)
 {
 }
 
 Transform2D::Transform2D(const Transform2D& other) :
-    position_(other.position_), 
-    angle_(other.angle_), 
+    position_(other.position_),
+    angle_(other.angle_),
     scale_(other.scale_)
 {
 }
 
 Transform2D& Transform2D::operator = (const Transform2D& other)
 {
-    position_ = other.position_; 
+    position_ = other.position_;
     angle_ = other.angle_;
     scale_ = other.scale_;
     return *this;
@@ -129,9 +129,9 @@ Timeline2D::Timeline2D() :
 {
 }
 
-Animation2D::Animation2D(AnimationSet2D* animationSet) : 
+Animation2D::Animation2D(AnimationSet2D* animationSet) :
     animationSet_(animationSet),
-    length_(0.0f), 
+    length_(0.0f),
     looped_(true)
 {
 }
@@ -157,12 +157,12 @@ void Animation2D::SetLooped(bool looped)
 
 void Animation2D::AddMainlineKey(const MainlineKey2D& mainlineKey)
 {
-    mainlineKeys_.Push(mainlineKey);
+    mainlineKeys_.push_back(mainlineKey);
 }
 
 void Animation2D::AddTimeline(const Timeline2D& timeline)
 {
-    timelines_.Push(timeline);
+    timelines_.push_back(timeline);
 }
 
 void Animation2D::SetTimelineParent(int timeline, int timelineParent)

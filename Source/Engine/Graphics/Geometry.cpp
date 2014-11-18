@@ -60,14 +60,14 @@ bool Geometry::SetNumVertexBuffers(unsigned num)
         LOGERROR("Too many vertex streams");
         return false;
     }
-    
+
     unsigned oldSize = vertexBuffers_.size();
-    vertexBuffers_.Resize(num);
+    vertexBuffers_.resize(num);
     elementMasks_.Resize(num);
-    
+
     for (unsigned i = oldSize; i < num; ++i)
         elementMasks_[i] = MASK_NONE;
-    
+
     GetPositionBufferIndex();
     return true;
 }
@@ -79,9 +79,9 @@ bool Geometry::SetVertexBuffer(unsigned index, VertexBuffer* buffer, unsigned el
         LOGERROR("Stream index out of bounds");
         return false;
     }
-    
+
     vertexBuffers_[index] = buffer;
-    
+
     if (buffer)
     {
         if (elementMask == MASK_DEFAULT)
@@ -89,7 +89,7 @@ bool Geometry::SetVertexBuffer(unsigned index, VertexBuffer* buffer, unsigned el
         else
             elementMasks_[index] = elementMask;
     }
-    
+
     GetPositionBufferIndex();
     return true;
 }
@@ -112,17 +112,17 @@ bool Geometry::SetDrawRange(PrimitiveType type, unsigned indexStart, unsigned in
             String(indexBuffer_->GetIndexCount()) + " indices");
         return false;
     }
-    
+
     primitiveType_ = type;
     indexStart_ = indexStart;
     indexCount_ = indexCount;
-    
+
     // Get min.vertex index and num of vertices from index buffer. If it fails, use full range as fallback
     if (indexCount)
     {
         vertexStart_ = 0;
         vertexCount_ = vertexBuffers_[0] ? vertexBuffers_[0]->GetVertexCount() : 0;
-        
+
         if (getUsedVertexRange && indexBuffer_)
             indexBuffer_->GetUsedVertexRange(indexStart_, indexCount_, vertexStart_, vertexCount_);
     }
@@ -131,7 +131,7 @@ bool Geometry::SetDrawRange(PrimitiveType type, unsigned indexStart, unsigned in
         vertexStart_ = 0;
         vertexCount_ = 0;
     }
-    
+
     return true;
 }
 
@@ -152,13 +152,13 @@ bool Geometry::SetDrawRange(PrimitiveType type, unsigned indexStart, unsigned in
         indexStart = 0;
         indexCount = 0;
     }
-    
+
     primitiveType_ = type;
     indexStart_ = indexStart;
     indexCount_ = indexCount;
     vertexStart_ = minVertex;
     vertexCount_ = vertexCount;
-    
+
     return true;
 }
 
@@ -166,7 +166,7 @@ void Geometry::SetLodDistance(float distance)
 {
     if (distance < 0.0f)
         distance = 0.0f;
-    
+
     lodDistance_ = distance;
 }
 
@@ -211,16 +211,16 @@ unsigned Geometry::GetVertexElementMask(unsigned index) const
 unsigned short Geometry::GetBufferHash() const
 {
     unsigned short hash = 0;
-    
+
     for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
     {
         VertexBuffer* vBuf = vertexBuffers_[i];
         hash += *((unsigned short*)&vBuf);
     }
-    
+
     IndexBuffer* iBuf = indexBuffer_;
     hash += *((unsigned short*)&iBuf);
-    
+
     return hash;
 }
 
@@ -256,7 +256,7 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
             elementMask = 0;
         }
     }
-    
+
     if (rawIndexData_)
     {
         indexData = rawIndexData_;
@@ -312,7 +312,7 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
             elementMask = 0;
         }
     }
-    
+
     if (rawIndexData_)
     {
         indexData = rawIndexData_;
@@ -343,9 +343,9 @@ float Geometry::GetHitDistance(const Ray& ray, Vector3* outNormal) const
     unsigned vertexSize;
     unsigned indexSize;
     unsigned elementMask;
-    
+
     GetRawData(vertexData, vertexSize, indexData, indexSize, elementMask);
-    
+
     if (vertexData && indexData)
         return ray.HitDistance(vertexData, vertexSize, indexData, indexSize, indexStart_, indexCount_, outNormal);
     else if (vertexData)
@@ -361,9 +361,9 @@ bool Geometry::IsInside(const Ray& ray) const
     unsigned vertexSize;
     unsigned indexSize;
     unsigned elementMask;
-    
+
     GetRawData(vertexData, vertexSize, indexData, indexSize, elementMask);
-    
+
     if (vertexData && indexData)
         return ray.InsideGeometry(vertexData, vertexSize, indexData, indexSize, indexStart_, indexCount_);
     else if (vertexData)
@@ -382,7 +382,7 @@ void Geometry::GetPositionBufferIndex()
             return;
         }
     }
-    
+
     // No vertex buffer with positions
     positionBufferIndex_ = M_MAX_UNSIGNED;
 }

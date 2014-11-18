@@ -132,7 +132,7 @@ void Run(const Vector<String>& arguments)
         {
             if (extension == ignoreExtensions_[j])
             {
-                fileNames.Erase(fileNames.begin() + i);
+                fileNames.erase(fileNames.begin() + i);
                 break;
             }
         }
@@ -158,7 +158,7 @@ void ProcessFile(const String& fileName, const String& rootDir)
     newEntry.offset_ = 0; // Offset not yet known
     newEntry.size_ = file.GetSize();
     newEntry.checksum_ = 0; // Will be calculated later
-    entries_.Push(newEntry);
+    entries_.push_back(newEntry);
 }
 
 void WritePackageFile(const String& fileName, const String& rootDir)

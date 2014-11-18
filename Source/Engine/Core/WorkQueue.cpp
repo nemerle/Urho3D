@@ -97,7 +97,7 @@ void WorkQueue::CreateThreads(unsigned numThreads)
     {
         SharedPtr<WorkerThread> thread(new WorkerThread(this, i + 1));
         thread->Run();
-        threads_.Push(thread);
+        threads_.push_back(thread);
     }
 }
 

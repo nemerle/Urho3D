@@ -259,7 +259,7 @@ asIScriptContext* Script::GetScriptFileContext()
     {
         asIScriptContext* newContext = scriptEngine_->CreateContext();
         newContext->SetExceptionCallback(asMETHOD(Script, ExceptionCallback), this, asCALL_THISCALL);
-        scriptFileContexts_.Push(newContext);
+        scriptFileContexts_.push_back(newContext);
     }
 
     return scriptFileContexts_[scriptNestingLevel_];

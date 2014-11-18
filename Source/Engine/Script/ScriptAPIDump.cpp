@@ -72,8 +72,8 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
     }
     if (!info)
     {
-        propertyInfos.Resize(propertyInfos.size() + 1);
-        info = &propertyInfos.Back();
+        propertyInfos.resize(propertyInfos.size() + 1);
+        info = &propertyInfos.back();
         info->name_ = propertyName;
     }
     if (functionName.Contains("get_"))
@@ -249,7 +249,7 @@ void Script::DumpAPI(DumpMode mode)
 
         Vector<String> objectTypes;
         for (const auto & attribute : attributes.keys())
-            objectTypes.Push(context_->GetTypeName(attribute));
+            objectTypes.push_back(context_->GetTypeName(attribute));
 
         Sort(objectTypes.begin(), objectTypes.end());
 
@@ -316,7 +316,7 @@ void Script::DumpAPI(DumpMode mode)
         if (type)
         {
             String typeName(type->GetName());
-            sortedTypes.Push(MakePair(typeName, i));
+            sortedTypes.push_back(MakePair(typeName, i));
         }
     }
     Sort(sortedTypes.begin(), sortedTypes.end());
@@ -404,7 +404,7 @@ void Script::DumpAPI(DumpMode mode)
                                     declaration = "/* deprecated */\n" + declaration;
                             }
                         }
-                        methodDeclarations.Push(declaration);
+                        methodDeclarations.push_back(declaration);
                     }
                 }
             }
@@ -424,7 +424,7 @@ void Script::DumpAPI(DumpMode mode)
                 newInfo.name_ = String(propertyName);
                 newInfo.type_ = String(propertyDeclaration);
                 newInfo.read_ = newInfo.write_ = true;
-                propertyInfos.Push(newInfo);
+                propertyInfos.push_back(newInfo);
             }
 
             Sort(methodDeclarations.begin(), methodDeclarations.end(), ComparePropertyStrings);
@@ -491,7 +491,7 @@ void Script::DumpAPI(DumpMode mode)
         if (functionName.Contains("set_") || functionName.Contains("get_"))
             ExtractPropertyInfo(functionName, declaration, globalPropertyInfos);
         else
-            globalFunctions.Push(declaration);
+            globalFunctions.push_back(declaration);
     }
 
     Sort(globalFunctions.begin(), globalFunctions.end(), ComparePropertyStrings);
@@ -507,7 +507,7 @@ void Script::DumpAPI(DumpMode mode)
     for (unsigned i = 0; i < enums; ++i)
     {
         int typeId;
-        sortedEnums.Push(MakePair(String(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
+        sortedEnums.push_back(MakePair(String(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
     }
     Sort(sortedEnums.begin(), sortedEnums.end());
 
@@ -564,7 +564,7 @@ void Script::DumpAPI(DumpMode mode)
         propertyDeclaration = scriptEngine_->GetTypeDeclaration(typeId);
 
         String type(propertyDeclaration);
-        globalConstants.Push(type + " " + String(propertyName));
+        globalConstants.push_back(type + " " + String(propertyName));
     }
 
     Sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);

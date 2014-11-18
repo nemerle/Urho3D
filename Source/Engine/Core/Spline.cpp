@@ -88,7 +88,7 @@ void Spline::SetKnot(const Variant& knot, unsigned index)
         if (knots_.size() > 0 && knots_[0].GetType() == knot.GetType())
             knots_[index] = knot;
         else if (knots_.empty())
-            knots_.Push(knot);
+            knots_.push_back(knot);
         else
             LOGERRORF("Attempted to set a Spline's Knot value of type %s where elements are already using %s", knot.GetTypeName().CString(), knots_[0].GetTypeName().CString());
     }
@@ -97,9 +97,9 @@ void Spline::SetKnot(const Variant& knot, unsigned index)
 void Spline::AddKnot(const Variant& knot) 
 { 
     if (knots_.size() > 0 && knots_[0].GetType() == knot.GetType())
-        knots_.Push(knot);
+        knots_.push_back(knot);
     else if (knots_.empty())
-        knots_.Push(knot);
+        knots_.push_back(knot);
     else
         LOGERRORF("Attempted to add Knot to Spline of type %s where elements are already using %s", knot.GetTypeName().CString(), knots_[0].GetTypeName().CString());
 }
@@ -110,9 +110,9 @@ void Spline::AddKnot(const Variant& knot, unsigned index)
         index = knots_.size();
 
     if (knots_.size() > 0 && knots_[0].GetType() == knot.GetType())
-        knots_.Insert(index, knot);
+        knots_.insert(index, knot);
     else if (knots_.empty())
-        knots_.Push(knot);
+        knots_.push_back(knot);
     else
         LOGERRORF("Attempted to add Knot to Spline of type %s where elements are already using %s", knot.GetTypeName().CString(), knots_[0].GetTypeName().CString());
 }
@@ -145,7 +145,7 @@ Variant Spline::BezierInterpolation(const Vector<Variant>& knots, float t) const
             case VAR_VECTOR3:
             case VAR_VECTOR4:
             case VAR_COLOR:
-                interpolatedKnots.Push(LinearInterpolation(knots[i - 1], knots[i], t));
+                interpolatedKnots.push_back(LinearInterpolation(knots[i - 1], knots[i], t));
                 break;
             default:
                 return Variant::EMPTY;

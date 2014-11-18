@@ -257,7 +257,7 @@ void ScriptInstance::DelayedExecute(float delay, bool repeat, const String& decl
     call.repeat_ = repeat;
     call.declaration_ = declaration;
     call.parameters_ = parameters;
-    delayedCalls_.Push(call);
+    delayedCalls_.push_back(call);
 
     // Make sure we are registered to the scene update event, because delayed calls are executed there
     if (!subscribed_)
@@ -267,13 +267,13 @@ void ScriptInstance::DelayedExecute(float delay, bool repeat, const String& decl
 void ScriptInstance::ClearDelayedExecute(const String& declaration)
 {
     if (declaration.Empty())
-        delayedCalls_.Clear();
+        delayedCalls_.clear();
     else
     {
-        for (Vector<DelayedCall>::Iterator i = delayedCalls_.begin(); i != delayedCalls_.end();)
+        for (Vector<DelayedCall>::iterator i = delayedCalls_.begin(); i != delayedCalls_.end();)
         {
             if (declaration == i->declaration_)
-                i = delayedCalls_.Erase(i);
+                i = delayedCalls_.erase(i);
             else
                 ++i;
         }
@@ -362,7 +362,7 @@ void ScriptInstance::SetScriptFileAttr(ResourceRef value)
 void ScriptInstance::SetDelayedCallsAttr(PODVector<unsigned char> value)
 {
     MemoryBuffer buf(value);
-    delayedCalls_.Resize(buf.ReadVLE());
+    delayedCalls_.resize(buf.ReadVLE());
     for (auto & elem : delayedCalls_)
     {
         elem.period_ = buf.ReadFloat();
@@ -382,7 +382,7 @@ void ScriptInstance::SetScriptDataAttr(PODVector<unsigned char> data)
     {
         MemoryBuffer buf(data);
         VariantVector parameters;
-        parameters.Push(Variant((void*)static_cast<Deserializer*>(&buf)));
+        parameters.push_back(Variant((void*)static_cast<Deserializer*>(&buf)));
         scriptFile_->Execute(scriptObject_, methods_[METHOD_LOAD], parameters);
     }
 }
@@ -393,7 +393,7 @@ void ScriptInstance::SetScriptNetworkDataAttr(PODVector<unsigned char> data)
     {
         MemoryBuffer buf(data);
         VariantVector parameters;
-        parameters.Push(Variant((void*)static_cast<Deserializer*>(&buf)));
+        parameters.push_back(Variant((void*)static_cast<Deserializer*>(&buf)));
         scriptFile_->Execute(scriptObject_, methods_[METHOD_READNETWORKUPDATE], parameters);
     }
 }
@@ -426,7 +426,7 @@ PODVector<unsigned char> ScriptInstance::GetScriptDataAttr() const
     {
         VectorBuffer buf;
         VariantVector parameters;
-        parameters.Push(Variant((void*)static_cast<Serializer*>(&buf)));
+        parameters.push_back(Variant((void*)static_cast<Serializer*>(&buf)));
         scriptFile_->Execute(scriptObject_, methods_[METHOD_SAVE], parameters);
         return buf.GetBuffer();
     }
@@ -440,7 +440,7 @@ PODVector<unsigned char> ScriptInstance::GetScriptNetworkDataAttr() const
     {
         VectorBuffer buf;
         VariantVector parameters;
-        parameters.Push(Variant((void*)static_cast<Serializer*>(&buf)));
+        parameters.push_back(Variant((void*)static_cast<Serializer*>(&buf)));
         scriptFile_->Execute(scriptObject_, methods_[METHOD_WRITENETWORKUPDATE], parameters);
         return buf.GetBuffer();
     }
@@ -514,7 +514,7 @@ void ScriptInstance::ClearScriptMethods()
     for (auto & elem : methods_)
         elem = nullptr;
 
-    delayedCalls_.Clear();
+    delayedCalls_.clear();
 }
 
 void ScriptInstance::ClearScriptAttributes()
@@ -608,7 +608,7 @@ void ScriptInstance::GetScriptAttributes()
         }
 
         if (info.type_ != VAR_NONE)
-            attributeInfos_.Push(info);
+            attributeInfos_.push_back(info);
     }
 }
 
@@ -712,7 +712,7 @@ void ScriptInstance::HandleSceneUpdate(StringHash eventType, VariantMap& eventDa
         }
 
         if (remove)
-            delayedCalls_.Erase(i);
+            delayedCalls_.erase(i);
         else
             ++i;
     }
@@ -727,7 +727,7 @@ void ScriptInstance::HandleSceneUpdate(StringHash eventType, VariantMap& eventDa
     if (methods_[METHOD_UPDATE])
     {
         VariantVector parameters;
-        parameters.Push(timeStep);
+        parameters.push_back(timeStep);
         scriptFile_->Execute(scriptObject_, methods_[METHOD_UPDATE], parameters);
     }
 }
@@ -740,7 +740,7 @@ void ScriptInstance::HandleScenePostUpdate(StringHash eventType, VariantMap& eve
     using namespace ScenePostUpdate;
 
     VariantVector parameters;
-    parameters.Push(eventData[P_TIMESTEP]);
+    parameters.push_back(eventData[P_TIMESTEP]);
     scriptFile_->Execute(scriptObject_, methods_[METHOD_POSTUPDATE], parameters);
 }
 
@@ -753,7 +753,7 @@ void ScriptInstance::HandlePhysicsPreStep(StringHash eventType, VariantMap& even
     using namespace PhysicsPreStep;
 
     VariantVector parameters;
-    parameters.Push(eventData[P_TIMESTEP]);
+    parameters.push_back(eventData[P_TIMESTEP]);
     scriptFile_->Execute(scriptObject_, methods_[METHOD_FIXEDUPDATE], parameters);
 }
 
@@ -765,7 +765,7 @@ void ScriptInstance::HandlePhysicsPostStep(StringHash eventType, VariantMap& eve
     using namespace PhysicsPostStep;
 
     VariantVector parameters;
-    parameters.Push(eventData[P_TIMESTEP]);
+    parameters.push_back(eventData[P_TIMESTEP]);
     scriptFile_->Execute(scriptObject_, methods_[METHOD_FIXEDPOSTUPDATE], parameters);
 }
 #endif
@@ -779,8 +779,8 @@ void ScriptInstance::HandleScriptEvent(StringHash eventType, VariantMap& eventDa
     VariantVector parameters;
     if (method->GetParamCount() > 0)
     {
-        parameters.Push(Variant((void*)&eventType));
-        parameters.Push(Variant((void*)&eventData));
+        parameters.push_back(Variant((void*)&eventType));
+        parameters.push_back(Variant((void*)&eventData));
     }
 
     scriptFile_->Execute(scriptObject_, method, parameters);

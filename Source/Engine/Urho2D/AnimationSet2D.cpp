@@ -314,15 +314,15 @@ bool AnimationSet2D::LoadAnimation(const XMLElement& animationElem)
                     key.alpha_ = childElem.GetFloat("a");
             }
 
-            timeline.timelineKeys_.Push(key);
+            timeline.timelineKeys_.push_back(key);
         }
 
         // Add end key for looped animation
-        if (looped && timeline.timelineKeys_.Back().time_ != length)
+        if (looped && timeline.timelineKeys_.back().time_ != length)
         {
-            TimelineKey2D key = timeline.timelineKeys_.Front();
+            TimelineKey2D key = timeline.timelineKeys_.front();
             key.time_ = length;
-            timeline.timelineKeys_.Push(key);
+            timeline.timelineKeys_.push_back(key);
         }
 
         animation->AddTimeline(timeline);
@@ -356,13 +356,13 @@ bool AnimationSet2D::LoadAnimation(const XMLElement& animationElem)
             if (refElem.GetName() == "object_ref")
                 ref.zIndex_ = refElem.GetInt("z_index");
 
-            mainlineKey.references_.Push(ref);
+            mainlineKey.references_.push_back(ref);
         }
 
         animation->AddMainlineKey(mainlineKey);
     }
 
-    animations_.Push(animation);
+    animations_.push_back(animation);
 
     return true;
 }

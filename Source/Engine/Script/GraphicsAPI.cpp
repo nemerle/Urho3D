@@ -545,7 +545,7 @@ static CScriptArray* MaterialGetShaderParameterNames(Material* material)
     Vector<String> result;
 
     for (const MaterialShaderParameter & parameter : material->GetShaderParameters())
-        result.Push(parameter.name_);
+        result.push_back(parameter.name_);
 
     Sort(result.begin(), result.end());
     return VectorToArray<String>(result, "Array<String>");

@@ -37,11 +37,11 @@ void RemoveNamedAttribute(QHash<StringHash, Vector<AttributeInfo> >& attributes,
 
     Vector<AttributeInfo>& infos = *i;
 
-    for (Vector<AttributeInfo>::Iterator j = infos.begin(); j != infos.end(); ++j)
+    for (Vector<AttributeInfo>::iterator j = infos.begin(); j != infos.end(); ++j)
     {
         if (!j->name_.Compare(name, true))
         {
-            infos.Erase(j);
+            infos.erase(j);
             break;
         }
     }
@@ -106,7 +106,7 @@ void Context::RegisterFactory(ObjectFactory* factory, const char* category)
 
     RegisterFactory(factory);
     if (String::CStringLength(category))
-        objectCategories_[category].Push(factory->GetType());
+        objectCategories_[category].push_back(factory->GetType());
 }
 
 void Context::RegisterSubsystem(Object* object)
@@ -130,10 +130,10 @@ void Context::RegisterAttribute(StringHash objectType, const AttributeInfo& attr
     if (attr.type_ == VAR_NONE || attr.type_ == VAR_VOIDPTR || attr.type_ == VAR_PTR)
         return;
 
-    attributes_[objectType].Push(attr);
+    attributes_[objectType].push_back(attr);
 
     if (attr.mode_ & AM_NET)
-        networkAttributes_[objectType].Push(attr);
+        networkAttributes_[objectType].push_back(attr);
 }
 
 void Context::RemoveAttribute(StringHash objectType, const char* name)
@@ -168,10 +168,10 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
     {
         for (unsigned i = 0; i < baseAttributes->size(); ++i)
         {
-            const AttributeInfo& attr = baseAttributes->At(i);
-            attributes_[derivedType].Push(attr);
+            const AttributeInfo& attr = baseAttributes->at(i);
+            attributes_[derivedType].push_back(attr);
             if (attr.mode_ & AM_NET)
-                networkAttributes_[derivedType].Push(attr);
+                networkAttributes_[derivedType].push_back(attr);
         }
     }
 }

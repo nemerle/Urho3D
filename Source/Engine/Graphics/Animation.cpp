@@ -88,10 +88,10 @@ bool Animation::BeginLoad(Deserializer& source)
     animationName_ = source.ReadString();
     animationNameHash_ = animationName_;
     length_ = source.ReadFloat();
-    tracks_.Clear();
+    tracks_.clear();
 
     unsigned tracks = source.ReadUInt();
-    tracks_.Resize(tracks);
+    tracks_.resize(tracks);
     memoryUse += tracks * sizeof(AnimationTrack);
 
     // Read tracks
@@ -103,7 +103,7 @@ bool Animation::BeginLoad(Deserializer& source)
         newTrack.channelMask_ = source.ReadUByte();
 
         unsigned keyFrames = source.ReadUInt();
-        newTrack.keyFrames_.Resize(keyFrames);
+        newTrack.keyFrames_.resize(keyFrames);
         memoryUse += keyFrames * sizeof(AnimationKeyFrame);
 
         // Read keyframes of the track
@@ -225,7 +225,7 @@ void Animation::AddTrigger(float time, bool timeIsNormalized, const Variant& dat
     AnimationTriggerPoint newTrigger;
     newTrigger.time_ = timeIsNormalized ? time * length_ : time;
     newTrigger.data_ = data;
-    triggers_.Push(newTrigger);
+    triggers_.push_back(newTrigger);
 
     Sort(triggers_.begin(), triggers_.end(), CompareTriggers);
 }
@@ -233,17 +233,17 @@ void Animation::AddTrigger(float time, bool timeIsNormalized, const Variant& dat
 void Animation::RemoveTrigger(unsigned index)
 {
     if (index < triggers_.size())
-        triggers_.Erase(index);
+        triggers_.erase(index);
 }
 
 void Animation::RemoveAllTriggers()
 {
-    triggers_.Clear();
+    triggers_.clear();
 }
 
 void Animation::SetNumTriggers(unsigned num)
 {
-    triggers_.Resize(num);
+    triggers_.resize(num);
 }
 
 const AnimationTrack* Animation::GetTrack(unsigned index) const

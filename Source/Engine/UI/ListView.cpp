@@ -133,7 +133,7 @@ public:
         if (overlay)
         {
             const Vector<SharedPtr<UIElement> >& children = overlayContainer_->GetChildren();
-            Vector<SharedPtr<UIElement> >::ConstIterator i = children.Find(SharedPtr<UIElement>(overlay));
+            Vector<SharedPtr<UIElement> >::const_iterator i = children.find(SharedPtr<UIElement>(overlay));
             if (i != children.end())
                 listView_->ToggleExpand(i - children.begin());
         }
@@ -179,7 +179,7 @@ ListView::ListView(Context* context) :
     SubscribeToEvent(E_FOCUSCHANGED, HANDLER(ListView, HandleItemFocusChanged));
     SubscribeToEvent(this, E_DEFOCUSED, HANDLER(ListView, HandleFocusChanged));
     SubscribeToEvent(this, E_FOCUSED, HANDLER(ListView, HandleFocusChanged));
-    
+
     UpdateUIClickSubscription();
 }
 
@@ -1062,7 +1062,7 @@ void ListView::HandleUIMouseClick(StringHash eventType, VariantMap& eventData)
                 ToggleSelection(i);
         }
     }
-    
+
     // Propagate the click as an event. Also include right-clicks
     VariantMap& clickEventData = GetEventDataMap();
     clickEventData[ItemClicked::P_ELEMENT] = this;

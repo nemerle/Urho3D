@@ -355,7 +355,7 @@ void ScriptFile::DelayedExecute(float delay, bool repeat, const String& declarat
     call.repeat_ = repeat;
     call.declaration_ = declaration;
     call.parameters_ = parameters;
-    delayedCalls_.Push(call);
+    delayedCalls_.push_back(call);
 
     // Make sure we are registered to the application update event, because delayed calls are executed there
     if (!subscribed_)
@@ -368,13 +368,13 @@ void ScriptFile::DelayedExecute(float delay, bool repeat, const String& declarat
 void ScriptFile::ClearDelayedExecute(const String& declaration)
 {
     if (declaration.Empty())
-        delayedCalls_.Clear();
+        delayedCalls_.clear();
     else
     {
-        for (Vector<DelayedCall>::Iterator i = delayedCalls_.begin(); i != delayedCalls_.end();)
+        for (Vector<DelayedCall>::iterator i = delayedCalls_.begin(); i != delayedCalls_.end();)
         {
             if (declaration == i->declaration_)
-                i = delayedCalls_.Erase(i);
+                i = delayedCalls_.erase(i);
             else
                 ++i;
         }
@@ -606,7 +606,7 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
                         if (!includeFiles_.contains(includeFileLower))
                         {
                             includeFiles_.insert(includeFileLower);
-                            includeFiles.Push(includeFile);
+                            includeFiles.push_back(includeFile);
                         }
 
                         // Overwrite the include directive with space characters to avoid compiler error
@@ -761,7 +761,7 @@ void ScriptFile::ReleaseModule()
         validClasses_.clear();
         functions_.clear();
         methods_.clear();
-        delayedCalls_.Clear();
+        delayedCalls_.clear();
         eventInvokers_.clear();
 
         asIScriptEngine* engine = script_->GetScriptEngine();
@@ -812,7 +812,7 @@ void ScriptFile::HandleUpdate(StringHash eventType, VariantMap& eventData)
         }
 
         if (remove)
-            delayedCalls_.Erase(i);
+            delayedCalls_.erase(i);
         else
             ++i;
     }
@@ -868,8 +868,8 @@ void ScriptEventInvoker::HandleScriptEvent(StringHash eventType, VariantMap& eve
     VariantVector parameters;
     if (method->GetParamCount() > 0)
     {
-        parameters.Push(Variant((void*)&eventType));
-        parameters.Push(Variant((void*)&eventData));
+        parameters.push_back(Variant((void*)&eventType));
+        parameters.push_back(Variant((void*)&eventData));
     }
 
     if (object_)

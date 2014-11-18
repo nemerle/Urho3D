@@ -241,7 +241,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
         WorkQueue* queue = GetSubsystem<WorkQueue>();
         int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
         int drawablesPerItem = drawables_.Size() / numWorkItems;
-        
+
         PODVector<Drawable2D*>::Iterator start = drawables_.begin();
         for (int i = 0; i < numWorkItems; ++i)
         {
@@ -253,11 +253,11 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
             PODVector<Drawable2D*>::Iterator end = drawables_.end();
             if (i < numWorkItems - 1 && end - start > drawablesPerItem)
                 end = start + drawablesPerItem;
-            
+
             item->start_ = &(*start);
             item->end_ = &(*end);
             queue->AddWorkItem(item);
-            
+
             start = end;
         }
 
@@ -273,7 +273,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     indexCount_ = vertexCount_ / 4 * 6;
 
     // Go through the drawables to form geometries & batches, but upload the actual vertex data later
-    materials_.Clear();
+    materials_.clear();
 
     Material* material = nullptr;
     unsigned iStart = 0;
@@ -313,7 +313,7 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
     // Now the amount of batches is known. Build the part of source batches that are sensitive to threading issues
     // (material & geometry pointers)
     unsigned count = materials_.size();
-    batches_.Resize(count);
+    batches_.resize(count);
 
     for (unsigned i = 0; i < count; ++i)
     {
@@ -327,7 +327,7 @@ void DrawableProxy2D::AddBatch(Material* material, unsigned indexStart, unsigned
     if (!material || indexCount == 0 || vertexCount == 0)
         return;
 
-    materials_.Push(SharedPtr<Material>(material));
+    materials_.push_back(SharedPtr<Material>(material));
 
     unsigned batchSize = materials_.size();
     if (geometries_.size() < batchSize)
@@ -335,7 +335,7 @@ void DrawableProxy2D::AddBatch(Material* material, unsigned indexStart, unsigned
         SharedPtr<Geometry> geometry(new Geometry(context_));
         geometry->SetIndexBuffer(indexBuffer_);
         geometry->SetVertexBuffer(0, vertexBuffer_, MASK_VERTEX2D);
-        geometries_.Push(geometry);
+        geometries_.push_back(geometry);
     }
 
     geometries_[batchSize - 1]->SetDrawRange(TRIANGLE_LIST, indexStart, indexCount, vertexStart, vertexCount, false);

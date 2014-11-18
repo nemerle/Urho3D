@@ -293,13 +293,13 @@ Renderer::~Renderer()
 
 void Renderer::SetNumViewports(unsigned num)
 {
-    viewports_.Resize(num);
+    viewports_.resize(num);
 }
 
 void Renderer::SetViewport(unsigned index, Viewport* viewport)
 {
     if (index >= viewports_.size())
-        viewports_.Resize(index + 1);
+        viewports_.resize(index + 1);
 
     viewports_[index] = viewport;
 }
@@ -422,7 +422,7 @@ void Renderer::SetMaxShadowMaps(int shadowMaps)
     for (auto & elem : shadowMaps_)
     {
         if ((int)elem.size() > maxShadowMaps_)
-            elem.Resize(maxShadowMaps_);
+            elem.resize(maxShadowMaps_);
     }
 }
 
@@ -457,7 +457,7 @@ void Renderer::SetMaxOccluderTriangles(int triangles)
 void Renderer::SetOcclusionBufferSize(int size)
 {
     occlusionBufferSize_ = Max(size, 1);
-    occlusionBuffers_.Clear();
+    occlusionBuffers_.clear();
 }
 
 void Renderer::SetMobileShadowBiasMul(float mul)
@@ -558,7 +558,7 @@ void Renderer::Update(float timeStep)
 {
     PROFILE(UpdateViews);
 
-    views_.Clear();
+    views_.clear();
 
     // If device lost, do not perform update. This is because any dynamic vertex/index buffer updates happen already here,
     // and if the device is lost, the updates queue up, causing memory use to rise constantly
@@ -605,7 +605,7 @@ void Renderer::Update(float timeStep)
         if (!view->Define(renderTarget, viewport))
             continue;
 
-        views_.Push(WeakPtr<View>(view));
+        views_.push_back(WeakPtr<View>(view));
 
         const IntRect& viewRect = viewport->GetRect();
         Scene* scene = viewport->GetScene();
@@ -656,7 +656,7 @@ void Renderer::Update(float timeStep)
             renderTarget->WasUpdated();
     }
 
-    queuedViewports_.Clear();
+    queuedViewports_.clear();
     resetViews_ = false;
 }
 
@@ -782,7 +782,7 @@ void Renderer::QueueViewport(RenderSurface* renderTarget, Viewport* viewport)
 {
     if (viewport)
     {
-        queuedViewports_.Push(Pair<WeakPtr<RenderSurface>, WeakPtr<Viewport> >(WeakPtr<RenderSurface>(renderTarget),
+        queuedViewports_.push_back(Pair<WeakPtr<RenderSurface>, WeakPtr<Viewport> >(WeakPtr<RenderSurface>(renderTarget),
             WeakPtr<Viewport>(viewport)));
     }
 }
@@ -936,7 +936,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     if (!retries)
         newShadowMap.Reset();
 
-    shadowMaps_[searchKey].Push(newShadowMap);
+    shadowMaps_[searchKey].push_back(newShadowMap);
     if (!reuseShadowMaps_)
         shadowMapAllocations_[searchKey].Push(light);
 
@@ -978,7 +978,7 @@ Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, boo
         newBuffer->SetSize(width, height, format, depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET);
         newBuffer->SetFilterMode(filtered ? FILTER_BILINEAR : FILTER_NEAREST);
         newBuffer->ResetUseTimer();
-        screenBuffers_[searchKey].Push(newBuffer);
+        screenBuffers_[searchKey].push_back(newBuffer);
         #ifdef URHO3D_OPENGL
         // OpenGL hack: clear persistent floating point screen buffers to ensure the initial contents aren't illegal (NaN)?
         // Otherwise eg. the AutoExposure post process will not work correctly
@@ -1020,7 +1020,7 @@ OcclusionBuffer* Renderer::GetOcclusionBuffer(Camera* camera)
     if (numOcclusionBuffers_ == occlusionBuffers_.size())
     {
         SharedPtr<OcclusionBuffer> newBuffer(new OcclusionBuffer(context_));
-        occlusionBuffers_.Push(newBuffer);
+        occlusionBuffers_.push_back(newBuffer);
     }
 
     int width = occlusionBufferSize_;
@@ -1043,7 +1043,7 @@ Camera* Renderer::GetShadowCamera()
     {
         SharedPtr<Node> newNode(new Node(context_));
         newNode->CreateComponent<Camera>();
-        shadowCameraNodes_.Push(newNode);
+        shadowCameraNodes_.push_back(newNode);
     }
 
     Camera* camera = shadowCameraNodes_[numShadowCameras_++]->GetComponent<Camera>();
@@ -1375,7 +1375,7 @@ void Renderer::RemoveUnusedBuffers()
         if (occlusionBuffers_[i]->GetUseTimer() > MAX_BUFFER_AGE)
         {
             LOGDEBUG("Removed unused occlusion buffer");
-            occlusionBuffers_.Erase(i);
+            occlusionBuffers_.erase(i);
         }
     }
 
@@ -1389,7 +1389,7 @@ void Renderer::RemoveUnusedBuffers()
             if (buffer->GetUseTimer() > MAX_BUFFER_AGE)
             {
                 LOGDEBUG("Removed unused screen buffer size " + String(buffer->GetWidth()) + "x" + String(buffer->GetHeight()) + " format " + String(buffer->GetFormat()));
-                buffers.Erase(j);
+                buffers.erase(j);
             }
         }
         if (buffers.empty())
@@ -1439,7 +1439,7 @@ void Renderer::Initialize()
     CreateGeometries();
     CreateInstancingBuffer();
 
-    viewports_.Resize(1);
+    viewports_.resize(1);
     ResetShadowMaps();
     ResetBuffers();
 
@@ -1460,7 +1460,7 @@ void Renderer::LoadShaders()
     shadersChangedFrameNumber_ = GetSubsystem<Time>()->GetFrameNumber();
 
     // Construct new names for deferred light volume pixel shaders based on rendering options
-    deferredLightPSVariations_.Resize(MAX_DEFERRED_LIGHT_PS_VARIATIONS);
+    deferredLightPSVariations_.resize(MAX_DEFERRED_LIGHT_PS_VARIATIONS);
     unsigned shadows = (graphics_->GetHardwareShadowSupport() ? 1 : 0) | (shadowQuality_ & SHADOWQUALITY_HIGH_16BIT);
     for (unsigned i = 0; i < MAX_DEFERRED_LIGHT_PS_VARIATIONS; ++i)
     {
@@ -1488,14 +1488,14 @@ void Renderer::LoadPassShaders(Technique* tech, StringHash type)
     Vector<SharedPtr<ShaderVariation> >& pixelShaders = pass->GetPixelShaders();
 
     // Forget all the old shaders
-    vertexShaders.Clear();
-    pixelShaders.Clear();
+    vertexShaders.clear();
+    pixelShaders.clear();
 
     if (pass->GetLightingMode() == LIGHTING_PERPIXEL)
     {
         // Load forward pixel lit variations
-        vertexShaders.Resize(MAX_GEOMETRYTYPES * MAX_LIGHT_VS_VARIATIONS);
-        pixelShaders.Resize(MAX_LIGHT_PS_VARIATIONS * 2);
+        vertexShaders.resize(MAX_GEOMETRYTYPES * MAX_LIGHT_VS_VARIATIONS);
+        pixelShaders.resize(MAX_LIGHT_PS_VARIATIONS * 2);
 
         for (unsigned j = 0; j < MAX_GEOMETRYTYPES * MAX_LIGHT_VS_VARIATIONS; ++j)
         {
@@ -1525,7 +1525,7 @@ void Renderer::LoadPassShaders(Technique* tech, StringHash type)
         // Load vertex light variations
         if (pass->GetLightingMode() == LIGHTING_PERVERTEX)
         {
-            vertexShaders.Resize(MAX_GEOMETRYTYPES * MAX_VERTEXLIGHT_VS_VARIATIONS);
+            vertexShaders.resize(MAX_GEOMETRYTYPES * MAX_VERTEXLIGHT_VS_VARIATIONS);
             for (unsigned j = 0; j < MAX_GEOMETRYTYPES * MAX_VERTEXLIGHT_VS_VARIATIONS; ++j)
             {
                 unsigned g = j / MAX_VERTEXLIGHT_VS_VARIATIONS;
@@ -1536,7 +1536,7 @@ void Renderer::LoadPassShaders(Technique* tech, StringHash type)
         }
         else
         {
-            vertexShaders.Resize(MAX_GEOMETRYTYPES);
+            vertexShaders.resize(MAX_GEOMETRYTYPES);
             for (unsigned j = 0; j < MAX_GEOMETRYTYPES; ++j)
             {
                 vertexShaders[j] = graphics_->GetShader(VS, pass->GetVertexShader(), pass->GetVertexShaderDefines() + " " +
@@ -1544,7 +1544,7 @@ void Renderer::LoadPassShaders(Technique* tech, StringHash type)
             }
         }
 
-        pixelShaders.Resize(2);
+        pixelShaders.resize(2);
         for (unsigned j = 0; j < 2; ++j)
         {
             pixelShaders[j] = graphics_->GetShader(PS, pass->GetPixelShader(), pass->GetPixelShaderDefines() + " " +
@@ -1723,7 +1723,7 @@ void Renderer::ResetShadowMaps()
 
 void Renderer::ResetBuffers()
 {
-    occlusionBuffers_.Clear();
+    occlusionBuffers_.clear();
     screenBuffers_.clear();
     screenBufferAllocations_.clear();
 }

@@ -1043,7 +1043,7 @@ Vector<String> String::Split(const char* str, char separator)
 
         if (start == length)
         {
-            ret.Push(String(&str[pos]));
+            ret.push_back(String(&str[pos]));
             break;
         }
 
@@ -1057,7 +1057,7 @@ Vector<String> String::Split(const char* str, char separator)
             ++end;
         }
 
-        ret.Push(String(&str[pos], start - pos));
+        ret.push_back(String(&str[pos], start - pos));
         pos = end;
     }
 

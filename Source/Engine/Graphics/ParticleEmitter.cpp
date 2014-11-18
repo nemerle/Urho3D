@@ -362,22 +362,22 @@ VariantVector ParticleEmitter::GetParticlesAttr() const
     VariantVector ret;
     if (!serializeParticles_)
     {
-        ret.Push(particles_.Size());
+        ret.push_back(particles_.Size());
         return ret;
     }
 
     ret.Reserve(particles_.Size() * 8 + 1);
-    ret.Push(particles_.Size());
+    ret.push_back(particles_.Size());
     for (const Particle & elem : particles_)
     {
-        ret.Push(elem.velocity_);
-        ret.Push(elem.size_);
-        ret.Push(elem.timer_);
-        ret.Push(elem.timeToLive_);
-        ret.Push(elem.scale_);
-        ret.Push(elem.rotationSpeed_);
-        ret.Push(elem.colorIndex_);
-        ret.Push(elem.texIndex_);
+        ret.push_back(elem.velocity_);
+        ret.push_back(elem.size_);
+        ret.push_back(elem.timer_);
+        ret.push_back(elem.timeToLive_);
+        ret.push_back(elem.scale_);
+        ret.push_back(elem.rotationSpeed_);
+        ret.push_back(elem.colorIndex_);
+        ret.push_back(elem.texIndex_);
     }
     return ret;
 }
@@ -387,21 +387,21 @@ VariantVector ParticleEmitter::GetParticleBillboardsAttr() const
     VariantVector ret;
     if (!serializeParticles_)
     {
-        ret.Push(billboards_.Size());
+        ret.push_back(billboards_.Size());
         return ret;
     }
 
     ret.Reserve(billboards_.Size() * 6 + 1);
-    ret.Push(billboards_.Size());
+    ret.push_back(billboards_.Size());
 
     for (const Billboard & elem : billboards_)
     {
-        ret.Push(elem.position_);
-        ret.Push(elem.size_);
-        ret.Push(Vector4(elem.uv_.min_.x_, elem.uv_.min_.y_, elem.uv_.max_.x_, elem.uv_.max_.y_));
-        ret.Push(elem.color_);
-        ret.Push(elem.rotation_);
-        ret.Push(elem.enabled_);
+        ret.push_back(elem.position_);
+        ret.push_back(elem.size_);
+        ret.push_back(Vector4(elem.uv_.min_.x_, elem.uv_.min_.y_, elem.uv_.max_.x_, elem.uv_.max_.y_));
+        ret.push_back(elem.color_);
+        ret.push_back(elem.rotation_);
+        ret.push_back(elem.enabled_);
     }
 
     return ret;

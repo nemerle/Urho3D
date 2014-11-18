@@ -146,18 +146,18 @@ void Component::PrepareNetworkUpdate()
 
     if (networkState_->currentValues_.size() != numAttributes)
     {
-        networkState_->currentValues_.Resize(numAttributes);
-        networkState_->previousValues_.Resize(numAttributes);
+        networkState_->currentValues_.resize(numAttributes);
+        networkState_->previousValues_.resize(numAttributes);
 
         // Copy the default attribute values to the previous state as a starting point
         for (unsigned i = 0; i < numAttributes; ++i)
-            networkState_->previousValues_[i] = attributes->At(i).defaultValue_;
+            networkState_->previousValues_[i] = attributes->at(i).defaultValue_;
     }
 
     // Check for attribute changes
     for (unsigned i = 0; i < numAttributes; ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
 
         if (animationEnabled_ && IsAnimatedNetworkAttribute(attr))
             continue;

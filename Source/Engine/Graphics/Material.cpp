@@ -257,7 +257,7 @@ bool Material::Load(const XMLElement& source)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
 
     XMLElement techniqueElem = source.GetChild("technique");
-    techniques_.Clear();
+    techniques_.clear();
 
     while (techniqueElem)
     {
@@ -270,7 +270,7 @@ bool Material::Load(const XMLElement& source)
                 newTechnique.qualityLevel_ = techniqueElem.GetInt("quality");
             if (techniqueElem.HasAttribute("loddistance"))
                 newTechnique.lodDistance_ = techniqueElem.GetFloat("loddistance");
-            techniques_.Push(newTechnique);
+            techniques_.push_back(newTechnique);
         }
 
         techniqueElem = techniqueElem.GetNext("technique");
@@ -423,7 +423,7 @@ void Material::SetNumTechniques(unsigned num)
     if (!num)
         return;
 
-    techniques_.Resize(num);
+    techniques_.resize(num);
     RefreshMemoryUse();
 }
 
@@ -779,7 +779,7 @@ void Material::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& 
     for (SharedPtr<ShaderParameterAnimationInfo> &i : shaderParameterAnimationInfos_)
     {
         if (i->Update(timeStep))
-            finishedNames.Push(i->GetName());
+            finishedNames.push_back(i->GetName());
     }
 
     // Remove finished animations

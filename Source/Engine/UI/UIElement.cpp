@@ -160,7 +160,7 @@ UIElement::UIElement(Context* context) :
 UIElement::~UIElement()
 {
     // If child elements have outside references, detach them
-    for (Vector<SharedPtr<UIElement> >::Iterator i = children_.begin(); i < children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::iterator i = children_.begin(); i < children_.end(); ++i)
     {
         if (i->Refs() > 1)
             (*i)->Detach();
@@ -861,7 +861,7 @@ void UIElement::SetDeepEnabled(bool enable)
 {
     enabled_ = enable;
 
-    for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
         (*i)->SetDeepEnabled(enable);
 }
 
@@ -869,7 +869,7 @@ void UIElement::ResetDeepEnabled()
 {
     enabled_ = enabledPrev_;
 
-    for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
         (*i)->ResetDeepEnabled();
 }
 
@@ -878,7 +878,7 @@ void UIElement::SetEnabledRecursive(bool enable)
     enabled_ = enable;
     enabledPrev_ = enable;
 
-    for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
         (*i)->SetEnabledRecursive(enable);
 }
 
@@ -1246,9 +1246,9 @@ void UIElement::InsertChild(unsigned index, UIElement* element)
 
     // Add first, then remove from old parent, to ensure the element does not get deleted
     if (index >= children_.size())
-        children_.Push(SharedPtr<UIElement>(element));
+        children_.push_back(SharedPtr<UIElement>(element));
     else
-        children_.Insert(children_.begin() + index, SharedPtr<UIElement>(element));
+        children_.insert(children_.begin() + index, SharedPtr<UIElement>(element));
 
     XMLFile* previousStyleFile = element->GetDefaultStyle();
 
@@ -1304,7 +1304,7 @@ void UIElement::RemoveChild(UIElement* element, unsigned index)
             }
 
             element->Detach();
-            children_.Erase(i);
+            children_.erase(i);
             UpdateLayout();
             return;
         }
@@ -1331,7 +1331,7 @@ void UIElement::RemoveChildAtIndex(unsigned index)
     }
 
     children_[index]->Detach();
-    children_.Erase(index);
+    children_.erase(index);
     UpdateLayout();
 }
 
@@ -1340,7 +1340,7 @@ void UIElement::RemoveAllChildren()
     UIElement* root = GetRoot();
     UIElement* sender = Refs() > 0 ? GetElementEventSender() : nullptr;
 
-    for (Vector<SharedPtr<UIElement> >::Iterator i = children_.begin(); i < children_.end(); )
+    for (Vector<SharedPtr<UIElement> >::iterator i = children_.begin(); i < children_.end(); )
     {
         // Send change event if not already being destroyed
         if (sender)
@@ -1357,7 +1357,7 @@ void UIElement::RemoveAllChildren()
 
         (*i++)->Detach();
     }
-    children_.Clear();
+    children_.clear();
     UpdateLayout();
 }
 
@@ -1369,7 +1369,7 @@ void UIElement::Remove()
 
 unsigned UIElement::FindChild(UIElement* element) const
 {
-    Vector<SharedPtr<UIElement> >::ConstIterator i = children_.Find(SharedPtr<UIElement>(element));
+    Vector<SharedPtr<UIElement> >::const_iterator i = children_.find(SharedPtr<UIElement>(element));
     return i != children_.end() ? i - children_.begin() : M_MAX_UNSIGNED;
 }
 
@@ -1618,7 +1618,7 @@ void UIElement::SetChildOffset(const IntVector2& offset)
     if (offset != childOffset_)
     {
         childOffset_ = offset;
-        for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+        for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
             (*i)->MarkDirty();
     }
 }
@@ -1659,7 +1659,7 @@ void UIElement::GetBatchesWithOffset(IntVector2& offset, PODVector<UIBatch>& bat
     }
 
     AdjustScissor(currentScissor);
-    for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
     {
         if ((*i)->IsVisible())
             (*i)->GetBatchesWithOffset(offset, batches, vertexData, currentScissor);
@@ -1722,7 +1722,7 @@ void UIElement::SetObjectAttributeAnimation(const String& name, ValueAnimation* 
             }
         }
 
-        element->SetAttributeAnimation(names.Back(), attributeAnimation, wrapMode, speed);
+        element->SetAttributeAnimation(names.back(), attributeAnimation, wrapMode, speed);
     }
 }
 
@@ -1732,7 +1732,7 @@ void UIElement::MarkDirty()
     opacityDirty_ = true;
     derivedColorDirty_ = true;
 
-    for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
         (*i)->MarkDirty();
 }
 
@@ -1997,7 +1997,7 @@ void UIElement::Detach()
 
 void UIElement::VerifyChildAlignment()
 {
-    for (Vector<SharedPtr<UIElement> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<UIElement> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
     {
         // Reapply child alignments. If they are illegal compared to layout, they will be set left/top as neded
         (*i)->SetHorizontalAlignment((*i)->GetHorizontalAlignment());

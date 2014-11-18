@@ -640,7 +640,7 @@ const Vector<UIElement*> UI::GetDragElements()
         }
 
         if (!dragData->dragBeginPending)
-            dragElementsConfirmed_.Push(dragElement);
+            dragElementsConfirmed_.push_back(dragElement);
 
         ++i;
     }
@@ -826,10 +826,10 @@ void UI::GetBatches(UIElement* element, IntRect currentScissor)
 
     // For non-root elements draw all children of same priority before recursing into their children: assumption is that they have
     // same renderstate
-    Vector<SharedPtr<UIElement> >::ConstIterator i = children.begin();
+    Vector<SharedPtr<UIElement> >::const_iterator i = children.begin();
     if (element->GetTraversalMode() == TM_BREADTH_FIRST)
     {
-        Vector<SharedPtr<UIElement> >::ConstIterator j = i;
+        Vector<SharedPtr<UIElement> >::const_iterator j = i;
         while (i != children.end())
         {
             int currentPriority = (*i)->GetPriority();
@@ -1675,7 +1675,7 @@ void UI::HandleDropFile(StringHash eventType, VariantMap& eventData)
 
 QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator UI::dragElementErase(QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i)
 {
-    dragElementsConfirmed_.Clear();
+    dragElementsConfirmed_.clear();
 
     WeakPtr<UIElement> dragElement = i.key();
     DragData* dragData = *i;

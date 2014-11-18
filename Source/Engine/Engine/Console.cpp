@@ -212,7 +212,7 @@ void Console::SetNumHistoryRows(unsigned rows)
 {
     historyRows_ = rows;
     if (history_.size() > rows)
-        history_.Resize(rows);
+        history_.resize(rows);
     if (historyPosition_ > rows)
         historyPosition_ = rows;
 }
@@ -269,7 +269,7 @@ bool Console::PopulateInterpreter()
 
     Vector<String> names;
     for (const Object* receiver : *receivers)
-        names.Push(receiver->GetTypeName());
+        names.push_back(receiver->GetTypeName());
     Sort(names.begin(), names.end());
 
     unsigned selection = M_MAX_UNSIGNED;
@@ -322,9 +322,9 @@ void Console::HandleTextFinished(StringHash eventType, VariantMap& eventData)
         SendEvent(E_CONSOLECOMMAND, eventData);
 
         // Store to history, then clear the lineedit
-        history_.Push(line);
+        history_.push_back(line);
         if (history_.size() > historyRows_)
-            history_.Erase(history_.begin());
+            history_.erase(history_.begin());
         historyPosition_ = history_.size();
 
         currentRow_.Clear();
@@ -394,7 +394,7 @@ void Console::HandleLogMessage(StringHash eventType, VariantMap& eventData)
     Vector<String> rows = eventData[P_MESSAGE].GetString().Split('\n');
 
     for (unsigned i = 0; i < rows.size(); ++i)
-        pendingRows_.Push(MakePair(level, rows[i]));
+        pendingRows_.push_back(MakePair(level, rows[i]));
 
     if (autoVisibleOnError_ && level == LOG_ERROR && !IsVisible())
         SetVisible(true);
@@ -428,7 +428,7 @@ void Console::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
         rowContainer_->AddItem(text);
     }
 
-    pendingRows_.Clear();
+    pendingRows_.clear();
 
     rowContainer_->EnsureItemVisibility(text);
     rowContainer_->EnableLayoutUpdate();

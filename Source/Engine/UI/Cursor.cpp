@@ -78,7 +78,7 @@ Cursor::~Cursor()
 {
     for (auto & info : shapeInfos_)
     {
-        
+
         if (info.osCursor_)
         {
             SDL_FreeCursor(info.osCursor_);
@@ -159,12 +159,12 @@ void Cursor::SetShape(CursorShape shape)
         return;
 
     shape_ = shape;
-    
+
     CursorShapeInfo& info = shapeInfos_[shape_];
     texture_ = info.texture_;
     imageRect_ = info.imageRect_;
     SetSize(info.imageRect_.Size());
-    
+
     // To avoid flicker, the UI subsystem will apply the OS shape once per frame. Exception: if we are using the
     // busy shape, set it immediately as we may block before that
     osShapeDirty_ = true;
@@ -215,15 +215,15 @@ VariantVector Cursor::GetShapesAttr() const
             ++numShapes;
     }
 
-    ret.Push(numShapes);
+    ret.push_back(numShapes);
     for (unsigned i = 0; i < CS_MAX_SHAPES; ++i)
     {
         if (shapeInfos_[i].imageRect_ != IntRect::ZERO)
         {
-            ret.Push(String(shapeNames[i]));
-            ret.Push(GetResourceRef(shapeInfos_[i].texture_, Texture2D::GetTypeStatic()));
-            ret.Push(shapeInfos_[i].imageRect_);
-            ret.Push(shapeInfos_[i].hotSpot_);
+            ret.push_back(String(shapeNames[i]));
+            ret.push_back(GetResourceRef(shapeInfos_[i].texture_, Texture2D::GetTypeStatic()));
+            ret.push_back(shapeInfos_[i].imageRect_);
+            ret.push_back(shapeInfos_[i].hotSpot_);
         }
     }
 
@@ -238,7 +238,7 @@ void Cursor::ApplyOSCursorShape()
         return;
 
     CursorShapeInfo& info = shapeInfos_[shape_];
-    
+
     // Remove existing SDL cursor if is not a system shape while we should be using those, or vice versa
     if (info.osCursor_ && info.systemDefined_ != useSystemShapes_)
     {
@@ -261,7 +261,7 @@ void Cursor::ApplyOSCursorShape()
         else if (info.image_)
         {
             SDL_Surface* surface = info.image_->GetSDLSurface(info.imageRect_);
-            
+
             if (surface)
             {
                 info.osCursor_ = SDL_CreateColorCursor(surface, info.hotSpot_.x_, info.hotSpot_.y_);
@@ -275,7 +275,7 @@ void Cursor::ApplyOSCursorShape()
 
     if (info.osCursor_)
         SDL_SetCursor(info.osCursor_);
-    
+
     osShapeDirty_ = false;
 #endif
 }

@@ -72,7 +72,7 @@ void StaticModelGroup::ApplyAttributes()
             node->RemoveListener(this);
     }
     
-    instanceNodes_.Clear();
+    instanceNodes_.clear();
     
     Scene* scene = GetScene();
     
@@ -86,7 +86,7 @@ void StaticModelGroup::ApplyAttributes()
             {
                 WeakPtr<Node> instanceWeak(node);
                 node->AddListener(this);
-                instanceNodes_.Push(instanceWeak);
+                instanceNodes_.push_back(instanceWeak);
             }
         }
     }
@@ -274,7 +274,7 @@ void StaticModelGroup::AddInstanceNode(Node* node)
     
     // Add as a listener for the instance node, so that we know to dirty the transforms when the node moves or is enabled/disabled
     node->AddListener(this);
-    instanceNodes_.Push(instanceWeak);
+    instanceNodes_.push_back(instanceWeak);
     
     UpdateNodeIDs();
     OnMarkedDirty(GetNode());
@@ -304,7 +304,7 @@ void StaticModelGroup::RemoveAllInstanceNodes()
             node->RemoveListener(this);
     }
     
-    instanceNodes_.Clear();
+    instanceNodes_.clear();
     
     UpdateNodeIDs();
     OnMarkedDirty(GetNode());
@@ -322,7 +322,7 @@ void StaticModelGroup::SetNodeIDsAttr(const VariantVector& value)
     // ApplyAttributes()
     if (value.size())
     {
-        nodeIDsAttr_.Clear();
+        nodeIDsAttr_.clear();
         
         unsigned index = 0;
         unsigned numInstances = value[index++].GetUInt();
@@ -330,20 +330,20 @@ void StaticModelGroup::SetNodeIDsAttr(const VariantVector& value)
         if (numInstances > M_MAX_INT)
             numInstances = 0;
         
-        nodeIDsAttr_.Push(numInstances);
+        nodeIDsAttr_.push_back(numInstances);
         while (numInstances--)
         {
             // If vector contains less IDs than should, fill the rest with zeroes
             if (index < value.size())
-                nodeIDsAttr_.Push(value[index++].GetUInt());
+                nodeIDsAttr_.push_back(value[index++].GetUInt());
             else
-                nodeIDsAttr_.Push(0);
+                nodeIDsAttr_.push_back(0);
         }
     }
     else
     {
-        nodeIDsAttr_.Clear();
-        nodeIDsAttr_.Push(0);
+        nodeIDsAttr_.clear();
+        nodeIDsAttr_.push_back(0);
     }
     nodeIDsDirty_ = true;
 }
@@ -382,15 +382,15 @@ void StaticModelGroup::UpdateNodeIDs()
 {
     unsigned numInstances = instanceNodes_.size();
     
-    nodeIDsAttr_.Clear();
-    nodeIDsAttr_.Push(numInstances);
+    nodeIDsAttr_.clear();
+    nodeIDsAttr_.push_back(numInstances);
     worldTransforms_.Resize(numInstances);
     numWorldTransforms_ = 0; // For safety. OnWorldBoundingBoxUpdate() will calculate the proper amount
     
     for (unsigned i = 0; i < numInstances; ++i)
     {
         Node* node = instanceNodes_[i];
-        nodeIDsAttr_.Push(node ? node->GetID() : 0);
+        nodeIDsAttr_.push_back(node ? node->GetID() : 0);
     }
 }
 

@@ -109,7 +109,7 @@ void TileMap2D::SetTmxFile(TmxFile2D* tmxFile)
     {
         for (unsigned i = 0; i < layers_.size(); ++i)
             layers_[i]->GetNode()->Remove();
-        layers_.Clear();
+        layers_.clear();
     }
 
     tmxFile_ = tmxFile;
@@ -119,7 +119,7 @@ void TileMap2D::SetTmxFile(TmxFile2D* tmxFile)
     info_ = tmxFile_->GetInfo();
 
     unsigned numLayers = tmxFile_->GetNumLayers();
-    layers_.Resize(numLayers);
+    layers_.resize(numLayers);
 
     for (unsigned i = 0; i < numLayers; ++i)
     {

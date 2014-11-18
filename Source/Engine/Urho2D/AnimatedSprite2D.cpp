@@ -271,7 +271,7 @@ void AnimatedSprite2D::OnNodeSet(Node* node)
             rootNode_->Remove();
 
         rootNode_ = nullptr;
-        timelineNodes_.Clear();
+        timelineNodes_.clear();
     }
 }
 
@@ -318,7 +318,7 @@ void AnimatedSprite2D::SetAnimation(Animation2D* animation, LoopMode2D loopMode)
             timelineNodes_[i]->SetEnabled(false);
     }
 
-    timelineNodes_.Clear();
+    timelineNodes_.clear();
 
     animation_ = animation;
 
@@ -333,8 +333,8 @@ void AnimatedSprite2D::SetAnimation(Animation2D* animation, LoopMode2D loopMode)
         rootNode_->SetTemporary(true);
     }
 
-    timelineNodes_.Resize(animation_->GetNumTimelines());
-    timelineTransformInfos_.Resize(animation_->GetNumTimelines());
+    timelineNodes_.resize(animation_->GetNumTimelines());
+    timelineTransformInfos_.resize(animation_->GetNumTimelines());
 
     for (unsigned i = 0; i < animation_->GetNumTimelines(); ++i)
     {
@@ -471,7 +471,7 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
     }
 
     if (!mainlineKey)
-        mainlineKey = &mainlineKeys.Back();
+        mainlineKey = &mainlineKeys.back();
 
     // Update node's transform and sprite's z order
     for (unsigned i = 0; i < timelineNodes_.size(); ++i)

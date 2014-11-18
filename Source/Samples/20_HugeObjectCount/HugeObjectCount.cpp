@@ -78,7 +78,7 @@ void HugeObjectCount::CreateScene()
     else
     {
         scene_->Clear();
-        boxNodes_.Clear();
+        boxNodes_.clear();
     }
 
     // Create the Octree component to the scene so that drawable objects can be rendered. Use default volume
@@ -113,7 +113,7 @@ void HugeObjectCount::CreateScene()
                 boxNode->SetScale(0.25f);
                 StaticModel* boxObject = boxNode->CreateComponent<StaticModel>();
                 boxObject->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
-                boxNodes_.Push(SharedPtr<Node>(boxNode));
+                boxNodes_.push_back(SharedPtr<Node>(boxNode));
             }
         }
     }
@@ -142,7 +142,7 @@ void HugeObjectCount::CreateScene()
                 Node* boxNode = scene_->CreateChild("Box");
                 boxNode->SetPosition(Vector3(x * 0.3f, 0.0f, y * 0.3f));
                 boxNode->SetScale(0.25f);
-                boxNodes_.Push(SharedPtr<Node>(boxNode));
+                boxNodes_.push_back(SharedPtr<Node>(boxNode));
                 lastGroup->AddInstanceNode(boxNode);
             }
         }

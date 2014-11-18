@@ -33,9 +33,9 @@ int main(int argc, char** argv)
     for (unsigned i = 0 ; i < files.size(); i++)
     {
         Vector<String> cmdArgs;
-        cmdArgs.Push(files[i]);
-        cmdArgs.Push(ReplaceExtension(files[i], ".mdl"));
-        cmdArgs.Push(args);
+        cmdArgs.push_back(files[i]);
+        cmdArgs.push_back(ReplaceExtension(files[i], ".mdl"));
+        cmdArgs.push_back(args);
 
         String cmdPreview = ogreImporterName;
         for (unsigned j = 0; j < cmdArgs.size(); j++)

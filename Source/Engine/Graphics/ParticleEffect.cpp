@@ -138,8 +138,8 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
     rotationSpeedMax_ = 0.0f;
     sizeAdd_ = 0.0f;
     sizeMul_ = 1.0f;
-    colorFrames_.Clear();
-    textureFrames_.Clear();
+    colorFrames_.clear();
+    textureFrames_.clear();
 
     if (rootElem.HasChild("material"))
     {
@@ -255,13 +255,13 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
     {
         Vector<ColorFrame> fades;
         for (XMLElement colorFadeElem = rootElem.GetChild("colorfade"); colorFadeElem; colorFadeElem = colorFadeElem.GetNext("colorfade"))
-            fades.Push(ColorFrame(colorFadeElem.GetColor("color"), colorFadeElem.GetFloat("time")));
+            fades.push_back(ColorFrame(colorFadeElem.GetColor("color"), colorFadeElem.GetFloat("time")));
 
         SetColorFrames(fades);
     }
 
     if (colorFrames_.empty())
-        colorFrames_.Push(ColorFrame(Color::WHITE));
+        colorFrames_.push_back(ColorFrame(Color::WHITE));
 
     if (rootElem.HasChild("texanim"))
     {
@@ -271,7 +271,7 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
             TextureFrame animation;
             animation.uv_ = animElem.GetRect("uv");
             animation.time_ = animElem.GetFloat("time");
-            animations.Push(animation);
+            animations.push_back(animation);
         }
 
         SetTextureFrames(animations);
@@ -548,7 +548,7 @@ void ParticleEffect::SetColorFrames(const Vector<ColorFrame>& colorFrames)
 void ParticleEffect::SetColorFrame(unsigned index, const ColorFrame& colorFrame)
 {
     if (colorFrames_.size() < index + 1)
-         colorFrames_.Resize(index + 1);
+         colorFrames_.resize(index + 1);
     colorFrames_[index] = colorFrame;
 }
 
@@ -560,7 +560,7 @@ void ParticleEffect::SetTextureFrames(const Vector<TextureFrame>& textureFrames)
 void ParticleEffect::SetTextureFrame(unsigned index, const TextureFrame& textureFrame)
 {
     if (textureFrames_.size() < index + 1)
-        textureFrames_.Resize(index + 1);
+        textureFrames_.resize(index + 1);
     textureFrames_[index] = textureFrame;
 }
 

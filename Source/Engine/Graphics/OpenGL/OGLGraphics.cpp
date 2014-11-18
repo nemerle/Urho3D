@@ -2222,7 +2222,7 @@ void Graphics::AddGPUObject(GPUObject* object)
 {
     MutexLock lock(gpuObjectMutex_);
 
-    gpuObjects_.Push(object);
+    gpuObjects_.push_back(object);
 }
 
 void Graphics::RemoveGPUObject(GPUObject* object)
@@ -2267,7 +2267,7 @@ void* Graphics::ReserveScratchBuffer(unsigned size)
     newBuffer.data_ = new unsigned char[size];
     newBuffer.size_ = size;
     newBuffer.reserved_ = true;
-    scratchBuffers_.Push(newBuffer);
+    scratchBuffers_.push_back(newBuffer);
     return newBuffer.data_.Get();
 }
 
@@ -2317,7 +2317,7 @@ void Graphics::Release(bool clearGPUObjects, bool closeWindow)
             // Shutting down: release all GPU objects that still exist
             for (GPUObject * elem : gpuObjects_)
                 (elem)->Release();
-            gpuObjects_.Clear();
+            gpuObjects_.clear();
         }
         else
         {

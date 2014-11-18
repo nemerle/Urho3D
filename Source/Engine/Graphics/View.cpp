@@ -301,8 +301,8 @@ View::View(Context* context) :
 {
     // Create octree query and scene results vector for each thread
     unsigned numThreads = GetSubsystem<WorkQueue>()->GetNumThreads() + 1; // Worker threads + main thread
-    tempDrawables_.Resize(numThreads);
-    sceneResults_.Resize(numThreads);
+    tempDrawables_.resize(numThreads);
+    sceneResults_.resize(numThreads);
     frame_.camera_ = nullptr;
 }
 
@@ -320,7 +320,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     hasScenePasses_ = false;
 
     // Make sure that all necessary batch queues exist
-    scenePasses_.Clear();
+    scenePasses_.clear();
     for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
     {
         const RenderPathCommand& command = renderPath_->commands_[i];
@@ -359,7 +359,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
                 j = batchQueues_.insert(command.pass_, BatchQueue());
             info.batchQueue_ = &(*j);
 
-            scenePasses_.Push(info);
+            scenePasses_.push_back(info);
         }
         // Allow a custom forward light pass
         else if (command.type_ == CMD_FORWARDLIGHTS && !command.pass_.Empty())
@@ -891,7 +891,7 @@ void View::GetBatches()
     {
         PROFILE(ProcessLights);
 
-        lightQueryResults_.Resize(lights_.Size());
+        lightQueryResults_.resize(lights_.Size());
 
         for (unsigned i = 0; i < lightQueryResults_.size(); ++i)
         {
@@ -918,13 +918,13 @@ void View::GetBatches()
         // Preallocate light queues: per-pixel lights which have lit geometries
         unsigned numLightQueues = 0;
         unsigned usedLightQueues = 0;
-        for (Vector<LightQueryResult>::ConstIterator i = lightQueryResults_.begin(); i != lightQueryResults_.end(); ++i)
+        for (Vector<LightQueryResult>::const_iterator i = lightQueryResults_.begin(); i != lightQueryResults_.end(); ++i)
         {
             if (!i->light_->GetPerVertex() && i->litGeometries_.Size())
                 ++numLightQueues;
         }
 
-        lightQueues_.Resize(numLightQueues);
+        lightQueues_.resize(numLightQueues);
         maxLightsDrawables_.clear();
         unsigned maxSortedInstances = renderer_->GetMaxSortedInstances();
 
@@ -962,7 +962,7 @@ void View::GetBatches()
                 }
 
                 // Setup shadow batch queues
-                lightQueue.shadowSplits_.Resize(shadowSplits);
+                lightQueue.shadowSplits_.resize(shadowSplits);
                 for (unsigned j = 0; j < shadowSplits; ++j)
                 {
                     ShadowBatchQueue& shadowQueue = lightQueue.shadowSplits_[j];
@@ -2632,7 +2632,7 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
         }
 
         // If no suitable technique found, fallback to the last
-        return techniques.size() ? techniques.Back().technique_ : (Technique*)nullptr;
+        return techniques.size() ? techniques.back().technique_ : (Technique*)nullptr;
     }
 }
 

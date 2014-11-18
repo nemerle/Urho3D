@@ -74,7 +74,7 @@ AnimationState::AnimationState(Node* node, Animation* animation) :
         if (node_)
         {
             const Vector<AnimationTrack>& tracks = animation_->GetTracks();
-            stateTracks_.Clear();
+            stateTracks_.clear();
 
             for (unsigned i = 0; i < tracks.size(); ++i)
             {
@@ -94,7 +94,7 @@ AnimationState::AnimationState(Node* node, Animation* animation) :
                 }
 
                 if (stateTrack.node_)
-                    stateTracks_.Push(stateTrack);
+                    stateTracks_.push_back(stateTrack);
             }
         }
     }
@@ -126,7 +126,7 @@ void AnimationState::SetStartBone(Bone* startBone)
     startBone_ = startBone;
 
     const Vector<AnimationTrack>& tracks = animation_->GetTracks();
-    stateTracks_.Clear();
+    stateTracks_.clear();
 
     if (!startBone->node_)
         return;
@@ -153,7 +153,7 @@ void AnimationState::SetStartBone(Bone* startBone)
         {
             stateTrack.bone_ = trackBone;
             stateTrack.node_ = trackBone->node_;
-            stateTracks_.Push(stateTrack);
+            stateTracks_.push_back(stateTrack);
         }
     }
 

@@ -409,7 +409,7 @@ Vector<SharedPtr<Connection> > Network::GetClientConnections() const
 {
     Vector<SharedPtr<Connection> > ret;
     for (const auto & elem : clientConnections_)
-        ret.Push(elem);
+        ret.push_back(elem);
 
     return ret;
 }

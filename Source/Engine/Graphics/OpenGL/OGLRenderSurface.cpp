@@ -59,14 +59,14 @@ RenderSurface::~RenderSurface()
 
 void RenderSurface::SetNumViewports(unsigned num)
 {
-    viewports_.Resize(num);
+    viewports_.resize(num);
 }
 
 void RenderSurface::SetViewport(unsigned index, Viewport* viewport)
 {
     if (index >= viewports_.size())
-        viewports_.Resize(index + 1);
-    
+        viewports_.resize(index + 1);
+
     viewports_[index] = viewport;
 }
 
@@ -92,7 +92,7 @@ void RenderSurface::QueueUpdate()
     if (!updateQueued_)
     {
         bool hasValidView = false;
-        
+
         // Verify that there is at least 1 non-null viewport, as otherwise Renderer will not accept the surface and the update flag
         // will be left on
         for (unsigned i = 0; i < viewports_.size(); ++i)
@@ -103,13 +103,13 @@ void RenderSurface::QueueUpdate()
                 break;
             }
         }
-        
+
         if (hasValidView)
         {
             Renderer* renderer = parentTexture_->GetSubsystem<Renderer>();
             if (renderer)
                 renderer->QueueRenderSurface(this);
-            
+
             updateQueued_ = true;
         }
     }
@@ -120,9 +120,9 @@ bool RenderSurface::CreateRenderBuffer(unsigned width, unsigned height, unsigned
     Graphics* graphics = parentTexture_->GetGraphics();
     if (!graphics)
         return false;
-    
+
     Release();
-    
+
     glGenRenderbuffersEXT(1, &renderBuffer_);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderBuffer_);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, format, width, height);
@@ -135,19 +135,19 @@ void RenderSurface::OnDeviceLost()
     Graphics* graphics = parentTexture_->GetGraphics();
     if (!graphics)
         return;
-    
+
     for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
     {
         if (graphics->GetRenderTarget(i) == this)
             graphics->ResetRenderTarget(i);
     }
-    
+
     if (graphics->GetDepthStencil() == this)
         graphics->ResetDepthStencil();
-    
+
     // Clean up also from non-active FBOs
     graphics->CleanupRenderSurface(this);
-    
+
     renderBuffer_ = 0;
 }
 
@@ -156,7 +156,7 @@ void RenderSurface::Release()
     Graphics* graphics = parentTexture_->GetGraphics();
     if (!graphics)
         return;
-    
+
     if (!graphics->IsDeviceLost())
     {
         for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
@@ -164,17 +164,17 @@ void RenderSurface::Release()
             if (graphics->GetRenderTarget(i) == this)
                 graphics->ResetRenderTarget(i);
         }
-        
+
         if (graphics->GetDepthStencil() == this)
             graphics->ResetDepthStencil();
-        
+
         // Clean up also from non-active FBOs
         graphics->CleanupRenderSurface(this);
-        
+
         if (renderBuffer_)
             glDeleteRenderbuffersEXT(1, &renderBuffer_);
     }
-    
+
     renderBuffer_ = 0;
 }
 

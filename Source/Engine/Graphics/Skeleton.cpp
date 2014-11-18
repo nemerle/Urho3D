@@ -71,7 +71,7 @@ bool Skeleton::Load(Deserializer& source)
         if (newBone.parentIndex_ == i)
             rootBoneIndex_ = i;
 
-        bones_.Push(newBone);
+        bones_.push_back(newBone);
     }
 
     return true;
@@ -125,7 +125,7 @@ void Skeleton::SetRootBoneIndex(unsigned index)
 
 void Skeleton::ClearBones()
 {
-    bones_.Clear();
+    bones_.clear();
     rootBoneIndex_ = M_MAX_UNSIGNED;
 }
 

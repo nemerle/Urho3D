@@ -108,7 +108,7 @@ static void DestructResourceRefList(ResourceRefList* ptr)
 
 static void ResourceRefListResize(unsigned size, ResourceRefList* ptr)
 {
-    ptr->names_.Resize(size);
+    ptr->names_.resize(size);
 }
 
 static unsigned ResourceRefListGetSize(ResourceRefList* ptr)
@@ -146,7 +146,7 @@ static const String& ResourceRefListGetName(unsigned index, ResourceRefList* ptr
 void ArrayToVariantVector(CScriptArray* arr, VariantVector& dest)
 {
     unsigned numVariants = arr->GetSize();
-    dest.Resize(numVariants);
+    dest.resize(numVariants);
     for (unsigned i = 0; i < numVariants; ++i)
         dest[i] = *(static_cast<Variant*>(arr->At(i)));
 }
@@ -713,7 +713,7 @@ static CScriptArray* AttributeInfoGetEnumNames(AttributeInfo* ptr)
     Vector<String> enumNames;
     const char** enumNamePtrs = ptr->enumNames_;
     while (enumNamePtrs && *enumNamePtrs)
-        enumNames.Push(*enumNamePtrs++);
+        enumNames.push_back(*enumNamePtrs++);
     return VectorToArray<String>(enumNames, "Array<String>");
 }
 

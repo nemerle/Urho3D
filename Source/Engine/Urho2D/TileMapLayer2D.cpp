@@ -125,7 +125,7 @@ void TileMapLayer2D::Initialize(TileMap2D* tileMap, const TmxLayer2D* tmxLayer)
                 nodes_[i]->Remove();
         }
 
-        nodes_.Clear();
+        nodes_.clear();
     }
 
     tileLayer_ = nullptr;
@@ -289,7 +289,7 @@ void TileMapLayer2D::SetTileLayer(const TmxTileLayer2D* tileLayer)
 
     int width = tileLayer->GetWidth();
     int height = tileLayer->GetHeight();
-    nodes_.Resize(width * height);
+    nodes_.resize(width * height);
 
     const TileMapInfo2D& info = tileMap_->GetInfo();
     for (int y = 0; y < height; ++y)
@@ -319,7 +319,7 @@ void TileMapLayer2D::SetObjectGroup(const TmxObjectGroup2D* objectGroup)
     objectGroup_ = objectGroup;
 
     TmxFile2D* tmxFile = objectGroup->GetTmxFile();
-    nodes_.Resize(objectGroup->GetNumObjects());
+    nodes_.resize(objectGroup->GetNumObjects());
 
     for (unsigned i = 0; i < objectGroup->GetNumObjects(); ++i)
     {
@@ -364,7 +364,7 @@ void TileMapLayer2D::SetImageLayer(const TmxImageLayer2D* imageLayer)
     staticSprite->SetSprite(imageLayer->GetSprite());
     staticSprite->SetOrderInLayer(0);
 
-    nodes_.Push(imageNode);
+    nodes_.push_back(imageNode);
 }
 
 }

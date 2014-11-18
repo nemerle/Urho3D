@@ -655,7 +655,7 @@ Vector<String> XMLElement::GetAttributeNames() const
     pugi::xml_attribute attr = node.first_attribute();
     while (!attr.empty())
     {
-        ret.Push(String(attr.name()));
+        ret.push_back(String(attr.name()));
         attr = attr.next_attribute();
     }
 
@@ -783,7 +783,7 @@ ResourceRefList XMLElement::GetResourceRefList() const
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
-        ret.names_.Resize(values.size() - 1);
+        ret.names_.resize(values.size() - 1);
         for (unsigned i = 1; i < values.size(); ++i)
             ret.names_[i - 1] = values[i];
     }
@@ -798,7 +798,7 @@ VariantVector XMLElement::GetVariantVector() const
     XMLElement variantElem = GetChild("variant");
     while (variantElem)
     {
-        ret.Push(variantElem.GetVariant());
+        ret.push_back(variantElem.GetVariant());
         variantElem = variantElem.GetNext("variant");
     }
 
@@ -1004,7 +1004,7 @@ bool XPathQuery::SetQuery(const String& queryString, const String& variableStrin
 
         // Parse the variable string having format "name1:type1,name2:type2,..." where type is one of "Bool", "Float", "String", "ResultSet"
         Vector<String> vars = variableString.Split(',');
-        for (Vector<String>::ConstIterator i = vars.begin(); i != vars.end(); ++i)
+        for (Vector<String>::const_iterator i = vars.begin(); i != vars.end(); ++i)
         {
             Vector<String> tokens = i->Trimmed().Split(':');
             if (tokens.size() != 2)

@@ -38,7 +38,7 @@ extern const char* URHO2D_CATEGORY;
 
 ParticleEmitter2D::ParticleEmitter2D(Context* context) :
     Drawable2D(context),
-    numParticles_(0), 
+    numParticles_(0),
     emissionTime_(0.0f),
     emitParticleTime_(0.0f),
     boundingBoxMinPoint_(Vector3::ZERO),
@@ -104,7 +104,7 @@ void ParticleEmitter2D::Update(const FrameInfo& frame)
     if (emissionTime_ >= 0.0f)
     {
         float worldAngle = GetNode()->GetWorldRotation().RollAngle();
-        
+
         float timeBetweenParticles = effect_->GetParticleLifeSpan() / particles_.size();
         emitParticleTime_ += timeStep;
 
@@ -122,7 +122,7 @@ void ParticleEmitter2D::Update(const FrameInfo& frame)
 
     verticesDirty_ = true;
     OnMarkedDirty(node_);
-   
+
 }
 
 void ParticleEmitter2D::SetEffect(ParticleEffect2D* model)
@@ -147,8 +147,8 @@ void ParticleEmitter2D::SetEffect(ParticleEffect2D* model)
 void ParticleEmitter2D::SetMaxParticles(unsigned maxParticles)
 {
     maxParticles = Max(maxParticles, 1);
-    
-    particles_.Resize(maxParticles);
+
+    particles_.resize(maxParticles);
     vertices_.Reserve(maxParticles * 4);
 
     numParticles_ = Min(maxParticles, numParticles_);
@@ -162,7 +162,7 @@ ParticleEffect2D* ParticleEmitter2D::GetEffect() const
 void ParticleEmitter2D::SetParticleEffectAttr(ResourceRef value)
 {
     materialUpdatePending_ = true;
-    
+
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     SetEffect(cache->GetResource<ParticleEffect2D>(value.name_));
 }
@@ -199,7 +199,7 @@ void ParticleEmitter2D::UpdateVertices()
     if (!verticesDirty_)
         return;
 
-    vertices_.Clear();
+    vertices_.clear();
 
     Texture2D* texture = GetTexture();
     if (!texture)
@@ -222,7 +222,7 @@ void ParticleEmitter2D::UpdateVertices()
     for (int i = 0; i < numParticles_; ++i)
     {
         Particle2D& p = particles_[i];
-        
+
         float rotation = -p.rotation_;
         float c = Cos(rotation);
         float s = Sin(rotation);
@@ -233,13 +233,13 @@ void ParticleEmitter2D::UpdateVertices()
         vertex1.position_ = Vector3(p.position_.x_ - add, p.position_.y_ + sub, 0.0f);
         vertex2.position_ = Vector3(p.position_.x_ + sub, p.position_.y_ + add, 0.0f);
         vertex3.position_ = Vector3(p.position_.x_ + add, p.position_.y_ - sub, 0.0f);
-        
+
         vertex0.color_ = vertex1.color_ = vertex2.color_  = vertex3.color_ = p.color_.ToUInt();
 
-        vertices_.Push(vertex0);
-        vertices_.Push(vertex1);
-        vertices_.Push(vertex2);
-        vertices_.Push(vertex3);
+        vertices_.push_back(vertex0);
+        vertices_.push_back(vertex1);
+        vertices_.push_back(vertex2);
+        vertices_.push_back(vertex3);
     }
 
     verticesDirty_ = false;
@@ -303,7 +303,7 @@ void ParticleEmitter2D::UpdateParticle(Particle2D& particle, float timeStep, con
 {
     if (timeStep > particle.timeToLive_)
         timeStep = particle.timeToLive_;
-    
+
     particle.timeToLive_ -= timeStep;
 
     if (effect_->GetEmitterType() == EMITTER_TYPE_RADIAL)
@@ -318,7 +318,7 @@ void ParticleEmitter2D::UpdateParticle(Particle2D& particle, float timeStep, con
     {
         float distanceX = particle.position_.x_ - particle.startPos_.x_;
         float distanceY = particle.position_.y_ - particle.startPos_.y_;
-        
+
         float distanceScalar = Vector2(distanceX, distanceY).Length();
         if (distanceScalar < 0.0001f)
             distanceScalar = 0.0001f;

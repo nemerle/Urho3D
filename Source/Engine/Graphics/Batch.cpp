@@ -663,7 +663,7 @@ void BatchGroup::Draw(View* view) const
             Vector<SharedPtr<VertexBuffer> >& vertexBuffers = const_cast<Vector<SharedPtr<VertexBuffer> >&>
                 (geometry_->GetVertexBuffers());
             PODVector<unsigned>& elementMasks = const_cast<PODVector<unsigned>&>(geometry_->GetVertexElementMasks());
-            vertexBuffers.Push(SharedPtr<VertexBuffer>(instanceBuffer));
+            vertexBuffers.push_back(SharedPtr<VertexBuffer>(instanceBuffer));
             elementMasks.Push(instanceBuffer->GetElementMask());
 
             // No stream offset support, instancing buffer not pre-filled with transforms: have to fill now
@@ -703,7 +703,7 @@ void BatchGroup::Draw(View* view) const
             }
 
             // Remove the instancing buffer & element mask now
-            vertexBuffers.Pop();
+            vertexBuffers.pop_back();
             elementMasks.Pop();
         }
     }

@@ -485,7 +485,7 @@ private:
     /// Recalculate the world transform.
     void UpdateWorldTransform() const;
     /// Remove child node by iterator.
-    void RemoveChild(Vector<SharedPtr<Node> >::Iterator i);
+    void RemoveChild(Vector<SharedPtr<Node> >::iterator i);
     /// Return child nodes recursively.
     void GetChildrenRecursive(PODVector<Node*>& dest) const;
     /// Return child nodes with a specific component recursively.
@@ -495,7 +495,7 @@ private:
     /// Clone node recursively.
     Node* CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mode);
     /// Remove a component from this node with the specified iterator.
-    void RemoveComponent(Vector<SharedPtr<Component> >::Iterator i);
+    void RemoveComponent(Vector<SharedPtr<Component> >::iterator i);
     /// Handle attribute animation update event.
     void HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& eventData);
 
@@ -549,7 +549,7 @@ template <class T> bool Node::HasComponent() const { return HasComponent(T::GetT
 
 template <class T> T* Node::GetDerivedComponent() const
 {
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
+    for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
     {
         T* component = dynamic_cast<T*>(i->Get());
         if (component)
@@ -563,7 +563,7 @@ template <class T> void Node::GetDerivedComponents(PODVector<T*>& dest) const
 {
     dest.Clear();
 
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
+    for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
     {
         T* component = dynamic_cast<T*>(i->Get());
         if (component)

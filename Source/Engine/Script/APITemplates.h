@@ -405,7 +405,7 @@ static const AttributeInfo& SerializableGetAttributeInfo(unsigned index, Seriali
         return noAttributeInfo;
     }
     else
-        return attributes->At(index);
+        return attributes->at(index);
 }
 
 static bool SerializableLoad(File* file, bool setInstanceDefault, Serializable* ptr)
@@ -591,7 +591,7 @@ static CScriptArray* NodeGetChildrenWithClassName(const String& className, bool 
     {
         Node* node = *i;
         const Vector<SharedPtr<Component> >& components = node->GetComponents();
-        for (Vector<SharedPtr<Component> >::ConstIterator j = components.begin(); j != components.end(); ++j)
+        for (Vector<SharedPtr<Component> >::const_iterator j = components.begin(); j != components.end(); ++j)
         {
             if ((*j)->GetType() == ScriptInstance::GetTypeStatic())
             {

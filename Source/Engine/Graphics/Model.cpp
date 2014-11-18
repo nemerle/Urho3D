@@ -82,12 +82,12 @@ bool Model::BeginLoad(Deserializer& source)
         return false;
     }
 
-    geometries_.Clear();
-    geometryBoneMappings_.Clear();
+    geometries_.clear();
+    geometryBoneMappings_.clear();
     geometryCenters_.Clear();
-    morphs_.Clear();
-    vertexBuffers_.Clear();
-    indexBuffers_.Clear();
+    morphs_.clear();
+    vertexBuffers_.clear();
+    indexBuffers_.clear();
 
     unsigned memoryUse = sizeof(Model);
     bool async = GetAsyncLoadState() == ASYNC_LOADING;
@@ -97,7 +97,7 @@ bool Model::BeginLoad(Deserializer& source)
     vertexBuffers_.Reserve(numVertexBuffers);
     morphRangeStarts_.Resize(numVertexBuffers);
     morphRangeCounts_.Resize(numVertexBuffers);
-    loadVBData_.Resize(numVertexBuffers);
+    loadVBData_.resize(numVertexBuffers);
     for (unsigned i = 0; i < numVertexBuffers; ++i)
     {
         unsigned vertexCount = source.ReadUInt();
@@ -129,13 +129,13 @@ bool Model::BeginLoad(Deserializer& source)
         }
 
         memoryUse += sizeof(VertexBuffer) + vertexCount * vertexSize;
-        vertexBuffers_.Push(buffer);
+        vertexBuffers_.push_back(buffer);
     }
 
     // Read index buffers
     unsigned numIndexBuffers = source.ReadUInt();
     indexBuffers_.Reserve(numIndexBuffers);
-    loadIBData_.Resize(numIndexBuffers);
+    loadIBData_.resize(numIndexBuffers);
     for (unsigned i = 0; i < numIndexBuffers; ++i)
     {
         unsigned indexCount = source.ReadUInt();
@@ -164,7 +164,7 @@ bool Model::BeginLoad(Deserializer& source)
         }
 
         memoryUse += sizeof(IndexBuffer) + indexCount * indexSize;
-        indexBuffers_.Push(buffer);
+        indexBuffers_.push_back(buffer);
     }
 
     // Read geometries
@@ -172,7 +172,7 @@ bool Model::BeginLoad(Deserializer& source)
     geometries_.Reserve(numGeometries);
     geometryBoneMappings_.Reserve(numGeometries);
     geometryCenters_.Reserve(numGeometries);
-    loadGeometries_.Resize(numGeometries);
+    loadGeometries_.resize(numGeometries);
     for (unsigned i = 0; i < numGeometries; ++i)
     {
         // Read bone mappings
@@ -180,7 +180,7 @@ bool Model::BeginLoad(Deserializer& source)
         PODVector<unsigned> boneMapping(boneMappingCount);
         for (unsigned j = 0; j < boneMappingCount; ++j)
             boneMapping[j] = source.ReadUInt();
-        geometryBoneMappings_.Push(boneMapping);
+        geometryBoneMappings_.push_back(boneMapping);
 
         unsigned numLodLevels = source.ReadUInt();
         Vector<SharedPtr<Geometry> > geometryLodLevels;
@@ -200,17 +200,17 @@ bool Model::BeginLoad(Deserializer& source)
             if (vbRef >= vertexBuffers_.size())
             {
                 LOGERROR("Vertex buffer index out of bounds");
-                loadVBData_.Clear();
-                loadIBData_.Clear();
-                loadGeometries_.Clear();
+                loadVBData_.clear();
+                loadIBData_.clear();
+                loadGeometries_.clear();
                 return false;
             }
             if (ibRef >= indexBuffers_.size())
             {
                 LOGERROR("Index buffer index out of bounds");
-                loadVBData_.Clear();
-                loadIBData_.Clear();
-                loadGeometries_.Clear();
+                loadVBData_.clear();
+                loadIBData_.clear();
+                loadGeometries_.clear();
                 return false;
             }
 
@@ -224,11 +224,11 @@ bool Model::BeginLoad(Deserializer& source)
             loadGeometries_[i][j].indexStart_ = indexStart;
             loadGeometries_[i][j].indexCount_ = indexCount;
 
-            geometryLodLevels.Push(geometry);
+            geometryLodLevels.push_back(geometry);
             memoryUse += sizeof(Geometry);
         }
 
-        geometries_.Push(geometryLodLevels);
+        geometries_.push_back(geometryLodLevels);
     }
 
     // Read morphs
@@ -269,7 +269,7 @@ bool Model::BeginLoad(Deserializer& source)
             memoryUse += sizeof(VertexBufferMorph) + newBuffer.vertexCount_ * vertexSize;
         }
 
-        morphs_.Push(newMorph);
+        morphs_.push_back(newMorph);
         memoryUse += sizeof(ModelMorph);
     }
 
@@ -332,9 +332,9 @@ bool Model::EndLoad()
         }
     }
 
-    loadVBData_.Clear();
-    loadIBData_.Clear();
-    loadGeometries_.Clear();
+    loadVBData_.clear();
+    loadIBData_.clear();
+    loadGeometries_.clear();
     return true;
 }
 
@@ -485,15 +485,15 @@ bool Model::SetIndexBuffers(const Vector<SharedPtr<IndexBuffer> >& buffers)
 
 void Model::SetNumGeometries(unsigned num)
 {
-    geometries_.Resize(num);
-    geometryBoneMappings_.Resize(num);
+    geometries_.resize(num);
+    geometryBoneMappings_.resize(num);
     geometryCenters_.Resize(num);
 
     // For easier creation of from-scratch geometry, ensure that all geometries start with at least 1 LOD level (0 makes no sense)
     for (unsigned i = 0; i < geometries_.size(); ++i)
     {
         if (geometries_[i].empty())
-            geometries_[i].Resize(1);
+            geometries_[i].resize(1);
     }
 }
 
@@ -510,7 +510,7 @@ bool Model::SetNumGeometryLodLevels(unsigned index, unsigned num)
         return false;
     }
 
-    geometries_[index].Resize(num);
+    geometries_[index].resize(num);
     return true;
 }
 
@@ -596,7 +596,7 @@ SharedPtr<Model> Model::Clone(const String& cloneName) const
             vbMapping[origBuffer] = cloneBuffer;
         }
 
-        ret->vertexBuffers_.Push(cloneBuffer);
+        ret->vertexBuffers_.push_back(cloneBuffer);
     }
 
     QHash<IndexBuffer*, IndexBuffer*> ibMapping;
@@ -623,14 +623,14 @@ SharedPtr<Model> Model::Clone(const String& cloneName) const
             ibMapping[origBuffer] = cloneBuffer;
         }
 
-        ret->indexBuffers_.Push(cloneBuffer);
+        ret->indexBuffers_.push_back(cloneBuffer);
     }
 
     // Deep copy all the geometry LOD levels and refer to the copied vertex/index buffers
-    ret->geometries_.Resize(geometries_.size());
+    ret->geometries_.resize(geometries_.size());
     for (unsigned i = 0; i < geometries_.size(); ++i)
     {
-        ret->geometries_[i].Resize(geometries_[i].size());
+        ret->geometries_[i].resize(geometries_[i].size());
         for (unsigned j = 0; j < geometries_[i].size(); ++j)
         {
             SharedPtr<Geometry> cloneGeometry;

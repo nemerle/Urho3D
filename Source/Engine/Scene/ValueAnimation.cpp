@@ -87,7 +87,7 @@ bool ValueAnimation::Save(Serializer& dest) const
 bool ValueAnimation::LoadXML(const XMLElement& source)
 {
     valueType_ = VAR_NONE;
-    eventFrames_.Clear();
+    eventFrames_.clear();
 
     String interpMethodString = source.GetAttribute("interpolationmethod");
     InterpMethod method = IM_LINEAR;
@@ -170,8 +170,8 @@ void ValueAnimation::SetValueType(VariantType valueType)
         interpolationMethod_ = IM_LINEAR;
     }
 
-    keyFrames_.Clear();
-    eventFrames_.Clear();
+    keyFrames_.clear();
+    eventFrames_.clear();
     beginTime_ = M_INFINITY;
     endTime_ = -M_INFINITY;
 }
@@ -211,8 +211,8 @@ bool ValueAnimation::SetKeyFrame(float time, const Variant& value)
     keyFrame.time_ = time;
     keyFrame.value_ = value;
 
-    if (keyFrames_.empty() || time > keyFrames_.Back().time_)
-        keyFrames_.Push(keyFrame);
+    if (keyFrames_.empty() || time > keyFrames_.back().time_)
+        keyFrames_.push_back(keyFrame);
     else
     {
         for (unsigned i = 0; i < keyFrames_.size(); ++i)
@@ -222,7 +222,7 @@ bool ValueAnimation::SetKeyFrame(float time, const Variant& value)
                 return false;
             if (time < keyFrames_[i].time_)
             {
-                keyFrames_.Insert(i, keyFrame);
+                keyFrames_.insert(i, keyFrame);
                 break;
             }
         }
@@ -242,15 +242,15 @@ void ValueAnimation::SetEventFrame(float time, const StringHash& eventType, cons
     eventFrame.eventType_ = eventType;
     eventFrame.eventData_ = eventData;
 
-    if (eventFrames_.empty() || time >= eventFrames_.Back().time_)
-        eventFrames_.Push(eventFrame);
+    if (eventFrames_.empty() || time >= eventFrames_.back().time_)
+        eventFrames_.push_back(eventFrame);
     else
     {
         for (unsigned i = 0; i < eventFrames_.size(); ++i)
         {
             if (time < eventFrames_[i].time_)
             {
-                eventFrames_.Insert(i, eventFrame);
+                eventFrames_.insert(i, eventFrame);
                 break;
             }
         }
@@ -397,13 +397,13 @@ Variant ValueAnimation::SplineInterpolation(unsigned index1, unsigned index2, fl
 
 void ValueAnimation::UpdateSplineTangents()
 {
-    splineTangents_.Clear();
+    splineTangents_.clear();
 
     if (!IsValid())
         return;
 
     unsigned size = keyFrames_.size();
-    splineTangents_.Resize(size);
+    splineTangents_.resize(size);
 
     for (unsigned i = 1; i < size - 1; ++i)
         splineTangents_[i] = SubstractAndMultiply(keyFrames_[i + 1].value_, keyFrames_[i - 1].value_, splineTension_);

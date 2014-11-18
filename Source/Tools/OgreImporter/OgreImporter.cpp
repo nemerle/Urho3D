@@ -159,7 +159,7 @@ void LoadSkeleton(const String& skeletonFileName)
             unsigned index = bone.GetInt("id");
             String name = bone.GetAttribute("name");
             if (index >= bones_.size())
-                bones_.Resize(index + 1);
+                bones_.resize(index + 1);
 
             // Convert from right- to left-handed
             XMLElement position = bone.GetChild("position");
@@ -262,7 +262,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     unsigned maxSubMeshVertices = 0;
     while (subMesh)
     {
-        materialNames_.Push(subMesh.GetAttribute("material"));
+        materialNames_.push_back(subMesh.GetAttribute("material"));
         XMLElement geometry = subMesh.GetChild("geometry");
         if (geometry)
         {
@@ -288,13 +288,13 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     if (!sharedGeometry && (splitSubMeshes || (totalVertices > 65535 && maxSubMeshVertices <= 65535)))
     {
         useOneBuffer_ = false;
-        vertexBuffers_.Resize(numSubMeshes_);
-        indexBuffers_.Resize(numSubMeshes_);
+        vertexBuffers_.resize(numSubMeshes_);
+        indexBuffers_.resize(numSubMeshes_);
     }
     else
     {
-        vertexBuffers_.Resize(1);
-        indexBuffers_.Resize(1);
+        vertexBuffers_.resize(1);
+        indexBuffers_.resize(1);
     }
 
     subMesh = subMeshes.GetChild("submesh");
@@ -330,7 +330,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
         {
             vBuf = &vertexBuffers_[0];
             if (vertices)
-                vBuf->vertices_.Resize(vertexStart + vertices);
+                vBuf->vertices_.resize(vertexStart + vertices);
             iBuf = &indexBuffers_[0];
 
             subGeometryLodLevel.vertexBuffer_ = 0;
@@ -342,7 +342,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
             indexStart = 0;
 
             vBuf = &vertexBuffers_[subMeshIndex];
-            vBuf->vertices_.Resize(vertices);
+            vBuf->vertices_.resize(vertices);
             iBuf = &indexBuffers_[subMeshIndex];
 
             subGeometryLodLevel.vertexBuffer_ = subMeshIndex;
@@ -578,7 +578,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
         }
         if (iBuf->indices_.Size())
             center /= (float)iBuf->indices_.Size();
-        subGeometryCenters_.Push(center);
+        subGeometryCenters_.push_back(center);
 
         indexStart += indices;
         vertexStart += vertices;
@@ -588,8 +588,8 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
         PrintLine("Processed submesh " + String(subMeshIndex + 1) + ": " + String(vertices) + " vertices " +
             String(triangles) + " triangles");
         Vector<ModelSubGeometryLodLevel> thisSubGeometry;
-        thisSubGeometry.Push(subGeometryLodLevel);
-        subGeometries_.Push(thisSubGeometry);
+        thisSubGeometry.push_back(subGeometryLodLevel);
+        subGeometries_.push_back(thisSubGeometry);
 
         subMesh = subMesh.GetNext("submesh");
         subMeshIndex++;
@@ -659,7 +659,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
 
                     OptimizeIndices(&newLodLevel, vBuf, iBuf);
 
-                    subGeometries_[subMeshIndex].Push(newLodLevel);
+                    subGeometries_[subMeshIndex].push_back(newLodLevel);
                     PrintLine("Processed LOD level for submesh " + String(subMeshIndex + 1) + ": distance " + String(distance));
 
                     lodSubMesh = lodSubMesh.GetNext("lodfacelist");
@@ -683,7 +683,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 XMLElement pose = posesRoot.GetChild("pose");
                 while (pose)
                 {
-                    poses.Push(pose);
+                    poses.push_back(pose);
                     pose = pose.GetNext("pose");
                 }
             }
@@ -729,9 +729,9 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                         newMorph.name_ = name;
 
                         if (useOneBuffer_)
-                            newMorph.buffers_.Resize(1);
+                            newMorph.buffers_.resize(1);
                         else
-                            newMorph.buffers_.Resize(usedPoses.size());
+                            newMorph.buffers_.resize(usedPoses.size());
 
                         unsigned bufIndex = 0;
 
@@ -778,14 +778,14 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
 
                                 ModelVertex newVertex;
                                 newVertex.position_ = vec;
-                                newMorph.buffers_[bufIndex].vertices_.Push(MakePair(vertexIndex, newVertex));
+                                newMorph.buffers_[bufIndex].vertices_.push_back(MakePair(vertexIndex, newVertex));
                                 poseOffset = poseOffset.GetNext("poseoffset");
                             }
 
                             if (!useOneBuffer_)
                                 ++bufIndex;
                         }
-                        morphs_.Push(newMorph);
+                        morphs_.push_back(newMorph);
                         PrintLine("Processed morph " + name + " with " + String(usedPoses.size()) + " sub-poses");
                     }
 
@@ -1000,7 +1000,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                         newKeyFrame.position_ = pos;
                         newKeyFrame.rotation_ = rot;
 
-                        newAnimationTrack.keyFrames_.Push(newKeyFrame);
+                        newAnimationTrack.keyFrames_.push_back(newKeyFrame);
                         keyFrame = keyFrame.GetNext("keyframe");
                     }
 
@@ -1009,7 +1009,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
 
                     // Do not add tracks with no keyframes
                     if (newAnimationTrack.keyFrames_.size())
-                        newAnimation.tracks_.Push(newAnimationTrack);
+                        newAnimation.tracks_.push_back(newAnimationTrack);
 
                     track = track.GetNext("track");
                 }

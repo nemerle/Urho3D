@@ -93,8 +93,8 @@ void UnknownComponent::RegisterObject(Context* context)
 bool UnknownComponent::Load(Deserializer& source, bool setInstanceDefault)
 {
     useXML_ = false;
-    xmlAttributes_.Clear();
-    xmlAttributeInfos_.Clear();
+    xmlAttributes_.clear();
+    xmlAttributeInfos_.clear();
 
     // Assume we are reading from a component data buffer, and the type has already been read
     unsigned dataSize = source.GetSize() - source.GetPosition();
@@ -105,8 +105,8 @@ bool UnknownComponent::Load(Deserializer& source, bool setInstanceDefault)
 bool UnknownComponent::LoadXML(const XMLElement& source, bool setInstanceDefault)
 {
     useXML_ = true;
-    xmlAttributes_.Clear();
-    xmlAttributeInfos_.Clear();
+    xmlAttributes_.clear();
+    xmlAttributeInfos_.clear();
     binaryAttributes_.Clear();
 
     XMLElement attrElem = source.GetChild("attribute");
@@ -121,8 +121,8 @@ bool UnknownComponent::LoadXML(const XMLElement& source, bool setInstanceDefault
         {
             String attrValue = attrElem.GetAttribute("value");
             attr.defaultValue_ = String::EMPTY;
-            xmlAttributeInfos_.Push(attr);
-            xmlAttributes_.Push(attrValue);
+            xmlAttributeInfos_.push_back(attr);
+            xmlAttributes_.push_back(attrValue);
         }
 
         attrElem = attrElem.GetNext("attribute");

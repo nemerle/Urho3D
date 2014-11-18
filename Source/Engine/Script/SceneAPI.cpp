@@ -216,7 +216,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
         {
             QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator k = factories.find(factoryHashes[j]);
             if (k != factories.end())
-                components.Push((*k)->GetTypeName());
+                components.push_back((*k)->GetTypeName());
         }
     }
 

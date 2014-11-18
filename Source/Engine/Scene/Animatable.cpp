@@ -316,7 +316,7 @@ void Animatable::OnObjectAnimationRemoved(ObjectAnimation* objectAnimation)
     for (auto elem=attributeAnimationInfos_.begin(),fin=attributeAnimationInfos_.end(); elem!=fin; ++elem)
     {
         if ((*elem)->GetAnimation()->GetOwner() == objectAnimation)
-            names.Push(elem.key());
+            names.push_back(elem.key());
     }
 
     for (unsigned i = 0; i < names.size(); ++i)
@@ -332,7 +332,7 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
     for (const SharedPtr<AttributeAnimationInfo> i : attributeAnimationInfos_)
     {
         if (i->Update(timeStep))
-            finishedNames.Push(i->GetAttributeInfo().name_);
+            finishedNames.push_back(i->GetAttributeInfo().name_);
     }
 
     for (unsigned i = 0; i < finishedNames.size(); ++i)

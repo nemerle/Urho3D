@@ -77,7 +77,7 @@ void SceneResolver::Resolve()
 
         for (unsigned j = 0; j < attributes->size(); ++j)
         {
-            const AttributeInfo& info = attributes->At(j);
+            const AttributeInfo& info = attributes->at(j);
             if (info.mode_ & AM_NODEID)
             {
                 hasIDAttributes = true;
@@ -124,7 +124,7 @@ void SceneResolver::Resolve()
                     // The first index stores the number of IDs redundantly. This is for editing
                     unsigned numIDs = oldNodeIDs[0].GetUInt();
                     VariantVector newIDs;
-                    newIDs.Push(numIDs);
+                    newIDs.push_back(numIDs);
 
                     for (unsigned k = 1; k < oldNodeIDs.size(); ++k)
                     {
@@ -132,11 +132,11 @@ void SceneResolver::Resolve()
                         QHash<unsigned, WeakPtr<Node> >::ConstIterator l = nodes_.find(oldNodeID);
 
                         if (l != nodes_.end() && (*l))
-                            newIDs.Push((*l)->GetID());
+                            newIDs.push_back((*l)->GetID());
                         else
                         {
                             // If node was not found, retain number of elements, just store ID 0
-                            newIDs.Push(0);
+                            newIDs.push_back(0);
                             LOGWARNING("Could not resolve node ID " + String(oldNodeID));
                         }
                     }

@@ -123,7 +123,7 @@ void PhysicsWorld2D::BeginContact(b2Contact* contact)
     if (!fixtureA || !fixtureB)
         return;
 
-    beginContactInfos_.Push(ContactInfo(contact));
+    beginContactInfos_.push_back(ContactInfo(contact));
 }
 
 void PhysicsWorld2D::EndContact(b2Contact* contact)
@@ -137,7 +137,7 @@ void PhysicsWorld2D::EndContact(b2Contact* contact)
     if (!fixtureA || !fixtureB)
         return;
 
-    endContactInfos_.Push(ContactInfo(contact));
+    endContactInfos_.push_back(ContactInfo(contact));
 }
 
 void PhysicsWorld2D::DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
@@ -345,7 +345,7 @@ void PhysicsWorld2D::AddRigidBody(RigidBody2D* rigidBody)
     if (rigidBodies_.Contains(rigidBodyPtr))
         return;
 
-    rigidBodies_.Push(rigidBodyPtr);
+    rigidBodies_.push_back(rigidBodyPtr);
 }
 
 void PhysicsWorld2D::RemoveRigidBody(RigidBody2D* rigidBody)
@@ -639,7 +639,7 @@ void PhysicsWorld2D::SendBeginContactEvents()
         SendEvent(E_PHYSICSBEGINCONTACT2D, eventData);
     }
 
-    beginContactInfos_.Clear();
+    beginContactInfos_.clear();
 }
 
 void PhysicsWorld2D::SendEndContactEvents()
@@ -662,7 +662,7 @@ void PhysicsWorld2D::SendEndContactEvents()
         SendEvent(E_PHYSICSENDCONTACT2D, eventData);
     }
 
-    endContactInfos_.Clear();
+    endContactInfos_.clear();
 }
 
 PhysicsWorld2D::ContactInfo::ContactInfo()

@@ -72,7 +72,7 @@ void SplinePath::ApplyAttributes()
             node->RemoveListener(this);
     }
 
-    controlPoints_.Clear();
+    controlPoints_.clear();
     spline_.Clear();
 
     Scene* scene = GetScene();
@@ -87,7 +87,7 @@ void SplinePath::ApplyAttributes()
             {
                 WeakPtr<Node> controlPoint(node);
                 node->AddListener(this);
-                controlPoints_.Push(controlPoint);
+                controlPoints_.push_back(controlPoint);
                 spline_.AddKnot(node->GetWorldPosition());
             }
         }
@@ -119,7 +119,7 @@ void SplinePath::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
             }
         }
 
-        for (Vector<WeakPtr<Node> >::ConstIterator i = controlPoints_.begin(); i != controlPoints_.end(); ++i)
+        for (Vector<WeakPtr<Node> >::const_iterator i = controlPoints_.begin(); i != controlPoints_.end(); ++i)
             debug->AddNode(*i);
 
         if (controlledNode_)
@@ -135,7 +135,7 @@ void SplinePath::AddControlPoint(Node* point, unsigned index)
     WeakPtr<Node> controlPoint(point);
 
     point->AddListener(this);
-    controlPoints_.Insert(index, controlPoint);
+    controlPoints_.insert(index, controlPoint);
     spline_.AddKnot(point->GetWorldPosition(), index);
 
     UpdateNodeIds();
@@ -155,7 +155,7 @@ void SplinePath::RemoveControlPoint(Node* point)
     {
         if (controlPoints_[i] == controlPoint)
         {
-            controlPoints_.Erase(i);
+            controlPoints_.erase(i);
             spline_.RemoveKnot(i);
             break;
         }
@@ -174,7 +174,7 @@ void SplinePath::ClearControlPoints()
             node->RemoveListener(this);
     }
 
-    controlPoints_.Clear();
+    controlPoints_.clear();
     spline_.Clear();
 
     UpdateNodeIds();
@@ -187,9 +187,9 @@ void SplinePath::SetControlledNode(Node* controlled)
         controlledNode_ = WeakPtr<Node>(controlled);
 }
 
-void SplinePath::SetInterpolationMode(InterpolationMode interpolationMode) 
-{ 
-    spline_.SetInterpolationMode(interpolationMode); 
+void SplinePath::SetInterpolationMode(InterpolationMode interpolationMode)
+{
+    spline_.SetInterpolationMode(interpolationMode);
     CalculateLength();
 }
 
@@ -236,7 +236,7 @@ void SplinePath::SetControlPointIdsAttr(const VariantVector& value)
     // ApplyAttributes()
     if (value.size())
     {
-        controlPointIdsAttr_.Clear();
+        controlPointIdsAttr_.clear();
 
         unsigned index = 0;
         unsigned numInstances = value[index++].GetUInt();
@@ -244,22 +244,22 @@ void SplinePath::SetControlPointIdsAttr(const VariantVector& value)
         if (numInstances > M_MAX_INT)
             numInstances = 0;
 
-        controlPointIdsAttr_.Push(numInstances);
+        controlPointIdsAttr_.push_back(numInstances);
         while (numInstances--)
         {
             // If vector contains less IDs than should, fill the rest with zeros
             if (index < value.size())
-                controlPointIdsAttr_.Push(value[index++].GetUInt());
+                controlPointIdsAttr_.push_back(value[index++].GetUInt());
             else
-                controlPointIdsAttr_.Push(0);
+                controlPointIdsAttr_.push_back(0);
         }
 
         dirty_ = true;
     }
     else
     {
-        controlPointIdsAttr_.Clear();
-        controlPointIdsAttr_.Push(0);
+        controlPointIdsAttr_.clear();
+        controlPointIdsAttr_.push_back(0);
 
         dirty_ = true;
     }
@@ -319,13 +319,13 @@ void SplinePath::UpdateNodeIds()
 {
     unsigned numInstances = controlPoints_.size();
 
-    controlPointIdsAttr_.Clear();
-    controlPointIdsAttr_.Push(numInstances);
+    controlPointIdsAttr_.clear();
+    controlPointIdsAttr_.push_back(numInstances);
 
     for (unsigned i = 0; i < numInstances; ++i)
     {
         Node* node = controlPoints_[i];
-        controlPointIdsAttr_.Push(node ? node->GetID() : 0);
+        controlPointIdsAttr_.push_back(node ? node->GetID() : 0);
     }
 }
 

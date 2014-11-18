@@ -787,7 +787,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
             info.component_ = connection;
             info.boundingBox_ = BoundingBox(Sphere(transform.Translation(), connection->GetRadius())).Transformed(inverse);
 
-            geometryList.Push(info);
+            geometryList.push_back(info);
         }
     }
 }
@@ -824,7 +824,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
             info.transform_ = inverse * node->GetWorldTransform() * shapeTransform;
             info.boundingBox_ = shape->GetWorldBoundingBox().Transformed(inverse);
 
-            geometryList.Push(info);
+            geometryList.push_back(info);
             collisionShapeFound = true;
         }
     }
@@ -854,7 +854,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
             info.transform_ = inverse * node->GetWorldTransform();
             info.boundingBox_ = drawable->GetWorldBoundingBox().Transformed(inverse);
 
-            geometryList.Push(info);
+            geometryList.push_back(info);
         }
     }
 

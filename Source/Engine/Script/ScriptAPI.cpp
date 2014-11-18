@@ -50,7 +50,7 @@ static void ScriptFileDelayedExecute(float delay, bool repeat, const String& dec
 
     unsigned numParams = srcParams->GetSize();
     VariantVector destParams;
-    destParams.Resize(numParams);
+    destParams.resize(numParams);
 
     for (unsigned i = 0; i < numParams; ++i)
         destParams[i] = *(static_cast<Variant*>(srcParams->At(i)));
@@ -151,7 +151,7 @@ static bool ScriptInstanceExecute(const String& declaration, CScriptArray* srcPa
 
     unsigned numParams = srcParams->GetSize();
     VariantVector destParams;
-    destParams.Resize(numParams);
+    destParams.resize(numParams);
 
     for (unsigned i = 0; i < numParams; ++i)
         destParams[i] = *(static_cast<Variant*>(srcParams->At(i)));
@@ -171,7 +171,7 @@ static void ScriptInstanceDelayedExecute(float delay, bool repeat, const String&
 
     unsigned numParams = srcParams->GetSize();
     VariantVector destParams;
-    destParams.Resize(numParams);
+    destParams.resize(numParams);
 
     for (unsigned i = 0; i < numParams; ++i)
         destParams[i] = *(static_cast<Variant*>(srcParams->At(i)));
@@ -193,10 +193,10 @@ static void SelfDelayedExecute(float delay, bool repeat, const String& declarati
 {
     if (!srcParams)
         return;
-    
+
     unsigned numParams = srcParams->GetSize();
     VariantVector destParams;
-    destParams.Resize(numParams);
+    destParams.resize(numParams);
 
     for (unsigned i = 0; i < numParams; ++i)
         destParams[i] = *(static_cast<Variant*>(srcParams->At(i)));

@@ -526,7 +526,7 @@ void Node::ResetDeepEnabled()
 {
     SetEnabled(enabledPrev_, false, false);
 
-    for (Vector<SharedPtr<Node> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<Node> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
         (*i)->ResetDeepEnabled();
 }
 
@@ -545,7 +545,7 @@ void Node::MarkDirty()
     dirty_ = true;
 
     // Notify listener components first, then mark child nodes
-    for (Vector<WeakPtr<Component> >::Iterator i = listeners_.begin(); i != listeners_.end();)
+    for (Vector<WeakPtr<Component> >::iterator i = listeners_.begin(); i != listeners_.end();)
     {
         if (*i)
         {
@@ -554,7 +554,7 @@ void Node::MarkDirty()
         }
         // If listener has expired, erase from list
         else
-            i = listeners_.Erase(i);
+            i = listeners_.erase(i);
     }
 
     for (auto & elem : children_)
@@ -583,7 +583,7 @@ void Node::AddChild(Node* node, unsigned index)
     }
 
     // Add first, then remove from old parent, to ensure the node does not get deleted
-    children_.Insert(index, SharedPtr<Node>(node));
+    children_.insert(index, SharedPtr<Node>(node));
     node->Remove();
 
     // Add to the scene if not added yet
@@ -613,7 +613,7 @@ void Node::RemoveChild(Node* node)
     if (!node)
         return;
 
-    for (Vector<SharedPtr<Node> >::Iterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<Node> >::iterator i = children_.begin(); i != children_.end(); ++i)
     {
         if (*i == node)
         {
@@ -712,8 +712,8 @@ Component* Node::CloneComponent(Component* component, CreateMode mode, unsigned 
     {
         for (unsigned i = 0; i < compAttributes->size() && i < cloneAttributes->size(); ++i)
         {
-            const AttributeInfo& attr = compAttributes->At(i);
-            const AttributeInfo& cloneAttr = cloneAttributes->At(i);
+            const AttributeInfo& attr = compAttributes->at(i);
+            const AttributeInfo& cloneAttr = cloneAttributes->at(i);
             if (attr.mode_ & AM_FILE)
             {
                 Variant value;
@@ -731,7 +731,7 @@ Component* Node::CloneComponent(Component* component, CreateMode mode, unsigned 
 
 void Node::RemoveComponent(Component* component)
 {
-    for (Vector<SharedPtr<Component> >::Iterator i = components_.begin(); i != components_.end(); ++i)
+    for (Vector<SharedPtr<Component> >::iterator i = components_.begin(); i != components_.end(); ++i)
     {
         if (*i == component)
         {
@@ -746,7 +746,7 @@ void Node::RemoveComponent(Component* component)
 
 void Node::RemoveComponent(StringHash type)
 {
-    for (Vector<SharedPtr<Component> >::Iterator i = components_.begin(); i != components_.end(); ++i)
+    for (Vector<SharedPtr<Component> >::iterator i = components_.begin(); i != components_.end(); ++i)
     {
         if ((*i)->GetType() == type)
         {
@@ -853,7 +853,7 @@ void Node::AddListener(Component* component)
             return;
     }
 
-    listeners_.Push(WeakPtr<Component>(component));
+    listeners_.push_back(WeakPtr<Component>(component));
     // If the node is currently dirty, notify immediately
     if (dirty_)
         component->OnMarkedDirty(this);
@@ -861,11 +861,11 @@ void Node::AddListener(Component* component)
 
 void Node::RemoveListener(Component* component)
 {
-    for (Vector<WeakPtr<Component> >::Iterator i = listeners_.begin(); i != listeners_.end(); ++i)
+    for (Vector<WeakPtr<Component> >::iterator i = listeners_.begin(); i != listeners_.end(); ++i)
     {
         if (*i == component)
         {
-            listeners_.Erase(i);
+            listeners_.erase(i);
             return;
         }
     }
@@ -1251,7 +1251,7 @@ void Node::PrepareNetworkUpdate()
     }
 
     // Let the components add their dependencies
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
+    for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
     {
         Component* component = *i;
         if (component->GetID() < FIRST_LOCAL_ID)
@@ -1267,18 +1267,18 @@ void Node::PrepareNetworkUpdate()
 
     if (networkState_->currentValues_.size() != numAttributes)
     {
-        networkState_->currentValues_.Resize(numAttributes);
-        networkState_->previousValues_.Resize(numAttributes);
+        networkState_->currentValues_.resize(numAttributes);
+        networkState_->previousValues_.resize(numAttributes);
 
         // Copy the default attribute values to the previous state as a starting point
         for (unsigned i = 0; i < numAttributes; ++i)
-            networkState_->previousValues_[i] = attributes->At(i).defaultValue_;
+            networkState_->previousValues_[i] = attributes->at(i).defaultValue_;
     }
 
     // Check for attribute changes
     for (unsigned i = 0; i < numAttributes; ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
 
         if (animationEnabled_ && IsAnimatedNetworkAttribute(attr))
             continue;
@@ -1384,7 +1384,7 @@ void Node::AddComponent(Component* component, unsigned id, CreateMode mode)
     if (!component)
         return;
 
-    components_.Push(SharedPtr<Component>(component));
+    components_.push_back(SharedPtr<Component>(component));
 
     // If zero ID specified, or the ID is already taken, let the scene assign
     if (scene_)
@@ -1494,7 +1494,7 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
 
         if (i == names.size() - 1)
         {
-            node->SetAttributeAnimation(names.Back(), attributeAnimation, wrapMode, speed);
+            node->SetAttributeAnimation(names.back(), attributeAnimation, wrapMode, speed);
             return;
         }
 
@@ -1508,27 +1508,27 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
         Vector<String> componentNames = componentName.Split('#');
         if (componentNames.size() == 1)
         {
-            Component* component = node->GetComponent(StringHash(componentNames.Front()));
+            Component* component = node->GetComponent(StringHash(componentNames.front()));
             if (!component)
             {
                 LOGERROR("Could not find component by name " + name);
                 return;
             }
 
-            component->SetAttributeAnimation(names.Back(), attributeAnimation, wrapMode, speed);
+            component->SetAttributeAnimation(names.back(), attributeAnimation, wrapMode, speed);
         }
         else
         {
             unsigned index = ToInt(componentNames[1]);
             PODVector<Component*> components;
-            node->GetComponents(components, StringHash(componentNames.Front()));
+            node->GetComponents(components, StringHash(componentNames.front()));
             if (index >= components.Size())
             {
                 LOGERROR("Could not find component by name " + name);
                 return;
             }
 
-            components[index]->SetAttributeAnimation(names.Back(), attributeAnimation, wrapMode, speed);
+            components[index]->SetAttributeAnimation(names.back(), attributeAnimation, wrapMode, speed);
         }
     }
 }
@@ -1551,7 +1551,7 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
         MarkNetworkUpdate();
 
         // Notify listener components of the state change
-        for (Vector<WeakPtr<Component> >::Iterator i = listeners_.begin(); i != listeners_.end();)
+        for (Vector<WeakPtr<Component> >::iterator i = listeners_.begin(); i != listeners_.end();)
         {
             if (*i)
             {
@@ -1560,7 +1560,7 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
             }
             // If listener has expired, erase from list
             else
-                i = listeners_.Erase(i);
+                i = listeners_.erase(i);
         }
 
         // Send change event
@@ -1640,7 +1640,7 @@ void Node::UpdateWorldTransform() const
     dirty_ = false;
 }
 
-void Node::RemoveChild(Vector<SharedPtr<Node> >::Iterator i)
+void Node::RemoveChild(Vector<SharedPtr<Node> >::iterator i)
 {
     // Send change event. Do not send when already being destroyed
     if (Refs() > 0 && scene_)
@@ -1658,7 +1658,7 @@ void Node::RemoveChild(Vector<SharedPtr<Node> >::Iterator i)
     (*i)->parent_ = nullptr;
     (*i)->MarkDirty();
     (*i)->MarkNetworkUpdate();
-    children_.Erase(i);
+    children_.erase(i);
 }
 
 void Node::GetChildrenRecursive(PODVector<Node*>& dest) const
@@ -1705,7 +1705,7 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     const Vector<AttributeInfo>* attributes = GetAttributes();
     for (unsigned j = 0; j < attributes->size(); ++j)
     {
-        const AttributeInfo& attr = attributes->At(j);
+        const AttributeInfo& attr = attributes->at(j);
         // Do not copy network-only attributes, as they may have unintended side effects
         if (attr.mode_ & AM_FILE)
         {
@@ -1716,7 +1716,7 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     }
 
     // Clone components
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components_.begin(); i != components_.end(); ++i)
+    for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
     {
         Component* component = *i;
         Component* cloneComponent = cloneNode->CloneComponent(component,
@@ -1726,7 +1726,7 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     }
 
     // Clone child nodes recursively
-    for (Vector<SharedPtr<Node> >::ConstIterator i = children_.begin(); i != children_.end(); ++i)
+    for (Vector<SharedPtr<Node> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
     {
         Node* node = *i;
         node->CloneRecursive(cloneNode, resolver, mode);
@@ -1735,7 +1735,7 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     return cloneNode;
 }
 
-void Node::RemoveComponent(Vector<SharedPtr<Component> >::Iterator i)
+void Node::RemoveComponent(Vector<SharedPtr<Component> >::iterator i)
 {
     WeakPtr<Component> componentWeak(*i);
 
@@ -1755,7 +1755,7 @@ void Node::RemoveComponent(Vector<SharedPtr<Component> >::Iterator i)
     RemoveListener(*i);
     if (scene_)
         scene_->ComponentRemoved(*i);
-    components_.Erase(i);
+    components_.erase(i);
 
     // If the component is still referenced elsewhere, reset its node pointer now
     if (componentWeak)

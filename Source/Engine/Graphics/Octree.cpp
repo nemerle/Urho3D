@@ -336,7 +336,7 @@ Octree::Octree(Context* context) :
 {
     // Resize threaded ray query intermediate result vector according to number of worker threads
     WorkQueue* workQueue = GetSubsystem<WorkQueue>();
-    rayQueryResults_.Resize(workQueue ? workQueue->GetNumThreads() + 1 : 1);
+    rayQueryResults_.resize(workQueue ? workQueue->GetNumThreads() + 1 : 1);
 
     // If the engine is running headless, subscribe to RenderUpdate events for manually updating the octree
     // to allow raycasts and animation update

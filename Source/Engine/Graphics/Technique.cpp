@@ -156,8 +156,8 @@ void Pass::SetPixelShaderDefines(const String& defines)
 
 void Pass::ReleaseShaders()
 {
-    vertexShaders_.Clear();
-    pixelShaders_.Clear();
+    vertexShaders_.clear();
+    pixelShaders_.clear();
 }
 
 void Pass::MarkShadersLoaded(unsigned frameNumber)
@@ -173,14 +173,14 @@ Technique::Technique(Context* context) :
 {
     Graphics* graphics = GetSubsystem<Graphics>();
     sm3Support_ = graphics ? graphics->GetSM3Support() : true;
-    
+
     if (!desktopSupportChecked)
     {
         String platformString = GetPlatform();
         desktopSupportResult = (platformString == "Windows" || platformString == "Mac OS X" || platformString == "Linux");
         desktopSupportChecked = true;
     }
-    
+
     desktopSupport_ = desktopSupportResult;
 }
 
@@ -199,17 +199,17 @@ bool Technique::BeginLoad(Deserializer& source)
 
     numPasses_ = 0;
     SetMemoryUse(sizeof(Technique));
-    
+
     SharedPtr<XMLFile> xml(new XMLFile(context_));
     if (!xml->Load(source))
         return false;
-    
+
     XMLElement rootElem = xml->GetRoot();
     if (rootElem.HasAttribute("sm3"))
         isSM3_ = rootElem.GetBool("sm3");
     if (rootElem.HasAttribute("desktop"))
         isDesktop_ = rootElem.GetBool("desktop");
-    
+
     String globalVS = rootElem.GetAttribute("vs");
     String globalPS = rootElem.GetAttribute("ps");
     String globalVSDefines = rootElem.GetAttribute("vsdefines");
@@ -222,21 +222,21 @@ bool Technique::BeginLoad(Deserializer& source)
     bool globalAlphaMask = false;
     if (rootElem.HasAttribute("alphamask"))
         globalAlphaMask = rootElem.GetBool("alphamask");
-    
+
     XMLElement passElem = rootElem.GetChild("pass");
     while (passElem)
     {
         if (passElem.HasAttribute("name"))
         {
             StringHash nameHash(passElem.GetAttribute("name"));
-            
+
             Pass* newPass = CreatePass(nameHash);
-            
+
             if (passElem.HasAttribute("sm3"))
                 newPass->SetIsSM3(passElem.GetBool("sm3"));
             if (passElem.HasAttribute("desktop"))
                 newPass->SetIsDesktop(passElem.GetBool("desktop"));
-            
+
             // Append global defines only when pass does not redefine the shader
             if (passElem.HasAttribute("vs"))
             {
@@ -258,20 +258,20 @@ bool Technique::BeginLoad(Deserializer& source)
                 newPass->SetPixelShader(globalPS);
                 newPass->SetPixelShaderDefines(globalPSDefines + passElem.GetAttribute("psdefines"));
             }
-            
+
             if (passElem.HasAttribute("lighting"))
             {
                 String lighting = passElem.GetAttributeLower("lighting");
                 newPass->SetLightingMode((PassLightingMode)GetStringListIndex(lighting.CString(), lightingModeNames,
                     LIGHTING_UNLIT));
             }
-            
+
             if (passElem.HasAttribute("blend"))
             {
                 String blend = passElem.GetAttributeLower("blend");
                 newPass->SetBlendMode((BlendMode)GetStringListIndex(blend.CString(), blendModeNames, BLEND_REPLACE));
             }
-            
+
             if (passElem.HasAttribute("depthtest"))
             {
                 String depthTest = passElem.GetAttributeLower("depthtest");
@@ -280,10 +280,10 @@ bool Technique::BeginLoad(Deserializer& source)
                 else
                     newPass->SetDepthTestMode((CompareMode)GetStringListIndex(depthTest.CString(), compareModeNames, CMP_LESS));
             }
-            
+
             if (passElem.HasAttribute("depthwrite"))
                 newPass->SetDepthWrite(passElem.GetBool("depthwrite"));
-            
+
             if (passElem.HasAttribute("alphamask"))
                 newPass->SetAlphaMask(passElem.GetBool("alphamask"));
             else
@@ -291,10 +291,10 @@ bool Technique::BeginLoad(Deserializer& source)
         }
         else
             LOGERROR("Missing pass name");
-        
+
         passElem = passElem.GetNext("pass");
     }
-    
+
     return true;
 }
 
@@ -311,7 +311,7 @@ void Technique::SetIsDesktop(bool enable)
 void Technique::ReleaseShaders()
 {
     PODVector<SharedPtr<Pass>*> allPasses = passes_.Values();
-    
+
     for (unsigned i = 0; i < allPasses.Size(); ++i)
         allPasses[i]->Get()->ReleaseShaders();
 }
@@ -321,10 +321,10 @@ Pass* Technique::CreatePass(StringHash type)
     Pass* oldPass = GetPass(type);
     if (oldPass)
         return oldPass;
-    
+
     SharedPtr<Pass> newPass(new Pass(type));
     passes_.Insert(type.Value(), newPass);
-    
+
     // Calculate memory use now
     SetMemoryUse(sizeof(Technique) + ++numPasses_ * sizeof(Pass));
 
@@ -344,7 +344,7 @@ Vector<StringHash> Technique::GetPassTypes() const
     Vector<StringHash> vectorOut;
     vectorOut.Reserve(vectorIn.Size());
     for (unsigned i = 0; i < vectorIn.Size(); ++i)
-        vectorOut.Push(StringHash(vectorIn[i]));
+        vectorOut.push_back(StringHash(vectorIn[i]));
 
     return vectorOut;
 }

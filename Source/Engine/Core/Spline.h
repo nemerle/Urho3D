@@ -85,11 +85,11 @@ public:
     /// Add a Knot to the Spline at a specific index.
     void AddKnot(const Variant& knot, unsigned index);
     /// Remove the last Knot on the Spline.
-    void RemoveKnot() { knots_.Pop(); }
+    void RemoveKnot() { knots_.pop_back(); }
     /// Remove the Knot at the specific index.
-    void RemoveKnot(unsigned index) { knots_.Erase(index); }
+    void RemoveKnot(unsigned index) { knots_.erase(index); }
     /// Clear the Spline.
-    void Clear() { knots_.Clear(); }
+    void Clear() { knots_.clear(); }
 
 private:
     /// Perform Bezier Interpolation on the Spline.

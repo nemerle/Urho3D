@@ -514,12 +514,12 @@ void Scene::AddRequiredPackageFile(PackageFile* package)
     if (!package || !package->GetNumFiles())
         return;
 
-    requiredPackageFiles_.Push(SharedPtr<PackageFile>(package));
+    requiredPackageFiles_.push_back(SharedPtr<PackageFile>(package));
 }
 
 void Scene::ClearRequiredPackageFiles()
 {
-    requiredPackageFiles_.Clear();
+    requiredPackageFiles_.clear();
 }
 
 void Scene::RegisterVar(const String& name)
@@ -854,7 +854,7 @@ void Scene::SetVarNamesAttr(String value)
     Vector<String> varNames = value.Split(';');
 
     varNames_.clear();
-    for (Vector<String>::ConstIterator i = varNames.begin(); i != varNames.end(); ++i)
+    for (Vector<String>::const_iterator i = varNames.begin(); i != varNames.end(); ++i)
         varNames_[*i] = *i;
 }
 
@@ -1074,7 +1074,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
 
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
-        const AttributeInfo& attr = attributes->At(i);
+        const AttributeInfo& attr = attributes->at(i);
         if (!(attr.mode_ & AM_FILE))
             continue;
         Variant varValue = file->ReadVariant(attr.type_);
@@ -1094,7 +1094,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
         {
             for (unsigned j = 0; j < attributes->size(); ++j)
             {
-                const AttributeInfo& attr = attributes->At(j);
+                const AttributeInfo& attr = attributes->at(j);
                 if (!(attr.mode_ & AM_FILE))
                     continue;
                 Variant varValue = compBuffer.ReadVariant(attr.type_);
@@ -1157,7 +1157,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
 
                 while (attempts)
                 {
-                    const AttributeInfo& attr = attributes->At(i);
+                    const AttributeInfo& attr = attributes->at(i);
                     if ((attr.mode_ & AM_FILE) && !attr.name_.Compare(name, true))
                     {
                         if (attr.type_ == VAR_RESOURCEREF)

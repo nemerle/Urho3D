@@ -144,7 +144,7 @@ void StaticSprite2D::UpdateVertices()
     if (!verticesDirty_)
         return;
 
-    vertices_.Clear();
+    vertices_.clear();
 
     Texture2D* texture = GetTexture();
     if (!texture)
@@ -223,7 +223,7 @@ void StaticSprite2D::UpdateVertices()
         Swap(vertex0.uv_.x_, vertex3.uv_.x_);
         Swap(vertex1.uv_.x_, vertex2.uv_.x_);
     }
-    
+
     if (flipY_)
     {
         Swap(vertex0.uv_.y_, vertex1.uv_.y_);
@@ -232,10 +232,10 @@ void StaticSprite2D::UpdateVertices()
 
     vertex0.color_ = vertex1.color_ = vertex2.color_  = vertex3.color_ = color_.ToUInt();
 
-    vertices_.Push(vertex0);
-    vertices_.Push(vertex1);
-    vertices_.Push(vertex2);
-    vertices_.Push(vertex3);
+    vertices_.push_back(vertex0);
+    vertices_.push_back(vertex1);
+    vertices_.push_back(vertex2);
+    vertices_.push_back(vertex3);
 
     verticesDirty_ = false;
 }

@@ -264,7 +264,7 @@ ResourceRefList Deserializer::ReadResourceRefList()
 {
     ResourceRefList ret;
     ret.type_ = ReadStringHash();
-    ret.names_.Resize(ReadVLE());
+    ret.names_.resize(ReadVLE());
     for (unsigned i = 0; i < ret.names_.size(); ++i)
         ret.names_[i] = ReadString();
     return ret;

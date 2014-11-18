@@ -169,7 +169,7 @@ void RenderPathCommand::Load(const XMLElement& element)
     }
 
     // By default use 1 output, which is the viewport
-    outputNames_.Push("viewport");
+    outputNames_.push_back("viewport");
     if (element.HasAttribute("output"))
         outputNames_[0] = element.GetAttribute("output");
     // Check for defining multiple outputs
@@ -180,7 +180,7 @@ void RenderPathCommand::Load(const XMLElement& element)
         if (index < MAX_RENDERTARGETS)
         {
             if (index >= outputNames_.size())
-                outputNames_.Resize(index + 1);
+                outputNames_.resize(index + 1);
             outputNames_[index] = outputElem.GetAttribute("name");
         }
         outputElem = outputElem.GetNext("output");
@@ -221,7 +221,7 @@ void RenderPathCommand::RemoveShaderParameter(const String& name)
 void RenderPathCommand::SetNumOutputs(unsigned num)
 {
     num = Clamp((int)num, 1, MAX_RENDERTARGETS);
-    outputNames_.Resize(num);
+    outputNames_.resize(num);
 }
 
 void RenderPathCommand::SetOutputName(unsigned index, const String& name)
@@ -229,7 +229,7 @@ void RenderPathCommand::SetOutputName(unsigned index, const String& name)
     if (index < outputNames_.size())
         outputNames_[index] = name;
     else if (index == outputNames_.size() && index < MAX_RENDERTARGETS)
-        outputNames_.Push(name);
+        outputNames_.push_back(name);
 }
 
 const String& RenderPathCommand::GetTextureName(TextureUnit unit) const
@@ -266,8 +266,8 @@ SharedPtr<RenderPath> RenderPath::Clone()
 
 bool RenderPath::Load(XMLFile* file)
 {
-    renderTargets_.Clear();
-    commands_.Clear();
+    renderTargets_.clear();
+    commands_.clear();
 
     return Append(file);
 }
@@ -287,7 +287,7 @@ bool RenderPath::Append(XMLFile* file)
         RenderTargetInfo info;
         info.Load(rtElem);
         if (!info.name_.Trimmed().Empty())
-            renderTargets_.Push(info);
+            renderTargets_.push_back(info);
 
         rtElem = rtElem.GetNext("rendertarget");
     }
@@ -298,7 +298,7 @@ bool RenderPath::Append(XMLFile* file)
         RenderPathCommand cmd;
         cmd.Load(cmdElem);
         if (cmd.type_ != CMD_NONE)
-            commands_.Push(cmd);
+            commands_.push_back(cmd);
 
         cmdElem = cmdElem.GetNext("command");
     }
@@ -346,12 +346,12 @@ void RenderPath::SetRenderTarget(unsigned index, const RenderTargetInfo& info)
 
 void RenderPath::AddRenderTarget(const RenderTargetInfo& info)
 {
-    renderTargets_.Push(info);
+    renderTargets_.push_back(info);
 }
 
 void RenderPath::RemoveRenderTarget(unsigned index)
 {
-    renderTargets_.Erase(index);
+    renderTargets_.erase(index);
 }
 
 void RenderPath::RemoveRenderTarget(const String& name)
@@ -360,7 +360,7 @@ void RenderPath::RemoveRenderTarget(const String& name)
     {
         if (!renderTargets_[i].name_.Compare(name, false))
         {
-            renderTargets_.Erase(i);
+            renderTargets_.erase(i);
             return;
         }
     }
@@ -371,7 +371,7 @@ void RenderPath::RemoveRenderTargets(const String& tag)
     for (unsigned i = renderTargets_.size() - 1; i < renderTargets_.size(); --i)
     {
         if (!renderTargets_[i].tag_.Compare(tag, false))
-            renderTargets_.Erase(i);
+            renderTargets_.erase(i);
     }
 }
 
@@ -385,17 +385,17 @@ void RenderPath::SetCommand(unsigned index, const RenderPathCommand& command)
 
 void RenderPath::AddCommand(const RenderPathCommand& command)
 {
-    commands_.Push(command);
+    commands_.push_back(command);
 }
 
 void RenderPath::InsertCommand(unsigned index, const RenderPathCommand& command)
 {
-    commands_.Insert(index, command);
+    commands_.insert(index, command);
 }
 
 void RenderPath::RemoveCommand(unsigned index)
 {
-    commands_.Erase(index);
+    commands_.erase(index);
 }
 
 void RenderPath::RemoveCommands(const String& tag)
@@ -403,7 +403,7 @@ void RenderPath::RemoveCommands(const String& tag)
     for (unsigned i = commands_.size() - 1; i < commands_.size(); --i)
     {
         if (!commands_[i].tag_.Compare(tag, false))
-            commands_.Erase(i);
+            commands_.erase(i);
     }
 }
 
