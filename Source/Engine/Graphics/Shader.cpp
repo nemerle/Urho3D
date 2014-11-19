@@ -30,7 +30,6 @@
 #include "ResourceCache.h"
 #include "Shader.h"
 #include "ShaderVariation.h"
-#include "Sort.h"
 #include "XMLFile.h"
 
 #include "DebugNew.h"

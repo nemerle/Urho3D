@@ -34,8 +34,6 @@
 #include "UIEvents.h"
 #include "Window.h"
 
-#include "Sort.h"
-
 #include "DebugNew.h"
 
 namespace Urho3D

@@ -389,7 +389,7 @@ public:
     /// Return number of components.
     unsigned GetNumComponents() const { return components_.size(); }
     /// Return number of non-local components.
-    unsigned GetNumNetworkComponents() const;
+    size_t GetNumNetworkComponents() const;
     /// Return all components.
     const Vector<SharedPtr<Component> >& GetComponents() const { return components_; }
     /// Return all components of type. Optionally recursive.

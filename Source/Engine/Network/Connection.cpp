@@ -1265,9 +1265,8 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
     if (nodeState.componentStates_.size() != node->GetNumNetworkComponents())
     {
         const Vector<SharedPtr<Component> >& components = node->GetComponents();
-        for (unsigned i = 0; i < components.size(); ++i)
+        for (Component* component : components)
         {
-            Component* component = components[i];
             // Check if component is not to be replicated
             if (component->GetID() >= FIRST_LOCAL_ID)
                 continue;
@@ -1342,9 +1341,8 @@ bool Connection::RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg)
         }
 
         // Then the download cache
-        for (unsigned j = 0; j < downloadedPackages.size(); ++j)
+        for (const String& fileName : downloadedPackages)
         {
-            const String& fileName = downloadedPackages[j];
             // In download cache, package file name format is checksum_packagename
             if (!fileName.Find(checksumString) && !fileName.Substring(9).Compare(name, false))
             {

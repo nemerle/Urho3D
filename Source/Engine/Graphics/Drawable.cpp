@@ -30,7 +30,6 @@
 #include "Octree.h"
 #include "Renderer.h"
 #include "Scene.h"
-#include "Sort.h"
 #include "Zone.h"
 
 #include "DebugNew.h"

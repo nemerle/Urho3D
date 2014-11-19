@@ -47,8 +47,6 @@
 #include "XMLFile.h"
 #include "Zone.h"
 
-#include "Sort.h"
-
 #ifdef WIN32
 #include <windows.h>
 #endif

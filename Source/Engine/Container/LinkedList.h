@@ -23,10 +23,21 @@
 #pragma once
 
 #include "Urho3D.h"
-
+#include <deque>
 namespace Urho3D
 {
+#if 1
+template<typename T>
+class LinkedList : public std::deque<T> {
+public:
+    typedef typename std::deque<T>::iterator iterator;
+    iterator Next(iterator z) { return ++z; }
+};
 
+/// Singly-linked list node base class.
+struct URHO3D_API LinkedListNode
+{ };
+#else
 /// Singly-linked list node base class.
 struct URHO3D_API LinkedListNode
 {
@@ -35,7 +46,7 @@ struct URHO3D_API LinkedListNode
         next_(0)
     {
     }
-    
+
     /// Pointer to next node.
     LinkedListNode* next_;
 };
@@ -49,15 +60,15 @@ public:
         head_(0)
     {
     }
-    
+
     /// Destruct.
     ~LinkedList()
     {
-        Clear();
+        clear();
     }
-    
+
     /// Remove all elements.
-    void Clear()
+    void clear()
     {
         T* element = head_;
         while (element)
@@ -67,9 +78,9 @@ public:
             element = next;
         }
     }
-    
+
     /// Insert an element at the beginning.
-    void InsertFront(T* element)
+    void push_front(T* element)
     {
         if (element)
         {
@@ -77,25 +88,10 @@ public:
             head_ = element;
         }
     }
-    
-    /// Insert an element at the end.
-    void Insert(T* element)
-    {
-        if (head_)
-        {
-            T* tail = Last();
-            element->next_ = tail->next_;
-            tail->next_ = element;
-        }
-        else
-        {
-            element->next_ = head_;
-            head_ = element;
-        }
-    }
-    
+
+
     /// Erase an element. Return true if successful.
-    bool Erase(T* element)
+    bool remove(T* element)
     {
         if (element && head_)
         {
@@ -118,12 +114,12 @@ public:
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     /// Erase an element when the previous element is known (optimization.) Return true if successful.
-    bool Erase(T* element, T* previous)
+    bool remove(T* element, T* previous)
     {
         if (previous && previous->next_ == element)
         {
@@ -140,13 +136,13 @@ public:
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /// Return first element, or null if empty.
-    T* First() const { return head_; }
-    
+    T* begin() const { return head_; }
+
     /// Return last element, or null if empty.
     T* Last() const
     {
@@ -158,16 +154,16 @@ public:
         }
         return element;
     }
-    
+
     /// Return next element, or null if no more elements.
     T* Next(T* element) const { return element ? static_cast<T*>(element->next_) : 0; }
-    
+
     /// Return whether is empty.
-    bool Empty() const { return head_ == 0; }
-    
+    bool empty() const { return head_ == 0; }
+
 private:
     /// First element.
     T* head_;
 };
-
+#endif
 }

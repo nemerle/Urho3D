@@ -28,7 +28,6 @@
 #include "PackageFile.h"
 #include "Scene.h"
 #include "SmoothedTransform.h"
-#include "Sort.h"
 #include "SplinePath.h"
 #include "ValueAnimation.h"
 

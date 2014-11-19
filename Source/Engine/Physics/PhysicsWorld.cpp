@@ -36,7 +36,6 @@
 #include "RigidBody.h"
 #include "Scene.h"
 #include "SceneEvents.h"
-#include "Sort.h"
 
 #include <BulletCollision/BroadphaseCollision/btDbvtBroadphase.h>
 #include <BulletCollision/BroadphaseCollision/btBroadphaseProxy.h>

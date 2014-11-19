@@ -30,7 +30,6 @@
 #include "Octree.h"
 #include "Scene.h"
 #include "SceneEvents.h"
-#include "Sort.h"
 #include "Timer.h"
 #include "WorkQueue.h"
 

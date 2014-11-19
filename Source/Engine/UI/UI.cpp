@@ -44,7 +44,6 @@
 #include "Shader.h"
 #include "ShaderVariation.h"
 #include "Slider.h"
-#include "Sort.h"
 #include "Sprite.h"
 #include "Text.h"
 #include "Text3D.h"

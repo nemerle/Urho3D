@@ -27,7 +27,6 @@
 #include "Log.h"
 #include "ObjectAnimation.h"
 #include "ResourceCache.h"
-#include "Sort.h"
 #include "UI.h"
 #include "UIElement.h"
 #include "UIEvents.h"

@@ -26,7 +26,6 @@
 #include <QtCore/QSet>
 #include "OgreImporterUtils.h"
 #include "ProcessUtils.h"
-#include "Sort.h"
 #include "Tangent.h"
 #include "XMLFile.h"
 

@@ -30,6 +30,8 @@ namespace Urho3D
 
 class Context;
 class EventHandler;
+typedef LinkedList<EventHandler *>::iterator ilEventHandler;
+typedef LinkedList<EventHandler *>::const_iterator cilEventHandler;
 
 #define OBJECT(typeName) \
     public: \
@@ -99,7 +101,7 @@ public:
     /// Return whether has subscribed to a specific sender's event.
     bool HasSubscribedToEvent(Object* sender, StringHash eventType) const;
     /// Return whether has subscribed to any event.
-    bool HasEventHandlers() const { return !eventHandlers_.Empty(); }
+    bool HasEventHandlers() const { return !eventHandlers_.empty(); }
     /// Template version of returning a subsystem.
     template <class T> T* GetSubsystem() const;
     /// Return object category. Categories are (optionally) registered along with the object factory. Return an empty string if the object category is not registered.
@@ -111,16 +113,16 @@ protected:
 
 private:
     /// Find the first event handler with no specific sender.
-    EventHandler* FindEventHandler(StringHash eventType, EventHandler** previous = 0) const;
+    cilEventHandler FindEventHandler(StringHash eventType) const;
     /// Find the first event handler with specific sender.
-    EventHandler* FindSpecificEventHandler(Object* sender, EventHandler** previous = 0) const;
+    cilEventHandler FindSpecificEventHandler(Object* sender) const;
     /// Find the first event handler with specific sender and event type.
-    EventHandler* FindSpecificEventHandler(Object* sender, StringHash eventType, EventHandler** previous = 0) const;
+    cilEventHandler FindSpecificEventHandler(Object* sender, StringHash eventType) const;
     /// Remove event handlers related to a specific sender.
     void RemoveEventSender(Object* sender);
 
     /// Event handlers. Sender is null for non-specific handlers.
-    LinkedList<EventHandler> eventHandlers_;
+    LinkedList<EventHandler *> eventHandlers_;
 };
 
 template <class T> T* Object::GetSubsystem() const { return static_cast<T*>(GetSubsystem(T::GetTypeStatic())); }
@@ -177,7 +179,7 @@ public:
 };
 
 /// Internal helper class for invoking event handler functions.
-class URHO3D_API EventHandler : public LinkedListNode
+class URHO3D_API EventHandler
 {
 public:
     /// Construct with specified receiver.

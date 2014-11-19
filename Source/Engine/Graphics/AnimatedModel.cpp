@@ -39,7 +39,6 @@
 #include "ResourceCache.h"
 #include "ResourceEvents.h"
 #include "Scene.h"
-#include "Sort.h"
 #include "VertexBuffer.h"
 
 #include "DebugNew.h"

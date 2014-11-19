@@ -979,9 +979,9 @@ Node* Node::GetChild(StringHash nameHash, bool recursive) const
     return nullptr;
 }
 
-unsigned Node::GetNumNetworkComponents() const
+size_t Node::GetNumNetworkComponents() const
 {
-    unsigned num = 0;
+    size_t num = 0;
     for (const auto & elem : components_)
     {
         if ((elem)->GetID() < FIRST_LOCAL_ID)

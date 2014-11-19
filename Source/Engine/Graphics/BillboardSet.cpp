@@ -34,7 +34,6 @@
 #include "OctreeQuery.h"
 #include "Profiler.h"
 #include "ResourceCache.h"
-#include "Sort.h"
 #include "VertexBuffer.h"
 
 #include "DebugNew.h"

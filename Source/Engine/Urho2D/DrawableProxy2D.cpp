@@ -34,7 +34,6 @@
 #include "Profiler.h"
 #include "Scene.h"
 #include "VertexBuffer.h"
-#include "Sort.h"
 #include "WorkQueue.h"
 
 #include "DebugNew.h"

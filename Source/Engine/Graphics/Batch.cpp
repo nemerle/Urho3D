@@ -31,7 +31,6 @@
 #include "Profiler.h"
 #include "Scene.h"
 #include "ShaderVariation.h"
-#include "Sort.h"
 #include "Technique.h"
 #include "Texture2D.h"
 #include "VertexBuffer.h"
@@ -784,7 +783,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
     // Mobile devices likely use a tiled deferred approach, with which front-to-back sorting is irrelevant. The 2-pass
     // method is also time consuming, so just sort with state having priority
     #ifdef GL_ES_VERSION_2_0
-    Sort(batches.begin(), batches.end(), CompareBatchesState);
+    std::sort(batches.begin(), batches.end(), CompareBatchesState);
     #else
     // For desktop, first sort by distance and remap shader/material/geometry IDs in the sort key
     std::sort(batches.begin(), batches.end(), CompareBatchesFrontToBack);

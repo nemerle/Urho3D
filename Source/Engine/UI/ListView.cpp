@@ -26,7 +26,6 @@
 #include "InputEvents.h"
 #include "ListView.h"
 #include "Log.h"
-#include "Sort.h"
 #include "Text.h"
 #include "UI.h"
 #include "UIEvents.h"
