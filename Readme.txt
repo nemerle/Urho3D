@@ -286,7 +286,8 @@ activity subclasses the SDLActivity from org.libsdl.app package, whose name
 Note that the native code is built by default for armeabi-v7a ABI. To make your
 program compatible also with old Android devices, build also an armeabi version
 by executing the CMake batch file again with the parameter -DANDROID_ABI=armeabi
-added, then execute make again in the build directory.
+added, then execute make again in the build directory. See "Build options" for
+all the possible values.
 
 You can also build and deploy using Eclipse IDE with ADT plugin. To do that,
 after setting the ANDROID_NDK environment variable then run cmake_eclipse.sh.
@@ -488,6 +489,7 @@ cmake_xxxx batch files or shell scripts.
 |                     | | Android cross-compiling build only), SSH digital key |
 |                     | | must be setup first for this to work, typical value  |
 |                     | | has a pattern of usr@tgt:remote-loc                  |
+|URHO3D_NDK_GDB       |0|Enable ndk-gdb for debugging (Android build only)     |
 |CMAKE_BUILD_TYPE     |*|Specify CMake build configuration to be generated     |
 |                     | | (Makefile generator only), possible values are       |
 |                     | | Release (*default), Debug, and RelWithDebInfo        |
@@ -496,7 +498,9 @@ cmake_xxxx batch files or shell scripts.
 |IPHONEOS_            |-|Specify iPhone OS deployment target (iOS build only); |
 | DEPLOYMENT_TARGET   | | default to latest installed iOS SDK if not specified |
 |ANDROID_ABI          |*|Specify target ABI (Android build only), possible     |
-|                     | | values are armeabi-v7a (*default) and armeabi        |
+|                     | | values are armeabi, armeabi-v7a (*default),          |
+|                     | | armeabi-v7a with NEON, armeabi-v7a with VFPV3,       |
+|                     | | armeabi-v6 with VFP, arm64-v8a, x86, and x86_64      |
 |---------------------|-|------------------------------------------------------|
 
 Note that build option values specified via command line are cached by CMake.
@@ -544,9 +548,7 @@ Steps to configure:
    are no more new options in red. For the first configuration, choose the
    generator you like to use. Click the Group check box to group the build
    options.
-    - In the Ungrouped Entries: only check one of these options (ANDROID, IOS,
-      RASPI) when you target the platform, leave them unchecked for
-      dekstop/native build.
+    - In the Ungrouped Entries: check IOS option when targeting it on Xcode.
     - In the URHO3D group: check any of the options you desire. Some of the
       options when checked may cause new options to be made available in the
       subsequent configuration loop.
@@ -667,7 +669,7 @@ V1.32   - Finalized Urho2D functionality, including 2D physics using Box2D,
           graphics functionality
         - Build system: improved generated scripting documentation
         - Build system: improved support for IDE's in CMake scripts
-        - Build system: support up to Android NDK r10c
+        - Build system: support up to Android NDK r10c and 64-bit ABIs
         - Build system: numerous other improvements
         - Editor: resource browser
         - Editor: spawn window for random-generating objects

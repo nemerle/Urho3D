@@ -1069,7 +1069,7 @@ void UIElement::UpdateLayout()
 
         CalculateLayout(positions, sizes, minSizes, maxSizes, flexScales, GetWidth(), layoutBorder_.left_, layoutBorder_.right_, layoutSpacing_);
 
-        int width = Max(GetWidth(), CalculateLayoutParentSize(sizes, layoutBorder_.left_, layoutBorder_.right_, layoutSpacing_));
+        int width = CalculateLayoutParentSize(sizes, layoutBorder_.left_, layoutBorder_.right_, layoutSpacing_);
         int height = Max(GetHeight(), minChildHeight + layoutBorder_.top_ + layoutBorder_.bottom_);
         int minWidth = Min(CalculateLayoutParentSize(minSizes, layoutBorder_.left_, layoutBorder_.right_, layoutSpacing_), maxSize_.x_);
         int minHeight = Min(minChildHeight + layoutBorder_.top_ + layoutBorder_.bottom_, maxSize_.y_);
@@ -1111,7 +1111,7 @@ void UIElement::UpdateLayout()
 
         CalculateLayout(positions, sizes, minSizes, maxSizes, flexScales, GetHeight(), layoutBorder_.top_, layoutBorder_.bottom_, layoutSpacing_);
 
-        int height = Max(GetHeight(), CalculateLayoutParentSize(sizes, layoutBorder_.top_, layoutBorder_.bottom_, layoutSpacing_));
+        int height = CalculateLayoutParentSize(sizes, layoutBorder_.top_, layoutBorder_.bottom_, layoutSpacing_);
         int width = Max(GetWidth(), minChildWidth + layoutBorder_.left_ + layoutBorder_.right_);
         int minHeight = Min(CalculateLayoutParentSize(minSizes, layoutBorder_.top_, layoutBorder_.bottom_, layoutSpacing_), maxSize_.y_);
         int minWidth = Min(minChildWidth + layoutBorder_.left_ + layoutBorder_.right_, maxSize_.x_);
@@ -1919,7 +1919,7 @@ void UIElement::CalculateLayout(PODVector<int>& positions, PODVector<int>& sizes
         for (int i = 0; i < numResizable; ++i)
         {
             unsigned index = resizable[i];
-            int targetSize = sizes[index] + errorPerChild * flexScales[i];
+            int targetSize = sizes[index] + errorPerChild;
             if (remainder)
             {
                 acc += add;
