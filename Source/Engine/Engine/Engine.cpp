@@ -200,9 +200,9 @@ bool Engine::Initialize(const VariantMap& parameters)
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
     String exePath = fileSystem->GetProgramDir();
 
-    Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().Split(';');
-    Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().Split(';');
-    Vector<String> autoloadFolders = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().Split(';');
+    Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
+    Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
+    Vector<String> autoloadFolders = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().split(';');
 
     for (unsigned i = 0; i < resourcePaths.size(); ++i)
     {
@@ -279,7 +279,7 @@ bool Engine::Initialize(const VariantMap& parameters)
             for (unsigned y = 0; y < folders.size(); ++y)
             {
                 String folder = folders[y];
-                if (folder.StartsWith("."))
+                if (folder.startsWith("."))
                     continue;
 
                 String autoResourceDir = exePath + autoloadFolder + "/" + folder;
@@ -298,7 +298,7 @@ bool Engine::Initialize(const VariantMap& parameters)
                 for (unsigned y = 0; y < paks.size(); ++y)
                 {
                     String pak = paks[y];
-                    if (pak.StartsWith("."))
+                    if (pak.startsWith("."))
                         continue;
 
                     String autoResourcePak = exePath + autoloadFolder + "/" + pak;
@@ -732,7 +732,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
     {
         if (arguments[i].Length() > 1 && arguments[i][0] == '-')
         {
-            String argument = arguments[i].Substring(1).ToLower();
+            String argument = arguments[i].Substring(1).toLower();
             String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
 
             if (argument == "headless")
@@ -775,7 +775,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ret["Borderless"] = true;
             else if (argument == "q")
                 ret["LogQuiet"] = true;
-            else if (argument == "log" && !value.Empty())
+            else if (argument == "log" && !value.isEmpty())
             {
                 int logLevel = GetStringListIndex(value.CString(), logLevelPrefixes, -1);
                 if (logLevel != -1)
@@ -784,62 +784,62 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                     ++i;
                 }
             }
-            else if (argument == "x" && !value.Empty())
+            else if (argument == "x" && !value.isEmpty())
             {
                 ret["WindowWidth"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "y" && !value.Empty())
+            else if (argument == "y" && !value.isEmpty())
             {
                 ret["WindowHeight"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "m" && !value.Empty())
+            else if (argument == "m" && !value.isEmpty())
             {
                 ret["MultiSample"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "b" && !value.Empty())
+            else if (argument == "b" && !value.isEmpty())
             {
                 ret["SoundBuffer"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "r" && !value.Empty())
+            else if (argument == "r" && !value.isEmpty())
             {
                 ret["SoundMixRate"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "p" && !value.Empty())
+            else if (argument == "p" && !value.isEmpty())
             {
                 ret["ResourcePaths"] = value;
                 ++i;
             }
-            else if (argument == "ap" && !value.Empty())
+            else if (argument == "ap" && !value.isEmpty())
             {
                 ret["AutoloadPaths"] = value;
                 ++i;
             }
-            else if (argument == "ds" && !value.Empty())
+            else if (argument == "ds" && !value.isEmpty())
             {
                 ret["DumpShaders"] = value;
                 ++i;
             }
-            else if (argument == "mq" && !value.Empty())
+            else if (argument == "mq" && !value.isEmpty())
             {
                 ret["MaterialQuality"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "tq" && !value.Empty())
+            else if (argument == "tq" && !value.isEmpty())
             {
                 ret["TextureQuality"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "tf" && !value.Empty())
+            else if (argument == "tf" && !value.isEmpty())
             {
                 ret["TextureFilterMode"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "af" && !value.Empty())
+            else if (argument == "af" && !value.isEmpty())
             {
                 ret["TextureFilterMode"] = FILTER_ANISOTROPIC;
                 ret["TextureAnisotropy"] = ToInt(value);

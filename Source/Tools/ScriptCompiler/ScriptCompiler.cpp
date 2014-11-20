@@ -112,7 +112,7 @@ int main(int argc, char** argv)
         else
             cache->AddResourceDir(cache->GetPreferredResourceDir(path));
 
-        if (!file.StartsWith("*"))
+        if (!file.startsWith("*"))
             CompileScript(context, outputFile);
         else
         {
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        if (!outputFile.Empty())
+        if (!outputFile.isEmpty())
         {
             log->SetQuiet(true);
             log->Open(outputFile);

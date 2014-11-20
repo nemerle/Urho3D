@@ -215,9 +215,9 @@ bool Technique::BeginLoad(Deserializer& source)
     String globalVSDefines = rootElem.GetAttribute("vsdefines");
     String globalPSDefines = rootElem.GetAttribute("psdefines");
     // End with space so that the pass-specific defines can be appended
-    if (!globalVSDefines.Empty())
+    if (!globalVSDefines.isEmpty())
         globalVSDefines += ' ';
-    if (!globalPSDefines.Empty())
+    if (!globalPSDefines.isEmpty())
         globalPSDefines += ' ';
     bool globalAlphaMask = false;
     if (rootElem.HasAttribute("alphamask"))

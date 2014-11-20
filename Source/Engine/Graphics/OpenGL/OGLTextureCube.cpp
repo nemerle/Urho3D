@@ -117,7 +117,7 @@ bool TextureCube::BeginLoad(Deserializer& source)
     {
         String name = imageElem.GetAttribute("name");
         // If path is empty, add the XML file path
-        if (GetPath(name).Empty())
+        if (GetPath(name).isEmpty())
             name = texPath + name;
 
         CubeMapLayout layout = (CubeMapLayout)GetStringListIndex(imageElem.GetAttribute("layout").CString(), cubeMapLayoutNames, CML_HORIZONTAL);
@@ -196,7 +196,7 @@ bool TextureCube::BeginLoad(Deserializer& source)
             String name = faceElem.GetAttribute("name");
 
             // If path is empty, add the XML file path
-            if (GetPath(name).Empty())
+            if (GetPath(name).isEmpty())
                 name = texPath + name;
 
             loadImages_.push_back(cache->GetTempResource<Image>(name));

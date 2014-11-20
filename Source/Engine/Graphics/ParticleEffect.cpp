@@ -92,7 +92,7 @@ void ParticleEffect::RegisterObject(Context* context)
 
 bool ParticleEffect::BeginLoad(Deserializer& source)
 {
-    loadMaterialName_.Clear();
+    loadMaterialName_.clear();
 
     XMLFile file(context_);
     if (!file.Load(source))
@@ -283,10 +283,10 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
 bool ParticleEffect::EndLoad()
 {
     // Apply the material now
-    if (!loadMaterialName_.Empty())
+    if (!loadMaterialName_.isEmpty())
     {
         SetMaterial(GetSubsystem<ResourceCache>()->GetResource<Material>(loadMaterialName_));
-        loadMaterialName_.Clear();
+        loadMaterialName_.clear();
     }
 
     return true;

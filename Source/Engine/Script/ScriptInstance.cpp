@@ -266,7 +266,7 @@ void ScriptInstance::DelayedExecute(float delay, bool repeat, const String& decl
 
 void ScriptInstance::ClearDelayedExecute(const String& declaration)
 {
-    if (declaration.Empty())
+    if (declaration.isEmpty())
         delayedCalls_.clear();
     else
     {
@@ -462,7 +462,7 @@ void ScriptInstance::OnMarkedDirty(Node* node)
 
 void ScriptInstance::CreateObject()
 {
-    if (!scriptFile_ || className_.Empty())
+    if (!scriptFile_ || className_.isEmpty())
         return;
 
     PROFILE(CreateScriptObject);
@@ -548,7 +548,7 @@ void ScriptInstance::GetScriptAttributes()
             continue;
 
         String typeName = engine->GetTypeDeclaration(typeId);
-        isHandle = typeName.EndsWith("@");
+        isHandle = typeName.endsWith("@");
         if (isHandle)
             typeName = typeName.Substring(0, typeName.Length() - 1);
 
@@ -793,7 +793,7 @@ void ScriptInstance::HandleScriptFileReload(StringHash eventType, VariantMap& ev
 
 void ScriptInstance::HandleScriptFileReloadFinished(StringHash eventType, VariantMap& eventData)
 {
-    if (!className_.Empty())
+    if (!className_.isEmpty())
         CreateObject();
 }
 

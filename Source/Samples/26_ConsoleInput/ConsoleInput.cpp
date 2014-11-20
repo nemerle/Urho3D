@@ -192,8 +192,8 @@ void ConsoleInput::Advance()
 
 void ConsoleInput::HandleInput(const String& input)
 {
-    String inputLower = input.ToLower().Trimmed();
-    if (inputLower.Empty())
+    String inputLower = input.toLower().Trimmed();
+    if (inputLower.isEmpty())
     {
         Print("Empty input given!");
         return;

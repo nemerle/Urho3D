@@ -60,7 +60,7 @@ void JSONFile::RegisterObject(Context* context)
 bool JSONFile::BeginLoad(Deserializer& source)
 {
     unsigned dataSize = source.GetSize();
-    if (!dataSize && !source.GetName().Empty())
+    if (!dataSize && !source.GetName().isEmpty())
     {
         LOGERROR("Zero sized JSON data in " + source.GetName());
         return false;

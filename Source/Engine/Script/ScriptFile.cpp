@@ -367,7 +367,7 @@ void ScriptFile::DelayedExecute(float delay, bool repeat, const String& declarat
 
 void ScriptFile::ClearDelayedExecute(const String& declaration)
 {
-    if (declaration.Empty())
+    if (declaration.isEmpty())
         delayedCalls_.clear();
     else
     {
@@ -600,7 +600,7 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
                                 includeFile = prefixedIncludeFile;
                         }
 
-                        String includeFileLower = includeFile.ToLower();
+                        String includeFileLower = includeFile.toLower();
 
                         // If not included yet, store it for later processing
                         if (!includeFiles_.contains(includeFileLower))

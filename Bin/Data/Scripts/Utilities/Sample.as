@@ -230,7 +230,7 @@ void HandleKeyDown(StringHash eventType, VariantMap& eventData)
             graphics.TakeScreenShot(screenshot);
             // Here we save in the Data folder with date and time appended
             screenshot.SavePNG(fileSystem.programDir + "Data/Screenshot_" +
-                time.timeStamp.Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_') + ".png");
+                time.timeStamp.replaced(':', '_').replaced('.', '_').replaced(' ', '_') + ".png");
         }
     }
 }

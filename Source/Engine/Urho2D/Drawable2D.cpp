@@ -189,7 +189,7 @@ void Drawable2D::SetSpriteAttr(ResourceRef value)
     if (value.type_ == SpriteSheet2D::GetTypeStatic())
     {
         // value.name_ include sprite speet name and sprite name.
-        Vector<String> names = value.name_.Split('@');
+        Vector<String> names = value.name_.split('@');
         if (names.size() != 2)
             return;
 

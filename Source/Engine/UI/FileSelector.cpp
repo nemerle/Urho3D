@@ -447,7 +447,7 @@ void FileSelector::HandleOKPressed(StringHash eventType, VariantMap& eventData)
 
     if (!directoryMode_)
     {
-        if (!fileName.Empty())
+        if (!fileName.isEmpty())
         {
             using namespace FileSelected;
 
@@ -458,7 +458,7 @@ void FileSelector::HandleOKPressed(StringHash eventType, VariantMap& eventData)
             SendEvent(E_FILESELECTED, newEventData);
         }
     }
-    else if (eventType == E_RELEASED && !path_.Empty())
+    else if (eventType == E_RELEASED && !path_.isEmpty())
     {
         using namespace FileSelected;
 

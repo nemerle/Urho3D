@@ -76,7 +76,7 @@ void Urho3DPlayer::Setup()
     }
 
     // Show usage if not found
-    if (scriptFileName_.Empty())
+    if (scriptFileName_.isEmpty())
     {
         ErrorExit("Usage: Urho3DPlayer <scriptfile> [options]\n\n"
             "The script file should implement the function void Start() for initializing the "

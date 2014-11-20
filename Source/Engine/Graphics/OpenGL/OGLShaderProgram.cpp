@@ -53,7 +53,7 @@ void ShaderProgram::OnDeviceLost()
         graphics_->SetShaders(nullptr, nullptr);
 
 
-    linkerOutput_.Clear();
+    linkerOutput_.clear();
 }
 
 void ShaderProgram::Release()
@@ -72,7 +72,7 @@ void ShaderProgram::Release()
         }
 
         object_ = 0;
-        linkerOutput_.Clear();
+        linkerOutput_.clear();
         shaderParameters_.clear();
 
         for (auto & elem : useTextureUnit_)
@@ -129,7 +129,7 @@ bool ShaderProgram::Link()
         object_ = 0;
     }
     else
-        linkerOutput_.Clear();
+        linkerOutput_.clear();
 
     if (!object_)
         return false;
@@ -156,11 +156,11 @@ bool ShaderProgram::Link()
 
         // Check for array index included in the name and strip it
         String name(uniformName);
-        unsigned index = name.Find('[');
+        unsigned index = name.indexOf('[');
         if (index != String::NPOS)
         {
             // If not the first index, skip
-            if (name.Find("[0]", index) == String::NPOS)
+            if (name.indexOf("[0]", index) == String::NPOS)
                 continue;
 
             name = name.Substring(0, index);

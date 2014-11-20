@@ -149,7 +149,7 @@ bool ResourceCache::AddManualResource(Resource* resource)
     }
 
     const String& name = resource->GetName();
-    if (name.Empty())
+    if (name.isEmpty())
     {
         LOGERROR("Manual resource with empty name, can not add");
         return false;
@@ -275,7 +275,7 @@ void ResourceCache::ReleaseResources(StringHash type, const String& partialName,
             j != i->resources_.end();)
         {
             QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-            if ((*current)->GetName().Contains(partialName))
+            if ((*current)->GetName().contains(partialName))
             {
                 // If other references exist, do not release, unless forced
                 if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
@@ -308,7 +308,7 @@ void ResourceCache::ReleaseResources(const String& partialName, bool force)
                 j != elem.resources_.end();)
             {
                 QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-                if ((*current)->GetName().Contains(partialName))
+                if ((*current)->GetName().contains(partialName))
                 {
                     // If other references exist, do not release, unless forced
                     if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
@@ -477,7 +477,7 @@ SharedPtr<File> ResourceCache::GetFile(const String& nameIn, bool sendEventOnFai
 
     if (sendEventOnFailure)
     {
-        if (resourceRouter_ && name.Empty() && !nameIn.Empty())
+        if (resourceRouter_ && name.isEmpty() && !nameIn.isEmpty())
             LOGERROR("Resource request " + nameIn + " was blocked");
         else
             LOGERROR("Could not find resource " + name);
@@ -506,7 +506,7 @@ Resource* ResourceCache::GetResource(StringHash type, const String& nameIn, bool
     }
 
     // If empty name, return null pointer immediately
-    if (name.Empty())
+    if (name.isEmpty())
         return nullptr;
 
     StringHash nameHash(name);
@@ -573,7 +573,7 @@ bool ResourceCache::BackgroundLoadResource(StringHash type, const String& nameIn
 {
     // If empty name, fail immediately
     String name = SanitateResourceName(nameIn);
-    if (name.Empty())
+    if (name.isEmpty())
         return false;
 
     // First check if already exists as a loaded resource
@@ -589,7 +589,7 @@ SharedPtr<Resource> ResourceCache::GetTempResource(StringHash type, const String
     String name = SanitateResourceName(nameIn);
 
     // If empty name, return null pointer immediately
-    if (name.Empty())
+    if (name.isEmpty())
         return SharedPtr<Resource>();
 
     SharedPtr<Resource> resource;
@@ -661,7 +661,7 @@ bool ResourceCache::Exists(const String& nameIn) const
     if (resourceRouter_)
         resourceRouter_->Route(name, RESOURCE_CHECKEXISTS);
 
-    if (name.Empty())
+    if (name.isEmpty())
         return false;
 
     for (unsigned i = 0; i < packages_.size(); ++i)
@@ -764,8 +764,8 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
 {
     // Sanitate unsupported constructs from the resource name
     String name = GetInternalPath(nameIn);
-    name.Replace("../", "");
-    name.Replace("./", "");
+    name.replace("../", "");
+    name.replace("./", "");
 
     // If the path refers to one of the resource directories, normalize the resource name
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
@@ -776,12 +776,12 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
         for (unsigned i = 0; i < resourceDirs_.size(); ++i)
         {
             String relativeResourcePath = resourceDirs_[i];
-            if (relativeResourcePath.StartsWith(exePath))
+            if (relativeResourcePath.startsWith(exePath))
                 relativeResourcePath = relativeResourcePath.Substring(exePath.Length());
 
-            if (namePath.StartsWith(resourceDirs_[i], false))
+            if (namePath.startsWith(resourceDirs_[i], false))
                 namePath = namePath.Substring(resourceDirs_[i].Length());
-            else if (namePath.StartsWith(relativeResourcePath, false))
+            else if (namePath.startsWith(relativeResourcePath, false))
                 namePath = namePath.Substring(relativeResourcePath.Length());
         }
 
@@ -798,7 +798,7 @@ String ResourceCache::SanitateResourceDirName(const String& nameIn) const
         fixedPath = GetSubsystem<FileSystem>()->GetCurrentDir() + fixedPath;
 
     // Sanitate away /./ construct
-    fixedPath.Replace("/./", "/");
+    fixedPath.replace("/./", "/");
 
     return fixedPath.Trimmed();
 }

@@ -269,7 +269,7 @@ bool DropDownList::FilterPopupImplicitAttributes(XMLElement& dest) const
         return false;
 
     // Window popup
-    if (dest.GetAttribute("style").Empty() && !dest.SetAttribute("style", "none"))
+    if (dest.GetAttribute("style").isEmpty() && !dest.SetAttribute("style", "none"))
         return false;
     if (!RemoveChildXML(dest, "Layout Mode", "Vertical"))
         return false;
@@ -282,7 +282,7 @@ bool DropDownList::FilterPopupImplicitAttributes(XMLElement& dest) const
         return false;
     if (!listView_->FilterAttributes(childElem))
         return false;
-    if (childElem.GetAttribute("style").Empty() && !childElem.SetAttribute("style", "none"))
+    if (childElem.GetAttribute("style").isEmpty() && !childElem.SetAttribute("style", "none"))
         return false;
     if (!RemoveChildXML(childElem, "Focus Mode", "NotFocusable"))
         return false;
@@ -303,14 +303,14 @@ bool DropDownList::FilterPopupImplicitAttributes(XMLElement& dest) const
     childElem = childElem.GetNext("element");
     if (!childElem)
         return false;
-    if (childElem.GetAttribute("style").Empty() && !childElem.SetAttribute("style", "none"))
+    if (childElem.GetAttribute("style").isEmpty() && !childElem.SetAttribute("style", "none"))
         return false;
 
     // Item container
     childElem = childElem.GetChild("element");
     if (!childElem)
         return false;
-    if (childElem.GetAttribute("style").Empty() && !childElem.SetAttribute("style", "none"))
+    if (childElem.GetAttribute("style").isEmpty() && !childElem.SetAttribute("style", "none"))
         return false;
 
     return true;

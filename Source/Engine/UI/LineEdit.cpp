@@ -231,7 +231,7 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
         if (editable_ && textCopyable_ && qualifiers & QUAL_CTRL)
         {
             const String& clipBoard = GetSubsystem<UI>()->GetClipboardText();
-            if (!clipBoard.Empty())
+            if (!clipBoard.isEmpty())
             {
                 // Remove selected text first
                 if(text_->GetSelectionLength() > 0)
@@ -443,7 +443,7 @@ void LineEdit::OnTextInput(const String& text, int buttons, int qualifiers)
     SendEvent(E_TEXTENTRY, eventData);
 
     const String newText = eventData[P_TEXT].GetString().SubstringUTF8(0);
-    if (!newText.Empty() && (!maxLength_ || line_.LengthUTF8() + newText.LengthUTF8() <= maxLength_))
+    if (!newText.isEmpty() && (!maxLength_ || line_.LengthUTF8() + newText.LengthUTF8() <= maxLength_))
     {
         if (!text_->GetSelectionLength())
         {

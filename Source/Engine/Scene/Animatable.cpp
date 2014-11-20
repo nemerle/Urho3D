@@ -124,7 +124,7 @@ bool Animatable::SaveXML(XMLElement& dest) const
         return false;
 
     // Object animation without name
-    if (objectAnimation_ && objectAnimation_->GetName().Empty())
+    if (objectAnimation_ && objectAnimation_->GetName().isEmpty())
     {
         XMLElement elem = dest.CreateChild("objectanimation");
         if (!objectAnimation_->SaveXML(elem))
@@ -275,7 +275,7 @@ float Animatable::GetAttributeAnimationSpeed(const String& name) const
 
 void Animatable::SetObjectAnimationAttr(ResourceRef value)
 {
-    if (!value.name_.Empty())
+    if (!value.name_.isEmpty())
     {
         ResourceCache* cache = GetSubsystem<ResourceCache>();
         SetObjectAnimation(cache->GetResource<ObjectAnimation>(value.name_));

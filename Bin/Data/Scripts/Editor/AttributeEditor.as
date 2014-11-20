@@ -1147,7 +1147,7 @@ String GetResourceNameFromFullName(const String&in resourceName)
 
     for (uint i = 0; i < resourceDirs.length; ++i)
     {
-        if (!resourceName.ToLower().StartsWith(resourceDirs[i].ToLower()))
+        if (!resourceName.toLower().startsWith(resourceDirs[i].toLower()))
             continue;
         return resourceName.Substring(resourceDirs[i].length);
     }

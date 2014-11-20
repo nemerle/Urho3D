@@ -59,10 +59,10 @@ MessageBox::MessageBox(Context* context, const String& messageString, const Stri
 
     // Set the title and message strings if they are given
     titleText_ = dynamic_cast<Text*>(window_->GetChild("TitleText", true));
-    if (titleText_ && !titleString.Empty())
+    if (titleText_ && !titleString.isEmpty())
         titleText_->SetText(titleString);
     messageText_ = dynamic_cast<Text*>(window_->GetChild("MessageText", true));
-    if (messageText_ && !messageString.Empty())
+    if (messageText_ && !messageString.isEmpty())
         messageText_->SetText(messageString);
 
     // Center window after the message is set

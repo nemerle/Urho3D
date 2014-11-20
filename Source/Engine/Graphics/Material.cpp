@@ -74,7 +74,7 @@ static const char* cullModeNames[] =
 
 TextureUnit ParseTextureUnitName(String name)
 {
-    name = name.ToLower().Trimmed();
+    name = name.toLower().Trimmed();
 
     TextureUnit unit = (TextureUnit)GetStringListIndex(name.CString(), textureUnitNames, MAX_TEXTURE_UNITS);
     if (unit == MAX_TEXTURE_UNITS)

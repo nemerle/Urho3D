@@ -52,7 +52,7 @@ void AnimationSet2D::RegisterObject(Context* context)
 
 bool AnimationSet2D::BeginLoad(Deserializer& source)
 {
-    if (GetName().Empty())
+    if (GetName().isEmpty())
         SetName(source.GetName());
 
     loadXMLFile_ = new XMLFile(context_);

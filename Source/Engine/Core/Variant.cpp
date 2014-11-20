@@ -254,7 +254,7 @@ void Variant::FromString(VariantType type, const char* value)
 
     case VAR_RESOURCEREF:
         {
-            Vector<String> values = String::Split(value, ';');
+            Vector<String> values = String::split(value, ';');
             if (values.size() == 2)
             {
                 SetType(VAR_RESOURCEREF);
@@ -267,7 +267,7 @@ void Variant::FromString(VariantType type, const char* value)
 
     case VAR_RESOURCEREFLIST:
         {
-            Vector<String> values = String::Split(value, ';');
+            Vector<String> values = String::split(value, ';');
             if (values.size() >= 1)
             {
                 SetType(VAR_RESOURCEREFLIST);
@@ -424,7 +424,7 @@ bool Variant::IsZero() const
         return *reinterpret_cast<const Color*>(&value_) == Color::WHITE;
 
     case VAR_STRING:
-        return reinterpret_cast<const String*>(&value_)->Empty();
+        return reinterpret_cast<const String*>(&value_)->isEmpty();
 
     case VAR_BUFFER:
         return reinterpret_cast<const PODVector<unsigned char>*>(&value_)->empty();
@@ -433,14 +433,14 @@ bool Variant::IsZero() const
         return value_.ptr_ == nullptr;
 
     case VAR_RESOURCEREF:
-        return reinterpret_cast<const ResourceRef*>(&value_)->name_.Empty();
+        return reinterpret_cast<const ResourceRef*>(&value_)->name_.isEmpty();
 
     case VAR_RESOURCEREFLIST:
     {
         const Vector<String>& names = reinterpret_cast<const ResourceRefList*>(&value_)->names_;
         for (const String &name : names)
         {
-            if (!name.Empty())
+            if (!name.isEmpty())
                 return false;
         }
         return true;

@@ -175,9 +175,9 @@ static unsigned glesDepthStencilFormat = GL_DEPTH_COMPONENT16;
 
 bool CheckExtension(String& extensions, const String& name)
 {
-    if (extensions.Empty())
+    if (extensions.isEmpty())
         extensions = (const char*)glGetString(GL_EXTENSIONS);
-    return extensions.Contains(name);
+    return extensions.contains(name);
 }
 
 static void GetGLPrimitiveType(unsigned elementCount, PrimitiveType type, unsigned& primitiveCount, GLenum& glPrimitiveType)
@@ -1066,7 +1066,7 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
     // Compile the shaders now if not yet compiled. If already attempted, do not retry
     if (vs && !vs->GetGPUObject())
     {
-        if (vs->GetCompilerOutput().Empty())
+        if (vs->GetCompilerOutput().isEmpty())
         {
             PROFILE(CompileVertexShader);
 
@@ -1085,7 +1085,7 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
 
     if (ps && !ps->GetGPUObject())
     {
-        if (ps->GetCompilerOutput().Empty())
+        if (ps->GetCompilerOutput().isEmpty())
         {
             PROFILE(CompilePixelShader);
 
@@ -2585,7 +2585,7 @@ unsigned Graphics::GetDepthStencilFormat()
 
 unsigned Graphics::GetFormat(const String& formatName)
 {
-    String nameLower = formatName.ToLower().Trimmed();
+    String nameLower = formatName.toLower().Trimmed();
 
     if (nameLower == "a")
         return GetAlphaFormat();

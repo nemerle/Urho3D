@@ -1469,7 +1469,7 @@ void Node::OnAttributeAnimationRemoved()
 
 void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
 {
-    Vector<String> names = name.Split('/');
+    Vector<String> names = name.split('/');
     // Only attribute name
     if (names.size() == 1)
         SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
@@ -1505,7 +1505,7 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
         }
 
         String componentName = names[i].Substring(1, names[i].Length() - 1);
-        Vector<String> componentNames = componentName.Split('#');
+        Vector<String> componentNames = componentName.split('#');
         if (componentNames.size() == 1)
         {
             Component* component = node->GetComponent(StringHash(componentNames.front()));
@@ -1604,14 +1604,14 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
 Component* Node::SafeCreateComponent(const String& typeName, StringHash type, CreateMode mode, unsigned id)
 {
     // First check if factory for type exists
-    if (!context_->GetTypeName(type).Empty())
+    if (!context_->GetTypeName(type).isEmpty())
         return CreateComponent(type, mode, id);
     else
     {
         LOGWARNING("Component type " + type.ToString() + " not known, creating UnknownComponent as placeholder");
         // Else create as UnknownComponent
         SharedPtr<UnknownComponent> newComponent(new UnknownComponent(context_));
-        if (typeName.Empty() || typeName.StartsWith("Unknown", false))
+        if (typeName.isEmpty() || typeName.startsWith("Unknown", false))
             newComponent->SetType(type);
         else
             newComponent->SetTypeName(typeName);

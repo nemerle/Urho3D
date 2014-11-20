@@ -80,7 +80,7 @@ Log::~Log()
 void Log::Open(const String& fileName)
 {
     #if !defined(ANDROID) && !defined(IOS)
-    if (fileName.Empty())
+    if (fileName.isEmpty())
         return;
     if (logFile_ && logFile_->IsOpen())
     {

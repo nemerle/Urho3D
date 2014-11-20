@@ -52,7 +52,7 @@ void Sprite2D::RegisterObject(Context* context)
 
 bool Sprite2D::BeginLoad(Deserializer& source)
 {
-    if (GetName().Empty())
+    if (GetName().isEmpty())
         SetName(source.GetName());
     
     loadTexture_ = new Texture2D(context_);

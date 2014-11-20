@@ -54,10 +54,10 @@ void SpriteSheet2D::RegisterObject(Context* context)
 
 bool SpriteSheet2D::BeginLoad(Deserializer& source)
 {
-    if (GetName().Empty())
+    if (GetName().isEmpty())
         SetName(source.GetName());
 
-    loadTextureName_.Clear();
+    loadTextureName_.clear();
     spriteMapping_.clear();
 
     String extension = GetExtension(source.GetName());
@@ -142,7 +142,7 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     {
         LOGERROR("Could not load texture " + loadTextureName_);
         loadXMLFile_.Reset();
-        loadTextureName_.Clear();
+        loadTextureName_.clear();
         return false;
     }
 
@@ -151,7 +151,7 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     const PListValueMap& frames = root["frames"].GetValueMap();
     for (auto frame=frames.begin(),fin=frames.end(); frame!=fin; ++frame)
     {
-        String name = frame.key().Split('.')[0];
+        String name = frame.key().split('.')[0];
 
         const PListValueMap& frameInfo = frame->GetValueMap();
         if (frameInfo["rotated"].GetBool())
@@ -179,7 +179,7 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     }
 
     loadXMLFile_.Reset();
-    loadTextureName_.Clear();
+    loadTextureName_.clear();
     return true;
 }
 
@@ -219,7 +219,7 @@ bool SpriteSheet2D::EndLoadFromXMLFile()
     {
         LOGERROR("Could not load texture " + loadTextureName_);
         loadXMLFile_.Reset();
-        loadTextureName_.Clear();
+        loadTextureName_.clear();
         return false;
     }
 
@@ -253,7 +253,7 @@ bool SpriteSheet2D::EndLoadFromXMLFile()
     }
 
     loadXMLFile_.Reset();
-    loadTextureName_.Clear();
+    loadTextureName_.clear();
     return true;
 }
 

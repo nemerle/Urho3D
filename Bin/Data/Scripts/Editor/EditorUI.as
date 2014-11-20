@@ -162,7 +162,7 @@ void HandleQuickSearchChange(StringHash eventType, VariantMap& eventData)
     if (search is null)
         return;
 
-    PerformQuickMenuSearch(search.text.ToLower().Trimmed());
+    PerformQuickMenuSearch(search.text.toLower().Trimmed());
 }
 
 void PerformQuickMenuSearch(const String&in query)
@@ -1126,7 +1126,7 @@ void HandleKeyDown(StringHash eventType, VariantMap& eventData)
         if (!fileSystem.DirExists(screenshotDir))
             fileSystem.CreateDir(screenshotDir);
         screenshot.SavePNG(screenshotDir + "/Screenshot_" +
-                time.timeStamp.Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_') + ".png");
+                time.timeStamp.replaced(':', '_').replaced('.', '_').replaced(' ', '_') + ".png");
     }   
     else if (key == KEY_KP_1 && ui.focusElement is null) // Front view
     {

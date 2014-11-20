@@ -417,7 +417,7 @@ void SceneReplication::HandleConnect(StringHash eventType, VariantMap& eventData
 {
     Network* network = GetSubsystem<Network>();
     String address = textEdit_->GetText().Trimmed();
-    if (address.Empty())
+    if (address.isEmpty())
         address = "localhost"; // Use localhost to connect if nothing else specified
 
     // Connect to server, specify scene to use as a client for replication

@@ -481,7 +481,7 @@ SharedPtr<UIElement> UI::LoadLayout(XMLFile* file, XMLFile* styleFile)
     }
 
     String typeName = rootElem.GetAttribute("type");
-    if (typeName.Empty())
+    if (typeName.isEmpty())
         typeName = "UIElement";
 
     root = DynamicCast<UIElement>(context_->CreateObject(typeName));

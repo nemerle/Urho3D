@@ -83,7 +83,7 @@ void XMLFile::RegisterObject(Context* context)
 bool XMLFile::BeginLoad(Deserializer& source)
 {
     unsigned dataSize = source.GetSize();
-    if (!dataSize && !source.GetName().Empty())
+    if (!dataSize && !source.GetName().isEmpty())
     {
         LOGERROR("Zero sized XML data in " + source.GetName());
         return false;
@@ -102,7 +102,7 @@ bool XMLFile::BeginLoad(Deserializer& source)
 
     XMLElement rootElem = GetRoot();
     String inherit = rootElem.GetAttribute("inherit");
-    if (!inherit.Empty())
+    if (!inherit.isEmpty())
     {
         // The existence of this attribute indicates this is an RFC 5261 patch file
         ResourceCache* cache = GetSubsystem<ResourceCache>();
@@ -148,9 +148,9 @@ XMLElement XMLFile::CreateRoot(const String& name)
 
 bool XMLFile::FromString(const String& source)
 {
-    if (source.Empty())
+    if (source.isEmpty())
         return false;
-    
+
     MemoryBuffer buffer(source.CString(), source.Length());
     return Load(buffer);
 }
@@ -161,7 +161,7 @@ XMLElement XMLFile::GetRoot(const String& name)
     if (root.empty())
         return XMLElement();
 
-    if (!name.Empty() && name != root.name())
+    if (!name.isEmpty() && name != root.name())
         return XMLElement();
     else
         return XMLElement(this, root.internal_object());

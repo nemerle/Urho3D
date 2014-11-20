@@ -11,7 +11,7 @@ void ParseNetworkArguments()
     
     for (uint i = 0; i < arguments.length; ++i)
     {
-        String argument = arguments[i].ToLower();
+        String argument = arguments[i].toLower();
         if (argument[0] == '-')
         {
             argument = argument.Substring(1);

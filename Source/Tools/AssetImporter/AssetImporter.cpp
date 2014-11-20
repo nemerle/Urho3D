@@ -251,7 +251,7 @@ void Run(const Vector<String>& arguments)
     RegisterPhysicsLibrary(context_);
 #endif
 
-    String command = arguments[0].ToLower();
+    String command = arguments[0].toLower();
     String rootNodeName;
 
     unsigned flags =
@@ -272,7 +272,7 @@ void Run(const Vector<String>& arguments)
     {
         if (arguments[i].Length() > 1 && arguments[i][0] == '-')
         {
-            String argument = arguments[i].Substring(1).ToLower();
+            String argument = arguments[i].Substring(1).toLower();
             String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
 
             if (argument == "b")
@@ -327,17 +327,17 @@ void Run(const Vector<String>& arguments)
                     break;
                 }
             }
-            else if (argument == "p" && !value.Empty())
+            else if (argument == "p" && !value.isEmpty())
             {
                 resourcePath_ = AddTrailingSlash(value);
                 ++i;
             }
-            else if (argument == "r" && !value.Empty())
+            else if (argument == "r" && !value.isEmpty())
             {
                 rootNodeName = value;
                 ++i;
             }
-            else if (argument == "f" && !value.Empty())
+            else if (argument == "f" && !value.isEmpty())
             {
                 defaultTicksPerSecond_ = ToFloat(value);
                 ++i;
@@ -347,7 +347,7 @@ void Run(const Vector<String>& arguments)
                 includeNonSkinningBones_ = true;
                 if (value.Length() && (value[0] != '-' || value.Length() > 3))
                 {
-                    Vector<String> filters = value.Split(';');
+                    Vector<String> filters = value.split(';');
                     for (unsigned i = 0; i < filters.size(); ++i)
                     {
                         if (filters[i][0] == '-')
@@ -382,22 +382,22 @@ void Run(const Vector<String>& arguments)
         inputName_ = GetFileName(inFile);
         outPath_ = GetPath(outFile);
 
-        if (resourcePath_.Empty())
+        if (resourcePath_.isEmpty())
         {
             resourcePath_ = outPath_;
             // If output file already has the Models/ path (model mode), do not take it into the resource path
             if (command == "model")
             {
-                if (resourcePath_.EndsWith("Models/", false))
+                if (resourcePath_.endsWith("Models/", false))
                     resourcePath_ = resourcePath_.Substring(0, resourcePath_.Length() - 7);
             }
-            if (resourcePath_.Empty())
+            if (resourcePath_.isEmpty())
                 resourcePath_ = "./";
         }
 
         resourcePath_ = AddTrailingSlash(resourcePath_);
 
-        if (command != "dump" && outFile.Empty())
+        if (command != "dump" && outFile.isEmpty())
             ErrorExit("No output file defined");
 
         if (verboseLog_)
@@ -412,7 +412,7 @@ void Run(const Vector<String>& arguments)
             Assimp::DefaultLogger::kill();
 
         rootNode_ = scene_->mRootNode;
-        if (!rootNodeName.Empty())
+        if (!rootNodeName.isEmpty())
         {
             rootNode_ = GetNode(rootNodeName, rootNode_, false);
             if (!rootNode_)
@@ -512,7 +512,7 @@ void DumpNodes(aiNode* rootNode, unsigned level)
 
 void ExportModel(const String& outName, bool animationOnly)
 {
-    if (outName.Empty())
+    if (outName.isEmpty())
         ErrorExit("No output file defined");
 
     OutModel model;
@@ -642,7 +642,7 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary,
         // Check against includes/excludes
         for (unsigned i = 0; i < nonSkinningBoneIncludes_.size(); ++i)
         {
-            if (boneName.Contains(nonSkinningBoneIncludes_[i], false))
+            if (boneName.contains(nonSkinningBoneIncludes_[i], false))
             {
                 includeBone = true;
                 break;
@@ -650,7 +650,7 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary,
         }
         for (unsigned i = 0; i < nonSkinningBoneExcludes_.size(); ++i)
         {
-            if (boneName.Contains(nonSkinningBoneExcludes_[i], false))
+            if (boneName.contains(nonSkinningBoneExcludes_[i], false))
             {
                 includeBone = false;
                 break;
@@ -991,7 +991,7 @@ void BuildAndSaveAnimations(OutModel* model)
         String animName = FromAIString(anim->mName);
         String animOutName;
 
-        if (animName.Empty())
+        if (animName.isEmpty())
             animName = "Anim" + String(i + 1);
         if (model)
             animOutName = GetPath(model->outName_) + GetFileName(model->outName_) + "_" + SanitateAssetName(animName) + ".ani";
@@ -1471,7 +1471,7 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
     String matName = SanitateAssetName(FromAIString(matNameStr));
-    if (matName.Trimmed().Empty())
+    if (matName.Trimmed().isEmpty())
         matName = GenerateMaterialName(material);
 
     // Do not actually create a material instance, but instead craft an xml file manually
@@ -1529,17 +1529,17 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
         twoSided = (intVal != 0);
 
     String techniqueName = "Techniques/NoTexture";
-    if (!diffuseTexName.Empty())
+    if (!diffuseTexName.isEmpty())
     {
         techniqueName = "Techniques/Diff";
-        if (!normalTexName.Empty())
+        if (!normalTexName.isEmpty())
             techniqueName += "Normal";
-        if (!specularTexName.Empty())
+        if (!specularTexName.isEmpty())
             techniqueName += "Spec";
         // For now lightmap does not coexist with normal & specular
-        if (normalTexName.Empty() && specularTexName.Empty() && !lightmapTexName.Empty())
+        if (normalTexName.isEmpty() && specularTexName.isEmpty() && !lightmapTexName.isEmpty())
             techniqueName += "LightMap";
-        if (lightmapTexName.Empty() && !emissiveTexName.Empty())
+        if (lightmapTexName.isEmpty() && !emissiveTexName.isEmpty())
             techniqueName += emissiveAO_ ? "AO" : "Emissive";
     }
     if (hasAlpha)
@@ -1548,35 +1548,35 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
     XMLElement techniqueElem = materialElem.CreateChild("technique");
     techniqueElem.SetString("name", techniqueName + ".xml");
 
-    if (!diffuseTexName.Empty())
+    if (!diffuseTexName.isEmpty())
     {
         XMLElement diffuseElem = materialElem.CreateChild("texture");
         diffuseElem.SetString("unit", "diffuse");
         diffuseElem.SetString("name", GetMaterialTextureName(diffuseTexName));
         usedTextures.insert(diffuseTexName);
     }
-    if (!normalTexName.Empty())
+    if (!normalTexName.isEmpty())
     {
         XMLElement normalElem = materialElem.CreateChild("texture");
         normalElem.SetString("unit", "normal");
         normalElem.SetString("name", GetMaterialTextureName(normalTexName));
         usedTextures.insert(normalTexName);
     }
-    if (!specularTexName.Empty())
+    if (!specularTexName.isEmpty())
     {
         XMLElement specularElem = materialElem.CreateChild("texture");
         specularElem.SetString("unit", "specular");
         specularElem.SetString("name", GetMaterialTextureName(specularTexName));
         usedTextures.insert(specularTexName);
     }
-    if (!lightmapTexName.Empty())
+    if (!lightmapTexName.isEmpty())
     {
         XMLElement lightmapElem = materialElem.CreateChild("texture");
         lightmapElem.SetString("unit", "emissive");
         lightmapElem.SetString("name", GetMaterialTextureName(lightmapTexName));
         usedTextures.insert(lightmapTexName);
     }
-    if (!emissiveTexName.Empty())
+    if (!emissiveTexName.isEmpty())
     {
         XMLElement emissiveElem = materialElem.CreateChild("texture");
         emissiveElem.SetString("unit", "emissive");
@@ -1911,7 +1911,7 @@ String GetMeshMaterialName(aiMesh* mesh)
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
     String matName = SanitateAssetName(FromAIString(matNameStr));
-    if (matName.Trimmed().Empty())
+    if (matName.Trimmed().isEmpty())
         matName = GenerateMaterialName(material);
 
     return (useSubdirs_ ? "Materials/" : "") + matName + ".xml";
@@ -2162,15 +2162,15 @@ Matrix3x4 ToMatrix3x4(const aiMatrix4x4& mat)
 String SanitateAssetName(const String& name)
 {
     String fixedName = name;
-    fixedName.Replace("<", "");
-    fixedName.Replace(">", "");
-    fixedName.Replace("?", "");
-    fixedName.Replace("*", "");
-    fixedName.Replace(":", "");
-    fixedName.Replace("\"", "");
-    fixedName.Replace("/", "");
-    fixedName.Replace("\\", "");
-    fixedName.Replace("|", "");
+    fixedName.replace("<", "");
+    fixedName.replace(">", "");
+    fixedName.replace("?", "");
+    fixedName.replace("*", "");
+    fixedName.replace(":", "");
+    fixedName.replace("\"", "");
+    fixedName.replace("/", "");
+    fixedName.replace("\\", "");
+    fixedName.replace("|", "");
 
     return fixedName;
 }

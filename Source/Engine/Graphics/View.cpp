@@ -338,7 +338,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
             info.vertexLights_ = command.vertexLights_;
 
             // Check scenepass metadata for defining custom passes which interact with lighting
-            if (!command.metadata_.Empty())
+            if (!command.metadata_.isEmpty())
             {
                 if (command.metadata_ == "gbuffer")
                     gBufferPassName_ = command.pass_;
@@ -362,7 +362,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
             scenePasses_.push_back(info);
         }
         // Allow a custom forward light pass
-        else if (command.type_ == CMD_FORWARDLIGHTS && !command.pass_.Empty())
+        else if (command.type_ == CMD_FORWARDLIGHTS && !command.pass_.isEmpty())
             lightPassName_ = command.pass_;
     }
 
@@ -1615,7 +1615,7 @@ void View::SetTextures(RenderPathCommand& command)
 
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
     {
-        if (command.textureNames_[i].Empty())
+        if (command.textureNames_[i].isEmpty())
             continue;
 
         // Bind the rendered output
@@ -1660,7 +1660,7 @@ void View::SetTextures(RenderPathCommand& command)
 
 void View::RenderQuad(RenderPathCommand& command)
 {
-    if (command.vertexShaderName_.Empty() || command.pixelShaderName_.Empty())
+    if (command.vertexShaderName_.isEmpty() || command.pixelShaderName_.isEmpty())
         return;
 
     // If shader can not be found, clear it from the command to prevent redundant attempts
@@ -1732,7 +1732,7 @@ bool View::CheckViewportRead(const RenderPathCommand& command)
 {
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
     {
-        if (!command.textureNames_[i].Empty() && !command.textureNames_[i].Compare("viewport", false))
+        if (!command.textureNames_[i].isEmpty() && !command.textureNames_[i].Compare("viewport", false))
             return true;
     }
 

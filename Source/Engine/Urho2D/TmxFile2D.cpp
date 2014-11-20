@@ -193,12 +193,12 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
             else
                 return false;
 
-            Vector<String> points = childElem.GetAttribute("points").Split(' ');
+            Vector<String> points = childElem.GetAttribute("points").split(' ');
             object->points_.resize(points.size());
 
             for (unsigned i = 0; i < points.size(); ++i)
             {
-                points[i].Replace(',', ' ');
+                points[i].replace(',', ' ');
                 Vector2 point = position + ToVector2(points[i]);
                 object->points_[i] = info.ConvertPosition(point);
             }
@@ -286,7 +286,7 @@ void TmxFile2D::RegisterObject(Context* context)
 
 bool TmxFile2D::BeginLoad(Deserializer& source)
 {
-    if (GetName().Empty())
+    if (GetName().isEmpty())
         SetName(source.GetName());
 
     loadXMLFile_ = new XMLFile(context_);

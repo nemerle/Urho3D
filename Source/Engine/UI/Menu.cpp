@@ -131,13 +131,13 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
     if (styleFile)
     {
         // If not defined, use type name
-        if (styleName.Empty())
+        if (styleName.isEmpty())
             styleName = GetTypeName();
 
         SetStyle(styleName, styleFile);
     }
     // The 'style' attribute value in the style file cannot be equals to original's applied style to prevent infinite loop
-    else if (!styleName.Empty() && styleName != appliedStyle_)
+    else if (!styleName.isEmpty() && styleName != appliedStyle_)
     {
         // Attempt to use the default style file
         styleFile = GetDefaultStyle();
@@ -164,7 +164,7 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
         bool internalElem = childElem.GetBool("internal");
         bool popupElem = childElem.GetBool("popup");
         String typeName = childElem.GetAttribute("type");
-        if (typeName.Empty())
+        if (typeName.isEmpty())
             typeName = "UIElement";
         unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
         UIElement* child = nullptr;

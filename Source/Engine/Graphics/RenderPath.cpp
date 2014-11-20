@@ -286,7 +286,7 @@ bool RenderPath::Append(XMLFile* file)
     {
         RenderTargetInfo info;
         info.Load(rtElem);
-        if (!info.name_.Trimmed().Empty())
+        if (!info.name_.Trimmed().isEmpty())
             renderTargets_.push_back(info);
 
         rtElem = rtElem.GetNext("rendertarget");

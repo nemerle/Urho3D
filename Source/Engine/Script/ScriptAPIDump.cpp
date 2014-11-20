@@ -76,11 +76,11 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
         info = &propertyInfos.back();
         info->name_ = propertyName;
     }
-    if (functionName.Contains("get_"))
+    if (functionName.contains("get_"))
     {
         info->read_ = true;
         // Extract type from the return value
-        Vector<String> parts = declaration.Split(' ');
+        Vector<String> parts = declaration.split(' ');
         if (parts.size())
         {
             if (parts[0] != "const")
@@ -89,38 +89,38 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
                 info->type_ = parts[1];
         }
         // If get method has parameters, it is indexed
-        if (!declaration.Contains("()"))
+        if (!declaration.contains("()"))
         {
             info->indexed_ = true;
             info->type_ += "[]";
         }
 
         // Sanitate the reference operator away
-        info->type_.Replace("&", "");
+        info->type_.replace("&", "");
     }
-    if (functionName.Contains("set_"))
+    if (functionName.contains("set_"))
     {
         info->write_ = true;
-        if (info->type_.Empty())
+        if (info->type_.isEmpty())
         {
             // Extract type from parameters
-            unsigned begin = declaration.Find(',');
+            unsigned begin = declaration.indexOf(',');
             if (begin == String::NPOS)
-                begin = declaration.Find('(');
+                begin = declaration.indexOf('(');
             else
                 info->indexed_ = true;
 
             if (begin != String::NPOS)
             {
                 ++begin;
-                unsigned end = declaration.Find(')');
+                unsigned end = declaration.indexOf(')');
                 if (end != String::NPOS)
                 {
                     info->type_ = declaration.Substring(begin, end - begin);
                     // Sanitate const & reference operator away
-                    info->type_.Replace("const ", "");
-                    info->type_.Replace("&in", "");
-                    info->type_.Replace("&", "");
+                    info->type_.replace("const ", "");
+                    info->type_.replace("&in", "");
+                    info->type_.replace("&", "");
                 }
             }
         }
@@ -129,8 +129,8 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
 
 bool ComparePropertyStrings(const String& lhs, const String& rhs)
 {
-    int spaceLhs = lhs.Find(' ');
-    int spaceRhs = rhs.Find(' ');
+    int spaceLhs = lhs.indexOf(' ');
+    int spaceRhs = rhs.indexOf(' ');
     if (spaceLhs != String::NPOS && spaceRhs != String::NPOS)
         return String::Compare(lhs.CString() + spaceLhs, rhs.CString() + spaceRhs, true) < 0;
     else
@@ -149,23 +149,23 @@ void Script::OutputAPIRow(DumpMode mode, const String& row, bool removeReference
     // Commenting out to temporary fix property name like 'doubleClickInterval' from being wrongly replaced.
     // Fortunately, there is no occurence of type 'double' in the API at the moment.
     //out.Replace("double", "float");   // s/\bdouble\b/float/g
-    out.Replace("&in", "&");
-    out.Replace("&out", "&");
+    out.replace("&in", "&");
+    out.replace("&out", "&");
     if (removeReference)
-        out.Replace("&", "");
+        out.replace("&", "");
 
     if (mode == DOXYGEN)
         Log::WriteRaw("- " + out + "\n");
     else if (mode == C_HEADER)
     {
-        out.Replace("@", "");
-        out.Replace("?&", "void*");
+        out.replace("@", "");
+        out.replace("?&", "void*");
 
         // s/(\w+)\[\]/Array<\1>/g
         unsigned posBegin = String::NPOS;
         while (1)   // Loop to cater for array of array of T
         {
-            unsigned posEnd = out.Find("[]");
+            unsigned posEnd = out.indexOf("[]");
             if (posEnd == String::NPOS)
                 break;
             if (posBegin > posEnd)
@@ -173,7 +173,7 @@ void Script::OutputAPIRow(DumpMode mode, const String& row, bool removeReference
             while (posBegin < posEnd && isalnum(out[posBegin]))
                 --posBegin;
             ++posBegin;
-            out.Replace(posBegin, posEnd - posBegin + 2, "Array<" + out.Substring(posBegin, posEnd - posBegin) + ">");
+            out.replace(posBegin, posEnd - posBegin + 2, "Array<" + out.Substring(posBegin, posEnd - posBegin) + ">");
         }
 
         Log::WriteRaw(out + separator + "\n");
@@ -196,7 +196,7 @@ void Script::DumpAPI(DumpMode mode)
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
         Vector<String> headerFiles;
         String path = fileSystem->GetProgramDir();
-        path.Replace("/Bin", "/Source/Engine");
+        path.replace("/Bin", "/Source/Engine");
 
         fileSystem->ScanDir(headerFiles, path, "*.h", SCAN_FILES, true);
         if (!headerFiles.empty())
@@ -206,33 +206,33 @@ void Script::DumpAPI(DumpMode mode)
 
             for (unsigned i = 0; i < headerFiles.size(); ++i)
             {
-                if (headerFiles[i].EndsWith("Events.h"))
+                if (headerFiles[i].endsWith("Events.h"))
                 {
                     SharedPtr<File> file(new File(context_, path + headerFiles[i], FILE_READ));
                     if (!file->IsOpen())
                         continue;
 
-                    unsigned start = headerFiles[i].Find('/') + 1;
-                    unsigned end = headerFiles[i].Find("Events.h");
+                    unsigned start = headerFiles[i].indexOf('/') + 1;
+                    unsigned end = headerFiles[i].indexOf("Events.h");
                     Log::WriteRaw("\n## %" + headerFiles[i].Substring(start, end - start) + " events\n");
 
                     while (!file->IsEof())
                     {
                         String line = file->ReadLine();
-                        if (line.StartsWith("EVENT"))
+                        if (line.startsWith("EVENT"))
                         {
-                            Vector<String> parts = line.Split(',');
+                            Vector<String> parts = line.split(',');
                             if (parts.size() == 2)
                                 Log::WriteRaw("\n### " + parts[1].Substring(0, parts[1].Length() - 1).Trimmed() + "\n");
                         }
-                        if (line.Contains("PARAM"))
+                        if (line.contains("PARAM"))
                         {
-                            Vector<String> parts = line.Split(',');
+                            Vector<String> parts = line.split(',');
                             if (parts.size() == 2)
                             {
-                                String paramName = parts[1].Substring(0, parts[1].Find(')')).Trimmed();
-                                String paramType = parts[1].Substring(parts[1].Find("// ") + 3);
-                                if (!paramName.Empty() && !paramType.Empty())
+                                String paramName = parts[1].Substring(0, parts[1].indexOf(')')).Trimmed();
+                                String paramType = parts[1].Substring(parts[1].indexOf("// ") + 3);
+                                if (!paramName.isEmpty() && !paramType.isEmpty())
                                     Log::WriteRaw("- %" + paramName + " : " + paramType + "\n");
                             }
                         }
@@ -276,7 +276,7 @@ void Script::DumpAPI(DumpMode mode)
                 if (attrs[j].mode_ & AM_NOEDIT)
                     continue;
                 // Prepend each word in the attribute name with % to prevent unintended links
-                Vector<String> nameParts = attrs[j].name_.Split(' ');
+                Vector<String> nameParts = attrs[j].name_.split(' ');
                 for (unsigned k = 0; k < nameParts.size(); ++k)
                 {
                     if (nameParts[k].Length() > 1 && IsAlpha(nameParts[k][0]))
@@ -377,27 +377,27 @@ void Script::DumpAPI(DumpMode mode)
                 asIScriptFunction* method = type->GetMethodByIndex(j);
                 String methodName(method->GetName());
                 String declaration(method->GetDeclaration());
-                if (methodName.Contains("get_") || methodName.Contains("set_"))
+                if (methodName.contains("get_") || methodName.contains("set_"))
                     ExtractPropertyInfo(methodName, declaration, propertyInfos);
                 else
                 {
                     // Sanitate the method name. \todo For now, skip the operators
-                    if (!declaration.Contains("::op"))
+                    if (!declaration.contains("::op"))
                     {
                         String prefix(typeName + "::");
-                        declaration.Replace(prefix, "");
+                        declaration.replace(prefix, "");
                         ///\todo Is there a better way to mark deprecated API bindings for AngelScript?
-                        unsigned posBegin = declaration.FindLast("const String&in = \"deprecated:");
+                        unsigned posBegin = declaration.lastIndexOf("const String&in = \"deprecated:");
                         if (posBegin != String::NPOS)
                         {
                             // Assume this 'mark' is added as the last parameter
-                            unsigned posEnd = declaration.Find(')', posBegin);
+                            unsigned posEnd = declaration.indexOf(')', posBegin);
                             if (posBegin != String::NPOS)
                             {
-                                declaration.Replace(posBegin, posEnd - posBegin, "");
-                                posBegin = declaration.Find(", ", posBegin - 2);
+                                declaration.replace(posBegin, posEnd - posBegin, "");
+                                posBegin = declaration.indexOf(", ", posBegin - 2);
                                 if (posBegin != String::NPOS)
-                                    declaration.Replace(posBegin, 2, "");
+                                    declaration.replace(posBegin, 2, "");
                                 if (mode == DOXYGEN)
                                     declaration += " // deprecated";
                                 else if (mode == C_HEADER)
@@ -454,7 +454,7 @@ void Script::DumpAPI(DumpMode mode)
                         remark = "readonly";
                     else if (!propertyInfos[j].read_)
                         remark = "writeonly";
-                    if (!remark.Empty())
+                    if (!remark.isEmpty())
                     {
                         if (mode == DOXYGEN)
                         {
@@ -463,7 +463,7 @@ void Script::DumpAPI(DumpMode mode)
                         else if (mode == C_HEADER)
                         {
                             cppdoc = "/* " + remark + " */\n";
-                            remark.Clear();
+                            remark.clear();
                         }
                     }
 
@@ -488,7 +488,7 @@ void Script::DumpAPI(DumpMode mode)
         String functionName(function->GetName());
         String declaration(function->GetDeclaration());
 
-        if (functionName.Contains("set_") || functionName.Contains("get_"))
+        if (functionName.contains("set_") || functionName.contains("get_"))
             ExtractPropertyInfo(functionName, declaration, globalPropertyInfos);
         else
             globalFunctions.push_back(declaration);

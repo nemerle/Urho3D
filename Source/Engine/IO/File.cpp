@@ -159,12 +159,12 @@ bool File::Open(const String& fileName, FileMode mode)
     }
     #endif
 
-    if (fileName.Empty())
+    if (fileName.isEmpty())
     {
         LOGERROR("Could not open file with empty name");
         return false;
     }
-    
+
     #ifdef WIN32
     handle_ = _wfopen(GetWideNativePath(fileName).CString(), openMode[mode]);
     #else
@@ -180,7 +180,7 @@ bool File::Open(const String& fileName, FileMode mode)
         handle_ = fopen(GetNativePath(fileName).CString(), openMode[mode + 1]);
         #endif
     }
-    
+
     if (!handle_)
     {
         LOGERROR("Could not open file " + fileName);
@@ -233,7 +233,7 @@ bool File::Open(PackageFile* package, const String& fileName)
     compressed_ = package->IsCompressed();
     readSyncNeeded_ = false;
     writeSyncNeeded_ = false;
-    
+
     fseek((FILE*)handle_, offset_, SEEK_SET);
     return true;
 }
@@ -334,7 +334,7 @@ unsigned File::Read(void* dest, unsigned size)
         fseek((FILE*)handle_, position_ + offset_, SEEK_SET);
         readSyncNeeded_ = false;
     }
-    
+
     size_t ret = fread(dest, size, 1, (FILE*)handle_);
     if (ret != 1)
     {
@@ -428,7 +428,7 @@ unsigned File::Write(const void* data, unsigned size)
         fseek((FILE*)handle_, position_ + offset_, SEEK_SET);
         writeSyncNeeded_ = false;
     }
-    
+
     if (fwrite(data, size, 1, (FILE*)handle_) != 1)
     {
         // Return to the position where the write began

@@ -49,8 +49,8 @@ void ShaderVariation::OnDeviceLost()
 {
     GPUObject::OnDeviceLost();
 
-    compilerOutput_.Clear();
-    
+    compilerOutput_.clear();
+
     if (graphics_)
         graphics_->CleanupShaderPrograms();
 }
@@ -61,7 +61,7 @@ void ShaderVariation::Release()
     {
         if (!graphics_)
             return;
-        
+
         if (!graphics_->IsDeviceLost())
         {
             if (type_ == VS)
@@ -74,15 +74,15 @@ void ShaderVariation::Release()
                 if (graphics_->GetPixelShader() == this)
                     graphics_->SetShaders(nullptr, nullptr);
             }
-            
+
             glDeleteShader(object_);
         }
-        
+
         object_ = 0;
         graphics_->CleanupShaderPrograms();
     }
-    
-    compilerOutput_.Clear();
+
+    compilerOutput_.clear();
 }
 
 bool ShaderVariation::Create()
@@ -94,19 +94,19 @@ bool ShaderVariation::Create()
         compilerOutput_ = "Owner shader has expired";
         return false;
     }
-    
+
     object_ = glCreateShader(type_ == VS ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
     if (!object_)
     {
         compilerOutput_ = "Could not create shader object";
         return false;
     }
-    
+
     const String& originalShaderCode = owner_->GetSourceCode(type_);
     String shaderCode;
 
     // Check if the shader code contains a version define
-    unsigned verStart = originalShaderCode.Find('#');
+    unsigned verStart = originalShaderCode.indexOf('#');
     unsigned verEnd = 0;
     if (verStart != String::NPOS)
     {
@@ -128,15 +128,15 @@ bool ShaderVariation::Create()
 
     // Distinguish between VS and PS compile in case the shader code wants to include/omit different things
     shaderCode += type_ == VS ? "#define COMPILEVS\n" : "#define COMPILEPS\n";
-    
+
     // Prepend the defines to the shader code
-    Vector<String> defineVec = defines_.Split(' ');
+    Vector<String> defineVec = defines_.split(' ');
     for (unsigned i = 0; i < defineVec.size(); ++i)
     {
         // Add extra space for the checking code below
-        String defineString = "#define " + defineVec[i].Replaced('=', ' ') + " \n";
+        String defineString = "#define " + defineVec[i].replaced('=', ' ') + " \n";
         shaderCode += defineString;
-        
+
         // In debug mode, check that all defines are referenced by the shader code
         #ifdef _DEBUG
         String defineCheck = defineString.Substring(8, defineString.Find(' ', 8) - 8);
@@ -144,7 +144,7 @@ bool ShaderVariation::Create()
             LOGWARNING("Shader " + GetFullName() + " does not use the define " + defineCheck);
         #endif
     }
-    
+
     #ifdef RASPI
     if (type_ == VS)
         shaderCode += "#define RASPI\n";
@@ -155,11 +155,11 @@ bool ShaderVariation::Create()
         shaderCode += (originalShaderCode.CString() + verEnd);
     else
         shaderCode += originalShaderCode;
-    
+
     const char* shaderCStr = shaderCode.CString();
     glShaderSource(object_, 1, &shaderCStr, nullptr);
     glCompileShader(object_);
-    
+
     int compiled, length;
     glGetShaderiv(object_, GL_COMPILE_STATUS, &compiled);
     if (!compiled)
@@ -172,8 +172,8 @@ bool ShaderVariation::Create()
         object_ = 0;
     }
     else
-        compilerOutput_.Clear();
-    
+        compilerOutput_.clear();
+
     return object_ != 0;
 }
 

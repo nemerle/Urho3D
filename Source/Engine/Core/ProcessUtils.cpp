@@ -129,7 +129,7 @@ void ErrorDialog(const String& title, const String& message)
 
 void ErrorExit(const String& message, int exitCode)
 {
-    if (!message.Empty())
+    if (!message.isEmpty())
         PrintLine(message, true);
 
     exit(exitCode);
@@ -229,7 +229,7 @@ const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgume
 
     // Strip double quotes from the arguments
     for (unsigned i = 0; i < arguments.size(); ++i)
-        arguments[i].Replace("\"", "");
+        arguments[i].replace("\"", "");
 
     return arguments;
 }
@@ -271,7 +271,7 @@ String GetConsoleInput()
     // When we are running automated tests, reading the console may block. Just return empty in that case
     return ret;
     #endif
-    
+
     #ifdef WIN32
     HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
     HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);

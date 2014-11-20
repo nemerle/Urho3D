@@ -491,7 +491,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
     {
         UIElement* element = elem.Get();
         String name = element->GetName();
-        if (name.StartsWith("Button"))
+        if (name.startsWith("Button"))
         {
             ++numButtons;
 
@@ -537,14 +537,14 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                     LOGERRORF("Unsupported mouse button binding: %s", mouseButton.CString());
             }
         }
-        else if (name.StartsWith("Axis"))
+        else if (name.startsWith("Axis"))
         {
             ++numAxes;
 
             ///\todo Axis emulation for screen joystick is not fully supported yet.
             LOGWARNING("Axis emulation for screen joystick is not fully supported yet");
         }
-        else if (name.StartsWith("Hat"))
+        else if (name.startsWith("Hat"))
         {
             ++numHats;
 
@@ -553,10 +553,10 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
             {
                 text->SetVisible(false);
                 String keyBinding = text->GetText();
-                if (keyBinding.Contains(' '))   // e.g.: "UP DOWN LEFT RIGHT"
+                if (keyBinding.contains(' '))   // e.g.: "UP DOWN LEFT RIGHT"
                 {
                     // Attempt to split the text using ' ' as separator
-                    Vector<String>keyBindings(keyBinding.Split(' '));
+                    Vector<String>keyBindings(keyBinding.split(' '));
                     String mappedKeyBinding;
                     if (keyBindings.size() == 4)
                     {
@@ -1757,7 +1757,7 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
     SDL_Event evt;
 
     const String& name = element->GetName();
-    if (name.StartsWith("Button"))
+    if (name.startsWith("Button"))
     {
         if (eventType == E_TOUCHMOVE)
             return;
@@ -1795,7 +1795,7 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
             }
         }
     }
-    else if (name.StartsWith("Hat"))
+    else if (name.startsWith("Hat"))
     {
         Variant keyBindingVar = element->GetVar(VAR_BUTTON_KEY_BINDING);
         if (keyBindingVar.IsEmpty())

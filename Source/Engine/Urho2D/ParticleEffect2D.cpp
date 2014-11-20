@@ -107,10 +107,10 @@ void ParticleEffect2D::RegisterObject(Context* context)
 
 bool ParticleEffect2D::BeginLoad(Deserializer& source)
 {
-    if (GetName().Empty())
+    if (GetName().isEmpty())
         SetName(source.GetName());
 
-    loadSpriteName_.Clear();
+    loadSpriteName_.clear();
 
     XMLFile xmlFile(context_);
     if (!xmlFile.Load(source))
@@ -203,14 +203,14 @@ bool ParticleEffect2D::BeginLoad(Deserializer& source)
 bool ParticleEffect2D::EndLoad()
 {
     // Apply the sprite now
-    if (!loadSpriteName_.Empty())
+    if (!loadSpriteName_.isEmpty())
     {
         ResourceCache* cache = GetSubsystem<ResourceCache>();
         sprite_ = cache->GetResource<Sprite2D>(loadSpriteName_);
         if (!sprite_)
             LOGERROR("Could not load sprite " + loadSpriteName_ + " for particle effect");
 
-        loadSpriteName_.Clear();
+        loadSpriteName_.clear();
     }
     
     return true;

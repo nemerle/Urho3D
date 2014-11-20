@@ -305,7 +305,7 @@ void PListFile::RegisterObject(Context* context)
 
 bool PListFile::BeginLoad(Deserializer& source)
 {
-    if (GetName().Empty())
+    if (GetName().isEmpty())
         SetName(source.GetName());
 
     XMLFile xmlFile(context_);

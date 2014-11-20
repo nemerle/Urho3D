@@ -203,7 +203,7 @@ String& String::operator += (bool rhs)
     return *this += String(rhs);
 }
 
-void String::Replace(char replaceThis, char replaceWith, bool caseSensitive)
+void String::replace(char replaceThis, char replaceWith, bool caseSensitive)
 {
     if (caseSensitive)
     {
@@ -224,60 +224,60 @@ void String::Replace(char replaceThis, char replaceWith, bool caseSensitive)
     }
 }
 
-void String::Replace(const String& replaceThis, const String& replaceWith, bool caseSensitive)
+void String::replace(const String& replaceThis, const String& replaceWith, bool caseSensitive)
 {
     unsigned nextPos = 0;
 
     while (nextPos < length_)
     {
-        unsigned pos = Find(replaceThis, nextPos, caseSensitive);
+        unsigned pos = indexOf(replaceThis, nextPos, caseSensitive);
         if (pos == NPOS)
             break;
-        Replace(pos, replaceThis.length_, replaceWith);
+        replace(pos, replaceThis.length_, replaceWith);
         nextPos = pos + replaceWith.length_;
     }
 }
 
-void String::Replace(unsigned pos, unsigned length, const String& replaceWith)
+void String::replace(unsigned pos, unsigned length, const String& replaceWith)
 {
     // If substring is illegal, do nothing
     if (pos + length > length_)
         return;
 
-    Replace(pos, length, replaceWith.buffer_, replaceWith.length_);
+    replace(pos, length, replaceWith.buffer_, replaceWith.length_);
 }
 
-void String::Replace(unsigned pos, unsigned length, const char* replaceWith)
+void String::replace(unsigned pos, unsigned length, const char* replaceWith)
 {
     // If substring is illegal, do nothing
     if (pos + length > length_)
         return;
 
-    Replace(pos, length, replaceWith, CStringLength(replaceWith));
+    replace(pos, length, replaceWith, CStringLength(replaceWith));
 }
 
-String::Iterator String::Replace(const String::Iterator& start, const String::Iterator& fin, const String& replaceWith)
+String::Iterator String::replace(const String::Iterator& start, const String::Iterator& fin, const String& replaceWith)
 {
     unsigned pos = start - begin();
     if (pos >= length_)
         return end();
     unsigned length = fin - start;
-    Replace(pos, length, replaceWith);
+    replace(pos, length, replaceWith);
 
     return begin() + pos;
 }
 
-String String::Replaced(char replaceThis, char replaceWith, bool caseSensitive) const
+String String::replaced(char replaceThis, char replaceWith, bool caseSensitive) const
 {
     String ret(*this);
-    ret.Replace(replaceThis, replaceWith, caseSensitive);
+    ret.replace(replaceThis, replaceWith, caseSensitive);
     return ret;
 }
 
-String String::Replaced(const String& replaceThis, const String& replaceWith,  bool caseSensitive) const
+String String::replaced(const String& replaceThis, const String& replaceWith,  bool caseSensitive) const
 {
     String ret(*this);
-    ret.Replace(replaceThis, replaceWith, caseSensitive);
+    ret.replace(replaceThis, replaceWith, caseSensitive);
     return ret;
 }
 
@@ -315,7 +315,7 @@ void String::Insert(unsigned pos, const String& str)
     if (pos == length_)
         (*this) += str;
     else
-        Replace(pos, 0, str);
+        replace(pos, 0, str);
 }
 
 void String::Insert(unsigned pos, char c)
@@ -350,7 +350,7 @@ String::Iterator String::Insert(const String::Iterator& dest, const String::Iter
     if (pos > length_)
         pos = length_;
     unsigned length = end - start;
-    Replace(pos, 0, &(*start), length);
+    replace(pos, 0, &(*start), length);
 
     return begin() + pos;
 }
@@ -367,7 +367,7 @@ String::Iterator String::Insert(const String::Iterator& dest, char c)
 
 void String::Erase(unsigned pos, unsigned length)
 {
-    Replace(pos, length, String::EMPTY);
+    replace(pos, length, String::EMPTY);
 }
 
 String::Iterator String::Erase(const String::Iterator& it)
@@ -451,7 +451,7 @@ void String::Compact()
         Reserve(length_ + 1);
 }
 
-void String::Clear()
+void String::clear()
 {
     Resize(0);
 }
@@ -516,7 +516,7 @@ String String::Trimmed() const
     return Substring(trimStart, trimEnd - trimStart);
 }
 
-String String::ToLower() const
+String String::toLower() const
 {
     String ret(*this);
     for (unsigned i = 0; i < ret.length_; ++i)
@@ -525,7 +525,7 @@ String String::ToLower() const
     return ret;
 }
 
-String String::ToUpper() const
+String String::toUpper() const
 {
     String ret(*this);
     for (unsigned i = 0; i < ret.length_; ++i)
@@ -534,9 +534,9 @@ String String::ToUpper() const
     return ret;
 }
 
-Vector<String> String::Split(char separator) const
+Vector<String> String::split(char separator) const
 {
-    return Split(CString(), separator);
+    return split(CString(), separator);
 }
 
 void String::Join(const Vector<String>& subStrings, String glue)
@@ -544,7 +544,7 @@ void String::Join(const Vector<String>& subStrings, String glue)
     *this = Joined(subStrings, glue);
 }
 
-unsigned String::Find(char c, unsigned startPos, bool caseSensitive) const
+unsigned String::indexOf(char c, unsigned startPos, bool caseSensitive) const
 {
     if (caseSensitive)
     {
@@ -567,7 +567,7 @@ unsigned String::Find(char c, unsigned startPos, bool caseSensitive) const
     return NPOS;
 }
 
-unsigned String::Find(const String& str, unsigned startPos, bool caseSensitive) const
+unsigned String::indexOf(const String& str, unsigned startPos, bool caseSensitive) const
 {
     if (!str.length_ || str.length_ > length_)
         return NPOS;
@@ -615,7 +615,7 @@ unsigned String::Find(const String& str, unsigned startPos, bool caseSensitive) 
     return NPOS;
 }
 
-unsigned String::FindLast(char c, unsigned startPos, bool caseSensitive) const
+unsigned String::lastIndexOf(char c, unsigned startPos, bool caseSensitive) const
 {
     if (startPos >= length_)
         startPos = length_ - 1;
@@ -641,7 +641,7 @@ unsigned String::FindLast(char c, unsigned startPos, bool caseSensitive) const
     return NPOS;
 }
 
-unsigned String::FindLast(const String& str, unsigned startPos, bool caseSensitive) const
+unsigned String::lastIndexOf(const String& str, unsigned startPos, bool caseSensitive) const
 {
     if (!str.length_ || str.length_ > length_)
         return NPOS;
@@ -685,14 +685,14 @@ unsigned String::FindLast(const String& str, unsigned startPos, bool caseSensiti
     return NPOS;
 }
 
-bool String::StartsWith(const String& str, bool caseSensitive) const
+bool String::startsWith(const String& str, bool caseSensitive) const
 {
-    return Find(str, 0, caseSensitive) == 0;
+    return indexOf(str, 0, caseSensitive) == 0;
 }
 
-bool String::EndsWith(const String& str, bool caseSensitive) const
+bool String::endsWith(const String& str, bool caseSensitive) const
 {
-    unsigned pos = FindLast(str, Length() - 1, caseSensitive);
+    unsigned pos = lastIndexOf(str, Length() - 1, caseSensitive);
     return pos != NPOS && pos == Length() - str.Length();
 }
 
@@ -710,7 +710,7 @@ void String::SetUTF8FromLatin1(const char* str)
 {
     char temp[7];
 
-    Clear();
+    clear();
 
     if (!str)
         return;
@@ -728,7 +728,7 @@ void String::SetUTF8FromWChar(const wchar_t* str)
 {
     char temp[7];
 
-    Clear();
+    clear();
 
     if (!str)
         return;
@@ -825,7 +825,7 @@ void String::ReplaceUTF8(unsigned index, unsigned unicodeChar)
     EncodeUTF8(dest, unicodeChar);
     *dest = 0;
 
-    Replace(beginCharPos, byteOffset - beginCharPos, temp, dest - temp);
+    replace(beginCharPos, byteOffset - beginCharPos, temp, dest - temp);
 }
 
 String& String::AppendUTF8(unsigned unicodeChar)
@@ -1016,7 +1016,7 @@ unsigned String::DecodeUTF16(const wchar_t*& src)
 }
 #endif
 
-Vector<String> String::Split(const char* str, char separator)
+Vector<String> String::split(const char* str, char separator)
 {
     Vector<String> ret;
     unsigned pos = 0;
@@ -1202,7 +1202,7 @@ int String::Compare(const char* lhs, const char* rhs, bool caseSensitive)
     }
 }
 
-void String::Replace(unsigned pos, unsigned length, const char* srcStart, unsigned srcLength)
+void String::replace(unsigned pos, unsigned length, const char* srcStart, unsigned srcLength)
 {
     int delta = (int)srcLength - (int)length;
 

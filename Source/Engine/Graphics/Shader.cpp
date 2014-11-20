@@ -39,7 +39,7 @@ namespace Urho3D
 
 void CommentOutFunction(String& code, const String& signature)
 {
-    unsigned startPos = code.Find(signature);
+    unsigned startPos = code.indexOf(signature);
     unsigned braceLevel = 0;
     if (startPos == String::NPOS)
         return;
@@ -101,9 +101,9 @@ bool Shader::BeginLoad(Deserializer& source)
 
     // OpenGL: rename either VS() or PS() to main(), comment out vertex attributes in pixel shaders
     #ifdef URHO3D_OPENGL
-    vsSourceCode_.Replace("void VS(", "void main(");
-    psSourceCode_.Replace("void PS(", "void main(");
-    psSourceCode_.Replace("attribute ", "// attribute ");
+    vsSourceCode_.replace("void VS(", "void main(");
+    psSourceCode_.replace("void PS(", "void main(");
+    psSourceCode_.replace("attribute ", "// attribute ");
     #endif
 
     RefreshMemoryUse();
@@ -210,9 +210,9 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
     {
         String line = source.ReadLine();
 
-        if (line.StartsWith("#include"))
+        if (line.startsWith("#include"))
         {
-            String includeFileName = GetPath(source.GetName()) + line.Substring(9).Replaced("\"", "").Trimmed();
+            String includeFileName = GetPath(source.GetName()) + line.Substring(9).replaced("\"", "").Trimmed();
 
             SharedPtr<File> includeFile = cache->GetFile(includeFileName);
             if (!includeFile)
@@ -237,7 +237,7 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
 
 String Shader::NormalizeDefines(const String& defines)
 {
-    Vector<String> definesVec = defines.ToUpper().Split(' ');
+    Vector<String> definesVec = defines.toUpper().split(' ');
     std::sort(definesVec.begin(), definesVec.end());
     return String::Joined(definesVec, " ");
 }

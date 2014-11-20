@@ -108,7 +108,7 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
         if (!compressed_ && newEntry.offset_ + newEntry.size_ > totalSize_)
             LOGERROR("File entry " + entryName + " outside package file");
         else
-            entries_[entryName.ToLower()] = newEntry;
+            entries_[entryName.toLower()] = newEntry;
     }
 
     return true;
@@ -116,12 +116,12 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
 
 bool PackageFile::Exists(const String& fileName) const
 {
-    return entries_.find(fileName.ToLower()) != entries_.end();
+    return entries_.find(fileName.toLower()) != entries_.end();
 }
 
 const PackageEntry* PackageFile::GetEntry(const String& fileName) const
 {
-    QHash<String, PackageEntry>::const_iterator i = entries_.find(fileName.ToLower());
+    QHash<String, PackageEntry>::const_iterator i = entries_.find(fileName.toLower());
     if (i != entries_.end())
         return &(*i);
     else

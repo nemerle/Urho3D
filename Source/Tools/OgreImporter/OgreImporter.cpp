@@ -106,7 +106,7 @@ void Run(const Vector<String>& arguments)
         {
             if (arguments[i].Length() > 1 && arguments[i][0] == '-')
             {
-                String argument = arguments[i].Substring(1).ToLower();
+                String argument = arguments[i].Substring(1).toLower();
                 if (argument == "l")
                     saveMaterialList = true;
                 else if (argument == "r")
@@ -252,7 +252,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
         ErrorExit("Could not load input file " + inputFileName);
 
     String skeletonName = skeletonLink.GetAttribute("name");
-    if (!skeletonName.Empty())
+    if (!skeletonName.isEmpty())
         LoadSkeleton(GetPath(inputFileName) + GetFileName(skeletonName) + ".skeleton.xml");
 
     // Check whether there's benefit of avoiding 32bit indices by splitting each submesh into own buffer
@@ -1014,7 +1014,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 }
 
                 // Write each animation into a separate file
-                String animationFileName = outputFileName.Replaced(".mdl", "");
+                String animationFileName = outputFileName.replaced(".mdl", "");
                 animationFileName += "_" + newAnimation.name_ + ".ani";
 
                 File dest(context_);
@@ -1218,15 +1218,15 @@ void CalculateScore(ModelVertex& vertex)
 String SanitateAssetName(const String& name)
 {
     String fixedName = name;
-    fixedName.Replace("<", "");
-    fixedName.Replace(">", "");
-    fixedName.Replace("?", "");
-    fixedName.Replace("*", "");
-    fixedName.Replace(":", "");
-    fixedName.Replace("\"", "");
-    fixedName.Replace("/", "");
-    fixedName.Replace("\\", "");
-    fixedName.Replace("|", "");
+    fixedName.replace("<", "");
+    fixedName.replace(">", "");
+    fixedName.replace("?", "");
+    fixedName.replace("*", "");
+    fixedName.replace(":", "");
+    fixedName.replace("\"", "");
+    fixedName.replace("/", "");
+    fixedName.replace("\\", "");
+    fixedName.replace("|", "");
 
     return fixedName;
 }

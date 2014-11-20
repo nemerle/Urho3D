@@ -109,7 +109,7 @@ int DoSystemCommand(const String& commandLine, bool redirectToLog, Context* cont
     int exitCode = pclose(file);
 
     // Capture the standard error stream
-    if (!stderrFilename.Empty())
+    if (!stderrFilename.isEmpty())
     {
         SharedPtr<File> errFile(new File(context, stderrFilename, FILE_READ));
         while (!errFile->IsEof())
@@ -517,13 +517,13 @@ bool FileSystem::CheckAccess(const String& pathName) const
         return true;
 
     // If there is any attempt to go to a parent directory, disallow
-    if (fixedPath.Contains(".."))
+    if (fixedPath.contains(".."))
         return false;
 
     // Check if the path is a partial match of any of the allowed directories
     for (const String &i : allowedPaths_)
     {
-        if (fixedPath.Find(i) == 0)
+        if (fixedPath.indexOf(i) == 0)
             return true;
     }
 
@@ -533,7 +533,7 @@ bool FileSystem::CheckAccess(const String& pathName) const
 
 unsigned FileSystem::GetLastModifiedTime(const String& fileName) const
 {
-    if (fileName.Empty() || !CheckAccess(fileName))
+    if (fileName.isEmpty() || !CheckAccess(fileName))
         return 0;
 
     #ifdef WIN32
@@ -631,7 +631,7 @@ void FileSystem::ScanDir(Vector<String>& result, const String& pathName, const S
 String FileSystem::GetProgramDir() const
 {
     // Return cached value if possible
-    if (!programDir_.Empty())
+    if (!programDir_.isEmpty())
         return programDir_;
 
     #if defined(ANDROID)
@@ -671,7 +671,7 @@ String FileSystem::GetProgramDir() const
         programDir_ = currentDir;
 
     // Sanitate /./ construct away
-    programDir_.Replace("/./", "/");
+    programDir_.replace("/./", "/");
 
     return programDir_;
 }
@@ -712,7 +712,7 @@ String FileSystem::GetAppPreferencesDir(const String& org, const String& app) co
 
 void FileSystem::RegisterPath(const String& pathName)
 {
-    if (pathName.Empty())
+    if (pathName.isEmpty())
         return;
 
     allowedPaths_.insert(AddTrailingSlash(pathName));
@@ -720,7 +720,7 @@ void FileSystem::RegisterPath(const String& pathName)
 
 bool FileSystem::SetLastModifiedTime(const String& fileName, unsigned newTime)
 {
-    if (fileName.Empty() || !CheckAccess(fileName))
+    if (fileName.isEmpty() || !CheckAccess(fileName))
         return false;
 
     #ifdef WIN32
@@ -750,9 +750,9 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
     if (path.Length() > startPath.Length())
         deltaPath = path.Substring(startPath.Length());
 
-    String filterExtension = filter.Substring(filter.Find('.'));
-    if (filterExtension.Contains('*'))
-        filterExtension.Clear();
+    String filterExtension = filter.Substring(filter.indexOf('.'));
+    if (filterExtension.contains('*'))
+        filterExtension.clear();
 
     #ifdef WIN32
     WIN32_FIND_DATAW info;
@@ -796,7 +796,7 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
             /// \todo Filename may be unnormalized Unicode on Mac OS X. Re-normalize as necessary
             String fileName(de->d_name);
             bool normalEntry = fileName != "." && fileName != "..";
-            if (normalEntry && !(flags & SCAN_HIDDEN) && fileName.StartsWith("."))
+            if (normalEntry && !(flags & SCAN_HIDDEN) && fileName.startsWith("."))
                 continue;
             String pathAndName = path + fileName;
             if (!stat(pathAndName.CString(), &st))
@@ -810,7 +810,7 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
                 }
                 else if (flags & SCAN_FILES)
                 {
-                    if (filterExtension.Empty() || fileName.EndsWith(filterExtension))
+                    if (filterExtension.isEmpty() || fileName.endsWith(filterExtension))
                         result.push_back(deltaPath + fileName);
                 }
             }
@@ -854,20 +854,20 @@ void SplitPath(const String& fullPath, String& pathName, String& fileName, Strin
 {
     String fullPathCopy = GetInternalPath(fullPath);
 
-    unsigned extPos = fullPathCopy.FindLast('.');
-    unsigned pathPos = fullPathCopy.FindLast('/');
+    unsigned extPos = fullPathCopy.lastIndexOf('.');
+    unsigned pathPos = fullPathCopy.lastIndexOf('/');
 
     if (extPos != String::NPOS && (pathPos == String::NPOS || extPos > pathPos))
     {
         extension = fullPathCopy.Substring(extPos);
         if (lowercaseExtension)
-            extension = extension.ToLower();
+            extension = extension.toLower();
         fullPathCopy = fullPathCopy.Substring(0, extPos);
     }
     else
-        extension.Clear();
+        extension.clear();
 
-    pathPos = fullPathCopy.FindLast('/');
+    pathPos = fullPathCopy.lastIndexOf('/');
     if (pathPos != String::NPOS)
     {
         fileName = fullPathCopy.Substring(pathPos + 1);
@@ -876,7 +876,7 @@ void SplitPath(const String& fullPath, String& pathName, String& fileName, Strin
     else
     {
         fileName = fullPathCopy;
-        pathName.Clear();
+        pathName.clear();
     }
 }
 
@@ -918,8 +918,8 @@ String ReplaceExtension(const String& fullPath, const String& newExtension)
 String AddTrailingSlash(const String& pathName)
 {
     String ret = pathName.Trimmed();
-    ret.Replace('\\', '/');
-    if (!ret.Empty() && ret.Back() != '/')
+    ret.replace('\\', '/');
+    if (!ret.isEmpty() && ret.Back() != '/')
         ret += '/';
     return ret;
 }
@@ -927,15 +927,15 @@ String AddTrailingSlash(const String& pathName)
 String RemoveTrailingSlash(const String& pathName)
 {
     String ret = pathName.Trimmed();
-    ret.Replace('\\', '/');
-    if (!ret.Empty() && ret.Back() == '/')
+    ret.replace('\\', '/');
+    if (!ret.isEmpty() && ret.Back() == '/')
         ret.Resize(ret.Length() - 1);
     return ret;
 }
 
 String GetParentPath(const String& path)
 {
-    unsigned pos = RemoveTrailingSlash(path).FindLast('/');
+    unsigned pos = RemoveTrailingSlash(path).lastIndexOf('/');
     if (pos != String::NPOS)
         return path.Substring(0, pos + 1);
     else
@@ -944,13 +944,13 @@ String GetParentPath(const String& path)
 
 String GetInternalPath(const String& pathName)
 {
-    return pathName.Replaced('\\', '/');
+    return pathName.replaced('\\', '/');
 }
 
 String GetNativePath(const String& pathName)
 {
 #ifdef WIN32
-    return pathName.Replaced('/', '\\');
+    return pathName.replaced('/', '\\');
 #else
     return pathName;
 #endif
@@ -959,7 +959,7 @@ String GetNativePath(const String& pathName)
 WString GetWideNativePath(const String& pathName)
 {
 #ifdef WIN32
-    return WString(pathName.Replaced('/', '\\'));
+    return WString(pathName.replaced('/', '\\'));
 #else
     return WString(pathName);
 #endif
@@ -967,7 +967,7 @@ WString GetWideNativePath(const String& pathName)
 
 bool IsAbsolutePath(const String& pathName)
 {
-    if (pathName.Empty())
+    if (pathName.isEmpty())
         return false;
 
     String path = GetInternalPath(pathName);

@@ -592,7 +592,7 @@ static void RegisterSpline(asIScriptEngine* engine)
 
 static CScriptArray* StringSplit(char separator, const String* str)
 {
-    Vector<String> result = str->Split(separator);
+    Vector<String> result = str->split(separator);
     return VectorToArray<String>(result, "Array<String>");
 }
 

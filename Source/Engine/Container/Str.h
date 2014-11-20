@@ -275,19 +275,19 @@ public:
     const char& At(unsigned index) const { assert(index < length_); return buffer_[index]; }
 
     /// Replace all occurrences of a character.
-    void Replace(char replaceThis, char replaceWith, bool caseSensitive = true);
+    void replace(char replaceThis, char replaceWith, bool caseSensitive = true);
     /// Replace all occurrences of a string.
-    void Replace(const String& replaceThis, const String& replaceWith, bool caseSensitive = true);
+    void replace(const String& replaceThis, const String& replaceWith, bool caseSensitive = true);
     /// Replace a substring.
-    void Replace(unsigned pos, unsigned length, const String& replaceWith);
+    void replace(unsigned pos, unsigned length, const String& replaceWith);
     /// Replace a substring with a C string.
-    void Replace(unsigned pos, unsigned length, const char* replaceWith);
+    void replace(unsigned pos, unsigned length, const char* replaceWith);
     /// Replace a substring by iterators.
-    Iterator Replace(const Iterator& start, const Iterator& end, const String& replaceWith);
+    Iterator replace(const Iterator& start, const Iterator& end, const String& replaceWith);
     /// Return a string with all occurrences of a character replaced.
-    String Replaced(char replaceThis, char replaceWith, bool caseSensitive = true) const;
+    String replaced(char replaceThis, char replaceWith, bool caseSensitive = true) const;
     /// Return a string with all occurrences of a string replaced.
-    String Replaced(const String& replaceThis, const String& replaceWith, bool caseSensitive = true) const;
+    String replaced(const String& replaceThis, const String& replaceWith, bool caseSensitive = true) const;
     /// Append a string.
     String& Append(const String& str);
     /// Append a C string.
@@ -319,7 +319,7 @@ public:
     /// Reallocate so that no extra memory is used.
     void Compact();
     /// Clear the string.
-    void Clear();
+    void clear();
     /// Swap with another string.
     void Swap(String& str);
 
@@ -342,25 +342,25 @@ public:
     /// Return string with whitespace trimmed from the beginning and the end.
     String Trimmed() const;
     /// Return string in uppercase.
-    String ToUpper() const;
+    String toUpper() const;
     /// Return string in lowercase.
-    String ToLower() const;
+    String toLower() const;
     /// Return substrings split by a separator char.
-    Vector<String> Split(char separator) const;
+    Vector<String> split(char separator) const;
     /// Join substrings with a 'glue' string.
     void Join(const Vector<String>& subStrings, String glue);
     /// Return index to the first occurrence of a string, or NPOS if not found.
-    unsigned Find(const String& str, unsigned startPos = 0, bool caseSensitive = true) const;
+    unsigned indexOf(const String& str, unsigned startPos = 0, bool caseSensitive = true) const;
     /// Return index to the first occurrence of a character, or NPOS if not found.
-    unsigned Find(char c, unsigned startPos = 0, bool caseSensitive = true) const;
+    unsigned indexOf(char c, unsigned startPos = 0, bool caseSensitive = true) const;
     /// Return index to the last occurrence of a string, or NPOS if not found.
-    unsigned FindLast(const String& str, unsigned startPos = NPOS, bool caseSensitive = true) const;
+    unsigned lastIndexOf(const String& str, unsigned startPos = NPOS, bool caseSensitive = true) const;
     /// Return index to the last occurrence of a character, or NPOS if not found.
-    unsigned FindLast(char c, unsigned startPos = NPOS, bool caseSensitive = true) const;
+    unsigned lastIndexOf(char c, unsigned startPos = NPOS, bool caseSensitive = true) const;
     /// Return whether starts with a string.
-    bool StartsWith(const String& str, bool caseSensitive = true) const;
+    bool startsWith(const String& str, bool caseSensitive = true) const;
     /// Return whether ends with a string.
-    bool EndsWith(const String& str, bool caseSensitive = true) const;
+    bool endsWith(const String& str, bool caseSensitive = true) const;
     /// Return the C string.
     const char* CString() const { return buffer_; }
     /// Return length.
@@ -368,15 +368,15 @@ public:
     /// Return buffer capacity.
     unsigned Capacity() const { return capacity_; }
     /// Return whether the string is empty.
-    bool Empty() const { return length_ == 0; }
+    bool isEmpty() const { return length_ == 0; }
     /// Return comparison result with a string.
     int Compare(const String& str, bool caseSensitive = true) const;
     /// Return comparison result with a C string.
     int Compare(const char* str, bool caseSensitive = true) const;
     /// Return whether contains a specific occurence of a string.
-    bool Contains(const String& str, bool caseSensitive = true) const { return Find(str, 0, caseSensitive) != NPOS; }
+    bool contains(const String& str, bool caseSensitive = true) const { return indexOf(str, 0, caseSensitive) != NPOS; }
     /// Return whether contains a specific character.
-    bool Contains(char c, bool caseSensitive = true) const { return Find(c, 0, caseSensitive) != NPOS; }
+    bool contains(char c, bool caseSensitive = true) const { return indexOf(c, 0, caseSensitive) != NPOS; }
 
     /// Construct UTF8 content from Latin1.
     void SetUTF8FromLatin1(const char* str);
@@ -414,7 +414,7 @@ public:
     }
 
     /// Return substrings split by a separator char.
-    static Vector<String> Split(const char* str, char separator);
+    static Vector<String> split(const char* str, char separator);
     /// Return a string by joining substrings with a 'glue' string.
     static String Joined(const Vector<String>& subStrings, String glue);
     /// Encode Unicode character to UTF8. Pointer will be incremented.
@@ -484,7 +484,7 @@ private:
     }
 
     /// Replace a substring with another substring.
-    void Replace(unsigned pos, unsigned length, const char* srcStart, unsigned srcLength);
+    void replace(unsigned pos, unsigned length, const char* srcStart, unsigned srcLength);
 
     /// String length.
     unsigned length_;

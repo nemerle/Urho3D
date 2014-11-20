@@ -471,7 +471,7 @@ void Connection::ProcessLoadScene(int msgID, MemoryBuffer& msg)
     for (unsigned i = 0; i < packages.size(); ++i)
     {
         PackageFile* package = packages[i];
-        if (!package->GetName().Find(packageCacheDir))
+        if (!package->GetName().indexOf(packageCacheDir))
             cache->RemovePackageFile(package, true);
     }
 
@@ -1330,7 +1330,7 @@ bool Connection::RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg)
 
         if (!packagesScanned)
         {
-            if (packageCacheDir.Empty())
+            if (packageCacheDir.isEmpty())
             {
                 LOGERROR("Can not check/download required packages, as package cache directory is not set");
                 return false;
@@ -1344,7 +1344,7 @@ bool Connection::RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg)
         for (const String& fileName : downloadedPackages)
         {
             // In download cache, package file name format is checksum_packagename
-            if (!fileName.Find(checksumString) && !fileName.Substring(9).Compare(name, false))
+            if (!fileName.indexOf(checksumString) && !fileName.Substring(9).Compare(name, false))
             {
                 // Name matches. Check filesize and actual checksum to be sure
                 SharedPtr<PackageFile> newPackage(new PackageFile(context_, packageCacheDir + fileName));
@@ -1424,7 +1424,7 @@ void Connection::OnPackagesReady()
     if (sceneLoaded_)
         return;
 
-    if (sceneFileName_.Empty())
+    if (sceneFileName_.isEmpty())
     {
         // If the scene filename is empty, just clear the scene of all existing replicated content, and send the loaded reply
         scene_->Clear(true, false);

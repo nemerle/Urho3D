@@ -458,7 +458,7 @@ void Scene::Clear(bool clearReplicated, bool clearLocal)
     {
         UnregisterAllVars();
         SetName(String::EMPTY);
-        fileName_.Clear();
+        fileName_.clear();
         checksum_ = 0;
     }
 
@@ -851,7 +851,7 @@ void Scene::ComponentRemoved(Component* component)
 
 void Scene::SetVarNamesAttr(String value)
 {
-    Vector<String> varNames = value.Split(';');
+    Vector<String> varNames = value.split(';');
 
     varNames_.clear();
     for (Vector<String>::const_iterator i = varNames.begin(); i != varNames.end(); ++i)

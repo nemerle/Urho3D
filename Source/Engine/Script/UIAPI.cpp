@@ -53,7 +53,7 @@ static bool FontSaveXMLVectorBuffer(VectorBuffer& buffer, int pointSize, bool us
 
 static bool FontSaveXML(const String& fileName, int pointSize, bool usedGlyphs, Font* ptr)
 {
-    if (fileName.Empty())
+    if (fileName.isEmpty())
         return false;
 
     File file(ptr->GetContext(), fileName, FILE_WRITE);

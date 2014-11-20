@@ -117,7 +117,7 @@ bool UnknownComponent::LoadXML(const XMLElement& source, bool setInstanceDefault
         attr.name_ = attrElem.GetAttribute("name");
         attr.type_ = VAR_STRING;
 
-        if (!attr.name_.Empty())
+        if (!attr.name_.isEmpty())
         {
             String attrValue = attrElem.GetAttribute("value");
             attr.defaultValue_ = String::EMPTY;

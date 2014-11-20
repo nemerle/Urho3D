@@ -626,22 +626,22 @@ const char* XMLElement::GetAttributeCString(const char* name) const
 
 String XMLElement::GetAttributeLower(const String& name) const
 {
-    return GetAttribute(name).ToLower();
+    return GetAttribute(name).toLower();
 }
 
 String XMLElement::GetAttributeLower(const char* name) const
 {
-    return String(GetAttribute(name)).ToLower();
+    return String(GetAttribute(name)).toLower();
 }
 
 String XMLElement::GetAttributeUpper(const String& name) const
 {
-    return GetAttribute(name).ToUpper();
+    return GetAttribute(name).toUpper();
 }
 
 String XMLElement::GetAttributeUpper(const char* name) const
 {
-    return String(GetAttribute(name)).ToUpper();
+    return String(GetAttribute(name)).toUpper();
 }
 
 Vector<String> XMLElement::GetAttributeNames() const
@@ -687,7 +687,7 @@ PODVector<unsigned char> XMLElement::GetBuffer(const String& name) const
 bool XMLElement::GetBuffer(const String& name, void* dest, unsigned size) const
 {
     PODVector<unsigned char> ret;
-    Vector<String> bytes = GetAttribute(name).Split(' ');
+    Vector<String> bytes = GetAttribute(name).split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
     if (size < bytes.size())
         return false;
@@ -765,7 +765,7 @@ ResourceRef XMLElement::GetResourceRef() const
 {
     ResourceRef ret;
 
-    Vector<String> values = GetAttribute("value").Split(';');
+    Vector<String> values = GetAttribute("value").split(';');
     if (values.size() == 2)
     {
         ret.type_ = values[0];
@@ -779,7 +779,7 @@ ResourceRefList XMLElement::GetResourceRefList() const
 {
     ResourceRefList ret;
 
-    Vector<String> values = GetAttribute("value").Split(';');
+    Vector<String> values = GetAttribute("value").split(';');
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
@@ -997,16 +997,16 @@ bool XPathQuery::SetVariable(const String& name, const XPathResultSet& value)
 
 bool XPathQuery::SetQuery(const String& queryString, const String& variableString, bool bind)
 {
-    if (!variableString.Empty())
+    if (!variableString.isEmpty())
     {
         Clear();
         variables_ = new pugi::xpath_variable_set();
 
         // Parse the variable string having format "name1:type1,name2:type2,..." where type is one of "Bool", "Float", "String", "ResultSet"
-        Vector<String> vars = variableString.Split(',');
+        Vector<String> vars = variableString.split(',');
         for (Vector<String>::const_iterator i = vars.begin(); i != vars.end(); ++i)
         {
-            Vector<String> tokens = i->Trimmed().Split(':');
+            Vector<String> tokens = i->Trimmed().split(':');
             if (tokens.size() != 2)
                 continue;
 
@@ -1037,7 +1037,7 @@ bool XPathQuery::SetQuery(const String& queryString, const String& variableStrin
 
 void XPathQuery::Clear()
 {
-    queryString_.Clear();
+    queryString_.clear();
 
     delete variables_;
     variables_ = nullptr;

@@ -124,7 +124,7 @@ void Application::HandleLogMessage(StringHash eventType, VariantMap& eventData)
     {
         // Strip the timestamp if necessary
         String error = eventData[P_MESSAGE].GetString();
-        unsigned bracketPos = error.Find(']');
+        unsigned bracketPos = error.indexOf(']');
         if (bracketPos != String::NPOS)
             error = error.Substring(bracketPos + 2);
         

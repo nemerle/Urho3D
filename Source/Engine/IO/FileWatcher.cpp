@@ -138,7 +138,7 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
                 String subDirFullPath = AddTrailingSlash(path_ + subDirs[i]);
 
                 // Don't watch ./ or ../ sub-directories
-                if (!subDirFullPath.EndsWith("./"))
+                if (!subDirFullPath.endsWith("./"))
                 {
                     handle = inotify_add_watch(watchHandle_, subDirFullPath.CString(), flags);
                     if (handle < 0)
@@ -214,7 +214,7 @@ void FileWatcher::StopWatching()
         #endif
 
         LOGDEBUG("Stopped watching path " + path_);
-        path_.Clear();
+        path_.clear();
     }
 }
 

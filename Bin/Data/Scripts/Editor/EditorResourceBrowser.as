@@ -540,7 +540,7 @@ void PopulateResourceDirFilters()
 
         Text@ label = Text();
         label.style = "EditorAttributeText";
-        label.text = cache.resourceDirs[i].Replaced(fileSystem.programDir, "");
+        label.text = cache.resourceDirs[i].replaced(fileSystem.programDir, "");
         CheckBox@ checkbox = CheckBox();
         checkbox.name = i;
         checkbox.SetStyleAuto();

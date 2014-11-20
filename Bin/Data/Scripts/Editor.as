@@ -81,7 +81,7 @@ void ParseArguments()
     // Scan for a scene to load
     for (uint i = 1; i < arguments.length; ++i)
     {
-        if (arguments[i].ToLower() == "-scene")
+        if (arguments[i].toLower() == "-scene")
         {
             if (++i < arguments.length)
             {

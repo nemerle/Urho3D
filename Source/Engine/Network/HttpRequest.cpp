@@ -38,7 +38,7 @@ static const unsigned READ_BUFFER_SIZE = 65536; // Must be a power of two
 
 HttpRequest::HttpRequest(const String& url, const String& verb, const Vector<String>& headers, const String& postData) :
     url_(url.Trimmed()),
-    verb_(!verb.Empty() ? verb : "GET"),
+    verb_(!verb.isEmpty() ? verb : "GET"),
     headers_(headers),
     postData_(postData),
     state_(HTTP_INITIALIZING),
@@ -69,7 +69,7 @@ void HttpRequest::ThreadFunction()
     String path = "/";
     int port = 80;
     
-    unsigned protocolEnd = url_.Find("://");
+    unsigned protocolEnd = url_.indexOf("://");
     if (protocolEnd != String::NPOS)
     {
         protocol = url_.Substring(0, protocolEnd);
@@ -78,14 +78,14 @@ void HttpRequest::ThreadFunction()
     else
         host = url_;
     
-    unsigned pathStart = host.Find('/');
+    unsigned pathStart = host.indexOf('/');
     if (pathStart != String::NPOS)
     {
         path = host.Substring(pathStart);
         host = host.Substring(0, pathStart);
     }
     
-    unsigned portStart = host.Find(':');
+    unsigned portStart = host.indexOf(':');
     if (portStart != String::NPOS)
     {
         port = ToInt(host.Substring(portStart + 1));
@@ -107,7 +107,7 @@ void HttpRequest::ThreadFunction()
     // Initiate the connection. This may block due to DNS query
     /// \todo SSL mode will not actually work unless Civetweb's SSL mode is initialized with an external SSL DLL
     mg_connection* connection = nullptr;
-    if (postData_.Empty())
+    if (postData_.isEmpty())
     {
         connection = mg_download(host.CString(), port, protocol.Compare("https", false) ? 0 : 1, errorBuffer, sizeof(errorBuffer),
             "%s %s HTTP/1.0\r\n"

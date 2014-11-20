@@ -230,13 +230,13 @@ bool UIElement::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setIn
     if (styleFile)
     {
         // If not defined, use type name
-        if (styleName.Empty())
+        if (styleName.isEmpty())
             styleName = GetTypeName();
 
         SetStyle(styleName, styleFile);
     }
     // The 'style' attribute value in the style file cannot be equals to original's applied style to prevent infinite loop
-    else if (!styleName.Empty() && styleName != appliedStyle_)
+    else if (!styleName.isEmpty() && styleName != appliedStyle_)
     {
         // Attempt to use the default style file
         styleFile = GetDefaultStyle();
@@ -265,7 +265,7 @@ bool UIElement::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setIn
     {
         bool internalElem = childElem.GetBool("internal");
         String typeName = childElem.GetAttribute("type");
-        if (typeName.Empty())
+        if (typeName.isEmpty())
             typeName = "UIElement";
         unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
         UIElement* child = nullptr;
@@ -317,7 +317,7 @@ bool UIElement::LoadChildXML(const XMLElement& childElem, XMLFile* styleFile, bo
     }
 
     String typeName = childElem.GetAttribute("type");
-    if (typeName.Empty())
+    if (typeName.isEmpty())
         typeName = "UIElement";
     unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
     UIElement* child = CreateChild(typeName, String::EMPTY, index);
@@ -350,7 +350,7 @@ bool UIElement::SaveXML(XMLElement& dest) const
     }
 
     // Write style
-    if (!appliedStyle_.Empty() && appliedStyle_ != "UIElement")
+    if (!appliedStyle_.isEmpty() && appliedStyle_ != "UIElement")
     {
         if (!dest.SetAttribute("style", appliedStyle_))
             return false;
@@ -571,7 +571,7 @@ bool UIElement::FilterAttributes(XMLElement& dest) const
     if (styleFile)
     {
         String style = dest.GetAttribute("style");
-        if (!style.Empty() && style != "none")
+        if (!style.isEmpty() && style != "none")
         {
             if (styleXPathQuery_.SetVariable("typeName", style))
             {
@@ -942,7 +942,7 @@ void UIElement::SetDragDropMode(unsigned mode)
 bool UIElement::SetStyle(const String& styleName, XMLFile* file)
 {
     // If empty style was requested, replace with type name
-    String actualStyleName = !styleName.Empty() ? styleName : GetTypeName();
+    String actualStyleName = !styleName.isEmpty() ? styleName : GetTypeName();
 
     appliedStyle_ = actualStyleName;
     if (styleName == "none")
@@ -1217,7 +1217,7 @@ UIElement* UIElement::CreateChild(StringHash type, const String& name, unsigned 
         return nullptr;
     }
 
-    if (!name.Empty())
+    if (!name.isEmpty())
         newElement->SetName(name);
 
     InsertChild(index, newElement);
@@ -1260,7 +1260,7 @@ void UIElement::InsertChild(unsigned index, UIElement* element)
     element->MarkDirty();
 
     // If child element did not already have a style file, but has specified a style name, apply it now
-    if (!previousStyleFile && !element->appliedStyle_.Empty() && GetDefaultStyle())
+    if (!previousStyleFile && !element->appliedStyle_.isEmpty() && GetDefaultStyle())
         element->SetStyle(element->appliedStyle_);
 
     VerifyChildAlignment();
@@ -1695,7 +1695,7 @@ void UIElement::OnAttributeAnimationRemoved()
 
 void UIElement::SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
 {
-    Vector<String> names = name.Split('/');
+    Vector<String> names = name.split('/');
     // Only attribute name
     if (names.size() == 1)
         SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
@@ -1762,7 +1762,7 @@ bool UIElement::FilterUIStyleAttributes(XMLElement& dest, const XMLElement& styl
 {
     // Remove style attribute only when its value is identical to the value stored in style file
     String style = styleElem.GetAttribute("style");
-    if (!style.Empty())
+    if (!style.isEmpty())
     {
         if (style == dest.GetAttribute("style"))
         {
@@ -1792,7 +1792,7 @@ bool UIElement::FilterUIStyleAttributes(XMLElement& dest, const XMLElement& styl
     }
 
     // Remove style attribute when it is the same as its type, however, if it is an internal element then replace it to "none" instead
-    if (!dest.GetAttribute("style").Empty() && dest.GetAttribute("style") == dest.GetAttribute("type"))
+    if (!dest.GetAttribute("style").isEmpty() && dest.GetAttribute("style") == dest.GetAttribute("type"))
     {
         if (internal_)
         {

@@ -310,7 +310,7 @@ void Console::HandleTextFinished(StringHash eventType, VariantMap& eventData)
     using namespace TextFinished;
 
     String line = lineEdit_->GetText();
-    if (!line.Empty())
+    if (!line.isEmpty())
     {
         // Send the command as an event for script subsystem
         using namespace ConsoleCommand;
@@ -326,7 +326,7 @@ void Console::HandleTextFinished(StringHash eventType, VariantMap& eventData)
             history_.erase(history_.begin());
         historyPosition_ = history_.size();
 
-        currentRow_.Clear();
+        currentRow_.clear();
         lineEdit_->SetText(currentRow_);
     }
 }
@@ -390,7 +390,7 @@ void Console::HandleLogMessage(StringHash eventType, VariantMap& eventData)
 
     int level = eventData[P_LEVEL].GetInt();
     // The message may be multi-line, so split to rows in that case
-    Vector<String> rows = eventData[P_MESSAGE].GetString().Split('\n');
+    Vector<String> rows = eventData[P_MESSAGE].GetString().split('\n');
 
     for (unsigned i = 0; i < rows.size(); ++i)
         pendingRows_.push_back(MakePair(level, rows[i]));

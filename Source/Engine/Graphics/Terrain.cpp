@@ -657,7 +657,7 @@ void Terrain::CreateGeometry()
         for (auto & oldPatchNode : oldPatchNodes)
         {
             bool nodeOk = false;
-            Vector<String> coords = (oldPatchNode)->GetName().Substring(6).Split('_');
+            Vector<String> coords = (oldPatchNode)->GetName().Substring(6).split('_');
             if (coords.size() == 2)
             {
                 int x = ToInt(coords[0]);

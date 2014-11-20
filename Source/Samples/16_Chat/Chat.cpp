@@ -188,7 +188,7 @@ void Chat::HandleLogMessage(StringHash eventType, VariantMap& eventData)
 void Chat::HandleSend(StringHash eventType, VariantMap& eventData)
 {
     String text = textEdit_->GetText();
-    if (text.Empty())
+    if (text.isEmpty())
         return; // Do not send an empty message
 
     Network* network = GetSubsystem<Network>();
@@ -210,7 +210,7 @@ void Chat::HandleConnect(StringHash eventType, VariantMap& eventData)
 {
     Network* network = GetSubsystem<Network>();
     String address = textEdit_->GetText().Trimmed();
-    if (address.Empty())
+    if (address.isEmpty())
         address = "localhost"; // Use localhost to connect if nothing else specified
     // Empty the text edit after reading the address to connect to
     textEdit_->SetText(String::EMPTY);

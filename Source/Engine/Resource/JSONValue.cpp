@@ -371,7 +371,7 @@ PODVector<unsigned char> JSONValue::GetBuffer(const String& name) const
 
 bool JSONValue::GetBuffer(const String& name, void* dest, unsigned size) const
 {
-    Vector<String> bytes = GetString(name).Split(' ');
+    Vector<String> bytes = GetString(name).split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
     if (size < bytes.size())
         return false;
@@ -386,7 +386,7 @@ ResourceRef JSONValue::GetResourceRef(const String& name) const
 {
     ResourceRef ret;
 
-    Vector<String> values = GetString(name).Split(';');
+    Vector<String> values = GetString(name).split(';');
     if (values.size() == 2)
     {
         ret.type_ = values[0];
@@ -400,7 +400,7 @@ ResourceRefList JSONValue::GetResourceRefList(const String& name) const
 {
     ResourceRefList ret;
 
-    Vector<String> values = GetString(name).Split(';');
+    Vector<String> values = GetString(name).split(';');
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
@@ -718,7 +718,7 @@ PODVector<unsigned char> JSONValue::GetBuffer(unsigned index) const
 
 bool JSONValue::GetBuffer(unsigned index, void* dest, unsigned size) const
 {
-    Vector<String> bytes = GetString(index).Split(' ');
+    Vector<String> bytes = GetString(index).split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
     if (size < bytes.size())
         return false;
@@ -732,7 +732,7 @@ ResourceRef JSONValue::GetResourceRef(unsigned index) const
 {
     ResourceRef ret;
 
-    Vector<String> values = GetString(index).Split(';');
+    Vector<String> values = GetString(index).split(';');
     if (values.size() == 2)
     {
         ret.type_ = values[0];
@@ -746,7 +746,7 @@ ResourceRefList JSONValue::GetResourceRefList(unsigned index) const
 {
     ResourceRefList ret;
 
-    Vector<String> values = GetString(index).Split(';');
+    Vector<String> values = GetString(index).split(';');
     if (values.size() >= 1)
     {
         ret.type_ = values[0];

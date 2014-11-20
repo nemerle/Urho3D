@@ -911,7 +911,7 @@ static VariantMap& UIElementGetVars(UIElement* ptr)
 
 static void UIElementSetStyle(const String& styleName, UIElement* ptr)
 {
-    if (styleName.Empty())
+    if (styleName.isEmpty())
         ptr->SetStyleAuto();
     else
         ptr->SetStyle(styleName);

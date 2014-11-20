@@ -147,7 +147,7 @@ String Time::GetTimeStamp()
     time_t sysTime;
     time(&sysTime);
     const char* dateTime = ctime(&sysTime);
-    return String(dateTime).Replaced("\n", "");
+    return String(dateTime).replaced("\n", "");
 }
 
 void Time::Sleep(unsigned mSec)

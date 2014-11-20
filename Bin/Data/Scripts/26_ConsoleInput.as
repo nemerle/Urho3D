@@ -164,7 +164,7 @@ void Advance()
 
 void HandleInput(const String&in input)
 {
-    String inputLower = input.ToLower().Trimmed();
+    String inputLower = input.toLower().Trimmed();
     if (inputLower.empty)
     {
         Print("Empty input given!");
