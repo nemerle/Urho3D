@@ -343,7 +343,7 @@ void RotateMaterialPreview(StringHash eventType, VariantMap& eventData)
 void EditMaterialName(StringHash eventType, VariantMap& eventData)
 {
     LineEdit@ nameEdit = eventData["Element"].GetPtr();
-    String newMaterialName = nameEdit.text.Trimmed();
+    String newMaterialName = nameEdit.text.trimmed();
     if (!newMaterialName.empty)
     {
         Material@ newMaterial = cache.GetResource("Material", newMaterialName);
@@ -504,7 +504,7 @@ void CreateShaderParameter(StringHash eventType, VariantMap& eventData)
         return;
 
     LineEdit@ nameEdit = materialWindow.GetChild("ParameterNameEdit", true);
-    String newName = nameEdit.text.Trimmed();
+    String newName = nameEdit.text.trimmed();
     if (newName.empty)
         return;
 
@@ -540,7 +540,7 @@ void DeleteShaderParameter()
         return;
 
     LineEdit@ nameEdit = materialWindow.GetChild("ParameterNameEdit", true);
-    String name = nameEdit.text.Trimmed();
+    String name = nameEdit.text.trimmed();
     if (name.empty)
         return;
 
@@ -602,7 +602,7 @@ void EditMaterialTexture(StringHash eventType, VariantMap& eventData)
         return;
 
     LineEdit@ attrEdit = eventData["Element"].GetPtr();
-    String textureName = attrEdit.text.Trimmed();
+    String textureName = attrEdit.text.trimmed();
     uint index = attrEdit.vars["Index"].GetUInt();
 
     BeginMaterialEdit();
@@ -694,7 +694,7 @@ void EditMaterialTechnique(StringHash eventType, VariantMap& eventData)
         return;
 
     LineEdit@ attrEdit = eventData["Element"].GetPtr();
-    String techniqueName = attrEdit.text.Trimmed();
+    String techniqueName = attrEdit.text.trimmed();
     uint index = attrEdit.vars["Index"].GetUInt();
 
     BeginMaterialEdit();

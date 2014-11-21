@@ -104,7 +104,7 @@ void Run(const Vector<String>& arguments)
     {
         for (unsigned i = 2; i < arguments.size(); ++i)
         {
-            if (arguments[i].Length() > 1 && arguments[i][0] == '-')
+            if (arguments[i].length() > 1 && arguments[i][0] == '-')
             {
                 String argument = arguments[i].Substring(1).toLower();
                 if (argument == "l")
@@ -115,7 +115,7 @@ void Run(const Vector<String>& arguments)
                     splitSubMeshes = true;
                 else if (argument == "t")
                     generateTangents = true;
-                else if (argument.Length() == 2 && argument[0] == 'n')
+                else if (argument.length() == 2 && argument[0] == 'n')
                 {
                     switch (tolower(argument[1]))
                     {

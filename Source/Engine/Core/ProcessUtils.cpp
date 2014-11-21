@@ -195,7 +195,7 @@ const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgume
     bool inCmd = false;
     bool inQuote = false;
 
-    for (unsigned i = 0; i < cmdLine.Length(); ++i)
+    for (unsigned i = 0; i < cmdLine.length(); ++i)
     {
         if (cmdLine[i] == '\"')
             inQuote = !inQuote;
@@ -222,7 +222,7 @@ const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgume
     }
     if (inCmd)
     {
-        cmdEnd = cmdLine.Length();
+        cmdEnd = cmdLine.length();
         if (!skipFirstArgument)
             arguments.push_back(cmdLine.Substring(cmdStart, cmdEnd - cmdStart));
     }

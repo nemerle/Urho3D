@@ -126,14 +126,14 @@ void Texture::SetSRGB(bool enable)
 {
     if (graphics_)
         enable &= graphics_->GetSRGBSupport();
-    
+
     if (enable != sRGB_)
     {
         sRGB_ = enable;
         // If texture had already been created, must recreate it to set the sRGB texture format
         if (object_)
             Create();
-        
+
         // If texture in use in the framebuffer, mark it dirty
         if (graphics_ && graphics_->GetRenderTarget(0) && graphics_->GetRenderTarget(0)->GetParentTexture() == this)
             graphics_->MarkFBODirty();
@@ -150,7 +150,7 @@ void Texture::SetMipsToSkip(int quality, int mips)
     if (quality >= QUALITY_LOW && quality < MAX_TEXTURE_QUALITY_LEVELS)
     {
         mipsToSkip_[quality] = mips;
-        
+
         // Make sure a higher quality level does not actually skip more mips
         for (int i = 1; i < MAX_TEXTURE_QUALITY_LEVELS; ++i)
         {
@@ -169,18 +169,18 @@ void Texture::UpdateParameters()
 {
     if (!object_ || !graphics_)
         return;
-    
+
     // Wrapping
     glTexParameteri(target_, GL_TEXTURE_WRAP_S, glWrapModes[addressMode_[COORD_U]]);
     glTexParameteri(target_, GL_TEXTURE_WRAP_T, glWrapModes[addressMode_[COORD_V]]);
     #ifndef GL_ES_VERSION_2_0
     glTexParameteri(target_, GL_TEXTURE_WRAP_R, glWrapModes[addressMode_[COORD_W]]);
     #endif
-    
+
     TextureFilterMode filterMode = filterMode_;
     if (filterMode == FILTER_DEFAULT)
         filterMode = graphics_->GetDefaultTextureFilterMode();
-    
+
     // Filtering
     switch (filterMode)
     {
@@ -188,7 +188,7 @@ void Texture::UpdateParameters()
         glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(target_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         break;
-        
+
     case FILTER_BILINEAR:
         if (levels_ < 2)
             glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -196,7 +196,7 @@ void Texture::UpdateParameters()
             glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glTexParameteri(target_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         break;
-        
+
     case FILTER_ANISOTROPIC:
     case FILTER_TRILINEAR:
         if (levels_ < 2)
@@ -205,11 +205,11 @@ void Texture::UpdateParameters()
             glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(target_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         break;
-    
+
     default:
         break;
     }
-    
+
     #ifndef GL_ES_VERSION_2_0
     // Anisotropy
     if (graphics_->GetAnisotropySupport())
@@ -217,7 +217,7 @@ void Texture::UpdateParameters()
         glTexParameterf(target_, GL_TEXTURE_MAX_ANISOTROPY_EXT, filterMode == FILTER_ANISOTROPIC ?
             (float)graphics_->GetTextureAnisotropy() : 1.0f);
     }
-    
+
     // Shadow compare
     if (shadowCompare_)
     {
@@ -226,10 +226,10 @@ void Texture::UpdateParameters()
     }
     else
         glTexParameteri(target_, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    
+
     glTexParameterfv(target_, GL_TEXTURE_BORDER_COLOR, borderColor_.Data());
     #endif
-    
+
     parametersDirty_ = false;
 }
 
@@ -298,13 +298,13 @@ unsigned Texture::GetRowDataSize(int width) const
     case GL_ALPHA:
     case GL_LUMINANCE:
         return width;
-        
+
     case GL_LUMINANCE_ALPHA:
         return width * 2;
-        
+
     case GL_RGB:
         return width * 3;
-        
+
     case GL_RGBA:
     #ifndef GL_ES_VERSION_2_0
     case GL_LUMINANCE16F_ARB:
@@ -313,19 +313,19 @@ unsigned Texture::GetRowDataSize(int width) const
     case GL_RG16:
     #endif
         return width * 4;
-        
+
     #ifndef GL_ES_VERSION_2_0
     case GL_RGBA16:
         return width * 8;
-        
+
     case GL_RGBA16F_ARB:
     case GL_RGBA32F_ARB:
         return width * 16;
     #endif
-    
+
     case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
         return ((width + 3) >> 2) * 8;
-        
+
     #ifndef GL_ES_VERSION_2_0
     case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
     case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
@@ -333,16 +333,16 @@ unsigned Texture::GetRowDataSize(int width) const
     #else
     case GL_ETC1_RGB8_OES:
         return ((width + 3) >> 2) * 8;
-        
+
     case COMPRESSED_RGB_PVRTC_4BPPV1_IMG:
     case COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
         return (width * 4 + 7) >> 3;
-        
+
     case COMPRESSED_RGB_PVRTC_2BPPV1_IMG:
     case COMPRESSED_RGBA_PVRTC_2BPPV1_IMG:
         return (width * 2 + 7) >> 3;
     #endif
-        
+
     default:
         return 0;
     }
@@ -398,7 +398,7 @@ void Texture::SetParameters(XMLFile* file)
 {
     if (!file)
         return;
-    
+
     XMLElement rootElem = file->GetRoot();
     SetParameters(rootElem);
 }
@@ -409,30 +409,30 @@ void Texture::SetParameters(const XMLElement& elem)
     while (paramElem)
     {
         String name = paramElem.GetName();
-        
+
         if (name == "address")
         {
             String coord = paramElem.GetAttributeLower("coord");
-            if (coord.Length() >= 1)
+            if (coord.length() >= 1)
             {
                 TextureCoordinate coordIndex = (TextureCoordinate)(coord[0] - 'u');
                 String mode = paramElem.GetAttributeLower("mode");
                 SetAddressMode(coordIndex, (TextureAddressMode)GetStringListIndex(mode.CString(), addressModeNames, ADDRESS_WRAP));
             }
         }
-        
+
         if (name == "border")
             SetBorderColor(paramElem.GetColor("color"));
-        
+
         if (name == "filter")
         {
             String mode = paramElem.GetAttributeLower("mode");
             SetFilterMode((TextureFilterMode)GetStringListIndex(mode.CString(), filterModeNames, FILTER_DEFAULT));
         }
-        
+
         if (name == "mipmap")
             SetNumLevels(paramElem.GetBool("enable") ? 0 : 1);
-        
+
         if (name == "quality")
         {
             if (paramElem.HasAttribute("low"))
@@ -447,7 +447,7 @@ void Texture::SetParameters(const XMLElement& elem)
 
         if (name == "srgb")
             SetSRGB(paramElem.GetBool("enable"));
-        
+
         paramElem = paramElem.GetNext();
     }
 }
@@ -457,7 +457,7 @@ unsigned Texture::GetSRGBFormat(unsigned format)
     #ifndef GL_ES_VERSION_2_0
     if (!graphics_ || !graphics_->GetSRGBSupport())
         return format;
-    
+
     switch (format)
     {
     case GL_RGB:
@@ -489,7 +489,7 @@ void Texture::CheckTextureBudget(StringHash type)
     unsigned textureUse = cache->GetMemoryUse(type);
     if (!textureBudget)
         return;
-    
+
     // If textures are over the budget, they likely can not be freed directly as materials still refer to them.
     // Therefore free unused materials first
     if (textureUse > textureBudget)

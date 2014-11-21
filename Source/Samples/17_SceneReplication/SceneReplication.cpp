@@ -416,7 +416,7 @@ void SceneReplication::HandlePhysicsPreStep(StringHash eventType, VariantMap& ev
 void SceneReplication::HandleConnect(StringHash eventType, VariantMap& eventData)
 {
     Network* network = GetSubsystem<Network>();
-    String address = textEdit_->GetText().Trimmed();
+    String address = textEdit_->GetText().trimmed();
     if (address.isEmpty())
         address = "localhost"; // Use localhost to connect if nothing else specified
 

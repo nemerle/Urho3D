@@ -74,7 +74,7 @@ static const char* cullModeNames[] =
 
 TextureUnit ParseTextureUnitName(String name)
 {
-    name = name.toLower().Trimmed();
+    name = name.toLower().trimmed();
 
     TextureUnit unit = (TextureUnit)GetStringListIndex(name.CString(), textureUnitNames, MAX_TEXTURE_UNITS);
     if (unit == MAX_TEXTURE_UNITS)
@@ -91,7 +91,7 @@ TextureUnit ParseTextureUnitName(String name)
         else if (name == "env")
             unit = TU_ENVIRONMENT;
         // Finally check for specifying the texture unit directly as a number
-        else if (name.Length() < 3)
+        else if (name.length() < 3)
             unit = (TextureUnit)Clamp(ToInt(name), 0, MAX_TEXTURE_UNITS);
     }
 
@@ -680,8 +680,8 @@ String Material::GetTextureUnitName(TextureUnit unit)
 
 Variant Material::ParseShaderParameterValue(const String& value)
 {
-    String valueTrimmed = value.Trimmed();
-    if (valueTrimmed.Length() && IsAlpha(valueTrimmed[0]))
+    String valueTrimmed = value.trimmed();
+    if (valueTrimmed.length() && IsAlpha(valueTrimmed[0]))
         return Variant(ToBool(valueTrimmed));
     else
         return ToVectorVariant(valueTrimmed);

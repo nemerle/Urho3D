@@ -44,9 +44,9 @@ void CommentOutFunction(String& code, const String& signature)
     if (startPos == String::NPOS)
         return;
 
-    code.Insert(startPos, "/*");
+    code.insert(startPos, "/*");
 
-    for (unsigned i = startPos + 2 + signature.Length(); i < code.Length(); ++i)
+    for (unsigned i = startPos + 2 + signature.length(); i < code.length(); ++i)
     {
         if (code[i] == '{')
             ++braceLevel;
@@ -55,7 +55,7 @@ void CommentOutFunction(String& code, const String& signature)
             --braceLevel;
             if (braceLevel == 0)
             {
-                code.Insert(i + 1, "*/");
+                code.insert(i + 1, "*/");
                 return;
             }
         }
@@ -212,7 +212,7 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
 
         if (line.startsWith("#include"))
         {
-            String includeFileName = GetPath(source.GetName()) + line.Substring(9).replaced("\"", "").Trimmed();
+            String includeFileName = GetPath(source.GetName()) + line.Substring(9).replaced("\"", "").trimmed();
 
             SharedPtr<File> includeFile = cache->GetFile(includeFileName);
             if (!includeFile)
@@ -244,7 +244,7 @@ String Shader::NormalizeDefines(const String& defines)
 
 void Shader::RefreshMemoryUse()
 {
-    SetMemoryUse(sizeof(Shader) + vsSourceCode_.Length() + psSourceCode_.Length() + numVariations_ * sizeof(ShaderVariation));
+    SetMemoryUse(sizeof(Shader) + vsSourceCode_.length() + psSourceCode_.length() + numVariations_ * sizeof(ShaderVariation));
 }
 
 }

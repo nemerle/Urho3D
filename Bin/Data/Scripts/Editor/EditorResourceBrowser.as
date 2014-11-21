@@ -459,7 +459,7 @@ void ScanResourceDir(uint resourceDirIndex)
     for (uint i=0; i < dirs.length; ++i)
     {
         String path = dirs[i];
-        if (path.EndsWith("."))
+        if (path.endsWith("."))
             continue;
 
         InitBrowserDir(path);
@@ -604,7 +604,7 @@ void PopulateResourceBrowserBySearch()
             if (activeResourceDirFilters.Find(file.resourceSourceIndex) > -1)
                 continue;
 
-            int find = file.fullname.Find(query, 0, false);
+            int find = file.fullname.indexOf(query, 0, false);
             if (find > -1)
             {
                 int fudge = query.length - file.fullname.length;

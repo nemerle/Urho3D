@@ -223,14 +223,14 @@ void Script::DumpAPI(DumpMode mode)
                         {
                             Vector<String> parts = line.split(',');
                             if (parts.size() == 2)
-                                Log::WriteRaw("\n### " + parts[1].Substring(0, parts[1].Length() - 1).Trimmed() + "\n");
+                                Log::WriteRaw("\n### " + parts[1].Substring(0, parts[1].length() - 1).trimmed() + "\n");
                         }
                         if (line.contains("PARAM"))
                         {
                             Vector<String> parts = line.split(',');
                             if (parts.size() == 2)
                             {
-                                String paramName = parts[1].Substring(0, parts[1].indexOf(')')).Trimmed();
+                                String paramName = parts[1].Substring(0, parts[1].indexOf(')')).trimmed();
                                 String paramType = parts[1].Substring(parts[1].indexOf("// ") + 3);
                                 if (!paramName.isEmpty() && !paramType.isEmpty())
                                     Log::WriteRaw("- %" + paramName + " : " + paramType + "\n");
@@ -279,7 +279,7 @@ void Script::DumpAPI(DumpMode mode)
                 Vector<String> nameParts = attrs[j].name_.split(' ');
                 for (unsigned k = 0; k < nameParts.size(); ++k)
                 {
-                    if (nameParts[k].Length() > 1 && IsAlpha(nameParts[k][0]))
+                    if (nameParts[k].length() > 1 && IsAlpha(nameParts[k][0]))
                         nameParts[k] = "%" + nameParts[k];
                 }
                 String name;

@@ -730,7 +730,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
 
     for (unsigned i = 0; i < arguments.size(); ++i)
     {
-        if (arguments[i].Length() > 1 && arguments[i][0] == '-')
+        if (arguments[i].length() > 1 && arguments[i][0] == '-')
         {
             String argument = arguments[i].Substring(1).toLower();
             String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;

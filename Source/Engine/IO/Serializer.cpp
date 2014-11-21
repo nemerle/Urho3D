@@ -173,10 +173,10 @@ bool Serializer::WriteString(const String& value)
 bool Serializer::WriteFileID(const String& value)
 {
     bool success = true;
-    unsigned length = Min((int)value.Length(), 4);
+    unsigned length = Min((int)value.length(), 4);
 
     success &= Write(value.CString(), length) == length;
-    for (unsigned i = value.Length(); i < 4; ++i)
+    for (unsigned i = value.length(); i < 4; ++i)
         success &= WriteByte(' ');
     return success;
 }
@@ -359,7 +359,7 @@ bool Serializer::WriteNetID(unsigned value)
 bool Serializer::WriteLine(const String& value)
 {
     bool success = true;
-    success &= Write(value.CString(), value.Length()) == value.Length();
+    success &= Write(value.CString(), value.length()) == value.length();
     success &= WriteUByte(13);
     success &= WriteUByte(10);
     return success;

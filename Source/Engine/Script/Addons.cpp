@@ -2247,7 +2247,7 @@ static void DestructString(String* ptr)
 
 static char* StringCharAt(unsigned i, String& str)
 {
-    if (i >= str.Length())
+    if (i >= str.length())
     {
         asIScriptContext* context = asGetActiveContext();
         if (context)
@@ -2269,8 +2269,8 @@ static int StringCmp(const String& lhs, const String& rhs)
 
 void StringResize(unsigned newSize, String& str)
 {
-    unsigned oldSize = str.Length();
-    str.Resize(newSize);
+    unsigned oldSize = str.length();
+    str.resize(newSize);
     for (unsigned i = oldSize; i < newSize; ++i)
         str[i] = ' ';
 }
@@ -2417,7 +2417,7 @@ void RegisterString(asIScriptEngine *engine)
     engine->RegisterObjectMethod("String", "String Substring(uint, uint) const", asMETHODPR(String, Substring, (unsigned, unsigned) const, String), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "String toUpper() const", asMETHOD(String, toUpper), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "String toLower() const", asMETHOD(String, toLower), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String Trimmed() const", asMETHOD(String, Trimmed), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String trimmed() const", asMETHOD(String, trimmed), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "void SetUTF8FromLatin1(const String& in)", asFUNCTION(StringSetUTF8FromLatin1), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "uint get_utf8Length() const", asMETHOD(String, LengthUTF8), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "uint ByteOffsetUTF8(uint) const", asMETHOD(String, ByteOffsetUTF8), asCALL_THISCALL);
@@ -2427,7 +2427,7 @@ void RegisterString(asIScriptEngine *engine)
     engine->RegisterObjectMethod("String", "void AppendUTF8(uint)", asMETHOD(String, AppendUTF8), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "String SubstringUTF8(uint) const", asMETHODPR(String, SubstringUTF8, (unsigned) const, String), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "String SubstringUTF8(uint, uint) const", asMETHODPR(String, SubstringUTF8, (unsigned, unsigned) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint get_length() const", asMETHOD(String, Length), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "uint get_length() const", asMETHOD(String, length), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "bool get_empty() const", asMETHOD(String, isEmpty), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "int Compare(const String&in, bool caseSensitive = true) const", asMETHODPR(String, Compare, (const String&, bool) const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "bool Contains(const String&in, bool caseSensitive = true) const", asMETHODPR(String, contains, (const String&, bool) const, bool), asCALL_THISCALL);

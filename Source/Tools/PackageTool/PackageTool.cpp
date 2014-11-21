@@ -103,7 +103,7 @@ void Run(const Vector<String>& arguments)
                 basePath_ = AddTrailingSlash(arguments[i]);
             else
             {
-                if (arguments[i].Length() > 1)
+                if (arguments[i].length() > 1)
                 {
                     switch (arguments[i][1])
                     {
@@ -128,7 +128,7 @@ void Run(const Vector<String>& arguments)
     for (unsigned i = fileNames.size() - 1; i < fileNames.size(); --i)
     {
         String extension = GetExtension(fileNames[i]);
-        for (unsigned j = 0; ignoreExtensions_[j].Length(); ++j)
+        for (unsigned j = 0; ignoreExtensions_[j].length(); ++j)
         {
             if (extension == ignoreExtensions_[j])
             {

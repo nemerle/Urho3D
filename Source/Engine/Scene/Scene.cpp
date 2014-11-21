@@ -867,7 +867,7 @@ String Scene::GetVarNamesAttr() const
         for (const auto & elem : varNames_)
             ret += elem + ';';
 
-        ret.Resize(ret.Length() - 1);
+        ret.resize(ret.length() - 1);
     }
 
     return ret;

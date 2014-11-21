@@ -113,7 +113,7 @@ bool ShaderVariation::Create()
         if (originalShaderCode.Substring(verStart + 1, 7) == "version")
         {
             verEnd = verStart + 9;
-            while (verEnd < originalShaderCode.Length())
+            while (verEnd < originalShaderCode.length())
             {
                 if (IsDigit(originalShaderCode[verEnd]))
                     ++verEnd;
@@ -165,7 +165,7 @@ bool ShaderVariation::Create()
     if (!compiled)
     {
         glGetShaderiv(object_, GL_INFO_LOG_LENGTH, &length);
-        compilerOutput_.Resize(length);
+        compilerOutput_.resize(length);
         int outLength;
         glGetShaderInfoLog(object_, length, &outLength, &compilerOutput_[0]);
         glDeleteShader(object_);

@@ -270,7 +270,7 @@ void Run(const Vector<String>& arguments)
 
     for (unsigned i = 2; i < arguments.size(); ++i)
     {
-        if (arguments[i].Length() > 1 && arguments[i][0] == '-')
+        if (arguments[i].length() > 1 && arguments[i][0] == '-')
         {
             String argument = arguments[i].Substring(1).toLower();
             String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
@@ -290,7 +290,7 @@ void Run(const Vector<String>& arguments)
                 flags |= aiProcess_CalcTangentSpace;
             else if (argument == "o")
                 flags |= aiProcess_PreTransformVertices;
-            else if (argument.Length() == 2 && argument[0] == 'n')
+            else if (argument.length() == 2 && argument[0] == 'n')
             {
                 switch (tolower(argument[1]))
                 {
@@ -345,7 +345,7 @@ void Run(const Vector<String>& arguments)
             else if (argument == "s")
             {
                 includeNonSkinningBones_ = true;
-                if (value.Length() && (value[0] != '-' || value.Length() > 3))
+                if (value.length() && (value[0] != '-' || value.length() > 3))
                 {
                     Vector<String> filters = value.split(';');
                     for (unsigned i = 0; i < filters.size(); ++i)
@@ -389,7 +389,7 @@ void Run(const Vector<String>& arguments)
             if (command == "model")
             {
                 if (resourcePath_.endsWith("Models/", false))
-                    resourcePath_ = resourcePath_.Substring(0, resourcePath_.Length() - 7);
+                    resourcePath_ = resourcePath_.Substring(0, resourcePath_.length() - 7);
             }
             if (resourcePath_.isEmpty())
                 resourcePath_ = "./";
@@ -1471,7 +1471,7 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
     String matName = SanitateAssetName(FromAIString(matNameStr));
-    if (matName.Trimmed().isEmpty())
+    if (matName.trimmed().isEmpty())
         matName = GenerateMaterialName(material);
 
     // Do not actually create a material instance, but instead craft an xml file manually
@@ -1629,7 +1629,7 @@ void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath)
     for (const String &tex_name : usedTextures)
     {
         // Handle assimp embedded textures
-        if (tex_name.Length() && tex_name.At(0) == '*')
+        if (tex_name.length() && tex_name.at(0) == '*')
         {
             unsigned texIndex = ToInt(tex_name.Substring(1));
             if (texIndex >= scene_->mNumTextures)
@@ -1911,7 +1911,7 @@ String GetMeshMaterialName(aiMesh* mesh)
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
     String matName = SanitateAssetName(FromAIString(matNameStr));
-    if (matName.Trimmed().isEmpty())
+    if (matName.trimmed().isEmpty())
         matName = GenerateMaterialName(material);
 
     return (useSubdirs_ ? "Materials/" : "") + matName + ".xml";
@@ -1932,7 +1932,7 @@ String GenerateMaterialName(aiMaterial* material)
 String GetMaterialTextureName(const String& nameIn)
 {
     // Detect assimp embedded texture
-    if (nameIn.Length() && nameIn[0] == '*')
+    if (nameIn.length() && nameIn[0] == '*')
         return GenerateTextureName(ToInt(nameIn.Substring(1)));
     else
         return (useSubdirs_ ? "Textures/" : "") + nameIn;

@@ -177,7 +177,7 @@ void JSONValue::SetColor(const String& name, const Color& value)
 void JSONValue::SetString(const String& name, const String& value)
 {
     Value jsonValue;
-    jsonValue.SetString(value.CString(), value.Length(), file_->GetDocument()->GetAllocator());
+    jsonValue.SetString(value.CString(), value.length(), file_->GetDocument()->GetAllocator());
     AddMember(name, jsonValue);
 }
 
@@ -547,7 +547,7 @@ void JSONValue::AddColor(const Color& value)
 void JSONValue::AddString(const String& value)
 {
     Value jsonValue;
-    jsonValue.SetString(value.CString(), value.Length(), file_->GetDocument()->GetAllocator());
+    jsonValue.SetString(value.CString(), value.length(), file_->GetDocument()->GetAllocator());
     AddMember(jsonValue);
 }
 
@@ -818,7 +818,7 @@ void JSONValue::AddMember(const String& name, rapidjson::Value& jsonValue)
         return;
 
     Value jsonName;
-    jsonName.SetString(name.CString(), name.Length(), file_->GetDocument()->GetAllocator());
+    jsonName.SetString(name.CString(), name.length(), file_->GetDocument()->GetAllocator());
     value_->AddMember(jsonName, jsonValue, file_->GetDocument()->GetAllocator());
 }
 

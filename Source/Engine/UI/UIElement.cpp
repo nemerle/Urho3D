@@ -1711,7 +1711,7 @@ void UIElement::SetObjectAttributeAnimation(const String& name, ValueAnimation* 
                 return;
             }
 
-            unsigned index = ToInt(names[i].Substring(1, names[i].Length() - 1));
+            unsigned index = ToInt(names[i].Substring(1, names[i].length() - 1));
             element = element->GetChild(index);
             if (!element)
             {

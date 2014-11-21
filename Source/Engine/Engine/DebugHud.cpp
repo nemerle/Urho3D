@@ -132,7 +132,7 @@ void DebugHud::Update()
 
         if (!appStats_.isEmpty())
         {
-            stats.Append("\n");
+            stats.append("\n");
             for (QMap<String, String>::const_iterator i = appStats_.cbegin(); i != appStats_.cend(); ++i)
                 stats.AppendWithFormat("\n%s %s", i.key().CString(), i->CString());
         }

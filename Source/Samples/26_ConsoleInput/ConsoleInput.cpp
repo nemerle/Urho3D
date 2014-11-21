@@ -108,7 +108,7 @@ void ConsoleInput::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
     // Check if there is input from stdin
     String input = GetConsoleInput();
-    if (input.Length())
+    if (input.length())
         HandleInput(input);
 }
 
@@ -192,7 +192,7 @@ void ConsoleInput::Advance()
 
 void ConsoleInput::HandleInput(const String& input)
 {
-    String inputLower = input.toLower().Trimmed();
+    String inputLower = input.toLower().trimmed();
     if (inputLower.isEmpty())
     {
         Print("Empty input given!");

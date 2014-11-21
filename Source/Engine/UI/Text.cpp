@@ -100,7 +100,7 @@ void Text::ApplyAttributes()
 
     // Decode to Unicode now
     unicodeText_.clear();
-    for (unsigned i = 0; i < text_.Length();)
+    for (unsigned i = 0; i < text_.length();)
         unicodeText_.push_back(text_.NextUTF8Char(i));
 
     fontSize_ = Max(fontSize_, 1);
@@ -258,7 +258,7 @@ void Text::SetText(const String& text)
 
     // Decode to Unicode now
     unicodeText_.clear();
-    for (unsigned i = 0; i < text_.Length();)
+    for (unsigned i = 0; i < text_.length();)
         unicodeText_.push_back(text_.NextUTF8Char(i));
 
     ValidateSelection();

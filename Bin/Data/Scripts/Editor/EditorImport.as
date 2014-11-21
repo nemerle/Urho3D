@@ -32,7 +32,7 @@ void ImportModel(const String&in fileName)
     args.Push("\"" + fileName + "\"");
     args.Push("\"" + outFileName + "\"");
     args.Push("-p \"" + sceneResourcePath + "\"");
-    Array<String> options = importOptions.Trimmed().Split(' ');
+    Array<String> options = importOptions.trimmed().Split(' ');
     for (uint i = 0; i < options.length; ++i)
         args.Push(options[i]);
     // If material lists are to be applied, make sure the option to create them exists
@@ -76,7 +76,7 @@ void ImportScene(const String&in fileName)
         args.Push("\"" + fileName + "\"");
         args.Push("\"" + tempSceneName + "\"");
         args.Push("-p \"" + sceneResourcePath + "\"");
-        Array<String> options = importOptions.Trimmed().Split(' ');
+        Array<String> options = importOptions.trimmed().Split(' ');
         for (uint i = 0; i < options.length; ++i)
             args.Push(options[i]);
         if (applyMaterialList)
@@ -215,7 +215,7 @@ void ImportTundraScene(const String&in fileName)
         }
 
         // If collision mesh not specified for the rigid body, assume same as the visible mesh
-        if ((shapeType == 4 || shapeType == 6) && collisionMeshName.Trimmed().empty)
+        if ((shapeType == 4 || shapeType == 6) && collisionMeshName.trimmed().empty)
             collisionMeshName = meshName;
 
         if (!meshName.empty || shapeType >= 0)
@@ -367,9 +367,9 @@ Vector3 GetVector3FromStrings(Array<String>@ coords, uint startIndex)
 
 void ProcessRef(String& ref)
 {
-    if (ref.StartsWith("local://"))
+    if (ref.startsWith("local://"))
         ref = ref.Substring(8);
-    if (ref.StartsWith("file://"))
+    if (ref.startsWith("file://"))
         ref = ref.Substring(7);
 }
 
@@ -390,7 +390,7 @@ String GetOutTextureName(const String&in ref)
 
 void ConvertModel(const String&in modelName, const String&in filePath, Array<String>@ convertedModels)
 {
-    if (modelName.Trimmed().empty)
+    if (modelName.trimmed().empty)
         return;
 
     for (uint i = 0; i < convertedModels.length; ++i)
@@ -423,7 +423,7 @@ void ConvertModel(const String&in modelName, const String&in filePath, Array<Str
 
 void ConvertMaterial(const String&in materialName, const String&in filePath, Array<String>@ convertedMaterials)
 {
-    if (materialName.Trimmed().empty)
+    if (materialName.trimmed().empty)
         return;
 
     for (uint i = 0; i < convertedMaterials.length; ++i)
@@ -448,23 +448,23 @@ void ConvertMaterial(const String&in materialName, const String&in filePath, Arr
     File file(fileName, FILE_READ);
     while (!file.eof)
     {
-        String line = file.ReadLine().Trimmed();
-        if (line.StartsWith("alpha_rejection") || line.StartsWith("scene_blend alpha_blend"))
+        String line = file.ReadLine().trimmed();
+        if (line.startsWith("alpha_rejection") || line.startsWith("scene_blend alpha_blend"))
             mask = true;
-        if (line.StartsWith("cull_hardware none"))
+        if (line.startsWith("cull_hardware none"))
             twoSided = true;
         // Todo: handle multiple textures per material
-        if (textureName.empty && line.StartsWith("texture "))
+        if (textureName.empty && line.startsWith("texture "))
         {
             textureName = line.Substring(8);
             ProcessRef(textureName);
         }
-        if (!uvScaleSet && line.StartsWith("scale "))
+        if (!uvScaleSet && line.startsWith("scale "))
         {
             uvScale = line.Substring(6).ToVector2();
             uvScaleSet = true;
         }
-        if (line.StartsWith("diffuse "))
+        if (line.startsWith("diffuse "))
             diffuse = line.Substring(8).ToColor();
     }
 

@@ -44,13 +44,13 @@ static String GenerateNameFromType(StringHash typeHash)
     String test;
 
     // Begin brute-force search
-    unsigned numLetters = letters.Length();
+    unsigned numLetters = letters.length();
     unsigned combinations = numLetters;
     bool found = false;
 
     for (unsigned i = 1; i < 6; ++i)
     {
-        test.Resize(i);
+        test.resize(i);
 
         for (unsigned j = 0; j < combinations; ++j)
         {

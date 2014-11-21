@@ -550,7 +550,7 @@ void ScriptInstance::GetScriptAttributes()
         String typeName = engine->GetTypeDeclaration(typeId);
         isHandle = typeName.endsWith("@");
         if (isHandle)
-            typeName = typeName.Substring(0, typeName.Length() - 1);
+            typeName = typeName.Substring(0, typeName.length() - 1);
 
         AttributeInfo info;
         info.mode_ = AM_FILE;

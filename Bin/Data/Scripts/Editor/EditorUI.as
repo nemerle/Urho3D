@@ -162,7 +162,7 @@ void HandleQuickSearchChange(StringHash eventType, VariantMap& eventData)
     if (search is null)
         return;
 
-    PerformQuickMenuSearch(search.text.toLower().Trimmed());
+    PerformQuickMenuSearch(search.text.toLower().trimmed());
 }
 
 void PerformQuickMenuSearch(const String&in query)
@@ -186,7 +186,7 @@ void PerformQuickMenuSearch(const String&in query)
             for (uint x=0; x < quickMenuItems.length; x++)
             {
                 @qi = quickMenuItems[x];
-                int find = qi.action.Find(query, 0, false);
+                int find = qi.action.indexOf(query, 0, false);
                 if (find > -1)
                 {
                     qi.sortScore = find;
@@ -651,7 +651,7 @@ bool PickUIElement()
 // When calling items from the quick menu, they have "Create" prepended for clarity. Strip that now to get the object name to create
 String GetActionName(const String&in name)
 {
-    if (name.StartsWith("Create"))
+    if (name.startsWith("Create"))
         return name.Substring(7);
     else
         return name;

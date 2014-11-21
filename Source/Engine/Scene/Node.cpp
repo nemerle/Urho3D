@@ -1483,7 +1483,7 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
             if (names[i].Front() != '#')
                 break;
 
-            unsigned index = ToInt(names[i].Substring(1, names[i].Length() - 1));
+            unsigned index = ToInt(names[i].Substring(1, names[i].length() - 1));
             node = node->GetChild(index);
             if (!node)
             {
@@ -1504,7 +1504,7 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
             return;
         }
 
-        String componentName = names[i].Substring(1, names[i].Length() - 1);
+        String componentName = names[i].Substring(1, names[i].length() - 1);
         Vector<String> componentNames = componentName.split('#');
         if (componentNames.size() == 1)
         {

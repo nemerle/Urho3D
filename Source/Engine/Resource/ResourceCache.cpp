@@ -454,7 +454,7 @@ SharedPtr<File> ResourceCache::GetFile(const String& nameIn, bool sendEventOnFai
     if (resourceRouter_)
         resourceRouter_->Route(name, RESOURCE_GETFILE);
 
-    if (name.Length())
+    if (name.length())
     {
         File* file = nullptr;
 
@@ -487,7 +487,7 @@ SharedPtr<File> ResourceCache::GetFile(const String& nameIn, bool sendEventOnFai
             using namespace ResourceNotFound;
 
             VariantMap& eventData = GetEventDataMap();
-            eventData[P_RESOURCENAME] = name.Length() ? name : nameIn;
+            eventData[P_RESOURCENAME] = name.length() ? name : nameIn;
             SendEvent(E_RESOURCENOTFOUND, eventData);
         }
     }
@@ -777,18 +777,18 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
         {
             String relativeResourcePath = resourceDirs_[i];
             if (relativeResourcePath.startsWith(exePath))
-                relativeResourcePath = relativeResourcePath.Substring(exePath.Length());
+                relativeResourcePath = relativeResourcePath.Substring(exePath.length());
 
             if (namePath.startsWith(resourceDirs_[i], false))
-                namePath = namePath.Substring(resourceDirs_[i].Length());
+                namePath = namePath.Substring(resourceDirs_[i].length());
             else if (namePath.startsWith(relativeResourcePath, false))
-                namePath = namePath.Substring(relativeResourcePath.Length());
+                namePath = namePath.Substring(relativeResourcePath.length());
         }
 
         name = namePath + GetFileNameAndExtension(name);
     }
 
-    return name.Trimmed();
+    return name.trimmed();
 }
 
 String ResourceCache::SanitateResourceDirName(const String& nameIn) const
@@ -800,7 +800,7 @@ String ResourceCache::SanitateResourceDirName(const String& nameIn) const
     // Sanitate away /./ construct
     fixedPath.replace("/./", "/");
 
-    return fixedPath.Trimmed();
+    return fixedPath.trimmed();
 }
 
 void ResourceCache::StoreResourceDependency(Resource* resource, const String& dependency)

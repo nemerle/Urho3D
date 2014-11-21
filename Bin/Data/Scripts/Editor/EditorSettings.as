@@ -274,7 +274,7 @@ void EditApplyMaterialList(StringHash eventType, VariantMap& eventData)
 void EditImportOptions(StringHash eventType, VariantMap& eventData)
 {
     LineEdit@ edit = eventData["Element"].GetPtr();
-    importOptions = edit.text.Trimmed();
+    importOptions = edit.text.trimmed();
 }
 
 void EditPickMode(StringHash eventType, VariantMap& eventData)

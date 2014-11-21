@@ -1006,7 +1006,7 @@ bool XPathQuery::SetQuery(const String& queryString, const String& variableStrin
         Vector<String> vars = variableString.split(',');
         for (Vector<String>::const_iterator i = vars.begin(); i != vars.end(); ++i)
         {
-            Vector<String> tokens = i->Trimmed().split(':');
+            Vector<String> tokens = i->trimmed().split(':');
             if (tokens.size() != 2)
                 continue;
 
@@ -1070,7 +1070,7 @@ String XPathQuery::EvaluateToString(XMLElement element) const
 
     const pugi::xml_node& node = element.GetXPathNode() ? element.GetXPathNode()->node(): pugi::xml_node(element.GetNode());
     String result;
-    result.Reserve(query_->evaluate_string(nullptr, 0, node));    // First call get the size
+    result.reserve(query_->evaluate_string(nullptr, 0, node));    // First call get the size
     query_->evaluate_string(const_cast<pugi::char_t*>(result.CString()), result.Capacity(), node);  // Second call get the actual string
     return result;
 }

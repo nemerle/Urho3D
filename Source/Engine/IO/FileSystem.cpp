@@ -747,8 +747,8 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
 {
     path = AddTrailingSlash(path);
     String deltaPath;
-    if (path.Length() > startPath.Length())
-        deltaPath = path.Substring(startPath.Length());
+    if (path.length() > startPath.length())
+        deltaPath = path.Substring(startPath.length());
 
     String filterExtension = filter.Substring(filter.indexOf('.'));
     if (filterExtension.contains('*'))
@@ -917,7 +917,7 @@ String ReplaceExtension(const String& fullPath, const String& newExtension)
 
 String AddTrailingSlash(const String& pathName)
 {
-    String ret = pathName.Trimmed();
+    String ret = pathName.trimmed();
     ret.replace('\\', '/');
     if (!ret.isEmpty() && ret.Back() != '/')
         ret += '/';
@@ -926,10 +926,10 @@ String AddTrailingSlash(const String& pathName)
 
 String RemoveTrailingSlash(const String& pathName)
 {
-    String ret = pathName.Trimmed();
+    String ret = pathName.trimmed();
     ret.replace('\\', '/');
     if (!ret.isEmpty() && ret.Back() == '/')
-        ret.Resize(ret.Length() - 1);
+        ret.resize(ret.length() - 1);
     return ret;
 }
 

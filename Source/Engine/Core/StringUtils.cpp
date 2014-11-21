@@ -511,7 +511,7 @@ void BufferToString(String& dest, const void* data, unsigned size)
             length += 3;
     }
 
-    dest.Resize(length);
+    dest.resize(length);
     unsigned index = 0;
 
     // Convert values

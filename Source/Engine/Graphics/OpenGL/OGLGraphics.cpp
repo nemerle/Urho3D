@@ -561,9 +561,9 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     String msg;
     msg.AppendWithFormat("Set screen mode %dx%d %s", width_, height_, (fullscreen_ ? "fullscreen" : "windowed"));
     if (borderless_)
-        msg.Append(" borderless");
+        msg.append(" borderless");
     if (resizable_)
-        msg.Append(" resizable");
+        msg.append(" resizable");
     if (multiSample > 1)
         msg.AppendWithFormat(" multisample %d", multiSample);
     LOGINFO(msg);
@@ -604,7 +604,7 @@ void Graphics::SetFlushGPU(bool enable)
 
 void Graphics::SetOrientations(const String& orientations)
 {
-    orientations_ = orientations.Trimmed();
+    orientations_ = orientations.trimmed();
     SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations_.CString());
 }
 
@@ -2585,7 +2585,7 @@ unsigned Graphics::GetDepthStencilFormat()
 
 unsigned Graphics::GetFormat(const String& formatName)
 {
-    String nameLower = formatName.toLower().Trimmed();
+    String nameLower = formatName.toLower().trimmed();
 
     if (nameLower == "a")
         return GetAlphaFormat();

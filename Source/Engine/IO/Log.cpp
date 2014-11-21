@@ -233,7 +233,7 @@ void Log::WriteRaw(const String& message, bool error)
 
     if (logInstance->logFile_)
     {
-        logInstance->logFile_->Write(message.CString(), message.Length());
+        logInstance->logFile_->Write(message.CString(), message.length());
         logInstance->logFile_->Flush();
     }
 

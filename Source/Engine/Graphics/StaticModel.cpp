@@ -303,7 +303,7 @@ void StaticModel::SetOcclusionLodLevel(unsigned level)
 void StaticModel::ApplyMaterialList(const String& fileName)
 {
     String useFileName = fileName;
-    if (useFileName.Trimmed().isEmpty() && model_)
+    if (useFileName.trimmed().isEmpty() && model_)
         useFileName = ReplaceExtension(model_->GetName(), ".txt");
 
     ResourceCache* cache = GetSubsystem<ResourceCache>();

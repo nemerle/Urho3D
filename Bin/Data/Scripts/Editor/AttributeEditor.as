@@ -252,7 +252,7 @@ UIElement@ CreateResourceRefAttributeEditor(ListView@ list, Array<Serializable@>
     parent = CreateAttributeEditorParentWithSeparatedLabel(list, info.name, index, subIndex, suppressedSeparatedLabel);
 
     UIElement@ container = UIElement();
-    container.SetLayout(LM_HORIZONTAL, 4, IntRect(info.name.StartsWith("   ") ? 20 : 10, 0, 4, 0));    // Left margin is indented more when the name is so
+    container.SetLayout(LM_HORIZONTAL, 4, IntRect(info.name.startsWith("   ") ? 20 : 10, 0, 4, 0));    // Left margin is indented more when the name is so
     container.SetFixedHeight(ATTR_HEIGHT);
     parent.AddChild(container);
 
@@ -699,7 +699,7 @@ void GetEditorValue(UIElement@ parent, VariantType type, Array<String>@ enumName
 {
     LineEdit@ attrEdit = parent.children[coordinate + 1];
     if (type == VAR_STRING)
-        FillValue(values, Variant(attrEdit.text.Trimmed()));
+        FillValue(values, Variant(attrEdit.text.trimmed()));
     else if (type == VAR_BOOL)
     {
         CheckBox@ attrEdit = parent.children[1];
@@ -731,7 +731,7 @@ void GetEditorValue(UIElement@ parent, VariantType type, Array<String>@ enumName
     {
         LineEdit@ attrEdit = parent.children[0];
         ResourceRef ref;
-        ref.name = attrEdit.text.Trimmed();
+        ref.name = attrEdit.text.trimmed();
         ref.type = StringHash(attrEdit.vars[TYPE_VAR].GetUInt());
         FillValue(values, Variant(ref));
     }
@@ -1160,7 +1160,7 @@ void OpenResource(StringHash eventType, VariantMap& eventData)
     UIElement@ button = eventData["Element"].GetPtr();
     LineEdit@ attrEdit = button.parent.children[0];
 
-    String fileName = attrEdit.text.Trimmed();
+    String fileName = attrEdit.text.trimmed();
     if (fileName.empty)
         return;
 
@@ -1186,7 +1186,7 @@ void EditResource(StringHash eventType, VariantMap& eventData)
     UIElement@ button = eventData["Element"].GetPtr();
     LineEdit@ attrEdit = button.parent.children[0];
 
-    String fileName = attrEdit.text.Trimmed();
+    String fileName = attrEdit.text.trimmed();
     if (fileName.empty)
         return;
 

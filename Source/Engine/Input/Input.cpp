@@ -502,7 +502,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                 text->SetVisible(false);
                 const String& key = text->GetText();
                 int keyBinding;
-                if (key.Length() == 1)
+                if (key.length() == 1)
                     keyBinding = key[0];
                 else
                 {
@@ -564,19 +564,19 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
 
                         for (unsigned j = 0; j < 4; ++j)
                         {
-                            if (keyBindings[j].Length() == 1)
-                                mappedKeyBinding.Append(keyBindings[j][0]);
+                            if (keyBindings[j].length() == 1)
+                                mappedKeyBinding.append(keyBindings[j][0]);
                             else
                             {
                                 QHash<String, int>::Iterator i = keyBindingMap.find(keyBindings[j]);
                                 if (i != keyBindingMap.end())
-                                    mappedKeyBinding.Append(*i);
+                                    mappedKeyBinding.append(*i);
                                 else
                                     break;
                             }
                         }
                     }
-                    if (mappedKeyBinding.Length() != 4)
+                    if (mappedKeyBinding.length() != 4)
                     {
                         LOGERRORF("%s has invalid key binding %s, fallback to WSAD", name.CString(), keyBinding.CString());
                         keyBinding = "WSAD";
@@ -584,7 +584,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                     else
                         keyBinding = mappedKeyBinding;
                 }
-                else if (keyBinding.Length() != 4)
+                else if (keyBinding.length() != 4)
                 {
                     LOGERRORF("%s has invalid key binding %s, fallback to WSAD", name.CString(), keyBinding.CString());
                     keyBinding = "WSAD";

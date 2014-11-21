@@ -886,7 +886,7 @@ void ListView::CopySelectedItemsToClipboard() const
         // Only handle Text UI element
         Text* text = dynamic_cast<Text*>(GetItem(elem));
         if (text)
-            selectedText.Append(text->GetText()).Append("\n");
+            selectedText.append(text->GetText()).append("\n");
     }
 
     GetSubsystem<UI>()->SetClipboardText(selectedText);

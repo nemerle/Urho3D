@@ -105,7 +105,7 @@ void Application::ErrorExit(const String& message)
     exitCode_ = EXIT_FAILURE;
 
     // Only for WIN32, otherwise the error messages would be double posted on Mac OS X and Linux platforms
-    if (!message.Length())
+    if (!message.length())
     {
         #ifdef WIN32
         ErrorDialog(GetTypeName(), startupErrors_.Length() ? startupErrors_ :

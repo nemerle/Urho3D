@@ -84,7 +84,7 @@ public:
         capacity_(0),
         buffer_(&endZero)
     {
-        Resize(length);
+        resize(length);
         CopyChars(buffer_, str, length);
     }
 
@@ -155,7 +155,7 @@ public:
     /// Assign a string.
     String& operator = (const String& rhs)
     {
-        Resize(rhs.length_);
+        resize(rhs.length_);
         CopyChars(buffer_, rhs.buffer_, rhs.length_);
 
         return *this;
@@ -165,7 +165,7 @@ public:
     String& operator = (const char* rhs)
     {
         unsigned rhsLength = CStringLength(rhs);
-        Resize(rhsLength);
+        resize(rhsLength);
         CopyChars(buffer_, rhs, rhsLength);
 
         return *this;
@@ -175,7 +175,7 @@ public:
     String& operator += (const String& rhs)
     {
         unsigned oldLength = length_;
-        Resize(length_ + rhs.length_);
+        resize(length_ + rhs.length_);
         CopyChars(buffer_ + oldLength, rhs.buffer_, rhs.length_);
 
         return *this;
@@ -186,7 +186,7 @@ public:
     {
         unsigned rhsLength = CStringLength(rhs);
         unsigned oldLength = length_;
-        Resize(length_ + rhsLength);
+        resize(length_ + rhsLength);
         CopyChars(buffer_ + oldLength, rhs, rhsLength);
 
         return *this;
@@ -196,7 +196,7 @@ public:
     String& operator += (char rhs)
     {
         unsigned oldLength = length_;
-        Resize(length_ + 1);
+        resize(length_ + 1);
         buffer_[oldLength]  = rhs;
 
         return *this;
@@ -221,7 +221,7 @@ public:
     String operator + (const String& rhs) const
     {
         String ret;
-        ret.Resize(length_ + rhs.length_);
+        ret.resize(length_ + rhs.length_);
         CopyChars(ret.buffer_, buffer_, length_);
         CopyChars(ret.buffer_ + length_, rhs.buffer_, rhs.length_);
 
@@ -233,7 +233,7 @@ public:
     {
         unsigned rhsLength = CStringLength(rhs);
         String ret;
-        ret.Resize(length_ + rhsLength);
+        ret.resize(length_ + rhsLength);
         CopyChars(ret.buffer_, buffer_, length_);
         CopyChars(ret.buffer_ + length_, rhs, rhsLength);
 
@@ -270,9 +270,9 @@ public:
     /// Return const char at index.
     const char& operator [] (unsigned index) const { assert(index < length_); return buffer_[index]; }
     /// Return char at index.
-    char& At(unsigned index) { assert(index < length_); return buffer_[index]; }
+    char& at(unsigned index) { assert(index < length_); return buffer_[index]; }
     /// Return const char at index.
-    const char& At(unsigned index) const { assert(index < length_); return buffer_[index]; }
+    const char& at(unsigned index) const { assert(index < length_); return buffer_[index]; }
 
     /// Replace all occurrences of a character.
     void replace(char replaceThis, char replaceWith, bool caseSensitive = true);
@@ -289,33 +289,33 @@ public:
     /// Return a string with all occurrences of a string replaced.
     String replaced(const String& replaceThis, const String& replaceWith, bool caseSensitive = true) const;
     /// Append a string.
-    String& Append(const String& str);
+    String& append(const String& str);
     /// Append a C string.
-    String& Append(const char* str);
+    String& append(const char* str);
     /// Append a character.
-    String& Append(char c);
+    String& append(char c);
     /// Append characters.
-    String& Append(const char* str, unsigned length);
+    String& append(const char* str, unsigned length);
     /// Insert a string.
-    void Insert(unsigned pos, const String& str);
+    void insert(unsigned pos, const String& str);
     /// Insert a character.
-    void Insert(unsigned pos, char c);
+    void insert(unsigned pos, char c);
     /// Insert a string by iterator.
-    Iterator Insert(const Iterator& dest, const String& str);
+    Iterator insert(const Iterator& dest, const String& str);
     /// Insert a string partially by iterators.
-    Iterator Insert(const Iterator& dest, const Iterator& start, const Iterator& end);
+    Iterator insert(const Iterator& dest, const Iterator& start, const Iterator& end);
     /// Insert a character by iterator.
-    Iterator Insert(const Iterator& dest, char c);
+    Iterator insert(const Iterator& dest, char c);
     /// Erase a substring.
-    void Erase(unsigned pos, unsigned length = 1);
+    void erase(unsigned pos, unsigned length = 1);
     /// Erase a character by iterator.
-    Iterator Erase(const Iterator& it);
+    Iterator erase(const Iterator& it);
     /// Erase a substring by iterators.
-    Iterator Erase(const Iterator& start, const Iterator& end);
+    Iterator erase(const Iterator& start, const Iterator& end);
     /// Resize the string.
-    void Resize(unsigned newLength);
+    void resize(unsigned newLength);
     /// Set new capacity.
-    void Reserve(unsigned newCapacity);
+    void reserve(unsigned newCapacity);
     /// Reallocate so that no extra memory is used.
     void Compact();
     /// Clear the string.
@@ -340,7 +340,7 @@ public:
     /// Return a substring with length from position.
     String Substring(unsigned pos, unsigned length) const;
     /// Return string with whitespace trimmed from the beginning and the end.
-    String Trimmed() const;
+    String trimmed() const;
     /// Return string in uppercase.
     String toUpper() const;
     /// Return string in lowercase.
@@ -364,7 +364,7 @@ public:
     /// Return the C string.
     const char* CString() const { return buffer_; }
     /// Return length.
-    unsigned Length() const { return length_; }
+    unsigned length() const { return length_; }
     /// Return buffer capacity.
     unsigned Capacity() const { return capacity_; }
     /// Return whether the string is empty.

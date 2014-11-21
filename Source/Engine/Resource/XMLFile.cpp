@@ -151,7 +151,7 @@ bool XMLFile::FromString(const String& source)
     if (source.isEmpty())
         return false;
 
-    MemoryBuffer buffer(source.CString(), source.Length());
+    MemoryBuffer buffer(source.CString(), source.length());
     return Load(buffer);
 }
 

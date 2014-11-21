@@ -122,7 +122,7 @@ bool ShaderProgram::Link()
     if (!linked)
     {
         glGetProgramiv(object_, GL_INFO_LOG_LENGTH, &length);
-        linkerOutput_.Resize(length);
+        linkerOutput_.resize(length);
         int outLength;
         glGetProgramInfoLog(object_, length, &outLength, &linkerOutput_[0]);
         glDeleteProgram(object_);
@@ -182,7 +182,7 @@ bool ShaderProgram::Link()
             if (unit >= MAX_TEXTURE_UNITS)
             {
                 // If texture unit name is not recognized, search for a digit in the name and use that as the unit index
-                for (unsigned j = 1; j < name.Length(); ++j)
+                for (unsigned j = 1; j < name.length(); ++j)
                 {
                     if (name[j] >= '0' && name[j] <= '9')
                     {

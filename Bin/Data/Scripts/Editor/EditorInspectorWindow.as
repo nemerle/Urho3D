@@ -672,7 +672,7 @@ String ExtractVariableName(VariantMap& eventData)
 {
     UIElement@ element = eventData["Element"].GetPtr();
     LineEdit@ nameEdit = element.parent.GetChild("VarNameEdit");
-    return nameEdit.text.Trimmed();
+    return nameEdit.text.trimmed();
 }
 
 Variant ExtractVariantType(VariantMap& eventData)

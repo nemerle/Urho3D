@@ -345,7 +345,7 @@ void HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData)
 
 void HandleConnect(StringHash eventType, VariantMap& eventData)
 {
-    String address = textEdit.text.Trimmed();
+    String address = textEdit.text.trimmed();
     if (address.empty)
         address = "localhost"; // Use localhost to connect if nothing else specified
 
