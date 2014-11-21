@@ -42,7 +42,7 @@ public:
             next_(next)
         {
         }
-        
+
         /// Hash value.
         unsigned hash_;
         /// Node value.
@@ -50,7 +50,7 @@ public:
         /// Next node in bucket.
         Node* next_;
     };
-    
+
     /// Construct empty.
     HashTable() :
         allocator_(0)
@@ -58,22 +58,22 @@ public:
         for (unsigned i = 0; i < U; ++i)
             ptrs_[i] = 0;
     }
-    
+
     /// Destruct.
     ~HashTable()
     {
         Clear();
         AllocatorUninitialize(allocator_);
     }
-    
+
     /// Insert by hash value. If value with same hash already exists, it is replaced.
     void Insert(unsigned hash, const T& value)
     {
         unsigned bucket = hash & (U - 1);
-        
+
         if (!allocator_)
             allocator_ = AllocatorInitialize(sizeof(Node));
-        
+
         Node* ptr = ptrs_[bucket];
         while (ptr)
         {
@@ -84,18 +84,18 @@ public:
             }
             ptr = ptr->next_;
         }
-        
+
         Node* newNode = static_cast<Node*>(AllocatorReserve(allocator_));
         // Insert at the top of the bucket, connect to the previous top node if exists
         new(newNode) Node(hash, value, ptrs_[bucket]);
         ptrs_[bucket] = newNode;
     }
-    
+
     /// Remove by hash value. Return true if was found and removed.
     bool Erase(unsigned hash)
     {
         unsigned bucket = hash & (U - 1);
-        
+
         Node* ptr = ptrs_[bucket];
         while (ptr)
         {
@@ -108,10 +108,10 @@ public:
             else
                 ptr = ptr->next_;
         }
-        
+
         return false;
     }
-    
+
     /// Remove all values.
     void Clear()
     {
@@ -127,12 +127,12 @@ public:
             }
         }
     }
-    
+
     /// Find by hash value. Return pointer if was found or null if not found.
     T* Find(unsigned hash) const
     {
         unsigned bucket = hash & (U - 1);
-        
+
         Node* ptr = ptrs_[bucket];
         while (ptr)
         {
@@ -141,10 +141,10 @@ public:
             else
                 ptr = ptr->next_;
         }
-        
+
         return 0;
     }
-    
+
     /// Return all the keys.
     PODVector<unsigned> Keys() const
     {
@@ -167,7 +167,7 @@ public:
     PODVector<T*> Values() const
     {
         PODVector<T*> ret;
-        
+
         for (unsigned i = 0; i < U; ++i)
         {
             Node* ptr = ptrs_[i];
@@ -177,15 +177,14 @@ public:
                 ptr = ptr->next_;
             }
         }
-        
+
         return ret;
     }
-    
+
 private:
     /// Allocator.
     AllocatorBlock* allocator_;
     /// Bucket pointers, fixed size.
     Node* ptrs_[U];
 };
-
 }

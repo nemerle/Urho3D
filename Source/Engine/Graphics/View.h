@@ -345,9 +345,9 @@ private:
     /// Per-pixel light queues.
     Vector<LightBatchQueue> lightQueues_;
     /// Per-vertex light queues.
-    QHash<unsigned long long, LightBatchQueue> vertexLightQueues_;
+    HashMap<unsigned long long, LightBatchQueue> vertexLightQueues_;
     /// Batch queues.
-    QHash<StringHash, BatchQueue> batchQueues_;
+    HashMap<StringHash, BatchQueue> batchQueues_;
     /// Hash of the GBuffer pass, or null if none.
     StringHash gBufferPassName_;
     /// Hash of the opaque forward base pass.

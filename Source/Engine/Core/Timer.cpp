@@ -49,17 +49,17 @@ Time::Time(Context* context) :
     timeStep_(0.0f),
     timerPeriod_(0)
 {
-    #ifdef WIN32
+#ifdef WIN32
     LARGE_INTEGER frequency;
     if (QueryPerformanceFrequency(&frequency))
     {
         HiresTimer::frequency = frequency.QuadPart;
         HiresTimer::supported = true;
     }
-    #else
+#else
     HiresTimer::frequency = 1000000;
     HiresTimer::supported = true;
-    #endif
+#endif
 }
 
 Time::~Time()
@@ -72,19 +72,19 @@ void Time::BeginFrame(float timeStep)
     ++frameNumber_;
     if (!frameNumber_)
         ++frameNumber_;
-    
+
     timeStep_ = timeStep;
-    
+
     Profiler* profiler = GetSubsystem<Profiler>();
     if (profiler)
         profiler->BeginFrame();
-    
+
     {
         PROFILE(BeginFrame);
-        
+
         // Frame begin event
         using namespace BeginFrame;
-        
+
         VariantMap& eventData = GetEventDataMap();
         eventData[P_FRAMENUMBER] = frameNumber_;
         eventData[P_TIMESTEP] = timeStep_;
@@ -96,11 +96,11 @@ void Time::EndFrame()
 {
     {
         PROFILE(EndFrame);
-        
+
         // Frame end event
         SendEvent(E_ENDFRAME);
     }
-    
+
     Profiler* profiler = GetSubsystem<Profiler>();
     if (profiler)
         profiler->EndFrame();
@@ -108,15 +108,15 @@ void Time::EndFrame()
 
 void Time::SetTimerPeriod(unsigned mSec)
 {
-    #ifdef WIN32
+#ifdef WIN32
     if (timerPeriod_ > 0)
         timeEndPeriod(timerPeriod_);
-    
+
     timerPeriod_ = mSec;
-    
+
     if (timerPeriod_ > 0)
         timeBeginPeriod(timerPeriod_);
-    #endif
+#endif
 }
 
 float Time::GetElapsedTime()
@@ -126,14 +126,14 @@ float Time::GetElapsedTime()
 
 unsigned Time::GetSystemTime()
 {
-    #ifdef WIN32
+#ifdef WIN32
     unsigned currentTime = timeGetTime();
-    #else
+#else
     struct timeval time;
     gettimeofday(&time, nullptr);
     unsigned currentTime = time.tv_sec * 1000 + time.tv_usec / 1000;
-    #endif
-    
+#endif
+
     return currentTime;
 }
 
@@ -152,11 +152,11 @@ String Time::GetTimeStamp()
 
 void Time::Sleep(unsigned mSec)
 {
-    #ifdef WIN32
+#ifdef WIN32
     ::Sleep(mSec);
-    #else
+#else
     usleep(mSec * 1000);
-    #endif
+#endif
 }
 
 Timer::Timer()
@@ -166,42 +166,41 @@ Timer::Timer()
 
 unsigned Timer::GetMSec(bool reset)
 {
-    #ifdef WIN32
+#ifdef WIN32
     unsigned currentTime = timeGetTime();
-    #else
+#else
     struct timeval time;
     gettimeofday(&time, nullptr);
     unsigned currentTime = time.tv_sec * 1000 + time.tv_usec / 1000;
-    #endif
-    
+#endif
+
     unsigned elapsedTime = currentTime - startTime_;
     if (reset)
         startTime_ = currentTime;
-    
+
     return elapsedTime;
 }
 
 void Timer::Reset()
 {
-    #ifdef WIN32
+#ifdef WIN32
     startTime_ = timeGetTime();
-    #else
+#else
     struct timeval time;
     gettimeofday(&time, nullptr);
     startTime_ = time.tv_sec * 1000 + time.tv_usec / 1000;
-    #endif
+#endif
 }
 
 HiresTimer::HiresTimer()
 {
     Reset();
 }
-
-long long HiresTimer::GetUSec(bool reset)
+long long HiresTimer::GetUSec() const
 {
     long long currentTime;
-    
-    #ifdef WIN32
+
+#ifdef WIN32
     if (supported)
     {
         LARGE_INTEGER counter;
@@ -210,27 +209,54 @@ long long HiresTimer::GetUSec(bool reset)
     }
     else
         currentTime = timeGetTime();
-    #else
+#else
     struct timeval time;
     gettimeofday(&time, nullptr);
     currentTime = time.tv_sec * 1000000LL + time.tv_usec;
-    #endif
-    
+#endif
+
     long long elapsedTime = currentTime - startTime_;
-    
+
     // Correct for possible weirdness with changing internal frequency
     if (elapsedTime < 0)
         elapsedTime = 0;
-    
+
+    return (elapsedTime * 1000000LL) / frequency;
+}
+long long HiresTimer::GetUSec(bool reset)
+{
+    long long currentTime;
+
+#ifdef WIN32
+    if (supported)
+    {
+        LARGE_INTEGER counter;
+        QueryPerformanceCounter(&counter);
+        currentTime = counter.QuadPart;
+    }
+    else
+        currentTime = timeGetTime();
+#else
+    struct timeval time;
+    gettimeofday(&time, nullptr);
+    currentTime = time.tv_sec * 1000000LL + time.tv_usec;
+#endif
+
+    long long elapsedTime = currentTime - startTime_;
+
+    // Correct for possible weirdness with changing internal frequency
+    if (elapsedTime < 0)
+        elapsedTime = 0;
+
     if (reset)
         startTime_ = currentTime;
-    
+
     return (elapsedTime * 1000000LL) / frequency;
 }
 
 void HiresTimer::Reset()
 {
-    #ifdef WIN32
+#ifdef WIN32
     if (supported)
     {
         LARGE_INTEGER counter;
@@ -239,11 +265,11 @@ void HiresTimer::Reset()
     }
     else
         startTime_ = timeGetTime();
-    #else
+#else
     struct timeval time;
     gettimeofday(&time, nullptr);
     startTime_ = time.tv_sec * 1000000LL + time.tv_usec;
-    #endif
+#endif
 }
 
 }

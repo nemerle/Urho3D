@@ -33,7 +33,7 @@
 #include "VertexBuffer.h"
 
 #include <cstring>
-
+#include <vector>
 #include "DebugNew.h"
 
 namespace Urho3D
@@ -465,14 +465,14 @@ bool Model::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers, co
 
 bool Model::SetIndexBuffers(const Vector<SharedPtr<IndexBuffer> >& buffers)
 {
-    for (unsigned i = 0; i < buffers.size(); ++i)
+    for (const SharedPtr<IndexBuffer> &buffer : buffers)
     {
-        if (!buffers[i])
+        if (!buffer)
         {
             LOGERROR("Null model index buffers specified");
             return false;
         }
-        if (!buffers[i]->IsShadowed())
+        if (!buffer->IsShadowed())
         {
             LOGERROR("Model index buffers must be shadowed");
             return false;

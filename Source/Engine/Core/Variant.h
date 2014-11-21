@@ -93,8 +93,22 @@ struct VariantValue
         float float4_;
         void* ptr4_;
     };
+#ifdef _GLIBCXX_DEBUG
+    union
+    {
+        void* ptr5_;
+    };
+    union
+    {
+        void* ptr6_;
+    };
+    union
+    {
+        void* ptr7_;
+    };
+#endif
 };
-
+static_assert(sizeof(VariantValue)>=sizeof(String),"Variant value must be large enough to hold string");
 /// Typed resource reference.
 struct URHO3D_API ResourceRef
 {
@@ -169,6 +183,8 @@ class Variant;
 
 /// Vector of variants.
 typedef Vector<Variant> VariantVector;
+static_assert(sizeof(VariantValue)>=sizeof(VariantVector),"Variant value must be large enough to hold VariantVector");
+
 
 /// Map of variants.
 typedef QHash<StringHash, Variant> VariantMap;

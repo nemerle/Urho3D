@@ -299,17 +299,6 @@ void Drawable::SetMinMaxZ(float minZ, float maxZ)
     maxZ_ = maxZ;
 }
 
-void Drawable::MarkInView(const FrameInfo& frame)
-{
-    if (frame.frameNumber_ != viewFrameNumber_)
-    {
-        viewFrameNumber_ = frame.frameNumber_;
-        viewCameras_.clear();
-    }
-
-    viewCameras_.insert(frame.camera_);
-}
-
 void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
 {
     if (frameNumber != viewFrameNumber_)

@@ -241,7 +241,9 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
         int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
         int drawablesPerItem = drawables_.size() / numWorkItems;
 
-        PODVector<Drawable2D*>::iterator start = drawables_.begin();
+        Drawable2D ** start_ptr = &drawables_.front();
+        Drawable2D ** fin_ptr = start_ptr + drawables_.size();
+
         for (int i = 0; i < numWorkItems; ++i)
         {
             SharedPtr<WorkItem> item = queue->GetFreeItem();
@@ -249,15 +251,15 @@ void DrawableProxy2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& ev
             item->workFunction_ = CheckDrawableVisibility;
             item->aux_ = this;
 
-            PODVector<Drawable2D*>::iterator end = drawables_.end();
-            if (i < numWorkItems - 1 && end - start > drawablesPerItem)
-                end = start + drawablesPerItem;
+            Drawable2D ** end_ptr = fin_ptr;
+            if (i < numWorkItems - 1 && end_ptr - start_ptr > drawablesPerItem)
+                end_ptr = start_ptr + drawablesPerItem;
 
-            item->start_ = &(*start);
-            item->end_ = &(*end);
+            item->start_ = start_ptr;
+            item->end_ = end_ptr;
             queue->AddWorkItem(item);
 
-            start = end;
+            start_ptr = end_ptr;
         }
 
         queue->Complete(M_MAX_UNSIGNED);

@@ -25,7 +25,7 @@
 #include "List.h"
 #include "Mutex.h"
 #include "Object.h"
-
+#include <queue>
 namespace Urho3D
 {
 
@@ -70,7 +70,14 @@ public:
 private:
     bool pooled_;
 };
-
+struct comparePriority {
+bool operator()(const WorkItem *a,const WorkItem *b) {
+    return a->priority_ < b->priority_;
+}
+//bool operator()(const WorkItem *a,int b) {
+//    return a->priority_ < b;
+//}
+};
 /// Work queue subsystem for multithreading.
 class URHO3D_API WorkQueue : public Object
 {
@@ -125,9 +132,9 @@ private:
     /// Work item pool for reuse to cut down on allocation. The bool is a flag for item pooling and whether it is available or not.
     List<SharedPtr<WorkItem> > poolItems_;
     /// Work item collection. Accessed only by the main thread.
-    List<SharedPtr<WorkItem> > workItems_;
+    std::deque<SharedPtr<WorkItem> > workItems_;
     /// Work item prioritized queue for worker threads. Pointers are guaranteed to be valid (point to workItems.)
-    List<WorkItem*> queue_;
+    std::priority_queue<WorkItem*,std::deque<WorkItem*>,comparePriority> queue_;
     /// Worker queue mutex.
     Mutex queueMutex_;
     /// Shutting down flag.

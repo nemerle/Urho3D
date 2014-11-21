@@ -23,7 +23,7 @@
 #pragma once
 
 #include "Str.h"
-
+#include <functional>
 namespace Urho3D
 {
 
@@ -117,3 +117,10 @@ inline uint qHash(const Urho3D::StringHash &key, uint seed)
 
 }
 
+namespace std {
+template<> struct hash<Urho3D::StringHash> {
+    size_t operator()(Urho3D::StringHash v) const {
+        return v.ToHash();
+    }
+};
+}

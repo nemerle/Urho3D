@@ -25,5 +25,3 @@
 #include <QtCore/QHash>
 #include <QtCore/QSet>
 #include "Str.h"
-
-#include <unordered_map>

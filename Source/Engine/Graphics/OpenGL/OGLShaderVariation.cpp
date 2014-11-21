@@ -139,8 +139,8 @@ bool ShaderVariation::Create()
 
         // In debug mode, check that all defines are referenced by the shader code
         #ifdef _DEBUG
-        String defineCheck = defineString.Substring(8, defineString.Find(' ', 8) - 8);
-        if (originalShaderCode.Find(defineCheck) == String::NPOS)
+        String defineCheck = defineString.Substring(8, defineString.indexOf(' ', 8) - 8);
+        if (originalShaderCode.indexOf(defineCheck) == String::NPOS)
             LOGWARNING("Shader " + GetFullName() + " does not use the define " + defineCheck);
         #endif
     }

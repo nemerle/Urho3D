@@ -26,6 +26,9 @@
 #include "MathDefs.h"
 #include "Matrix3x4.h"
 #include "Rect.h"
+#include "HashMap.h"
+#include <functional>
+
 
 namespace Urho3D
 {
@@ -51,12 +54,13 @@ struct Batch
     /// Construct with defaults.
     Batch() :
         lightQueue_(0),
+        geometry_(0),
         isBase_(false)
     {
     }
 
     /// Construct from a drawable's source batch.
-    Batch(const SourceBatch& rhs);
+    Batch(const SourceBatch& rhs,bool is_base=false);
 
     /// Calculate state sorting key, which consists of base pass flag, light, pass and geometry.
     void CalculateSortKey();
@@ -164,7 +168,6 @@ struct BatchGroup : public Batch
     /// Instance stream start index, or M_MAX_UNSIGNED if transforms not pre-set.
     unsigned startIndex_;
 };
-
 /// Instanced draw call grouping key.
 struct BatchGroupKey
 {
@@ -202,6 +205,18 @@ struct BatchGroupKey
     /// Return hash value.
     unsigned ToHash() const;
 };
+}
+namespace std {
+template<> struct hash<Urho3D::BatchGroupKey> {
+    inline size_t operator()(const Urho3D::BatchGroupKey & key) const
+    {
+        return key.ToHash();
+    }
+};
+}
+
+namespace Urho3D {
+
 /// Queue that contains both instanced and non-instanced draw calls.
 struct BatchQueue
 {
@@ -224,13 +239,13 @@ public:
     bool IsEmpty() const { return batches_.empty() && batchGroups_.isEmpty(); }
 
     /// Instanced draw calls.
-    QHash<BatchGroupKey, BatchGroup> batchGroups_;
+    HashMap<BatchGroupKey, BatchGroup> batchGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
-    QHash<unsigned, unsigned> shaderRemapping_;
+    HashMap<unsigned, unsigned> shaderRemapping_;
     /// Material remapping table for 2-pass state and distance sort.
-    QHash<unsigned short, unsigned short> materialRemapping_;
+    HashMap<unsigned short, unsigned short> materialRemapping_;
     /// Geometry remapping table for 2-pass state and distance sort.
-    QHash<unsigned short, unsigned short> geometryRemapping_;
+    HashMap<unsigned short, unsigned short> geometryRemapping_;
 
     /// Unsorted non-instanced draw calls.
     PODVector<Batch> batches_;
@@ -282,4 +297,3 @@ inline uint qHash(const Urho3D::BatchGroupKey & key)
     return key.ToHash();
 }
 }
-

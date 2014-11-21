@@ -190,7 +190,7 @@ void BackgroundLoader::WaitForResource(StringHash type, StringHash nameHash)
             }
 
             if (didWait)
-                LOGDEBUG("Waited " + String(waitTimer.GetUSec(false) / 1000) + " ms for background loaded resource " + resource->GetName());
+                LOGDEBUG("Waited " + String(waitTimer.GetUSec() / 1000) + " ms for background loaded resource " + resource->GetName());
         }
 
         // This may take a long time and may potentially wait on other resources, so it is important we do not hold the mutex during this
@@ -231,7 +231,7 @@ void BackgroundLoader::FinishResources(int maxMs)
             }
 
             // Break when the time limit passed so that we keep sufficient FPS
-            if (timer.GetUSec(false) >= maxMs * 1000)
+            if (timer.GetUSec() >= maxMs * 1000)
                 break;
         }
 

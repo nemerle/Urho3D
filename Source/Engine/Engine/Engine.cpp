@@ -678,7 +678,7 @@ void Engine::ApplyFrameLimit()
 
         for (;;)
         {
-            elapsed = frameTimer_.GetUSec(false);
+            elapsed = frameTimer_.GetUSec();
             if (elapsed >= targetMax)
                 break;
 
@@ -691,7 +691,8 @@ void Engine::ApplyFrameLimit()
         }
     }
 
-    elapsed = frameTimer_.GetUSec(true);
+    elapsed = frameTimer_.GetUSec();
+    frameTimer_.Reset();
     #ifdef URHO3D_TESTING
     if (timeOut_ > 0)
     {

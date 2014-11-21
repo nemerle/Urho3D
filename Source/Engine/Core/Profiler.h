@@ -61,11 +61,11 @@ public:
     /// Destruct. Free the child blocks.
     ~ProfilerBlock()
     {
-        for (PODVector<ProfilerBlock*>::iterator i = children_.begin(); i != children_.end(); ++i)
+        for (ProfilerBlock* i : children_)
         {
-            delete *i;
-            *i = 0;
+            delete i;
         }
+        children_.clear();
 
         delete [] name_;
     }
@@ -80,7 +80,7 @@ public:
     /// End timing.
     void End()
     {
-        long long time = timer_.GetUSec(false);
+        long long time = timer_.GetUSec();
         if (time > maxTime_)
             maxTime_ = time;
         time_ += time;

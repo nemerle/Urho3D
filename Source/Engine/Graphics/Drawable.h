@@ -203,7 +203,7 @@ public:
     /// Set view-space depth bounds.
     void SetMinMaxZ(float minZ, float maxZ);
     /// Mark in view.
-    void MarkInView(const FrameInfo& frame);
+    void MarkInView(const FrameInfo& frame) { MarkInView(frame.frameNumber_,frame.camera_); }
     /// Mark in view of a specific camera. Specify null camera to update just the frame number.
     void MarkInView(unsigned frameNumber, Camera* camera);
     /// Sort and limit per-pixel lights to maximum allowed. Convert extra lights into vertex lights.

@@ -153,7 +153,7 @@ void CalculateSpotMatrix(Matrix4& dest, Light* light, const Vector3& translation
     dest = texAdjust * spotProj * spotView * posAdjust;
 }
 
-Batch::Batch(const SourceBatch &rhs) :
+Batch::Batch(const SourceBatch &rhs, bool is_base) :
     distance_(rhs.distance_),
     geometry_(rhs.geometry_),
     material_(rhs.material_),
@@ -162,7 +162,7 @@ Batch::Batch(const SourceBatch &rhs) :
     lightQueue_(0),
     geometryType_(rhs.geometryType_),
     overrideView_(rhs.overrideView_),
-    isBase_(false)
+    isBase_(is_base)
 {
 }
 
@@ -738,8 +738,8 @@ void BatchQueue::SortBackToFront()
     sortedBatchGroups_.resize(batchGroups_.size());
 
     unsigned index = 0;
-    for (auto & elem : batchGroups_)
-        sortedBatchGroups_[index++] = &elem;
+    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
+        sortedBatchGroups_[index++] = &MAP_VALUE(iter);
 }
 
 void BatchQueue::SortFrontToBack()
@@ -752,8 +752,9 @@ void BatchQueue::SortFrontToBack()
     SortFrontToBack2Pass(sortedBatches_);
 
     // Sort each group front to back
-    for (BatchGroup & elem : batchGroups_)
+    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
     {
+        BatchGroup & elem(MAP_VALUE(iter));
         if (elem.instances_.size() <= maxSortedInstances_)
         {
             std::sort(elem.instances_.begin(), elem.instances_.end(), CompareInstancesFrontToBack);
@@ -772,8 +773,8 @@ void BatchQueue::SortFrontToBack()
     sortedBatchGroups_.resize(batchGroups_.size());
 
     unsigned index = 0;
-    for (BatchGroup & elem : batchGroups_)
-        sortedBatchGroups_[index++] = &elem;
+    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
+        sortedBatchGroups_[index++] = &MAP_VALUE(iter);
 
     SortFrontToBack2Pass(reinterpret_cast<PODVector<Batch*>& >(sortedBatchGroups_));
 }
@@ -797,9 +798,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
 
         unsigned shaderID = (batch->sortKey_ >> 32);
-        QHash<unsigned, unsigned>::const_iterator j = shaderRemapping_.find(shaderID);
+        HashMap<unsigned, unsigned>::const_iterator j = shaderRemapping_.find(shaderID);
         if (j != shaderRemapping_.end())
-            shaderID = j.value();
+            shaderID = MAP_VALUE(j);
         else
         {
             shaderID = shaderRemapping_[shaderID] = freeShaderID | (shaderID & 0xc0000000);
@@ -807,9 +808,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         }
 
         unsigned short materialID = (unsigned short)(batch->sortKey_ & 0xffff0000);
-        QHash<unsigned short, unsigned short>::const_iterator k = materialRemapping_.find(materialID);
+        HashMap<unsigned short, unsigned short>::const_iterator k = materialRemapping_.find(materialID);
         if (k != materialRemapping_.end())
-            materialID = k.value();
+            materialID = MAP_VALUE(k);
         else
         {
             materialID = materialRemapping_[materialID] = freeMaterialID;
@@ -817,9 +818,9 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
         }
 
         unsigned short geometryID = (unsigned short)(batch->sortKey_ & 0xffff);
-        QHash<unsigned short, unsigned short>::const_iterator l = geometryRemapping_.find(geometryID);
+        HashMap<unsigned short, unsigned short>::const_iterator l = geometryRemapping_.find(geometryID);
         if (l != geometryRemapping_.end())
-            geometryID = l.value();
+            geometryID = MAP_VALUE(l);
         else
         {
             geometryID = geometryRemapping_[geometryID] = freeGeometryID;
@@ -840,8 +841,8 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
 void BatchQueue::SetTransforms(void* lockedData, unsigned& freeIndex)
 {
-    for (BatchGroup & elem : batchGroups_)
-        elem.SetTransforms(lockedData, freeIndex);
+    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
+        MAP_VALUE(iter).SetTransforms(lockedData, freeIndex);
 }
 
 void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimization) const
@@ -890,11 +891,10 @@ void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimizatio
 unsigned BatchQueue::GetNumInstances() const
 {
     unsigned total = 0;
-
-    for (const BatchGroup & elem : batchGroups_)
+    for (auto iter=batchGroups_.cbegin(),fin=batchGroups_.cend(); iter!=fin; ++iter)
     {
-       if (elem.geometryType_ == GEOM_INSTANCED)
-            total += elem.instances_.size();
+       if (MAP_VALUE(iter).geometryType_ == GEOM_INSTANCED)
+            total += MAP_VALUE(iter).instances_.size();
     }
 
     return total;

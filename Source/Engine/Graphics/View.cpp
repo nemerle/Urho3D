@@ -354,10 +354,15 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
                 }
             }
 
-            QHash<StringHash, BatchQueue>::Iterator j = batchQueues_.find(command.pass_);
-            if (j == batchQueues_.end())
+            HashMap<StringHash, BatchQueue>::iterator j = batchQueues_.find(command.pass_);
+            if (j == batchQueues_.end()) {
+#ifdef USE_QT_HASHMAP
                 j = batchQueues_.insert(command.pass_, BatchQueue());
-            info.batchQueue_ = &(*j);
+#else
+                j = batchQueues_.emplace(command.pass_, BatchQueue()).first;
+#endif
+            }
+            info.batchQueue_ = &(MAP_VALUE(j));
 
             scenePasses_.push_back(info);
         }
@@ -493,8 +498,8 @@ void View::Update(const FrameInfo& frame)
     zones_.clear();
     occluders_.clear();
     vertexLightQueues_.clear();
-    for (auto & elem : batchQueues_)
-        elem.Clear(maxSortedInstances);
+    for (auto elem=batchQueues_.begin(),fin=batchQueues_.end(); elem!=fin ;++elem)
+        MAP_VALUE(elem).Clear(maxSortedInstances);
 
     if (hasScenePasses_ && (!camera_ || !octree_))
         return;
@@ -810,7 +815,8 @@ void View::GetDrawables()
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
             int drawablesPerItem = tempDrawables.size() / numWorkItems;
 
-            PODVector<Drawable*>::iterator start = tempDrawables.begin();
+            Drawable ** start_ptr = &tempDrawables.front();
+            Drawable ** fin_ptr = start_ptr + tempDrawables.size();
             // Create a work item for each thread
             for (int i = 0; i < numWorkItems; ++i)
             {
@@ -819,15 +825,15 @@ void View::GetDrawables()
                 item->workFunction_ = CheckVisibilityWork;
                 item->aux_ = this;
 
-                PODVector<Drawable*>::iterator end = tempDrawables.end();
-                if (i < numWorkItems - 1 && end - start > drawablesPerItem)
-                    end = start + drawablesPerItem;
+                Drawable ** end_ptr = fin_ptr;
+                if (i < numWorkItems - 1 && end_ptr - start_ptr > drawablesPerItem)
+                    end_ptr = start_ptr + drawablesPerItem;
 
-                item->start_ = &(*start);
-                item->end_ = &(*end);
+                item->start_ = start_ptr;
+                item->end_ = end_ptr;
                 queue->AddWorkItem(item);
 
-                start = end;
+                start_ptr = end_ptr;
             }
 
             queue->Complete(M_MAX_UNSIGNED);
@@ -1020,9 +1026,8 @@ void View::GetBatches()
                 }
 
                 // Process lit geometries
-                for (PODVector<Drawable*>::const_iterator j = query.litGeometries_.begin(); j != query.litGeometries_.end(); ++j)
+                for (Drawable* drawable : query.litGeometries_)
                 {
-                    Drawable* drawable = *j;
                     drawable->AddLight(light);
 
                     // If drawable limits maximum lights, only record the light, and check maximum count / build batches later
@@ -1089,9 +1094,8 @@ void View::GetBatches()
     {
         PROFILE(GetBaseBatches);
 
-        for (PODVector<Drawable*>::const_iterator i = geometries_.begin(); i != geometries_.end(); ++i)
+        for (Drawable* drawable : geometries_)
         {
-            Drawable* drawable = *i;
             UpdateGeometryType type = drawable->GetUpdateGeometryType();
             if (type == UPDATE_MAIN_THREAD)
                 nonThreadedGeometries_.push_back(drawable);
@@ -1111,17 +1115,16 @@ void View::GetBatches()
 
                 // Check here if the material refers to a rendertarget texture with camera(s) attached
                 // Only check this for backbuffer views (null rendertarget)
-                if (srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frame_.frameNumber_ && !renderTarget_)
+                if (!renderTarget_ && srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frame_.frameNumber_)
                     CheckMaterialForAuxView(srcBatch.material_);
 
                 Technique* tech = GetTechnique(drawable, srcBatch.material_);
                 if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
                     continue;
 
-                Batch destBatch(srcBatch);
+                Batch destBatch(srcBatch,true);
                 destBatch.camera_ = camera_;
                 destBatch.zone_ = zone;
-                destBatch.isBase_ = true;
                 destBatch.pass_ = nullptr;
                 destBatch.lightMask_ = GetLightMask(drawable);
 
@@ -1157,16 +1160,20 @@ void View::GetBatches()
                         {
                             // Find a vertex light queue. If not found, create new
                             unsigned long long hash = GetVertexLightQueueHash(vertexLights);
-                            QHash<unsigned long long, LightBatchQueue>::Iterator i = vertexLightQueues_.find(hash);
+                            HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
                             if (i == vertexLightQueues_.end())
                             {
+#ifdef USE_QT_HASHMAP
                                 i = vertexLightQueues_.insert(hash, LightBatchQueue());
-                                i->light_ = nullptr;
-                                i->shadowMap_ = nullptr;
-                                i->vertexLights_ = vertexLights;
+#else
+                                i = vertexLightQueues_.emplace(hash, LightBatchQueue()).first;
+#endif
+                                MAP_VALUE(i).light_ = nullptr;
+                                MAP_VALUE(i).shadowMap_ = nullptr;
+                                MAP_VALUE(i).vertexLights_ = vertexLights;
                             }
 
-                            destBatch.lightQueue_ = &(*i);
+                            destBatch.lightQueue_ = &(MAP_VALUE(i));
                         }
                     }
                     else
@@ -1246,22 +1253,25 @@ void View::UpdateGeometries()
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
             int drawablesPerItem = threadedGeometries_.size() / numWorkItems;
 
-            PODVector<Drawable*>::iterator start = threadedGeometries_.begin();
+
+            Drawable ** start_ptr = &threadedGeometries_.front();
+            Drawable ** fin_ptr = start_ptr + threadedGeometries_.size();
+
             for (int i = 0; i < numWorkItems; ++i)
             {
-                PODVector<Drawable*>::iterator end = threadedGeometries_.end();
-                if (i < numWorkItems - 1 && end - start > drawablesPerItem)
-                    end = start + drawablesPerItem;
+                Drawable ** end_ptr = fin_ptr;
+                if (i < numWorkItems - 1 && end_ptr - start_ptr > drawablesPerItem)
+                    end_ptr = start_ptr + drawablesPerItem;
 
                 SharedPtr<WorkItem> item = queue->GetFreeItem();
                 item->priority_ = M_MAX_UNSIGNED;
                 item->workFunction_ = UpdateDrawableGeometriesWork;
                 item->aux_ = const_cast<FrameInfo*>(&frame_);
-                item->start_ = &(*start);
-                item->end_ = &(*end);
+                item->start_ = start_ptr;
+                item->end_ = end_ptr;
                 queue->AddWorkItem(item);
 
-                start = end;
+                start_ptr = end_ptr;
             }
         }
 
@@ -2683,7 +2693,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
     {
         BatchGroupKey key(batch);
 
-        QHash<BatchGroupKey, BatchGroup>::Iterator i = batchQueue.batchGroups_.find(key);
+        HashMap<BatchGroupKey, BatchGroup>::iterator i = batchQueue.batchGroups_.find(key);
         if (i == batchQueue.batchGroups_.end())
         {
             // Create a new group based on the batch
@@ -2692,16 +2702,20 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
             newGroup.geometryType_ = GEOM_STATIC;
             renderer_->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
+#ifdef USE_QT_HASHMAP
             i = batchQueue.batchGroups_.insert(key, newGroup);
+#else
+            i = batchQueue.batchGroups_.emplace(key, newGroup).first;
+#endif
         }
-        BatchGroup &group(*i);
+        BatchGroup &group(MAP_VALUE(i));
         int oldSize = group.instances_.size();
         group.AddTransforms(batch);
         // Convert to using instancing shaders when the instancing limit is reached
         if (oldSize < minInstances_ && (int)group.instances_.size() >= minInstances_)
         {
             group.geometryType_ = GEOM_INSTANCED;
-            renderer_->SetBatchShaders(*i, tech, allowShadows);
+            renderer_->SetBatchShaders(MAP_VALUE(i), tech, allowShadows);
             group.CalculateSortKey();
         }
     }
@@ -2719,8 +2733,8 @@ void View::PrepareInstancingBuffer()
 
     unsigned totalInstances = 0;
 
-    for (const BatchQueue & elem : batchQueues_)
-        totalInstances += elem.GetNumInstances();
+    for (auto iter = batchQueues_.cbegin(),fin=batchQueues_.cend(); iter!=fin; ++iter)
+        totalInstances += MAP_VALUE(iter).GetNumInstances();
 
     for (const LightBatchQueue & elem : lightQueues_)
     {
@@ -2739,8 +2753,8 @@ void View::PrepareInstancingBuffer()
         if (!dest)
             return;
 
-        for (BatchQueue & elem : batchQueues_)
-            elem.SetTransforms(dest, freeIndex);
+        for (auto iter = batchQueues_.begin(),fin=batchQueues_.end(); iter!=fin; ++iter)
+            MAP_VALUE(iter).SetTransforms(dest, freeIndex);
 
         for (LightBatchQueue & elem : lightQueues_)
         {

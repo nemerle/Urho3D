@@ -1008,7 +1008,7 @@ void Scene::UpdateAsyncLoading()
         ++asyncProgress_.loadedNodes_;
 
         // Break if time limit exceeded, so that we keep sufficient FPS
-        if (asyncLoadTimer.GetUSec(false) >= asyncLoadingMs_ * 1000)
+        if (asyncLoadTimer.GetUSec() >= asyncLoadingMs_ * 1000)
             break;
     }
 
