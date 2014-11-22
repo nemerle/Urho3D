@@ -29,6 +29,8 @@
 #include "Resource.h"
 #include "Ptr.h"
 
+#include <HashMap.h>
+
 namespace Urho3D
 {
 
@@ -60,7 +62,7 @@ struct ModelMorph
     /// Current morph weight.
     float weight_;
     /// Morph data per vertex buffer.
-    QHash<unsigned, VertexBufferMorph> buffers_;
+    HashMap<unsigned, VertexBufferMorph> buffers_;
 };
 
 /// Description of vertex buffer data for asynchronous loading.

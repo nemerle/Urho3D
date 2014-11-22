@@ -26,16 +26,18 @@
 
 #include "DebugNew.h"
 
+#include <HashMap.h>
+
 namespace Urho3D
 {
 
-void RemoveNamedAttribute(QHash<StringHash, Vector<AttributeInfo> >& attributes, StringHash objectType, const char* name)
+void RemoveNamedAttribute(HashMap<StringHash, Vector<AttributeInfo> >& attributes, StringHash objectType, const char* name)
 {
-    QHash<StringHash, Vector<AttributeInfo> >::Iterator i = attributes.find(objectType);
+    HashMap<StringHash, Vector<AttributeInfo> >::iterator i = attributes.find(objectType);
     if (i == attributes.end())
         return;
 
-    Vector<AttributeInfo>& infos = *i;
+    Vector<AttributeInfo>& infos = MAP_VALUE(i);
 
     for (Vector<AttributeInfo>::iterator j = infos.begin(); j != infos.end(); ++j)
     {
@@ -202,11 +204,11 @@ const String& Context::GetTypeName(StringHash objectType) const
 
 AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
 {
-    QHash<StringHash, Vector<AttributeInfo> >::Iterator i = attributes_.find(objectType);
+    HashMap<StringHash, Vector<AttributeInfo> >::iterator i = attributes_.find(objectType);
     if (i == attributes_.end())
         return nullptr;
 
-    Vector<AttributeInfo>& infos = *i;
+    Vector<AttributeInfo>& infos = MAP_VALUE(i);
 
     for (AttributeInfo &j : infos)
     {

@@ -397,21 +397,22 @@ bool Model::Save(Serializer& dest) const
         // Write morph vertex buffers
         for (auto elem=morphs_[i].buffers_.begin(),fin=morphs_[i].buffers_.end(); elem!=fin; ++elem)
         {
-            dest.WriteUInt(elem.key());
-            dest.WriteUInt(elem->elementMask_);
-            dest.WriteUInt(elem->vertexCount_);
+            const VertexBufferMorph &morph(MAP_VALUE(elem));
+            dest.WriteUInt(MAP_KEY(elem));
+            dest.WriteUInt(morph.elementMask_);
+            dest.WriteUInt(morph.vertexCount_);
 
             // Base size: size of each vertex index
             unsigned vertexSize = sizeof(unsigned);
             // Add size of individual elements
-            if (elem->elementMask_ & MASK_POSITION)
+            if (morph.elementMask_ & MASK_POSITION)
                 vertexSize += sizeof(Vector3);
-            if (elem->elementMask_ & MASK_NORMAL)
+            if (morph.elementMask_ & MASK_NORMAL)
                 vertexSize += sizeof(Vector3);
-            if (elem->elementMask_ & MASK_TANGENT)
+            if (morph.elementMask_ & MASK_TANGENT)
                 vertexSize += sizeof(Vector3);
 
-            dest.Write(elem->morphData_.Get(), vertexSize * elem->vertexCount_);
+            dest.Write(morph.morphData_.Get(), vertexSize * morph.vertexCount_);
         }
     }
 
@@ -659,9 +660,9 @@ SharedPtr<Model> Model::Clone(const String& cloneName) const
     // Deep copy the morph data (if any) to allow modifying it
     for (ModelMorph & morph : ret->morphs_)
     {
-
-        for (VertexBufferMorph& vbMorph : morph.buffers_)
+        for (auto iter=morph.buffers_.begin(),fin=morph.buffers_.end(); iter!=fin; ++iter)
         {
+            VertexBufferMorph& vbMorph(MAP_VALUE(iter));
             if (vbMorph.dataSize_)
             {
                 SharedArrayPtr<unsigned char> cloneData(new unsigned char[vbMorph.dataSize_]);

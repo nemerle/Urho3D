@@ -26,6 +26,7 @@
 #include "Mutex.h"
 #include "Object.h"
 #include <queue>
+#include <set>
 namespace Urho3D
 {
 
@@ -71,12 +72,23 @@ private:
     bool pooled_;
 };
 struct comparePriority {
-bool operator()(const WorkItem *a,const WorkItem *b) {
-    return a->priority_ < b->priority_;
-}
-//bool operator()(const WorkItem *a,int b) {
-//    return a->priority_ < b;
-//}
+    bool operator()(const WorkItem *a,const WorkItem *b) {
+        return a->priority_ < b->priority_;
+    }
+    bool operator()(const SharedPtr<WorkItem> &a,const SharedPtr<WorkItem> &b) const {
+        return a->priority_ < b->priority_;
+    }
+    bool operator()(const WorkItem *a,unsigned int b) {
+        return a->priority_ < b;
+    }
+    bool operator()(unsigned int b,const WorkItem *a) {
+        return b < a->priority_;
+    }
+};
+struct comparePrioritySharedPtr {
+    bool operator()(const SharedPtr<WorkItem> &a,const SharedPtr<WorkItem> &b) const {
+        return a->priority_ < b->priority_;
+    }
 };
 /// Work queue subsystem for multithreading.
 class URHO3D_API WorkQueue : public Object
@@ -132,9 +144,12 @@ private:
     /// Work item pool for reuse to cut down on allocation. The bool is a flag for item pooling and whether it is available or not.
     List<SharedPtr<WorkItem> > poolItems_;
     /// Work item collection. Accessed only by the main thread.
-    std::deque<SharedPtr<WorkItem> > workItems_;
+    //std::deque<SharedPtr<WorkItem> > workItems_;
+    std::multiset<SharedPtr<WorkItem>,comparePrioritySharedPtr> workItems_;
     /// Work item prioritized queue for worker threads. Pointers are guaranteed to be valid (point to workItems.)
-    std::priority_queue<WorkItem*,std::deque<WorkItem*>,comparePriority> queue_;
+    //std::priority_queue<WorkItem*,std::deque<WorkItem*>,comparePriority> queue_;
+    std::multiset<WorkItem*,comparePriority> queue_;
+    typedef std::multiset<WorkItem*,comparePriority>::iterator iQueue;
     /// Worker queue mutex.
     Mutex queueMutex_;
     /// Shutting down flag.

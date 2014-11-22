@@ -1103,9 +1103,9 @@ void View::GetBatches()
                 threadedGeometries_.push_back(drawable);
 
             Zone* zone = GetZone(drawable);
-            const Vector<SourceBatch>& batches = drawable->GetBatches();
+            const Vector<SourceBatch>& batches(drawable->GetBatches());
 
-            const PODVector<Light*>& drawableVertexLights = drawable->GetVertexLights();
+            const PODVector<Light*>& drawableVertexLights(drawable->GetVertexLights());
             if (!drawableVertexLights.empty())
                 drawable->LimitVertexLights();
 
@@ -1296,7 +1296,7 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
     bool allowLitBase = useLitBase_ && !light->IsNegative() && light == drawable->GetFirstLight() &&
         drawable->GetVertexLights().empty() && !hasAmbientGradient;
 
-    for (unsigned i = 0; i < batches.size(); ++i)
+    for (unsigned i = 0,fin=batches.size(); i < fin; ++i)
     {
         const SourceBatch& srcBatch = batches[i];
 
@@ -1636,10 +1636,10 @@ void View::SetTextures(RenderPathCommand& command)
         }
 
         // Bind a rendertarget
-        QHash<StringHash, Texture2D*>::const_iterator j = renderTargets_.find(command.textureNames_[i]);
+        HashMap<StringHash, Texture2D*>::const_iterator j = renderTargets_.find(command.textureNames_[i]);
         if (j != renderTargets_.end())
         {
-            graphics_->SetTexture(i, *j);
+            graphics_->SetTexture(i, MAP_VALUE(j));
             continue;
         }
 

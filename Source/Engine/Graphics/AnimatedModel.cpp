@@ -332,8 +332,8 @@ void AnimatedModel::SetModel(Model* model, bool createBones)
             newMorph.nameHash_ = morphs[i].nameHash_;
             newMorph.weight_ = 0.0f;
             newMorph.buffers_ = morphs[i].buffers_;
-            for (const auto & elem : morphs[i].buffers_)
-                morphElementMask_ |= elem.elementMask_;
+            for (auto elem=morphs[i].buffers_.cbegin(),fin=morphs[i].buffers_.cend(); elem!=fin; ++elem)
+                morphElementMask_ |= MAP_VALUE(elem).elementMask_;
             morphs_.push_back(newMorph);
         }
 
@@ -1244,9 +1244,9 @@ void AnimatedModel::UpdateMorphs()
                     {
                         if (morphs_[j].weight_ > 0.0f)
                         {
-                            QHash<unsigned, VertexBufferMorph>::Iterator k = morphs_[j].buffers_.find(i);
+                            HashMap<unsigned, VertexBufferMorph>::iterator k = morphs_[j].buffers_.find(i);
                             if (k != morphs_[j].buffers_.end())
-                                ApplyMorph(buffer, dest, morphStart, *k, morphs_[j].weight_);
+                                ApplyMorph(buffer, dest, morphStart, MAP_VALUE(k), morphs_[j].weight_);
                         }
                     }
 

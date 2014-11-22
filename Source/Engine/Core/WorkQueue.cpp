@@ -105,7 +105,7 @@ SharedPtr<WorkItem> WorkQueue::GetFreeItem()
 {
     if (poolItems_.size() > 0)
     {
-        SharedPtr<WorkItem> item = poolItems_.front();
+        SharedPtr<WorkItem> item(poolItems_.front());
         poolItems_.pop_front();
         return item;
     }
@@ -131,13 +131,14 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
 
     // Push to the main thread list to keep item alive
     // Clear completed flag in case item is reused
-    workItems_.push_back(item);
+    workItems_.insert(item);
     item->completed_ = false;
 
     // Make sure worker threads' list is safe to modify
     if (threads_.size() && !paused_)
         queueMutex_.Acquire();
-    queue_.push(item);
+    //queue_.push(item);
+    queue_.insert(item);
 
     if (threads_.size())
     {
@@ -179,10 +180,10 @@ void WorkQueue::Complete(unsigned priority)
         while (!queue_.empty())
         {
             queueMutex_.Acquire();
-            if (!queue_.empty() && queue_.top()->priority_ >= priority)
+            if (!queue_.empty() && (*queue_.begin())->priority_ >= priority)
             {
-                WorkItem* item = queue_.top();
-                queue_.pop();
+                WorkItem* item = (*queue_.begin());
+                queue_.erase(queue_.begin());
                 queueMutex_.Release();
                 item->workFunction_(item, 0);
                 item->completed_ = true;
@@ -197,6 +198,7 @@ void WorkQueue::Complete(unsigned priority)
         // Wait for threaded work to complete
         while (!IsCompleted(priority))
         {
+            Time::Sleep(0);
         }
 
         // If no work at all remaining, pause worker threads by leaving the mutex locked
@@ -206,10 +208,10 @@ void WorkQueue::Complete(unsigned priority)
     else
     {
         // No worker threads: ensure all high-priority items are completed in the main thread
-        while (!queue_.empty() && queue_.top()->priority_ >= priority)
+        while (!queue_.empty() && (*queue_.begin())->priority_ >= priority)
         {
-            WorkItem* item = queue_.top();
-            queue_.pop();
+            WorkItem* item = (*queue_.begin());
+            queue_.erase(queue_.begin());
             item->workFunction_(item, 0);
             item->completed_ = true;
         }
@@ -247,8 +249,8 @@ void WorkQueue::ProcessItems(unsigned threadIndex)
             {
                 wasActive = true;
 
-                WorkItem* item = queue_.top();
-                queue_.pop();
+                WorkItem* item = (*queue_.begin());
+                queue_.erase(queue_.begin());
                 queueMutex_.Release();
                 item->workFunction_(item, threadIndex);
                 item->completed_ = true;
@@ -331,8 +333,8 @@ void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 
         while (!queue_.empty() && timer.GetUSec() < maxNonThreadedWorkMs_ * 1000)
         {
-            WorkItem* item = queue_.top();
-            queue_.pop();
+            WorkItem* item = (*queue_.begin());
+            queue_.erase(queue_.begin());
             item->workFunction_(item, 0);
             item->completed_ = true;
         }

@@ -27,6 +27,8 @@
 
 #include <QtCore/QSet>
 
+#include <HashMap.h>
+
 namespace Urho3D
 {
 
@@ -101,19 +103,19 @@ public:
     /// Return attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetAttributes(StringHash type) const
     {
-        QHash<StringHash, Vector<AttributeInfo> >::const_iterator i = attributes_.find(type);
-        return i != attributes_.end() ? &(*i) : 0;
+        HashMap<StringHash, Vector<AttributeInfo> >::const_iterator i = attributes_.find(type);
+        return i != attributes_.end() ? &(MAP_VALUE(i)) : 0;
     }
 
     /// Return network replication attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetNetworkAttributes(StringHash type) const
     {
-        QHash<StringHash, Vector<AttributeInfo> >::const_iterator i = networkAttributes_.find(type);
-        return i != networkAttributes_.end() ? &(*i) : 0;
+        HashMap<StringHash, Vector<AttributeInfo> >::const_iterator i = networkAttributes_.find(type);
+        return i != networkAttributes_.end() ? &(MAP_VALUE(i)) : 0;
     }
 
     /// Return all registered attributes.
-    const QHash<StringHash, Vector<AttributeInfo> >& GetAllAttributes() const { return attributes_; }
+    const HashMap<StringHash, Vector<AttributeInfo> >& GetAllAttributes() const { return attributes_; }
 
     /// Return event receivers for a sender and event type, or null if they do not exist.
     QSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
@@ -158,9 +160,9 @@ private:
     /// Subsystems.
     QHash<StringHash, SharedPtr<Object> > subsystems_;
     /// Attribute descriptions per object type.
-    QHash<StringHash, Vector<AttributeInfo> > attributes_;
+    HashMap<StringHash, Vector<AttributeInfo> > attributes_;
     /// Network replication attribute descriptions per object type.
-    QHash<StringHash, Vector<AttributeInfo> > networkAttributes_;
+    HashMap<StringHash, Vector<AttributeInfo> > networkAttributes_;
     /// Event receivers for non-specific events.
     QHash<StringHash, QSet<Object*> > eventReceivers_;
     /// Event receivers for specific senders' events.

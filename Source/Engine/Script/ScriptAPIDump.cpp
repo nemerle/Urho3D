@@ -245,17 +245,21 @@ void Script::DumpAPI(DumpMode mode)
 
         Log::WriteRaw("\n\\page AttributeList Attribute list\n");
 
-        const QHash<StringHash, Vector<AttributeInfo> >& attributes = context_->GetAllAttributes();
+        const HashMap<StringHash, Vector<AttributeInfo> >& attributes(context_->GetAllAttributes());
 
         Vector<String> objectTypes;
+#ifdef USE_QT_HASHMAP
         for (const auto & attribute : attributes.keys())
             objectTypes.push_back(context_->GetTypeName(attribute));
-
+#else
+        for (const auto & attribute : attributes)
+            objectTypes.push_back(context_->GetTypeName(attribute.first));
+#endif
         std::sort(objectTypes.begin(), objectTypes.end());
 
         for (unsigned i = 0; i < objectTypes.size(); ++i)
         {
-            const Vector<AttributeInfo>& attrs = *attributes.find(objectTypes[i]);
+            const Vector<AttributeInfo>& attrs = MAP_VALUE(attributes.find(objectTypes[i]));
             unsigned usableAttrs = 0;
             for (unsigned j = 0; j < attrs.size(); ++j)
             {

@@ -26,6 +26,7 @@
 #include "Component.h"
 #include "GraphicsDefs.h"
 #include <QtCore/QSet>
+#include <HashMap.h>
 
 namespace Urho3D
 {
@@ -339,7 +340,7 @@ protected:
     /// Zone inconclusive or dirtied flag.
     bool zoneDirty_;
     /// Set of cameras from which is seen on the current frame.
-    QSet<Camera*> viewCameras_;
+    HashSet<Camera*> viewCameras_;
 };
 
 inline bool CompareDrawables(Drawable* lhs, Drawable* rhs)

@@ -337,7 +337,7 @@ private:
     /// Drawables that limit their maximum light count.
     QSet<Drawable*> maxLightsDrawables_;
     /// Rendertargets defined by the renderpath.
-    QHash<StringHash, Texture2D*> renderTargets_;
+    HashMap<StringHash, Texture2D*> renderTargets_;
     /// Intermediate light processing results.
     Vector<LightQueryResult> lightQueryResults_;
     /// Info for scene render passes defined by the renderpath.
