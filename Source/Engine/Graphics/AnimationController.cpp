@@ -62,10 +62,10 @@ void AnimationController::RegisterObject(Context* context)
 {
     context->RegisterFactory<AnimationController>(LOGIC_CATEGORY);
 
-    ACCESSOR_ATTRIBUTE(AnimationController, VAR_BOOL, "Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE(AnimationController, VAR_VARIANTVECTOR, "Animations", GetAnimationsAttr, SetAnimationsAttr, VariantVector, Variant::emptyVariantVector, AM_FILE | AM_NOEDIT);
-    REF_ACCESSOR_ATTRIBUTE(AnimationController, VAR_BUFFER, "Network Animations", GetNetAnimationsAttr, SetNetAnimationsAttr, PODVector<unsigned char>, Variant::emptyBuffer, AM_NET | AM_LATESTDATA | AM_NOEDIT);
-    ACCESSOR_ATTRIBUTE(AnimationController, VAR_VARIANTVECTOR, "Node Animation States", GetNodeAnimationStatesAttr, SetNodeAnimationStatesAttr, VariantVector, Variant::emptyVariantVector, AM_FILE | AM_NOEDIT);
+    ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
+    MIXED_ACCESSOR_ATTRIBUTE("Animations", GetAnimationsAttr, SetAnimationsAttr, VariantVector, Variant::emptyVariantVector, AM_FILE | AM_NOEDIT);
+    ACCESSOR_ATTRIBUTE("Network Animations", GetNetAnimationsAttr, SetNetAnimationsAttr, PODVector<unsigned char>, Variant::emptyBuffer, AM_NET | AM_LATESTDATA | AM_NOEDIT);
+    MIXED_ACCESSOR_ATTRIBUTE("Node Animation States", GetNodeAnimationStatesAttr, SetNodeAnimationStatesAttr, VariantVector, Variant::emptyVariantVector, AM_FILE | AM_NOEDIT);
 }
 
 void AnimationController::OnSetEnabled()
@@ -510,7 +510,7 @@ AnimationState* AnimationController::GetAnimationState(StringHash nameHash) cons
     return nullptr;
 }
 
-void AnimationController::SetAnimationsAttr(VariantVector value)
+void AnimationController::SetAnimationsAttr(const VariantVector& value)
 {
     animations_.clear();
     animations_.reserve(value.size() / 5);  // Incomplete data is discarded
@@ -624,8 +624,7 @@ void AnimationController::SetNetAnimationsAttr(const PODVector<unsigned char>& v
     }
 }
 
-
-void AnimationController::SetNodeAnimationStatesAttr(VariantVector value)
+void AnimationController::SetNodeAnimationStatesAttr(const VariantVector& value)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     nodeAnimationStates_.clear();

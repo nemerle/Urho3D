@@ -54,8 +54,8 @@ void ParticleEmitter2D::RegisterObject(Context* context)
 {
     context->RegisterFactory<ParticleEmitter2D>(URHO2D_CATEGORY);
 
-    ACCESSOR_ATTRIBUTE(ParticleEmitter2D, VAR_RESOURCEREF, "Particle Effect", GetParticleEffectAttr, SetParticleEffectAttr, ResourceRef, ResourceRef(ParticleEffect2D::GetTypeStatic()), AM_DEFAULT);
-    COPY_BASE_ATTRIBUTES(ParticleEmitter2D, Drawable2D);
+    MIXED_ACCESSOR_ATTRIBUTE("Particle Effect", GetParticleEffectAttr, SetParticleEffectAttr, ResourceRef, ResourceRef(ParticleEffect2D::GetTypeStatic()), AM_DEFAULT);
+    COPY_BASE_ATTRIBUTES(Drawable2D);
 }
 
 void ParticleEmitter2D::OnSetEnabled()
@@ -159,7 +159,7 @@ ParticleEffect2D* ParticleEmitter2D::GetEffect() const
     return effect_;
 }
 
-void ParticleEmitter2D::SetParticleEffectAttr(ResourceRef value)
+void ParticleEmitter2D::SetParticleEffectAttr(const ResourceRef& value)
 {
     materialUpdatePending_ = true;
 

@@ -178,14 +178,14 @@ void PhysicsWorld::RegisterObject(Context* context)
 {
     context->RegisterFactory<PhysicsWorld>(SUBSYSTEM_CATEGORY);
 
-    ACCESSOR_ATTRIBUTE(PhysicsWorld, VAR_VECTOR3, "Gravity", GetGravity, SetGravity, Vector3, DEFAULT_GRAVITY, AM_DEFAULT);
-    ATTRIBUTE(PhysicsWorld, VAR_INT, "Physics FPS", fps_, DEFAULT_FPS, AM_DEFAULT);
-    ATTRIBUTE(PhysicsWorld, VAR_INT, "Max Substeps", maxSubSteps_, 0, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE(PhysicsWorld, VAR_INT, "Solver Iterations", GetNumIterations, SetNumIterations, int, 10, AM_DEFAULT);
-    ATTRIBUTE(PhysicsWorld, VAR_FLOAT, "Net Max Angular Vel.", maxNetworkAngularVelocity_, DEFAULT_MAX_NETWORK_ANGULAR_VELOCITY, AM_DEFAULT);
-    ATTRIBUTE(PhysicsWorld, VAR_BOOL, "Interpolation", interpolation_, true, AM_FILE);
-    ATTRIBUTE(PhysicsWorld, VAR_BOOL, "Internal Edge Utility", internalEdge_, true, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE(PhysicsWorld, VAR_BOOL, "Split Impulse", GetSplitImpulse, SetSplitImpulse, bool, false, AM_DEFAULT);
+    MIXED_ACCESSOR_ATTRIBUTE("Gravity", GetGravity, SetGravity, Vector3, DEFAULT_GRAVITY, AM_DEFAULT);
+    ATTRIBUTE("Physics FPS", int, fps_, DEFAULT_FPS, AM_DEFAULT);
+    ATTRIBUTE("Max Substeps", int, maxSubSteps_, 0, AM_DEFAULT);
+    ACCESSOR_ATTRIBUTE("Solver Iterations", GetNumIterations, SetNumIterations, int, 10, AM_DEFAULT);
+    ATTRIBUTE("Net Max Angular Vel.", float, maxNetworkAngularVelocity_, DEFAULT_MAX_NETWORK_ANGULAR_VELOCITY, AM_DEFAULT);
+    ATTRIBUTE("Interpolation", bool, interpolation_, true, AM_FILE);
+    ATTRIBUTE("Internal Edge Utility", bool, internalEdge_, true, AM_DEFAULT);
+    ACCESSOR_ATTRIBUTE("Split Impulse", GetSplitImpulse, SetSplitImpulse, bool, false, AM_DEFAULT);
 }
 
 bool PhysicsWorld::isVisible(const btVector3& aabbMin, const btVector3& aabbMax)
@@ -287,7 +287,7 @@ void PhysicsWorld::SetFps(int fps)
     MarkNetworkUpdate();
 }
 
-void PhysicsWorld::SetGravity(Vector3 gravity)
+void PhysicsWorld::SetGravity(const Vector3& gravity)
 {
     world_->setGravity(ToBtVector3(gravity));
 

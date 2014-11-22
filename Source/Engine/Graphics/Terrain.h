@@ -144,9 +144,9 @@ public:
     /// Update patch based on LOD and neighbor LOD.
     void UpdatePatchLod(TerrainPatch* patch);
     /// Set heightmap attribute.
-    void SetHeightMapAttr(ResourceRef value);
+    void SetHeightMapAttr(const ResourceRef& value);
     /// Set material attribute.
-    void SetMaterialAttr(ResourceRef value);
+    void SetMaterialAttr(const ResourceRef& value);
     /// Set patch size attribute.
     void SetPatchSizeAttr(int value);
     /// Return heightmap attribute.

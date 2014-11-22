@@ -115,15 +115,15 @@ public:
     const String& GetClassName() const { return className_; }
 
     /// Set script file attribute.
-    void SetScriptFileAttr(ResourceRef value);
+    void SetScriptFileAttr(const ResourceRef& value);
     /// Set delayed method calls attribute.
-    void SetDelayedCallsAttr(PODVector<unsigned char> value);
+    void SetDelayedCallsAttr(const PODVector<unsigned char>& value);
     /// Set fixed update time accumulator attribute.
     void SetFixedUpdateAccAttr(float value);
     /// Set script file serialization attribute by calling a script function.
-    void SetScriptDataAttr(PODVector<unsigned char> data);
+    void SetScriptDataAttr(const PODVector<unsigned char>& data);
     /// Set script network serialization attribute by calling a script function.
-    void SetScriptNetworkDataAttr(PODVector<unsigned char> data);
+    void SetScriptNetworkDataAttr(const PODVector<unsigned char>& data);
     /// Return script file attribute.
     ResourceRef GetScriptFileAttr() const;
     /// Return delayed method calls attribute.

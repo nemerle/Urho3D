@@ -134,7 +134,7 @@ public:
     /// Set simulation substeps per second.
     void SetFps(int fps);
     /// Set gravity.
-    void SetGravity(Vector3 gravity);
+    void SetGravity(const Vector3& gravity);
     /// Set maximum number of physics substeps per frame. 0 (default) is unlimited. Positive values cap the amount. Use a negative value to enable an adaptive timestep. This may cause inconsistent physics behavior.
     void SetMaxSubSteps(int num);
     /// Set number of constraint solver iterations.

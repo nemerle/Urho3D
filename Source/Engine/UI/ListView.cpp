@@ -43,11 +43,6 @@ static const char* highlightModes[] =
     nullptr
 };
 
-template<> HighlightMode Variant::Get<HighlightMode>() const
-{
-    return (HighlightMode)GetInt();
-}
-
 static const StringHash expandedHash("Expanded");
 
 extern const char* UI_CATEGORY;
@@ -90,6 +85,9 @@ public:
         SubscribeToEvent(overlayContainer->GetParent(), E_VIEWCHANGED, HANDLER(HierarchyContainer, HandleViewChanged));
         SubscribeToEvent(E_UIMOUSECLICK, HANDLER(HierarchyContainer, HandleUIMouseClick));
     }
+    
+    /// Register object factory.
+    static void RegisterObject(Context* context);
 
     /// Handle layout updated by adjusting the position of the overlays.
     void HandleLayoutUpdated(StringHash eventType, VariantMap& eventData)
@@ -160,6 +158,11 @@ private:
     UIElement* overlayContainer_;
 };
 
+void HierarchyContainer::RegisterObject(Context* context)
+{
+    COPY_BASE_ATTRIBUTES(UIElement);
+}
+
 ListView::ListView(Context* context) :
     ScrollView(context),
     highlightMode_(HM_FOCUS),
@@ -190,14 +193,15 @@ void ListView::RegisterObject(Context* context)
 {
     context->RegisterFactory<ListView>(UI_CATEGORY);
 
-    COPY_BASE_ATTRIBUTES(HierarchyContainer, UIElement);
-    COPY_BASE_ATTRIBUTES(ListView, ScrollView);
-    ENUM_ACCESSOR_ATTRIBUTE(ListView, "Highlight Mode", GetHighlightMode, SetHighlightMode, HighlightMode, highlightModes, HM_FOCUS, AM_FILE);
-    ACCESSOR_ATTRIBUTE(ListView, VAR_BOOL, "Multiselect", GetMultiselect, SetMultiselect, bool, false, AM_FILE);
-    ACCESSOR_ATTRIBUTE(ListView, VAR_BOOL, "Hierarchy Mode", GetHierarchyMode, SetHierarchyMode, bool, false, AM_FILE);
-    ACCESSOR_ATTRIBUTE(ListView, VAR_INT, "Base Indent", GetBaseIndent, SetBaseIndent, int, 0, AM_FILE);
-    ACCESSOR_ATTRIBUTE(ListView, VAR_BOOL, "Clear Sel. On Defocus", GetClearSelectionOnDefocus, SetClearSelectionOnDefocus, bool, false, AM_FILE);
-    ACCESSOR_ATTRIBUTE(ListView, VAR_BOOL, "Select On Click End", GetSelectOnClickEnd, SetSelectOnClickEnd, bool, false, AM_FILE);
+    HierarchyContainer::RegisterObject(context);
+
+    COPY_BASE_ATTRIBUTES(ScrollView);
+    ENUM_ACCESSOR_ATTRIBUTE("Highlight Mode", GetHighlightMode, SetHighlightMode, HighlightMode, highlightModes, HM_FOCUS, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Multiselect", GetMultiselect, SetMultiselect, bool, false, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Hierarchy Mode", GetHierarchyMode, SetHierarchyMode, bool, false, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Base Indent", GetBaseIndent, SetBaseIndent, int, 0, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Clear Sel. On Defocus", GetClearSelectionOnDefocus, SetClearSelectionOnDefocus, bool, false, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Select On Click End", GetSelectOnClickEnd, SetSelectOnClickEnd, bool, false, AM_FILE);
 }
 
 void ListView::OnKey(int key, int buttons, int qualifiers)

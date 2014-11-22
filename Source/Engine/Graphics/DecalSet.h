@@ -154,9 +154,9 @@ public:
     unsigned GetMaxIndices() const { return maxIndices_; }
 
     /// Set material attribute.
-    void SetMaterialAttr(ResourceRef value);
+    void SetMaterialAttr(const ResourceRef& value);
     /// Set decals attribute.
-    void SetDecalsAttr(PODVector<unsigned char> value);
+    void SetDecalsAttr(const PODVector<unsigned char>& value);
     /// Return material attribute.
     ResourceRef GetMaterialAttr() const;
     /// Return decals attribute.

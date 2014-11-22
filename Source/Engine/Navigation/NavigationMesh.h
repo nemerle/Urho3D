@@ -156,7 +156,7 @@ public:
     IntVector2 GetNumTiles() const { return IntVector2(numTilesX_, numTilesZ_); }
 
     /// Set navigation data attribute.
-    void SetNavigationDataAttr(PODVector<unsigned char> value);
+    void SetNavigationDataAttr(const PODVector<unsigned char>& value);
     /// Return navigation data attribute.
     PODVector<unsigned char> GetNavigationDataAttr() const;
 
