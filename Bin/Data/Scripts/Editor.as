@@ -66,6 +66,8 @@ void FirstFrame()
     ParseArguments();
     // Switch to real frame handler after initialization
     SubscribeToEvent("Update", "HandleUpdate");
+    SubscribeToEvent("ReloadFinished", "HandleReloadFinished");
+    SubscribeToEvent("ReloadFailed", "HandleReloadFailed");
 }
 
 void Stop()
@@ -109,6 +111,16 @@ void HandleUpdate(StringHash eventType, VariantMap& eventData)
     UpdateDirtyUI();
 }
 
+void HandleReloadFinished(StringHash eventType, VariantMap& eventData)
+{
+    attributesFullDirty = true;
+}
+
+void HandleReloadFailed(StringHash eventType, VariantMap& eventData)
+{
+    attributesFullDirty = true;
+}
+
 void LoadConfig()
 {
     if (!fileSystem.FileExists(configFileName))
@@ -130,6 +142,7 @@ void LoadConfig()
     XMLElement viewElem = configElem.GetChild("view");
     XMLElement resourcesElem = configElem.GetChild("resources");
     XMLElement consoleElem = configElem.GetChild("console");
+    XMLElement varNamesElem = configElem.GetChild("varnames");
 
     if (!cameraElem.isNull)
     {
@@ -235,6 +248,9 @@ void LoadConfig()
         // Console does not exist yet at this point, so store the string in a global variable
         if (consoleElem.HasAttribute("commandinterpreter")) consoleCommandInterpreter = consoleElem.GetAttribute("commandinterpreter");
     }
+    
+    if (!varNamesElem.isNull)
+        globalVarNames = varNamesElem.GetVariantMap();
 }
 
 void SaveConfig()
@@ -250,6 +266,7 @@ void SaveConfig()
     XMLElement viewElem = configElem.CreateChild("view");
     XMLElement resourcesElem = configElem.CreateChild("resources");
     XMLElement consoleElem = configElem.CreateChild("console");
+    XMLElement varNamesElem = configElem.CreateChild("varnames");
 
     cameraElem.SetFloat("nearclip", viewNearClip);
     cameraElem.SetFloat("farclip", viewFarClip);
@@ -318,6 +335,8 @@ void SaveConfig()
     viewElem.SetColor("gridsubdivisioncolor", gridSubdivisionColor);
 
     consoleElem.SetAttribute("commandinterpreter", console.commandInterpreter);
+
+    varNamesElem.SetVariantMap(globalVarNames);
 
     config.Save(File(configFileName, FILE_WRITE));
 }

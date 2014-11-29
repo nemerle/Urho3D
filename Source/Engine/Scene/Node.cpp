@@ -582,11 +582,35 @@ void Node::AddChild(Node* node, unsigned index)
         parent = parent->parent_;
     }
     auto location = (index != M_MAX_UNSIGNED) ? children_.begin()+index : children_.end();
-    // Add first, then remove from old parent, to ensure the node does not get deleted
-    children_.emplace(location, node);
-    node->Remove();
+    // Keep a shared ptr to the node while transfering
+    SharedPtr<Node> nodeShared(node);
+    Node* oldParent = node->parent_;
+    if (oldParent)
+    {
+        // If old parent is in different scene, perform the full removal
+        if (oldParent->GetScene() != scene_)
+            oldParent->RemoveChild(node);
+        else
+        {
+            if (scene_)
+            {
+                // Otherwise do not remove from the scene during reparenting, just send the necessary change event
+                using namespace NodeRemoved;
+    
+                VariantMap& eventData = GetEventDataMap();
+                eventData[P_SCENE] = scene_;
+                eventData[P_PARENT] = oldParent;
+                eventData[P_NODE] = node;
+                
+                scene_->SendEvent(E_NODEREMOVED, eventData);
+            }
+            
+            oldParent->children_.Remove(nodeShared);
+        }
+    }
 
-    // Add to the scene if not added yet
+    // Add to the child vector, then add to the scene if not added yet
+    children_.emplace(location, nodeShared);
     if (scene_ && node->GetScene() != scene_)
         scene_->NodeAdded(node);
 
@@ -1643,6 +1667,8 @@ void Node::UpdateWorldTransform() const
 void Node::RemoveChild(Vector<SharedPtr<Node> >::iterator i)
 {
     // Send change event. Do not send when already being destroyed
+    Node* child = *i;
+    
     if (Refs() > 0 && scene_)
     {
         using namespace NodeRemoved;
@@ -1650,15 +1676,18 @@ void Node::RemoveChild(Vector<SharedPtr<Node> >::iterator i)
         VariantMap& eventData = GetEventDataMap();
         eventData[P_SCENE] = scene_;
         eventData[P_PARENT] = this;
-        eventData[P_NODE] = (*i).Get();
-
+        eventData[P_NODE] = child;
+        
         scene_->SendEvent(E_NODEREMOVED, eventData);
     }
 
-    (*i)->parent_ = nullptr;
-    (*i)->MarkDirty();
-    (*i)->MarkNetworkUpdate();
-    children_.erase(i);
+    child->parent_ = nullptr;
+    child->MarkDirty();
+    child->MarkNetworkUpdate();
+    // Remove the child from the scene already at this point, in case it is not destroyed immediately
+    if (scene_)
+        scene_->NodeRemoved(child);
+
 }
 
 void Node::GetChildrenRecursive(PODVector<Node*>& dest) const
