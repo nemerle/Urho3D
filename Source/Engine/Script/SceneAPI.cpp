@@ -207,15 +207,15 @@ static CScriptArray* GetObjectsByCategory(const String& category)
     QHash<String, Vector<StringHash> >::const_iterator i = categories.find(category);
     if (i != categories.end())
     {
-        const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
+        const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
         const Vector<StringHash>& factoryHashes = *i;
         components.reserve(factoryHashes.size());
 
         for (unsigned j = 0; j < factoryHashes.size(); ++j)
         {
-            QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator k = factories.find(factoryHashes[j]);
+            HashMap<StringHash, SharedPtr<ObjectFactory> >::const_iterator k = factories.find(factoryHashes[j]);
             if (k != factories.end())
-                components.push_back((*k)->GetTypeName());
+                components.push_back(MAP_VALUE(k)->GetTypeName());
         }
     }
 

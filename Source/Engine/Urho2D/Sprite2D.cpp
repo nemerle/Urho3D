@@ -34,7 +34,7 @@ namespace Urho3D
 {
 
 Sprite2D::Sprite2D(Context* context) :
-    Resource(context), 
+    Resource(context),
     hotSpot_(0.5f, 0.5f),
     offset_(0, 0)
 {
@@ -55,7 +55,7 @@ bool Sprite2D::BeginLoad(Deserializer& source)
 {
     if (GetName().isEmpty())
         SetName(source.GetName());
-    
+
     loadTexture_ = new Texture2D(context_);
     loadTexture_->SetName(GetName());
     // In case we're async loading, only call BeginLoad() for the texture (load image but do not upload to GPU)
@@ -64,7 +64,7 @@ bool Sprite2D::BeginLoad(Deserializer& source)
         loadTexture_.Reset();
         return false;
     }
-    
+
     return true;
 }
 
@@ -76,7 +76,7 @@ bool Sprite2D::EndLoad()
     {
         success = true;
         SetTexture(loadTexture_);
-        
+
         if (texture_)
             SetRectangle(IntRect(0, 0, texture_->GetWidth(), texture_->GetHeight()));
     }
@@ -136,8 +136,8 @@ Sprite2D* Sprite2D::LoadFromResourceRef(Object* object, const ResourceRef& value
     if (value.type_ == SpriteSheet2D::GetTypeStatic())
     {
         // value.name_ include sprite sheet name and sprite name.
-        Vector<String> names = value.name_.Split('@');
-        if (names.Size() != 2)
+        Vector<String> names = value.name_.split('@');
+        if (names.size() != 2)
             return 0;
 
         const String& spriteSheetName = names[0];

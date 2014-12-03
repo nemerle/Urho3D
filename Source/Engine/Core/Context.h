@@ -82,9 +82,9 @@ public:
     /// Return subsystem by type.
     Object* GetSubsystem(StringHash type) const;
     /// Return all subsystems.
-    const QHash<StringHash, SharedPtr<Object> >& GetSubsystems() const { return subsystems_; }
+    const HashMap<StringHash, SharedPtr<Object> >& GetSubsystems() const { return subsystems_; }
     /// Return all object factories.
-    const QHash<StringHash, SharedPtr<ObjectFactory> >& GetObjectFactories() const { return factories_; }
+    const HashMap<StringHash, SharedPtr<ObjectFactory> >& GetObjectFactories() const { return factories_; }
     /// Return all object categories.
     const QHash<String, Vector<StringHash> >& GetObjectCategories() const { return objectCategories_; }
     /// Return active event sender. Null outside event handling.
@@ -120,11 +120,11 @@ public:
     /// Return event receivers for a sender and event type, or null if they do not exist.
     QSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
     {
-        QHash<Object*, QHash<StringHash, QSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
+        HashMap<Object*, HashMap<StringHash, QSet<Object*> > >::iterator i = specificEventReceivers_.find(sender);
         if (i != specificEventReceivers_.end())
         {
-            QHash<StringHash, QSet<Object*> >::Iterator j = i->find(eventType);
-            return j != i->end() ? &(*j) : 0;
+            HashMap<StringHash, QSet<Object*> >::iterator j = MAP_VALUE(i).find(eventType);
+            return j != MAP_VALUE(i).end() ? &MAP_VALUE(j) : 0;
         }
         else
             return 0;
@@ -133,8 +133,8 @@ public:
     /// Return event receivers for an event type, or null if they do not exist.
     QSet<Object*>* GetEventReceivers(StringHash eventType)
     {
-        QHash<StringHash, QSet<Object*> >::Iterator i = eventReceivers_.find(eventType);
-        return i != eventReceivers_.end() ? &(*i) : 0;
+        HashMap<StringHash, QSet<Object*> >::iterator i = eventReceivers_.find(eventType);
+        return i != eventReceivers_.end() ? &MAP_VALUE(i) : 0;
     }
 
 private:
@@ -156,17 +156,17 @@ private:
     void EndSendEvent() { eventSenders_.pop_back(); }
 
     /// Object factories.
-    QHash<StringHash, SharedPtr<ObjectFactory> > factories_;
+    HashMap<StringHash, SharedPtr<ObjectFactory> > factories_;
     /// Subsystems.
-    QHash<StringHash, SharedPtr<Object> > subsystems_;
+    HashMap<StringHash, SharedPtr<Object> > subsystems_;
     /// Attribute descriptions per object type.
     HashMap<StringHash, Vector<AttributeInfo> > attributes_;
     /// Network replication attribute descriptions per object type.
     HashMap<StringHash, Vector<AttributeInfo> > networkAttributes_;
     /// Event receivers for non-specific events.
-    QHash<StringHash, QSet<Object*> > eventReceivers_;
+    HashMap<StringHash, QSet<Object*> > eventReceivers_;
     /// Event receivers for specific senders' events.
-    QHash<Object*, QHash<StringHash, QSet<Object*> > > specificEventReceivers_;
+    HashMap<Object*, HashMap<StringHash, QSet<Object*> > > specificEventReceivers_;
     /// Event sender stack.
     PODVector<Object*> eventSenders_;
     /// Event data stack.

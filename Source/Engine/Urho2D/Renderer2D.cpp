@@ -184,7 +184,7 @@ static void CheckDrawableVisibility(const WorkItem* item, unsigned threadIndex)
     while (start != end)
     {
         Drawable2D* drawable = *start++;
-        if (renderer->CheckVisibility(drawable) && drawable->GetMaterial() && drawable->GetVertices().Size())
+        if (renderer->CheckVisibility(drawable) && drawable->GetMaterial() && drawable->GetVertices().size())
             drawable->SetVisibility(true);
         else
             drawable->SetVisibility(false);
@@ -218,11 +218,11 @@ void Renderer2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& eventDa
 
     PROFILE(UpdateRenderer2D);
 
-    drawables_.Clear();
+    drawables_.clear();
     GetDrawables(drawables_, scene);
 
     // Check and set default material
-    for (unsigned i = 0; i < drawables_.Size(); ++i)
+    for (unsigned i = 0; i < drawables_.size(); ++i)
     {
         Drawable2D* drawable = drawables_[i];
         if (!drawable->GetMaterial())
@@ -230,7 +230,7 @@ void Renderer2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& eventDa
     }
 
     std::sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
-    
+
     Camera* camera = static_cast<Camera*>(eventData[P_CAMERA].GetPtr());
     frustum_ = &camera->GetFrustum();
     if (camera->IsOrthographic() && camera->GetNode()->GetWorldDirection() == Vector3::FORWARD)
@@ -336,32 +336,32 @@ void Renderer2D::GetDrawables(PODVector<Drawable2D*>& dest, Node* node)
         return;
 
     const Vector<SharedPtr<Component> >& components = node->GetComponents();
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components.Begin(); i != components.End(); ++i)
+    for (const SharedPtr<Component> &i : components)
     {
-        Drawable2D* drawable = dynamic_cast<Drawable2D*>(i->Get());
+        Drawable2D* drawable = dynamic_cast<Drawable2D*>(i.Get());
         if (drawable && drawable->IsEnabled())
-            dest.Push(drawable);
+            dest.push_back(drawable);
     }
 
     const Vector<SharedPtr<Node> >& children = node->GetChildren();
-    for (Vector<SharedPtr<Node> >::ConstIterator i = children.Begin(); i != children.End(); ++i)
-        GetDrawables(dest, i->Get());
+    for (const SharedPtr<Node> & i : children)
+        GetDrawables(dest, i.Get());
 }
 
 Material* Renderer2D::GetMaterial(Texture2D* texture, BlendMode blendMode)
 {
-    HashMap<Texture2D*, HashMap<int, SharedPtr<Material> > >::Iterator t = cachedMaterials_.Find(texture);
-    if (t == cachedMaterials_.End())
+    HashMap<Texture2D*, HashMap<int, SharedPtr<Material> > >::iterator t = cachedMaterials_.find(texture);
+    if (t == cachedMaterials_.end())
     {
         SharedPtr<Material> material(CreateMaterial(texture, blendMode));
         cachedMaterials_[texture][blendMode] = material;
         return material;
     }
 
-    HashMap<int, SharedPtr<Material> >& materials = t->second_;
-    HashMap<int, SharedPtr<Material> >::Iterator b = materials.Find(blendMode);
-    if (b != materials.End())
-        return b->second_;
+    HashMap<int, SharedPtr<Material> >& materials = t->second;
+    HashMap<int, SharedPtr<Material> >::iterator b = materials.find(blendMode);
+    if (b != materials.end())
+        return b->second;
 
     SharedPtr<Material> material(CreateMaterial(texture, blendMode));
     materials[blendMode] = material;
