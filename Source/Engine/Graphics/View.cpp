@@ -108,7 +108,7 @@ public:
             Drawable* drawable = *start++;
             unsigned char flags = drawable->GetDrawableFlags();
 
-            if ((flags == DRAWABLE_ZONE || ((flags == DRAWABLE_GEOMETRY || flags == DRAWABLE_PROXYGEOMETRY) &&
+            if ((flags == DRAWABLE_ZONE || ((flags == DRAWABLE_GEOMETRY || flags == DRAWABLE_RENDERER2D) &&
                 drawable->IsOccluder())) && (drawable->GetViewMask() & viewMask_))
             {
                 if (inside || frustum_.IsInsideFast(drawable->GetWorldBoundingBox()))
@@ -198,7 +198,7 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
             drawable->MarkInView(view->frame_);
 
             // For geometries, find zone, clear lights and calculate view space Z range
-            if (drawable->GetDrawableFlags() & (DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY))
+            if (drawable->GetDrawableFlags() & (DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D))
             {
                 Zone* drawableZone = drawable->GetZone();
                 if (!cameraZoneOverride && (drawable->IsZoneDirty() || !drawableZone || (drawableZone->GetViewMask() &
@@ -789,12 +789,12 @@ void View::GetDrawables()
     if (occlusionBuffer_)
     {
         OccludedFrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), occlusionBuffer_, DRAWABLE_GEOMETRY |
-            DRAWABLE_PROXYGEOMETRY | DRAWABLE_LIGHT, camera_->GetViewMask());
+            DRAWABLE_RENDERER2D | DRAWABLE_LIGHT, camera_->GetViewMask());
         octree_->GetDrawables(query);
     }
     else
     {
-        FrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY |
+        FrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D |
             DRAWABLE_LIGHT, camera_->GetViewMask());
         octree_->GetDrawables(query);
     }
@@ -2098,7 +2098,7 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
 
     case LIGHT_SPOT:
         {
-            FrustumOctreeQuery octreeQuery(tempDrawables, light->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY,
+            FrustumOctreeQuery octreeQuery(tempDrawables, light->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D,
                 camera_->GetViewMask());
             octree_->GetDrawables(octreeQuery);
             for (unsigned i = 0; i < tempDrawables.size(); ++i)
@@ -2112,7 +2112,7 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     case LIGHT_POINT:
         {
             SphereOctreeQuery octreeQuery(tempDrawables, Sphere(light->GetNode()->GetWorldPosition(), light->GetRange()),
-                DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY, camera_->GetViewMask());
+                DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D, camera_->GetViewMask());
             octree_->GetDrawables(octreeQuery);
             for (unsigned i = 0; i < tempDrawables.size(); ++i)
             {
@@ -2154,7 +2154,7 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
                 continue;
 
             // Reuse lit geometry query for all except directional lights
-            ShadowCasterOctreeQuery query(tempDrawables, shadowCameraFrustum, DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY,
+            ShadowCasterOctreeQuery query(tempDrawables, shadowCameraFrustum, DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D,
                 camera_->GetViewMask());
             octree_->GetDrawables(query);
         }
@@ -2723,7 +2723,21 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
     {
         renderer_->SetBatchShaders(batch, tech, allowShadows);
         batch.CalculateSortKey();
-        batchQueue.batches_.push_back(batch);
+        
+        // If batch is static with multiple world transforms and cannot instance, we must push copies of the batch individually
+        if (batch.geometryType_ == GEOM_STATIC && batch.numWorldTransforms_ > 1)
+        {
+            unsigned numTransforms = batch.numWorldTransforms_;
+            batch.numWorldTransforms_ = 1;
+            for (unsigned i = 0; i < numTransforms; ++i)
+            {
+                // Move the transform pointer to generate copies of the batch which only refer to 1 world transform
+                batchQueue.batches_.push_back(batch);
+                ++batch.worldTransform_;
+            }
+        }
+        else
+            batchQueue.batches_.push_back(batch);
     }
 }
 

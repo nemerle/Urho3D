@@ -337,14 +337,14 @@ void Zone::ClearDrawablesZone()
     if (octant_ && lastWorldBoundingBox_.defined_)
     {
         PODVector<Drawable*> result;
-        BoxOctreeQuery query(result, lastWorldBoundingBox_, DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY | DRAWABLE_ZONE);
+        BoxOctreeQuery query(result, lastWorldBoundingBox_, DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D | DRAWABLE_ZONE);
         octant_->GetRoot()->GetDrawables(query);
 
         for (auto drawable : result)
         {
 
             unsigned drawableFlags = drawable->GetDrawableFlags();
-            if (drawableFlags & (DRAWABLE_GEOMETRY | DRAWABLE_PROXYGEOMETRY))
+            if (drawableFlags & (DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D))
                 drawable->SetZone(nullptr);
             else if (drawableFlags & DRAWABLE_ZONE)
             {
