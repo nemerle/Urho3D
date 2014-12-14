@@ -583,12 +583,12 @@ void ScriptInstance::GetScriptAttributes()
         {
             // For a handle type, check if it's an Object subclass with a registered factory
             StringHash typeHash(typeName);
-            const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
-            QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator j = factories.find(typeHash);
+            const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
+            HashMap<StringHash, SharedPtr<ObjectFactory> >::const_iterator j = factories.find(typeHash);
             if (j != factories.end())
             {
                 // Check base class type. Node & Component are supported as ID attributes, Resource as a resource reference
-                StringHash baseType = (*j)->GetBaseType();
+                StringHash baseType = MAP_VALUE(j)->GetBaseType();
                 if (baseType == Node::GetTypeStatic())
                 {
                     info.mode_ |= AM_NODEID;

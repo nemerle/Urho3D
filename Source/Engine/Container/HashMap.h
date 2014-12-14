@@ -3,7 +3,8 @@
 #include <QtCore/QHash>
 #include <unordered_map>
 #include <unordered_set>
-
+#ifdef USE_QT_HASHMAP
+#endif
 namespace Urho3D {
 #ifdef USE_QT_HASHMAP
 #define MAP_VALUE(i) (i.value())

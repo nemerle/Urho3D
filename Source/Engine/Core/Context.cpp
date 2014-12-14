@@ -86,9 +86,9 @@ Context::~Context()
 
 SharedPtr<Object> Context::CreateObject(StringHash objectType)
 {
-    QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
+    HashMap<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
     if (i != factories_.end())
-        return (*i)->CreateObject();
+        return MAP_VALUE(i)->CreateObject();
     else
         return SharedPtr<Object>();
 }
@@ -121,7 +121,7 @@ void Context::RegisterSubsystem(Object* object)
 
 void Context::RemoveSubsystem(StringHash objectType)
 {
-    QHash<StringHash, SharedPtr<Object> >::Iterator i = subsystems_.find(objectType);
+    HashMap<StringHash, SharedPtr<Object> >::iterator i = subsystems_.find(objectType);
     if (i != subsystems_.end())
         subsystems_.erase(i);
 }
@@ -180,9 +180,9 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
 
 Object* Context::GetSubsystem(StringHash type) const
 {
-    QHash<StringHash, SharedPtr<Object> >::const_iterator i = subsystems_.find(type);
+    HashMap<StringHash, SharedPtr<Object> >::const_iterator i = subsystems_.find(type);
     if (i != subsystems_.end())
-        return *i;
+        return MAP_VALUE(i);
     else
         return nullptr;
 }
@@ -198,8 +198,8 @@ Object* Context::GetEventSender() const
 const String& Context::GetTypeName(StringHash objectType) const
 {
     // Search factories to find the hash-to-name mapping
-    QHash<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
-    return i != factories_.end() ? (*i)->GetTypeName() : String::EMPTY;
+    HashMap<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
+    return i != factories_.end() ? MAP_VALUE(i)->GetTypeName() : String::EMPTY;
 }
 
 AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
@@ -231,12 +231,12 @@ void Context::AddEventReceiver(Object* receiver, Object* sender, StringHash even
 
 void Context::RemoveEventSender(Object* sender)
 {
-    QHash<Object*, QHash<StringHash, QSet<Object*> > >::Iterator i = specificEventReceivers_.find(sender);
+    HashMap<Object*, HashMap<StringHash, QSet<Object*> > >::iterator i = specificEventReceivers_.find(sender);
     if (i == specificEventReceivers_.end())
         return;
-    for (QSet<Object*> & elem : *i)
+    for (const std::pair<const StringHash,QSet<Object*>> & elem : MAP_VALUE(i))
     {
-        for (Object* k : elem)
+        for (Object* k : elem.second)
             k->RemoveEventSender(sender);
     }
     specificEventReceivers_.erase(i);
