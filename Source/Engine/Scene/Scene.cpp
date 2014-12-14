@@ -805,11 +805,11 @@ void Scene::NodeRemoved(Node* node)
     node->SetScene(nullptr);
     // Remove components and child nodes as well
     const Vector<SharedPtr<Component> >& components = node->GetComponents();
-    for (Vector<SharedPtr<Component> >::ConstIterator i = components.Begin(); i != components.End(); ++i)
-        ComponentRemoved(*i);
+    for (const SharedPtr<Component> i : components)
+        ComponentRemoved(i.Get());
     const Vector<SharedPtr<Node> >& children = node->GetChildren();
-    for (Vector<SharedPtr<Node> >::ConstIterator i = children.Begin(); i != children.End(); ++i)
-        NodeRemoved(*i);
+    for (const SharedPtr<Node> &i : children)
+        NodeRemoved(i.Get());
 }
 
 void Scene::ComponentAdded(Component* component)

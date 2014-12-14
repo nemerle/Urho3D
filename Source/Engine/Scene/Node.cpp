@@ -596,16 +596,16 @@ void Node::AddChild(Node* node, unsigned index)
             {
                 // Otherwise do not remove from the scene during reparenting, just send the necessary change event
                 using namespace NodeRemoved;
-    
+
                 VariantMap& eventData = GetEventDataMap();
                 eventData[P_SCENE] = scene_;
                 eventData[P_PARENT] = oldParent;
                 eventData[P_NODE] = node;
-                
+
                 scene_->SendEvent(E_NODEREMOVED, eventData);
             }
-            
-            oldParent->children_.Remove(nodeShared);
+
+            oldParent->children_.remove(nodeShared);
         }
     }
 
@@ -1668,7 +1668,7 @@ void Node::RemoveChild(Vector<SharedPtr<Node> >::iterator i)
 {
     // Send change event. Do not send when already being destroyed
     Node* child = *i;
-    
+
     if (Refs() > 0 && scene_)
     {
         using namespace NodeRemoved;
@@ -1677,7 +1677,7 @@ void Node::RemoveChild(Vector<SharedPtr<Node> >::iterator i)
         eventData[P_SCENE] = scene_;
         eventData[P_PARENT] = this;
         eventData[P_NODE] = child;
-        
+
         scene_->SendEvent(E_NODEREMOVED, eventData);
     }
 

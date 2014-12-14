@@ -174,7 +174,7 @@ void TileMap2D::OnNodeSet(Node* node)
 {
     if (!node)
     {
-        for (unsigned i = 0; i < layers_.Size(); ++i)
+        for (unsigned i = 0; i < layers_.size(); ++i)
             layers_[i]->GetNode()->Remove();
     }
 }

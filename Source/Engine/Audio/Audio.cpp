@@ -121,7 +121,8 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
 void Audio::Update(float timeStep)
 {
     PROFILE(UpdateAudio);
-
+    if(playing_ && deviceID_ && soundSources_.empty())
+        SDL_PauseAudioDevice(deviceID_, 1);
     // Update in reverse order, because sound sources might remove themselves
     for (unsigned i = soundSources_.size() - 1; i < soundSources_.size(); --i)
         soundSources_[i]->Update(timeStep);
@@ -147,6 +148,8 @@ bool Audio::Play()
 void Audio::Stop()
 {
     playing_ = false;
+    if (deviceID_)
+        SDL_PauseAudioDevice(deviceID_, 1);
 }
 
 void Audio::SetMasterGain(SoundType type, float gain)
@@ -188,6 +191,9 @@ void Audio::AddSoundSource(SoundSource* channel)
 {
     MutexLock lock(audioMutex_);
     soundSources_.push_back(channel);
+    if(playing_ && deviceID_ )
+        SDL_PauseAudioDevice(deviceID_, 0);
+
 }
 
 void Audio::RemoveSoundSource(SoundSource* channel)
