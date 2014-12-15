@@ -176,7 +176,7 @@ public:
     /// Return shader parameter animation speed.
     float GetShaderParameterAnimationSpeed(const String& name) const;
     /// Return all shader parameters.
-    const QHash<StringHash, MaterialShaderParameter>& GetShaderParameters() const { return shaderParameters_; }
+    const HashMap<StringHash, MaterialShaderParameter>& GetShaderParameters() const { return shaderParameters_; }
     /// Return normal culling mode.
     CullMode GetCullMode() const { return cullMode_; }
     /// Return culling mode for shadows.
@@ -218,9 +218,9 @@ private:
     /// Textures.
     SharedPtr<Texture> textures_[MAX_TEXTURE_UNITS];
     /// %Shader parameters.
-    QHash<StringHash, MaterialShaderParameter> shaderParameters_;
+    HashMap<StringHash, MaterialShaderParameter> shaderParameters_;
     /// %Shader parameters animation infos.
-    QHash<StringHash, SharedPtr<ShaderParameterAnimationInfo> > shaderParameterAnimationInfos_;
+    HashMap<StringHash, SharedPtr<ShaderParameterAnimationInfo> > shaderParameterAnimationInfos_;
     /// Normal culling mode.
     CullMode cullMode_;
     /// Culling mode for shadow rendering.

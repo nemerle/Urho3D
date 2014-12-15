@@ -316,8 +316,8 @@ bool Serializer::WriteVariantMap(const VariantMap& value)
     success &= WriteVLE(value.size());
     for (VariantMap::const_iterator iter=value.begin(),fin=value.end(); iter!=fin; ++iter)
     {
-        WriteStringHash(iter.key());
-        WriteVariant(iter.value());
+        WriteStringHash(MAP_KEY(iter));
+        WriteVariant(MAP_VALUE(iter));
     }
     return success;
 }

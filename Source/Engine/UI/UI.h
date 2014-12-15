@@ -224,7 +224,7 @@ private:
     /// Handle a file being drag-dropped into the application window.
     void HandleDropFile(StringHash eventType, VariantMap& eventData);
     /// Remove drag data and return next iterator.
-    QHash<WeakPtr<UIElement>, DragData*>::Iterator dragElementErase(QHash<WeakPtr<UIElement>, DragData*>::Iterator dragElement);
+    HashMap<WeakPtr<UIElement>, DragData*>::iterator dragElementErase(HashMap<WeakPtr<UIElement>, DragData*>::iterator dragElement);
     /// Handle clean up on a drag cancel.
     void ProcessDragCancel();
     /// Sum touch positions and return the begin position ready to send.
@@ -293,15 +293,15 @@ private:
     /// UI element last clicked for tracking double clicks.
     WeakPtr<UIElement> doubleClickElement_;
     /// Currently hovered elements.
-    QHash<WeakPtr<UIElement>, bool> hoveredElements_;
+    HashMap<WeakPtr<UIElement>, bool> hoveredElements_;
     /// Currently dragged elements.
-    QHash<WeakPtr<UIElement>, DragData*> dragElements_;
+    HashMap<WeakPtr<UIElement>, DragData*> dragElements_;
     /// Number of elements in dragElements_.
     int dragElementsCount_;
     /// Number of elements in dragElements_ with dragPending = false.
     int dragConfirmedCount_;
     /// UI elements that are being touched with touch input.
-    QHash<WeakPtr<UIElement>, int> touchDragElements_;
+    HashMap<WeakPtr<UIElement>, int> touchDragElements_;
     /// Confirmed drag elements cache.
     Vector<UIElement*> dragElementsConfirmed_;
 };

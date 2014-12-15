@@ -114,9 +114,9 @@ bool ObjectAnimation::SaveXML(XMLElement& dest) const
     for (auto elem=attributeAnimationInfos_.begin(),fin=attributeAnimationInfos_.end(); elem != fin; ++elem)
     {
         XMLElement animElem = dest.CreateChild("attributeanimation");
-        animElem.SetAttribute("name", elem.key());
+        animElem.SetAttribute("name", MAP_KEY(elem));
 
-        const ValueAnimationInfo* info = *elem;
+        const ValueAnimationInfo* info = MAP_VALUE(elem);
         if (!info->GetAnimation()->SaveXML(animElem))
             return false;
 
@@ -138,10 +138,10 @@ void ObjectAnimation::AddAttributeAnimation(const String& name, ValueAnimation* 
 
 void ObjectAnimation::RemoveAttributeAnimation(const String& name)
 {
-    QHash<String, SharedPtr<ValueAnimationInfo> >::Iterator i = attributeAnimationInfos_.find(name);
+    HashMap<String, SharedPtr<ValueAnimationInfo> >::iterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
     {
-        (*i)->GetAnimation()->SetOwner(nullptr);
+        MAP_VALUE(i)->GetAnimation()->SetOwner(nullptr);
         attributeAnimationInfos_.erase(i);
     }
 }
@@ -151,9 +151,9 @@ void ObjectAnimation::RemoveAttributeAnimation(ValueAnimation* attributeAnimatio
     if (!attributeAnimation)
         return;
 
-    for (QHash<String, SharedPtr<ValueAnimationInfo> >::Iterator i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
+    for (auto i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
     {
-        if ((*i)->GetAnimation() == attributeAnimation)
+        if (MAP_VALUE(i)->GetAnimation() == attributeAnimation)
         {
             attributeAnimation->SetOwner(nullptr);
             attributeAnimationInfos_.erase(i);
@@ -182,9 +182,9 @@ float ObjectAnimation::GetAttributeAnimationSpeed(const String& name) const
 
 ValueAnimationInfo* ObjectAnimation::GetAttributeAnimationInfo(const String& name) const
 {
-    QHash<String, SharedPtr<ValueAnimationInfo> >::const_iterator i = attributeAnimationInfos_.find(name);
+    auto i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
-        return *i;
+        return MAP_VALUE(i);
     return nullptr;
 }
 

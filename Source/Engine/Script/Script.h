@@ -121,7 +121,7 @@ private:
     /// Script function/method execution contexts.
     Vector<asIScriptContext*> scriptFileContexts_;
     /// Search cache for inbuilt object types.
-    QHash<const char*, asIObjectType*> objectTypes_;
+    HashMap<const char*, asIObjectType*> objectTypes_;
     /// Script module create/delete mutex.
     Mutex moduleMutex_;
     /// Current script execution nesting level.

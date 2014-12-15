@@ -330,11 +330,11 @@ bool FileWatcher::GetNextChange(String& dest)
         return false;
     else
     {
-        for (QHash<String, Timer>::Iterator i = changes_.begin(); i != changes_.end(); ++i)
+        for (auto i = changes_.begin(); i != changes_.end(); ++i)
         {
-            if (i->GetMSec(false) >= delayMsec)
+            if (MAP_VALUE(i).GetMSec(false) >= delayMsec)
             {
-                dest = i.key();
+                dest = MAP_KEY(i);
                 changes_.erase(i);
                 return true;
             }

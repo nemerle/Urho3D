@@ -213,12 +213,12 @@ void ScriptFile::AddEventHandler(Object* sender, StringHash eventType, const Str
 void ScriptFile::RemoveEventHandler(StringHash eventType)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.find(receiver);
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::iterator i = eventInvokers_.find(receiver);
     if (i != eventInvokers_.end())
     {
-        (*i)->UnsubscribeFromEvent(eventType);
+        MAP_VALUE(i)->UnsubscribeFromEvent(eventType);
         // If no longer have any subscribed events, remove the event invoker object
-        if (!(*i)->HasEventHandlers())
+        if (!MAP_VALUE(i)->HasEventHandlers())
             eventInvokers_.erase(i);
     }
 }
@@ -226,11 +226,11 @@ void ScriptFile::RemoveEventHandler(StringHash eventType)
 void ScriptFile::RemoveEventHandler(Object* sender, StringHash eventType)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.find(receiver);
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::iterator i = eventInvokers_.find(receiver);
     if (i != eventInvokers_.end())
     {
-        (*i)->UnsubscribeFromEvent(sender, eventType);
-        if (!(*i)->HasEventHandlers())
+        MAP_VALUE(i)->UnsubscribeFromEvent(sender, eventType);
+        if (!MAP_VALUE(i)->HasEventHandlers())
             eventInvokers_.erase(i);
     }
 }
@@ -238,11 +238,11 @@ void ScriptFile::RemoveEventHandler(Object* sender, StringHash eventType)
 void ScriptFile::RemoveEventHandlers(Object* sender)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.find(receiver);
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::iterator i = eventInvokers_.find(receiver);
     if (i != eventInvokers_.end())
     {
-        (*i)->UnsubscribeFromEvents(sender);
-        if (!(*i)->HasEventHandlers())
+        MAP_VALUE(i)->UnsubscribeFromEvents(sender);
+        if (!MAP_VALUE(i)->HasEventHandlers())
             eventInvokers_.erase(i);
     }
 }
@@ -250,11 +250,11 @@ void ScriptFile::RemoveEventHandlers(Object* sender)
 void ScriptFile::RemoveEventHandlers()
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.find(receiver);
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::iterator i = eventInvokers_.find(receiver);
     if (i != eventInvokers_.end())
     {
-        (*i)->UnsubscribeFromAllEvents();
-        if (!(*i)->HasEventHandlers())
+        MAP_VALUE(i)->UnsubscribeFromAllEvents();
+        if (!MAP_VALUE(i)->HasEventHandlers())
             eventInvokers_.erase(i);
     }
 }
@@ -262,11 +262,11 @@ void ScriptFile::RemoveEventHandlers()
 void ScriptFile::RemoveEventHandlersExcept(const PODVector<StringHash>& exceptions)
 {
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.find(receiver);
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::iterator i = eventInvokers_.find(receiver);
     if (i != eventInvokers_.end())
     {
-        (*i)->UnsubscribeFromAllEventsExcept(exceptions, true);
-        if (!(*i)->HasEventHandlers())
+        MAP_VALUE(i)->UnsubscribeFromAllEventsExcept(exceptions, true);
+        if (!MAP_VALUE(i)->HasEventHandlers())
             eventInvokers_.erase(i);
     }
 }
@@ -416,9 +416,9 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
 
     // Ensure that the type implements the "ScriptObject" interface, so it can be returned to script properly
     bool found = false;
-    QHash<asIObjectType*, bool>::const_iterator i = validClasses_.find(type);
+    HashMap<asIObjectType*, bool>::const_iterator i = validClasses_.find(type);
     if (i != validClasses_.end())
-        found = *i;
+        found = MAP_VALUE(i);
     else
     {
         asIObjectType* scriptObjectType = scriptModule_->GetObjectTypeByDecl("ScriptObject");
@@ -463,9 +463,9 @@ asIScriptFunction* ScriptFile::GetFunction(const String& declaration)
     if (!compiled_)
         return nullptr;
 
-    QHash<String, asIScriptFunction*>::const_iterator i = functions_.find(declaration);
+    HashMap<String, asIScriptFunction*>::const_iterator i = functions_.find(declaration);
     if (i != functions_.end())
-        return *i;
+        return MAP_VALUE(i);
 
     asIScriptFunction* function = scriptModule_->GetFunctionByDecl(declaration.CString());
     functions_[declaration] = function;
@@ -480,12 +480,12 @@ asIScriptFunction* ScriptFile::GetMethod(asIScriptObject* object, const String& 
     asIObjectType* type = object->GetObjectType();
     if (!type)
         return nullptr;
-    QHash<asIObjectType*, QHash<String, asIScriptFunction*> >::const_iterator i = methods_.find(type);
+    HashMap<asIObjectType*, HashMap<String, asIScriptFunction*> >::const_iterator i = methods_.find(type);
     if (i != methods_.end())
     {
-        QHash<String, asIScriptFunction*>::const_iterator j = i->find(declaration);
-        if (j != i->end())
-            return *j;
+        HashMap<String, asIScriptFunction*>::const_iterator j = MAP_VALUE(i).find(declaration);
+        if (j != MAP_VALUE(i).end())
+            return MAP_VALUE(j);
     }
 
     asIScriptFunction* function = type->GetMethodByDecl(declaration.CString());
@@ -525,25 +525,25 @@ void ScriptFile::AddEventHandlerInternal(Object* sender, StringHash eventType, c
         }
     }
 
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::Iterator i = eventInvokers_.find(receiver);
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> >::iterator i = eventInvokers_.find(receiver);
     // Remove previous handler in case an object pointer gets reused
-    if (i != eventInvokers_.end() && !(*i)->IsObjectAlive())
+    if (i != eventInvokers_.end() && !MAP_VALUE(i)->IsObjectAlive())
     {
         eventInvokers_.erase(i);
         i = eventInvokers_.end();
     }
     if (i == eventInvokers_.end())
-        i = eventInvokers_.insert(receiver, SharedPtr<ScriptEventInvoker>(new ScriptEventInvoker(this, receiver)));
+        i = eventInvokers_.emplace(receiver, SharedPtr<ScriptEventInvoker>(new ScriptEventInvoker(this, receiver))).first;
 
     if (!sender)
     {
-        (*i)->SubscribeToEvent(eventType, new EventHandlerImpl<ScriptEventInvoker>
-            ((*i), &ScriptEventInvoker::HandleScriptEvent, (void*)function));
+        MAP_VALUE(i)->SubscribeToEvent(eventType, new EventHandlerImpl<ScriptEventInvoker>
+            (MAP_VALUE(i), &ScriptEventInvoker::HandleScriptEvent, (void*)function));
     }
     else
     {
-        (*i)->SubscribeToEvent(sender, eventType, new EventHandlerImpl<ScriptEventInvoker>
-            ((*i), &ScriptEventInvoker::HandleScriptEvent, (void*)function));
+        MAP_VALUE(i)->SubscribeToEvent(sender, eventType, new EventHandlerImpl<ScriptEventInvoker>
+            (MAP_VALUE(i), &ScriptEventInvoker::HandleScriptEvent, (void*)function));
     }
 }
 

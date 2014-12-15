@@ -498,10 +498,11 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 // If amount of bones is larger than supported by HW skinning, must remap per submesh
                 if (bones_.size() > MAX_SKIN_MATRICES)
                 {
-                    QHash<unsigned, unsigned> usedBoneMap;
+                    HashMap<unsigned, unsigned> usedBoneMap;
                     unsigned remapIndex = 0;
-                    for (PODVector<BoneWeightAssignment> & elem : subGeometryLodLevel.boneWeights_)
+                    for (auto & iter : subGeometryLodLevel.boneWeights_)
                     {
+                        PODVector<BoneWeightAssignment> & elem(ELEMENT_VALUE(iter));
                         // Sort the bone assigns by weight
                         std::sort(elem.begin(), elem.end(), CompareWeights);
 
@@ -525,7 +526,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     // Write mapping of vertex buffer bone indices to original bone indices
                     subGeometryLodLevel.boneMapping_.resize(usedBoneMap.size());
                     for (auto elem=usedBoneMap.begin(),fin=usedBoneMap.end(); elem!=fin; ++elem)
-                        subGeometryLodLevel.boneMapping_[*elem] = elem.key();
+                        subGeometryLodLevel.boneMapping_[MAP_VALUE(elem)] = MAP_KEY(elem);
 
                     sorted = true;
                 }
@@ -533,7 +534,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 for (auto iter=subGeometryLodLevel.boneWeights_.begin(),fin=subGeometryLodLevel.boneWeights_.end();
                      iter!=fin; ++iter)
                 {
-                    PODVector<BoneWeightAssignment> & elem = *iter;
+                    PODVector<BoneWeightAssignment> & elem(MAP_VALUE(iter));
                     // Sort the bone assigns by weight, if not sorted yet in bone remapping pass
                     if (!sorted)
                         std::sort(elem.begin(), elem.end(), CompareWeights);
@@ -549,18 +550,18 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
 
                     for (unsigned j = 0; j < elem.size() && j < 4; ++j)
                     {
-                        vBuf->vertices_[iter.key()].blendIndices_[j] = elem[j].boneIndex_;
-                        vBuf->vertices_[iter.key()].blendWeights_[j] = elem[j].weight_ * normalizationFactor;
+                        vBuf->vertices_[MAP_KEY(iter)].blendIndices_[j] = elem[j].boneIndex_;
+                        vBuf->vertices_[MAP_KEY(iter)].blendWeights_[j] = elem[j].weight_ * normalizationFactor;
                     }
 
                     // If there are less than 4 blend weights, fill rest with zero
                     for (unsigned j = elem.size(); j < 4; ++j)
                     {
-                        vBuf->vertices_[iter.key()].blendIndices_[j] = 0;
-                        vBuf->vertices_[iter.key()].blendWeights_[j] = 0.0f;
+                        vBuf->vertices_[MAP_KEY(iter)].blendIndices_[j] = 0;
+                        vBuf->vertices_[MAP_KEY(iter)].blendWeights_[j] = 0.0f;
                     }
 
-                    vBuf->vertices_[iter.key()].hasBlendWeights_ = true;
+                    vBuf->vertices_[MAP_KEY(iter)].hasBlendWeights_ = true;
                 }
             }
         }

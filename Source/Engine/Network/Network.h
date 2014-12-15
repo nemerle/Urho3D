@@ -25,6 +25,7 @@
 #include "Connection.h"
 #include "Object.h"
 #include "VectorBuffer.h"
+#include "HashMap.h"
 
 #include <kNet/IMessageHandler.h>
 #include <kNet/INetworkServerListener.h>
@@ -131,7 +132,7 @@ private:
     /// Client's server connection.
     SharedPtr<Connection> serverConnection_;
     /// Server's client connections.
-    QHash<kNet::MessageConnection*, SharedPtr<Connection> > clientConnections_;
+    HashMap<kNet::MessageConnection*, SharedPtr<Connection> > clientConnections_;
     /// Allowed remote events.
     QSet<StringHash> allowedRemoteEvents_;
     /// Remote event fixed blacklist.

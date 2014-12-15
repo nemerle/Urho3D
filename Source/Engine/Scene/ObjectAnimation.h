@@ -68,14 +68,14 @@ public:
     /// Return attribute animation speed by name.
     float GetAttributeAnimationSpeed(const String& name) const;
     /// Return all attribute animations infos.
-    const QHash<String, SharedPtr<ValueAnimationInfo> >& GetAttributeAnimationInfos() const { return attributeAnimationInfos_; }
+    const HashMap<String, SharedPtr<ValueAnimationInfo> >& GetAttributeAnimationInfos() const { return attributeAnimationInfos_; }
 
 private:
     /// Return attribute animation info by name.
     ValueAnimationInfo* GetAttributeAnimationInfo(const String& name) const;
 
     /// Name to attribute animation info mapping.
-    QHash<String, SharedPtr<ValueAnimationInfo> > attributeAnimationInfos_;
+    HashMap<String, SharedPtr<ValueAnimationInfo> > attributeAnimationInfos_;
 };
 
 }

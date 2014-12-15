@@ -245,9 +245,9 @@ void Script::ClearObjectTypeCache()
 
 asIObjectType* Script::GetObjectType(const char* declaration)
 {
-    QHash<const char*, asIObjectType*>::const_iterator i = objectTypes_.find(declaration);
+    HashMap<const char*, asIObjectType*>::const_iterator i = objectTypes_.find(declaration);
     if (i != objectTypes_.end())
-        return *i;
+        return MAP_VALUE(i);
 
     asIObjectType* type = scriptEngine_->GetObjectTypeById(scriptEngine_->GetTypeIdByDecl(declaration));
     objectTypes_[declaration] = type;

@@ -62,7 +62,7 @@ template <class T, class U> U* RefCast(T* t)
 }
 
 /// Template function for Vector to array conversion.
-template <class T> CScriptArray* VectorToArray(const Vector<T>& vector, const char* arrayName)
+template <class T> CScriptArray* VectorToArray(const std::vector<T>& vector, const char* arrayName)
 {
     asIScriptContext *context = asGetActiveContext();
     if (context)

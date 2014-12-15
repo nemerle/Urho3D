@@ -58,7 +58,7 @@ public:
     /// Return the file entry corresponding to the name, or null if not found.
     const PackageEntry* GetEntry(const String& fileName) const;
     /// Return all file entries.
-    const QHash<String, PackageEntry>& GetEntries() const { return entries_; }
+    const HashMap<String, PackageEntry>& GetEntries() const { return entries_; }
     /// Return the package file name.
     const String& GetName() const { return fileName_; }
     /// Return hash of the package file name.
@@ -72,11 +72,11 @@ public:
     /// Return whether the files are compressed.
     bool IsCompressed() const { return compressed_; }
     /// Return list of entry names
-    const QList<String> GetEntryNames() const { return entries_.keys(); }
+    Vector<String> GetEntryNames() const { return entries_.keys(); }
 
 private:
     /// File entries.
-    QHash<String, PackageEntry> entries_;
+    HashMap<String, PackageEntry> entries_;
     /// File name.
     String fileName_;
     /// Package file name hash.

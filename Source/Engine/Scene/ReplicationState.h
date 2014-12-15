@@ -25,8 +25,8 @@
 #include "Attribute.h"
 #include "Ptr.h"
 #include "StringHash.h"
+#include "HashMap.h"
 
-#include <QtCore/QHash>
 #include <QtCore/QSet>
 #include <cstring>
 
@@ -174,7 +174,7 @@ struct URHO3D_API NodeReplicationState : public ReplicationState
     /// Dirty user vars.
     QSet<StringHash> dirtyVars_;
     /// Components by ID.
-    QHash<unsigned, ComponentReplicationState> componentStates_;
+    HashMap<unsigned, ComponentReplicationState> componentStates_;
     /// Interest management priority accumulator.
     float priorityAcc_;
     /// Whether exists in the SceneState's dirty set.
@@ -185,7 +185,7 @@ struct URHO3D_API NodeReplicationState : public ReplicationState
 struct URHO3D_API SceneReplicationState : public ReplicationState
 {
     /// Nodes by ID.
-    QHash<unsigned, NodeReplicationState> nodeStates_;
+    HashMap<unsigned, NodeReplicationState> nodeStates_;
     /// Dirty node IDs.
     QSet<unsigned> dirtyNodes_;
 

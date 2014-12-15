@@ -324,15 +324,15 @@ void Connection::SendPackages()
     {
         unsigned char buffer[PACKAGE_FRAGMENT_SIZE];
 
-        for (QHash<StringHash, PackageUpload>::Iterator i = uploads_.begin(); i != uploads_.end();)
+        for (HashMap<StringHash, PackageUpload>::iterator i = uploads_.begin(); i != uploads_.end();)
         {
-            QHash<StringHash, PackageUpload>::Iterator current = i++;
-            PackageUpload& upload = *current;
+            HashMap<StringHash, PackageUpload>::iterator current = i++;
+            PackageUpload& upload = MAP_VALUE(current);
             unsigned fragmentSize = Min((int)(upload.file_->GetSize() - upload.file_->GetPosition()), (int)PACKAGE_FRAGMENT_SIZE);
             upload.file_->Read(buffer, fragmentSize);
 
             msg_.Clear();
-            msg_.WriteStringHash(current.key());
+            msg_.WriteStringHash(MAP_KEY(current));
             msg_.WriteUInt(upload.fragment_++);
             msg_.Write(buffer, fragmentSize);
             SendMessage(MSG_PACKAGEDATA, true, false, msg_);
@@ -350,13 +350,13 @@ void Connection::ProcessPendingLatestData()
         return;
 
     // Iterate through pending node data and see if we can find the nodes now
-    for (QHash<unsigned, PODVector<unsigned char> >::Iterator i = nodeLatestData_.begin(); i != nodeLatestData_.end();)
+    for (HashMap<unsigned, PODVector<unsigned char> >::iterator i = nodeLatestData_.begin(); i != nodeLatestData_.end();)
     {
-        QHash<unsigned, PODVector<unsigned char> >::Iterator current = i++;
-        Node* node = scene_->GetNode(current.key());
+        HashMap<unsigned, PODVector<unsigned char> >::iterator current = i++;
+        Node* node = scene_->GetNode(MAP_KEY(current));
         if (node)
         {
-            MemoryBuffer msg(*current);
+            MemoryBuffer msg(MAP_VALUE(current));
             msg.ReadNetID(); // Skip the node ID
             node->ReadLatestDataUpdate(msg);
             // ApplyAttributes() is deliberately skipped, as Node has no attributes that require late applying.
@@ -366,13 +366,13 @@ void Connection::ProcessPendingLatestData()
     }
 
     // Iterate through pending component data and see if we can find the components now
-    for (QHash<unsigned, PODVector<unsigned char> >::Iterator i = componentLatestData_.begin(); i != componentLatestData_.end();)
+    for (HashMap<unsigned, PODVector<unsigned char> >::iterator i = componentLatestData_.begin(); i != componentLatestData_.end();)
     {
-        QHash<unsigned, PODVector<unsigned char> >::Iterator current = i++;
-        Component* component = scene_->GetComponent(current.key());
+        HashMap<unsigned, PODVector<unsigned char> >::iterator current = i++;
+        Component* component = scene_->GetComponent(MAP_KEY(current));
         if (component)
         {
-            MemoryBuffer msg(*current);
+            MemoryBuffer msg(MAP_VALUE(current));
             msg.ReadNetID(); // Skip the component ID
             component->ReadLatestDataUpdate(msg);
             component->ApplyAttributes();
@@ -778,13 +778,13 @@ void Connection::ProcessPackageDownload(int msgID, MemoryBuffer& msg)
         {
             StringHash nameHash = msg.ReadStringHash();
 
-            QHash<StringHash, PackageDownload>::Iterator i = downloads_.find(nameHash);
+            HashMap<StringHash, PackageDownload>::iterator i = downloads_.find(nameHash);
             // In case of being unable to create the package file into the cache, we will still receive all data from the server.
             // Simply disregard it
             if (i == downloads_.end())
                 return;
 
-            PackageDownload& download = *i;
+            PackageDownload& download = MAP_VALUE(i);
 
             // If no further data, this is an error reply
             if (msg.IsEof())
@@ -830,7 +830,7 @@ void Connection::ProcessPackageDownload(int msgID, MemoryBuffer& msg)
                     OnPackagesReady();
                 else
                 {
-                    PackageDownload& nextDownload = *downloads_.begin();
+                    PackageDownload& nextDownload = MAP_VALUE(downloads_.begin());
 
                     LOGINFO("Requesting package " + nextDownload.name_ + " from server");
                     msg_.Clear();
@@ -995,20 +995,20 @@ unsigned Connection::GetNumDownloads() const
 
 const String& Connection::GetDownloadName() const
 {
-    for (const PackageDownload & elem : downloads_)
+    for (const auto & elem : downloads_)
     {
-        if (elem.initiated_)
-            return elem.name_;
+        if (ELEMENT_VALUE(elem).initiated_)
+            return ELEMENT_VALUE(elem).name_;
     }
     return String::EMPTY;
 }
 
 float Connection::GetDownloadProgress() const
 {
-    for (const PackageDownload & elem : downloads_)
+    for (const auto & elem : downloads_)
     {
-        if (elem.initiated_)
-            return (float)elem.receivedFragments_.size() / (float)elem.totalFragments_;
+        if (ELEMENT_VALUE(elem).initiated_)
+            return (float)ELEMENT_VALUE(elem).receivedFragments_.size() / (float)ELEMENT_VALUE(elem).totalFragments_;
     }
     return 1.0f;
 }
@@ -1029,11 +1029,11 @@ void Connection::ProcessNode(unsigned nodeID)
         return;
 
     // Find replication state for the node
-    QHash<unsigned, NodeReplicationState>::Iterator i = sceneState_.nodeStates_.find(nodeID);
+    HashMap<unsigned, NodeReplicationState>::iterator i = sceneState_.nodeStates_.find(nodeID);
     if (i != sceneState_.nodeStates_.end())
     {
         // Replication state found: the node is either be existing or removed
-        Node* node = i->node_;
+        Node* node = MAP_VALUE(i).node_;
         if (!node)
         {
             msg_.Clear();
@@ -1046,7 +1046,7 @@ void Connection::ProcessNode(unsigned nodeID)
             sceneState_.nodeStates_.remove(nodeID);
         }
         else
-            ProcessExistingNode(node, *i);
+            ProcessExistingNode(node, MAP_VALUE(i));
     }
     else
     {
@@ -1090,8 +1090,8 @@ void Connection::ProcessNewNode(Node* node)
     msg_.WriteVLE(vars.size());
     for (auto var  = vars.begin(), fin=vars.end(); var!=fin; ++var)
     {
-        msg_.WriteStringHash(var.key());
-        msg_.WriteVariant(var.value());
+        msg_.WriteStringHash(MAP_KEY(var));
+        msg_.WriteVariant(MAP_VALUE(var));
     }
 
     // Write node's components
@@ -1183,8 +1183,8 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
                 VariantMap::const_iterator j = vars.find(v);
                 if (j != vars.end())
                 {
-                    msg_.WriteStringHash(j.key());
-                    msg_.WriteVariant(j.value());
+                    msg_.WriteStringHash(MAP_KEY(j));
+                    msg_.WriteVariant(MAP_VALUE(j));
                 }
                 else
                 {
@@ -1203,17 +1203,17 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
     }
 
     // Check for removed or changed components
-    for (QHash<unsigned, ComponentReplicationState>::Iterator i = nodeState.componentStates_.begin();
+    for (HashMap<unsigned, ComponentReplicationState>::iterator i = nodeState.componentStates_.begin();
         i != nodeState.componentStates_.end(); )
     {
-        QHash<unsigned, ComponentReplicationState>::Iterator current = i++;
-        ComponentReplicationState& componentState = *current;
+        HashMap<unsigned, ComponentReplicationState>::iterator current = i++;
+        ComponentReplicationState& componentState = MAP_VALUE(current);
         Component* component = componentState.component_;
         if (!component)
         {
             // Removed component
             msg_.Clear();
-            msg_.WriteNetID(current.key());
+            msg_.WriteNetID(MAP_KEY(current));
 
             SendMessage(MSG_REMOVECOMPONENT, true, true, msg_);
             nodeState.componentStates_.erase(current);
@@ -1271,7 +1271,7 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
             if (component->GetID() >= FIRST_LOCAL_ID)
                 continue;
 
-            QHash<unsigned, ComponentReplicationState>::Iterator j = nodeState.componentStates_.find(component->GetID());
+            HashMap<unsigned, ComponentReplicationState>::iterator j = nodeState.componentStates_.find(component->GetID());
             if (j == nodeState.componentStates_.end())
             {
                 // New component

@@ -563,9 +563,9 @@ void Batch::Prepare(View* view, bool setModelTransform) const
     {
         if (graphics->NeedParameterUpdate(SP_MATERIAL, material_))
         {
-            const QHash<StringHash, MaterialShaderParameter> & params(material_->GetShaderParameters());
+            const HashMap<StringHash, MaterialShaderParameter> & params(material_->GetShaderParameters());
             for (auto iter= params.begin(), fin=params.end(); iter!=fin; ++iter)
-                graphics->SetShaderParameter(iter.key(), iter->value_);
+                graphics->SetShaderParameter(MAP_KEY(iter), MAP_VALUE(iter).value_);
         }
 
         const SharedPtr<Texture>* textures = material_->GetTextures();

@@ -68,7 +68,7 @@ public:
         return second_ > rhs.second_;
     }
 
-    /// Return hash value for QSet & QHash.
+    /// Return hash value for QSet & HashMap.
     unsigned ToHash() const { return (MakeHash(first_) & 0xffff) | (MakeHash(second_) << 16); }
 
     /// First value.
@@ -90,4 +90,12 @@ inline uint qHash(const Urho3D::Pair<T, U> & key, uint seed)
     return key.ToHash();
 }
 
+}
+namespace std {
+template <class T, class U>
+struct hash< Urho3D::Pair<T,U> > {
+    size_t operator()(const Urho3D::Pair<T,U> &key) const {
+        return key.ToHash();
+    }
+};
 }

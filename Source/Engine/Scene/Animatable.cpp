@@ -136,8 +136,9 @@ bool Animatable::SaveXML(XMLElement& dest) const
             return false;
     }
 
-    for (const SharedPtr<AttributeAnimationInfo> & _i : attributeAnimationInfos_)
+    for (auto &map_entry: attributeAnimationInfos_)
     {
+        const SharedPtr<AttributeAnimationInfo> & _i(ELEMENT_VALUE(map_entry));
         ValueAnimation* attributeAnimation = _i->GetAnimation();
         if (attributeAnimation->GetOwner())
             continue;
@@ -303,11 +304,13 @@ void Animatable::OnObjectAnimationAdded(ObjectAnimation* objectAnimation)
         return;
 
     // Set all attribute animations from the object animation
-    const QHash<String, SharedPtr<ValueAnimationInfo> >& attributeAnimationInfos = objectAnimation->GetAttributeAnimationInfos();
+    const auto & attributeAnimationInfos = objectAnimation->GetAttributeAnimationInfos();
     for (auto info=attributeAnimationInfos.begin(),fin=attributeAnimationInfos.end(); info!=fin; ++info)
     {
-        const String& name = info.key();
-        SetObjectAttributeAnimation(name, (*info)->GetAnimation(), (*info)->GetWrapMode(), (*info)->GetSpeed());
+        const String& name = MAP_KEY(info);
+        SetObjectAttributeAnimation(name,
+                                    MAP_VALUE(info)->GetAnimation(), MAP_VALUE(info)->GetWrapMode(),
+                                    MAP_VALUE(info)->GetSpeed());
     }
 }
 
@@ -320,8 +323,8 @@ void Animatable::OnObjectAnimationRemoved(ObjectAnimation* objectAnimation)
     Vector<String> names;
     for (auto elem=attributeAnimationInfos_.begin(),fin=attributeAnimationInfos_.end(); elem!=fin; ++elem)
     {
-        if ((*elem)->GetAnimation()->GetOwner() == objectAnimation)
-            names.push_back(elem.key());
+        if (MAP_VALUE(elem)->GetAnimation()->GetOwner() == objectAnimation)
+            names.push_back(MAP_KEY(elem));
     }
 
     for (unsigned i = 0; i < names.size(); ++i)
@@ -334,8 +337,9 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
         return;
 
     Vector<String> finishedNames;
-    for (const SharedPtr<AttributeAnimationInfo> i : attributeAnimationInfos_)
+    for (auto &elem: attributeAnimationInfos_)
     {
+        SharedPtr<AttributeAnimationInfo> & i(ELEMENT_VALUE(elem));
         if (i->Update(timeStep))
             finishedNames.push_back(i->GetAttributeInfo().name_);
     }
@@ -351,9 +355,9 @@ bool Animatable::IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const
 
 AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const String& name) const
 {
-    QHash<String, SharedPtr<AttributeAnimationInfo> >::const_iterator i = attributeAnimationInfos_.find(name);
+    const auto i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
-        return *i;
+        return MAP_VALUE(i);
 
     return nullptr;
 }

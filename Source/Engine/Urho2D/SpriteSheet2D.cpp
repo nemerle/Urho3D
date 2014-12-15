@@ -84,11 +84,11 @@ bool SpriteSheet2D::EndLoad()
 
 Sprite2D* SpriteSheet2D::GetSprite(const String& name) const
 {
-    QHash<String, SharedPtr<Sprite2D> >::const_iterator i = spriteMapping_.find(name);
+    HashMap<String, SharedPtr<Sprite2D> >::const_iterator i = spriteMapping_.find(name);
     if (i == spriteMapping_.end())
         return nullptr;
 
-    return *i;
+    return MAP_VALUE(i);
 }
 
 void SpriteSheet2D::DefineSprite(const String& name, const IntRect& rectangle, const Vector2& hotSpot, const IntVector2& offset)
@@ -151,9 +151,9 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     const PListValueMap& frames = root["frames"].GetValueMap();
     for (auto frame=frames.begin(),fin=frames.end(); frame!=fin; ++frame)
     {
-        String name = frame.key().split('.')[0];
+        String name = MAP_KEY(frame).split('.')[0];
 
-        const PListValueMap& frameInfo = frame->GetValueMap();
+        const PListValueMap& frameInfo = MAP_VALUE(frame).GetValueMap();
         if (frameInfo["rotated"].GetBool())
         {
             LOGWARNING("Rotated sprite is not support now");

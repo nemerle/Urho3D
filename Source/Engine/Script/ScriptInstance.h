@@ -186,7 +186,7 @@ private:
     /// Attributes, including script object variables.
     Vector<AttributeInfo> attributeInfos_;
     /// Storage for unapplied node and component ID attributes
-    QHash<AttributeInfo*, unsigned> idAttributes_;
+    HashMap<AttributeInfo*, unsigned> idAttributes_;
     /// Subscribed to scene update events flag.
     bool subscribed_;
     /// Subscribed to scene post and fixed update events flag.

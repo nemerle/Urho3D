@@ -26,9 +26,10 @@
 #include "Ptr.h"
 #include "RefCounted.h"
 #include "StringHash.h"
+#include "HashMap.h"
 #include "Thread.h"
 #include "Pair.h"
-#include <QtCore/QHash>
+
 #include <QtCore/QSet>
 
 namespace Urho3D
@@ -79,7 +80,7 @@ private:
     /// Mutex for thread-safe access to the background load queue.
     mutable Mutex backgroundLoadMutex_;
     /// Resources that are queued for background loading.
-    QHash<Pair<StringHash, StringHash>, BackgroundLoadItem> backgroundLoadQueue_;
+    HashMap<Pair<StringHash, StringHash>, BackgroundLoadItem> backgroundLoadQueue_;
 };
 
 }

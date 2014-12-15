@@ -1044,7 +1044,7 @@ bool Node::HasComponent(StringHash type) const
 const Variant& Node::GetVar(StringHash key) const
 {
     auto i = vars_.find(key);
-    return i != vars_.end() ? *i : Variant::EMPTY;
+    return i != vars_.end() ? MAP_VALUE(i) : Variant::EMPTY;
 }
 
 Component* Node::GetComponent(StringHash type) const
@@ -1332,16 +1332,16 @@ void Node::PrepareNetworkUpdate()
     // Finally check for user var changes
     for (VariantMap::const_iterator i=vars_.begin(),fin=vars_.end(); i!=fin; ++i)
     {
-        auto j = networkState_->previousVars_.find(i.key());
+        auto j = networkState_->previousVars_.find(MAP_KEY(i));
         if (j != networkState_->previousVars_.end() && *j == *i)
             continue;
-        networkState_->previousVars_[i.key()] = *i;
+        networkState_->previousVars_[MAP_KEY(i)] = MAP_VALUE(i);
 
         // Mark the var dirty in all replication states that are tracking this node
         for (auto & elem : networkState_->replicationStates_)
         {
             NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
-            nodeState->dirtyVars_.insert(i.key());
+            nodeState->dirtyVars_.insert(MAP_KEY(i));
 
             if (!nodeState->markedDirty_)
             {

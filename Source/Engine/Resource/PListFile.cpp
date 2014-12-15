@@ -39,16 +39,16 @@ static PListValueVector EMPTY_VALUEVECTOR;
 
 PListValue& PListValueMap::operator [](const String& key)
 {
-    return QHash<String, PListValue>::operator [](key);
+    return HashMap<String, PListValue>::operator [](key);
 }
 
 const PListValue& PListValueMap::operator [](const String& key) const
 {
-    ConstIterator i = find(key);
+    const_iterator i = find(key);
     if (i == end())
         return EMPTY_VALUE;
 
-    return *i;
+    return MAP_VALUE(i);
 }
 
 PListValue::PListValue() : type_(PLVT_NONE)

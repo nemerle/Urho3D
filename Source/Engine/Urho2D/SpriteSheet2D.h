@@ -58,7 +58,7 @@ public:
     void DefineSprite(const String& name, const IntRect& rectangle, const Vector2& hotSpot = Vector2(0.5f, 0.5f), const IntVector2& offset = IntVector2::ZERO);
 
     /// Return sprite mapping.
-    const QHash<String, SharedPtr<Sprite2D> >& GetSpriteMapping() const { return spriteMapping_; }
+    const HashMap<String, SharedPtr<Sprite2D> >& GetSpriteMapping() const { return spriteMapping_; }
 
 private:
     /// Begin load from PList file.
@@ -73,7 +73,7 @@ private:
     /// Texture.
     SharedPtr<Texture2D> texture_;
     /// Sprite mapping.
-    QHash<String, SharedPtr<Sprite2D> > spriteMapping_;
+    HashMap<String, SharedPtr<Sprite2D> > spriteMapping_;
     /// PList file used while loading.
     SharedPtr<PListFile> loadPListFile_;
     /// XML file used while loading.

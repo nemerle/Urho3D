@@ -391,9 +391,9 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     // In debug mode, check now that all factory created objects can be created without crashing
     #ifdef _DEBUG
-    const QHash<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
+    const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
     for (const auto & factorie : factories)
-        SharedPtr<Object> object = factorie->CreateObject();
+        SharedPtr<Object> object = factorie.second->CreateObject();
     #endif
 
     frameTimer_.Reset();
@@ -551,12 +551,12 @@ void Engine::DumpResources(bool dumpFileName)
     for (const auto & entry : resourceGroups)
     {
         const ResourceGroup & resourceGroup(entry.second);
-        const QHash<StringHash, SharedPtr<Resource> >& resources = resourceGroup.resources_;
+        const HashMap<StringHash, SharedPtr<Resource> >& resources = resourceGroup.resources_;
         if (dumpFileName)
         {
             for (auto j : resources)
             {
-                LOGRAW(j->GetName() + "\n");
+                LOGRAW(ELEMENT_VALUE(j)->GetName() + "\n");
             }
 
         }
@@ -567,7 +567,7 @@ void Engine::DumpResources(bool dumpFileName)
 
             if (num)
             {
-                LOGRAW("Resource type " + (*resources.begin())->GetTypeName() +
+                LOGRAW("Resource type " + MAP_VALUE(resources.begin())->GetTypeName() +
                     ": count " + String(num) + " memory use " + String(memoryUse) + "\n");
             }
         }
@@ -872,7 +872,7 @@ const Variant& Engine::GetParameter(const VariantMap& parameters, const String& 
 {
     StringHash nameHash(parameter);
     VariantMap::const_iterator i = parameters.find(nameHash);
-    return i != parameters.end() ? *i : defaultValue;
+    return i != parameters.end() ? MAP_VALUE(i) : defaultValue;
 }
 
 void Engine::HandleExitRequested(StringHash eventType, VariantMap& eventData)

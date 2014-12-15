@@ -192,7 +192,7 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
 
     for (auto i = fontFace->glyphMapping_.begin(), fin=fontFace->glyphMapping_.end(); i!=fin; ++i)
     {
-        FontGlyph fontGlyph = *i;
+        FontGlyph fontGlyph = MAP_VALUE(i);
         if (!fontGlyph.used_)
             continue;
 
@@ -210,7 +210,7 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
         fontGlyph.y_ = y;
         fontGlyph.page_ = numPages - 1;
 
-        glyphMapping_[i.key()] = fontGlyph;
+        glyphMapping_[MAP_KEY(i)] = fontGlyph;
     }
 
     // Assume that format is the same for all textures and that bitmap font type may have more than one component
@@ -242,21 +242,22 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
 
     for (auto elem=glyphMapping_.begin(),fin=glyphMapping_.end(); elem!=fin; ++elem)
     {
-        FontGlyph& newGlyph = *elem;
-        const FontGlyph& oldGlyph = fontFace->glyphMapping_[elem.key()];
-        Blit(newImages[newGlyph.page_], newGlyph.x_, newGlyph.y_, newGlyph.width_, newGlyph.height_, oldImages[oldGlyph.page_], oldGlyph.x_, oldGlyph.y_, components);
+        FontGlyph& newGlyph = MAP_VALUE(elem);
+        const FontGlyph& oldGlyph = fontFace->glyphMapping_[MAP_KEY(elem)];
+        Blit(newImages[newGlyph.page_], newGlyph.x_, newGlyph.y_, newGlyph.width_, newGlyph.height_,
+             oldImages[oldGlyph.page_], oldGlyph.x_, oldGlyph.y_, components);
     }
 
     textures_.resize(newImages.size());
     for (unsigned i = 0; i < newImages.size(); ++i)
         textures_[i] = LoadFaceTexture(newImages[i]);
 
-    for (QHash<unsigned, short>::const_iterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
+    for (HashMap<unsigned, short>::const_iterator i = fontFace->kerningMapping_.begin(); i != fontFace->kerningMapping_.end(); ++i)
     {
-        unsigned first = (i.key()) >> 16;
-        unsigned second = (i.key()) & 0xffff;
+        unsigned first = (MAP_KEY(i)) >> 16;
+        unsigned second = (MAP_KEY(i)) & 0xffff;
         if (glyphMapping_.find(first) != glyphMapping_.end() && glyphMapping_.find(second) != glyphMapping_.end())
-            kerningMapping_[i.key()] = *i;
+            kerningMapping_[MAP_KEY(i)] = MAP_VALUE(i);
     }
 
     return true;
@@ -313,9 +314,9 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize)
     {
         // Char
         XMLElement charElem = charsElem.CreateChild("char");
-        charElem.SetInt("id", i.key());
+        charElem.SetInt("id", MAP_KEY(i));
 
-        const FontGlyph& glyph = *i;
+        const FontGlyph& glyph = MAP_VALUE(i);
         charElem.SetInt("x", glyph.x_);
         charElem.SetInt("y", glyph.y_);
         charElem.SetInt("width", glyph.width_);
@@ -332,9 +333,9 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize)
         for (auto i = kerningMapping_.begin(), fin=kerningMapping_.end(); i!=fin; ++i)
         {
             XMLElement kerningElem = kerningsElem.CreateChild("kerning");
-            kerningElem.SetInt("first", i.key()>> 16);
-            kerningElem.SetInt("second", i.key() & 0xffff);
-            kerningElem.SetInt("amount", *i);
+            kerningElem.SetInt("first", MAP_KEY(i)>> 16);
+            kerningElem.SetInt("second", MAP_KEY(i) & 0xffff);
+            kerningElem.SetInt("amount", MAP_VALUE(i));
         }
     }
 

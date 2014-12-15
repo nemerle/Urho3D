@@ -121,9 +121,9 @@ void ScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& dest) co
     {
         // If a cached ID value has been stored, return it instead of querying from the actual object
         // (the object handle is likely null at that point)
-        QHash<AttributeInfo*, unsigned>::const_iterator i = idAttributes_.find(attrPtr);
+        HashMap<AttributeInfo*, unsigned>::const_iterator i = idAttributes_.find(attrPtr);
         if (i != idAttributes_.end())
-            dest = *i;
+            dest = MAP_VALUE(i);
         else if (attr.mode_ & AM_NODEID)
         {
             Node* node = *(reinterpret_cast<Node**>(attr.ptr_));
@@ -152,14 +152,14 @@ void ScriptInstance::ApplyAttributes()
     // Apply node / component ID attributes now (find objects from the scene and assign to the object handles)
     for (auto elem=idAttributes_.begin(),fin=idAttributes_.end(); elem!=fin; ++elem)
     {
-        AttributeInfo& attr = *elem.key();
+        AttributeInfo& attr = *MAP_KEY(elem);
         if (attr.mode_ & AM_NODEID)
         {
             Node*& nodePtr = *(reinterpret_cast<Node**>(attr.ptr_));
             // Decrease reference count of the old object if any, then increment the new
             if (nodePtr)
                 nodePtr->ReleaseRef();
-            nodePtr = GetScene()->GetNode(*elem);
+            nodePtr = GetScene()->GetNode(MAP_VALUE(elem));
             if (nodePtr)
                 nodePtr->AddRef();
         }
@@ -168,7 +168,7 @@ void ScriptInstance::ApplyAttributes()
             Component*& componentPtr = *(reinterpret_cast<Component**>(attr.ptr_));
             if (componentPtr)
                 componentPtr->ReleaseRef();
-            componentPtr = GetScene()->GetComponent(*elem);
+            componentPtr = GetScene()->GetComponent(MAP_VALUE(elem));
             if (componentPtr)
                 componentPtr->AddRef();
         }

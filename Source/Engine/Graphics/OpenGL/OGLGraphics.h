@@ -51,7 +51,7 @@ class Vector3;
 class Vector4;
 class VertexBuffer;
 
-typedef QHash<Pair<ShaderVariation*, ShaderVariation*>, SharedPtr<ShaderProgram> > ShaderProgramMap;
+typedef HashMap<Pair<ShaderVariation*, ShaderVariation*>, SharedPtr<ShaderProgram> > ShaderProgramMap;
 
 static const unsigned NUM_SCREEN_BUFFERS = 2;
 static const unsigned NUM_TEMP_MATRICES = 8;
@@ -541,7 +541,7 @@ private:
     /// OpenGL texture types in use.
     unsigned textureTypes_[MAX_TEXTURE_UNITS];
     /// Texture unit mappings.
-    QHash<String, TextureUnit> textureUnits_;
+    HashMap<String, TextureUnit> textureUnits_;
     /// Rendertargets in use.
     RenderSurface* renderTargets_[MAX_RENDERTARGETS];
     /// Depth-stencil surface in use.
@@ -597,7 +597,7 @@ private:
     /// Default texture filtering mode.
     TextureFilterMode defaultTextureFilterMode_;
     /// Map for additional depth textures, to emulate Direct3D9 ability to mix render texture and backbuffer rendering.
-    QHash<int, SharedPtr<Texture2D> > depthTextures_;
+    HashMap<int, SharedPtr<Texture2D> > depthTextures_;
     /// Remembered shader parameter sources.
     const void* shaderParameterSources_[MAX_SHADER_PARAMETER_GROUPS];
     /// Temp matrices for transposing shader parameters.

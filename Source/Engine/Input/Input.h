@@ -311,15 +311,15 @@ private:
     /// Key pressed state by scancode.
     QSet<int> scancodePress_;
     /// Active finger touches.
-    QHash<int, TouchState> touches_;
+    HashMap<int, TouchState> touches_;
     /// List that maps between event touch IDs and normalised touch IDs
     QList<int> availableTouchIDs_;
     /// Mapping of touch indicies
-    QHash<int, int> touchIDMap_;
+    HashMap<int, int> touchIDMap_;
     /// String for text input.
     String textInput_;
     /// Opened joysticks.
-    QHash<SDL_JoystickID, JoystickState> joysticks_;
+    HashMap<SDL_JoystickID, JoystickState> joysticks_;
     /// Mouse buttons' down state.
     unsigned mouseButtonDown_;
     /// Mouse buttons' pressed state.

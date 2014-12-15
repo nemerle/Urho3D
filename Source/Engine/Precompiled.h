@@ -22,6 +22,6 @@
 
 #pragma once
 
-#include <QtCore/QHash>
+
 #include <QtCore/QSet>
 #include "Str.h"

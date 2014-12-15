@@ -42,14 +42,7 @@ enum PListValueType
 };
 
 class PListValue;
-
-class PListValueMap : public QHash<String, PListValue>
-{
-public:
-    PListValue& operator [](const String& key);
-    const PListValue& operator [](const String& key) const;
-};
-
+class PListValueMap;
 typedef Vector<PListValue> PListValueVector;
 
 class URHO3D_API PListValue
@@ -133,7 +126,12 @@ private:
         PListValueVector* valueVector_;
     };
 };
-
+class PListValueMap : public HashMap<String, class PListValue>
+{
+public:
+    PListValue& operator [](const String& key);
+    const PListValue& operator [](const String& key) const;
+};
 /// Property list (plist).
 class URHO3D_API PListFile : public Resource
 {

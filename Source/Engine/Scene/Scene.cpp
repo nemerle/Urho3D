@@ -86,9 +86,9 @@ Scene::~Scene()
 
     // Remove scene reference and owner from all nodes that still exist
     for (auto & elem : replicatedNodes_)
-        elem->ResetScene();
+        ELEMENT_VALUE(elem)->ResetScene();
     for (auto & elem : localNodes_)
-        elem->ResetScene();
+        ELEMENT_VALUE(elem)->ResetScene();
 }
 
 void Scene::RegisterObject(Context* context)
@@ -541,16 +541,16 @@ Node* Scene::GetNode(unsigned id) const
 {
     if (id < FIRST_LOCAL_ID)
     {
-        QHash<unsigned, Node*>::const_iterator i = replicatedNodes_.find(id);
+        HashMap<unsigned, Node*>::const_iterator i = replicatedNodes_.find(id);
         if (i != replicatedNodes_.end())
-            return *i;
+            return MAP_VALUE(i);
         return nullptr;
     }
     else
     {
-        QHash<unsigned, Node*>::const_iterator i = localNodes_.find(id);
+        HashMap<unsigned, Node*>::const_iterator i = localNodes_.find(id);
         if (i != localNodes_.end())
-            return *i;
+            return MAP_VALUE(i);
         return nullptr;
     }
 }
@@ -559,15 +559,15 @@ Component* Scene::GetComponent(unsigned id) const
 {
     if (id < FIRST_LOCAL_ID)
     {
-        QHash<unsigned, Component*>::const_iterator i = replicatedComponents_.find(id);
+        HashMap<unsigned, Component*>::const_iterator i = replicatedComponents_.find(id);
         if (i != replicatedComponents_.end())
-            return *i;
+            return MAP_VALUE(i);
     }
     else
     {
-        QHash<unsigned, Component*>::const_iterator i = localComponents_.find(id);
+        HashMap<unsigned, Component*>::const_iterator i = localComponents_.find(id);
         if (i != localComponents_.end())
-            return *i;
+            return MAP_VALUE(i);
     }
     return nullptr;
 }
@@ -585,8 +585,8 @@ float Scene::GetAsyncProgress() const
 
 const String& Scene::GetVarName(StringHash hash) const
 {
-    QHash<StringHash, String>::const_iterator i = varNames_.find(hash);
-    return i != varNames_.end() ? *i : String::EMPTY;
+    HashMap<StringHash, String>::const_iterator i = varNames_.find(hash);
+    return i != varNames_.end() ? MAP_VALUE(i) : String::EMPTY;
 }
 
 void Scene::Update(float timeStep)
@@ -762,11 +762,11 @@ void Scene::NodeAdded(Node* node)
     // If node with same ID exists, remove the scene reference from it and overwrite with the new node
     if (id < FIRST_LOCAL_ID)
     {
-        QHash<unsigned, Node*>::Iterator i = replicatedNodes_.find(id);
-        if (i != replicatedNodes_.end() && *i != node)
+        HashMap<unsigned, Node*>::iterator i = replicatedNodes_.find(id);
+        if (i != replicatedNodes_.end() && MAP_VALUE(i) != node)
         {
             LOGWARNING("Overwriting node with ID " + String(id));
-            (*i)->ResetScene();
+            MAP_VALUE(i)->ResetScene();
         }
 
         replicatedNodes_[id] = node;
@@ -776,11 +776,11 @@ void Scene::NodeAdded(Node* node)
     }
     else
     {
-        QHash<unsigned, Node*>::Iterator i = localNodes_.find(id);
-        if (i != localNodes_.end() && *i != node)
+        HashMap<unsigned, Node*>::iterator i = localNodes_.find(id);
+        if (i != localNodes_.end() && MAP_VALUE(i) != node)
         {
             LOGWARNING("Overwriting node with ID " + String(id));
-            (*i)->ResetScene();
+            MAP_VALUE(i)->ResetScene();
         }
 
         localNodes_[id] = node;
@@ -820,22 +820,22 @@ void Scene::ComponentAdded(Component* component)
     unsigned id = component->GetID();
     if (id < FIRST_LOCAL_ID)
     {
-        QHash<unsigned, Component*>::Iterator i = replicatedComponents_.find(id);
-        if (i != replicatedComponents_.end() && (*i) != component)
+        HashMap<unsigned, Component*>::iterator i = replicatedComponents_.find(id);
+        if (i != replicatedComponents_.end() && MAP_VALUE(i) != component)
         {
             LOGWARNING("Overwriting component with ID " + String(id));
-            (*i)->SetID(0);
+            MAP_VALUE(i)->SetID(0);
         }
 
         replicatedComponents_[id] = component;
     }
     else
     {
-        QHash<unsigned, Component*>::Iterator i = localComponents_.find(id);
-        if (i != localComponents_.end() && (*i) != component)
+        HashMap<unsigned, Component*>::iterator i = localComponents_.find(id);
+        if (i != localComponents_.end() && MAP_VALUE(i) != component)
         {
             LOGWARNING("Overwriting component with ID " + String(id));
-            (*i)->SetID(0);
+            MAP_VALUE(i)->SetID(0);
         }
 
         localComponents_[id] = component;
@@ -872,7 +872,7 @@ String Scene::GetVarNamesAttr() const
     if (!varNames_.empty())
     {
         for (const auto & elem : varNames_)
-            ret += elem + ';';
+            ret += ELEMENT_VALUE(elem) + ';';
 
         ret.resize(ret.length() - 1);
     }
@@ -905,10 +905,10 @@ void Scene::CleanupConnection(Connection* connection)
     Node::CleanupConnection(connection);
 
     for (auto & elem : replicatedNodes_)
-        elem->CleanupConnection(connection);
+        ELEMENT_VALUE(elem)->CleanupConnection(connection);
 
     for (auto & elem : replicatedComponents_)
-        elem->CleanupConnection(connection);
+        ELEMENT_VALUE(elem)->CleanupConnection(connection);
 }
 
 void Scene::MarkNetworkUpdate(Node* node)

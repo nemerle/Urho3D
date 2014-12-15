@@ -86,7 +86,7 @@ public:
     /// Return all object factories.
     const HashMap<StringHash, SharedPtr<ObjectFactory> >& GetObjectFactories() const { return factories_; }
     /// Return all object categories.
-    const QHash<String, Vector<StringHash> >& GetObjectCategories() const { return objectCategories_; }
+    const HashMap<String, Vector<StringHash> >& GetObjectCategories() const { return objectCategories_; }
     /// Return active event sender. Null outside event handling.
     Object* GetEventSender() const;
     /// Return active event handler. Set by Object. Null outside event handling.
@@ -174,7 +174,7 @@ private:
     /// Active event handler. Not stored in a stack for performance reasons; is needed only in esoteric cases.
     EventHandler* eventHandler_;
     /// Object categories.
-    QHash<String, Vector<StringHash> > objectCategories_;
+    HashMap<String, Vector<StringHash> > objectCategories_;
 };
 
 template <class T> void Context::RegisterFactory() { RegisterFactory(new ObjectFactoryImpl<T>(this)); }

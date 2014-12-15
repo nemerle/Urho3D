@@ -177,15 +177,15 @@ private:
     /// XML file used during loading.
     SharedPtr<XMLFile> loadXMLFile_;
     /// TSX name to XML file mapping.
-    QHash<String, SharedPtr<XMLFile> > tsxXMLFiles_;
+    HashMap<String, SharedPtr<XMLFile> > tsxXMLFiles_;
     /// Tile map information.
     TileMapInfo2D info_;
     /// Tile set textures.
     Vector<SharedPtr<Texture2D> > tileSetTextures_;
     /// Gid to tile sprite mapping.
-    QHash<int, SharedPtr<Sprite2D> > gidToSpriteMapping_;
+    HashMap<int, SharedPtr<Sprite2D> > gidToSpriteMapping_;
     /// Gid to tile property set mapping.
-    QHash<int, SharedPtr<PropertySet2D> > gidToPropertySetMapping_;
+    HashMap<int, SharedPtr<PropertySet2D> > gidToPropertySetMapping_;
     /// Layers.
     Vector<TmxLayer2D*> layers_;
 };

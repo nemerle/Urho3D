@@ -144,17 +144,17 @@ void Input::Update()
     mouseButtonPress_ = 0;
     mouseMove_ = IntVector2::ZERO;
     mouseMoveWheel_ = 0;
-    for (JoystickState & elem : joysticks_)
+    for (auto & elem : joysticks_)
     {
-        for (unsigned j = 0; j < elem.buttonPress_.size(); ++j)
-            elem.buttonPress_[j] = false;
+        for (unsigned j = 0; j < ELEMENT_VALUE(elem).buttonPress_.size(); ++j)
+            ELEMENT_VALUE(elem).buttonPress_[j] = false;
     }
 
     // Reset touch delta movement
-    for (TouchState & state : touches_)
+    for (auto & state : touches_)
     {
-        state.lastPosition_ = state.position_;
-        state.delta_ = IntVector2::ZERO;
+        ELEMENT_VALUE(state).lastPosition_ = ELEMENT_VALUE(state).position_;
+        ELEMENT_VALUE(state).delta_ = IntVector2::ZERO;
     }
 
     // Check and handle SDL events
@@ -395,59 +395,59 @@ void Input::SetToggleFullscreen(bool enable)
     toggleFullscreen_ = enable;
 }
 
-static void PopulateKeyBindingMap(QHash<String, int>& keyBindingMap)
+static void PopulateKeyBindingMap(HashMap<String, int>& keyBindingMap)
 {
     if (!keyBindingMap.isEmpty())
         return;
-    keyBindingMap.insert("SPACE", KEY_SPACE);
-    keyBindingMap.insert("LCTRL", KEY_LCTRL);
-    keyBindingMap.insert("RCTRL", KEY_RCTRL);
-    keyBindingMap.insert("LSHIFT", KEY_LSHIFT);
-    keyBindingMap.insert("RSHIFT", KEY_RSHIFT);
-    keyBindingMap.insert("LALT", KEY_LALT);
-    keyBindingMap.insert("RALT", KEY_RALT);
-    keyBindingMap.insert("LGUI", KEY_LGUI);
-    keyBindingMap.insert("RGUI", KEY_RGUI);
-    keyBindingMap.insert("TAB", KEY_TAB);
-    keyBindingMap.insert("RETURN", KEY_RETURN);
-    keyBindingMap.insert("RETURN2", KEY_RETURN2);
-    keyBindingMap.insert("ENTER", KEY_KP_ENTER);
-    keyBindingMap.insert("SELECT", KEY_SELECT);
-    keyBindingMap.insert("LEFT", KEY_LEFT);
-    keyBindingMap.insert("RIGHT", KEY_RIGHT);
-    keyBindingMap.insert("UP", KEY_UP);
-    keyBindingMap.insert("DOWN", KEY_DOWN);
-    keyBindingMap.insert("PAGEUP", KEY_PAGEUP);
-    keyBindingMap.insert("PAGEDOWN", KEY_PAGEDOWN);
-    keyBindingMap.insert("F1", KEY_F1);
-    keyBindingMap.insert("F2", KEY_F2);
-    keyBindingMap.insert("F3", KEY_F3);
-    keyBindingMap.insert("F4", KEY_F4);
-    keyBindingMap.insert("F5", KEY_F5);
-    keyBindingMap.insert("F6", KEY_F6);
-    keyBindingMap.insert("F7", KEY_F7);
-    keyBindingMap.insert("F8", KEY_F8);
-    keyBindingMap.insert("F9", KEY_F9);
-    keyBindingMap.insert("F10", KEY_F10);
-    keyBindingMap.insert("F11", KEY_F11);
-    keyBindingMap.insert("F12", KEY_F12);
+    keyBindingMap.emplace("SPACE", KEY_SPACE);
+    keyBindingMap.emplace("LCTRL", KEY_LCTRL);
+    keyBindingMap.emplace("RCTRL", KEY_RCTRL);
+    keyBindingMap.emplace("LSHIFT", KEY_LSHIFT);
+    keyBindingMap.emplace("RSHIFT", KEY_RSHIFT);
+    keyBindingMap.emplace("LALT", KEY_LALT);
+    keyBindingMap.emplace("RALT", KEY_RALT);
+    keyBindingMap.emplace("LGUI", KEY_LGUI);
+    keyBindingMap.emplace("RGUI", KEY_RGUI);
+    keyBindingMap.emplace("TAB", KEY_TAB);
+    keyBindingMap.emplace("RETURN", KEY_RETURN);
+    keyBindingMap.emplace("RETURN2", KEY_RETURN2);
+    keyBindingMap.emplace("ENTER", KEY_KP_ENTER);
+    keyBindingMap.emplace("SELECT", KEY_SELECT);
+    keyBindingMap.emplace("LEFT", KEY_LEFT);
+    keyBindingMap.emplace("RIGHT", KEY_RIGHT);
+    keyBindingMap.emplace("UP", KEY_UP);
+    keyBindingMap.emplace("DOWN", KEY_DOWN);
+    keyBindingMap.emplace("PAGEUP", KEY_PAGEUP);
+    keyBindingMap.emplace("PAGEDOWN", KEY_PAGEDOWN);
+    keyBindingMap.emplace("F1", KEY_F1);
+    keyBindingMap.emplace("F2", KEY_F2);
+    keyBindingMap.emplace("F3", KEY_F3);
+    keyBindingMap.emplace("F4", KEY_F4);
+    keyBindingMap.emplace("F5", KEY_F5);
+    keyBindingMap.emplace("F6", KEY_F6);
+    keyBindingMap.emplace("F7", KEY_F7);
+    keyBindingMap.emplace("F8", KEY_F8);
+    keyBindingMap.emplace("F9", KEY_F9);
+    keyBindingMap.emplace("F10", KEY_F10);
+    keyBindingMap.emplace("F11", KEY_F11);
+    keyBindingMap.emplace("F12", KEY_F12);
 }
 
-static void PopulateMouseButtonBindingMap(QHash<String, int>& mouseButtonBindingMap)
+static void PopulateMouseButtonBindingMap(HashMap<String, int>& mouseButtonBindingMap)
 {
     if (!mouseButtonBindingMap.isEmpty())
         return;
-    mouseButtonBindingMap.insert("LEFT", SDL_BUTTON_LEFT);
-    mouseButtonBindingMap.insert("MIDDLE", SDL_BUTTON_MIDDLE);
-    mouseButtonBindingMap.insert("RIGHT", SDL_BUTTON_RIGHT);
-    mouseButtonBindingMap.insert("X1", SDL_BUTTON_X1);
-    mouseButtonBindingMap.insert("X2", SDL_BUTTON_X2);
+    mouseButtonBindingMap.emplace("LEFT", SDL_BUTTON_LEFT);
+    mouseButtonBindingMap.emplace("MIDDLE", SDL_BUTTON_MIDDLE);
+    mouseButtonBindingMap.emplace("RIGHT", SDL_BUTTON_RIGHT);
+    mouseButtonBindingMap.emplace("X1", SDL_BUTTON_X1);
+    mouseButtonBindingMap.emplace("X2", SDL_BUTTON_X2);
 }
 
 SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
 {
-    static QHash<String, int> keyBindingMap;
-    static QHash<String, int> mouseButtonBindingMap;
+    static HashMap<String, int> keyBindingMap;
+    static HashMap<String, int> mouseButtonBindingMap;
 
     if (!graphics_)
     {
@@ -508,9 +508,9 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                 {
                     PopulateKeyBindingMap(keyBindingMap);
 
-                    QHash<String, int>::Iterator i = keyBindingMap.find(key);
+                    auto i = keyBindingMap.find(key);
                     if (i != keyBindingMap.end())
-                        keyBinding = *i;
+                        keyBinding = MAP_VALUE(i);
                     else
                     {
                         LOGERRORF("Unsupported key binding: %s", key.CString());
@@ -530,9 +530,9 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                 const String& mouseButton = text->GetText();
                 PopulateMouseButtonBindingMap(mouseButtonBindingMap);
 
-                QHash<String, int>::Iterator i = mouseButtonBindingMap.find(mouseButton);
+                auto i = mouseButtonBindingMap.find(mouseButton);
                 if (i != mouseButtonBindingMap.end())
-                    element->SetVar(VAR_BUTTON_MOUSE_BUTTON_BINDING, *i);
+                    element->SetVar(VAR_BUTTON_MOUSE_BUTTON_BINDING, MAP_VALUE(i));
                 else
                     LOGERRORF("Unsupported mouse button binding: %s", mouseButton.CString());
             }
@@ -568,9 +568,9 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                                 mappedKeyBinding.append(keyBindings[j][0]);
                             else
                             {
-                                QHash<String, int>::Iterator i = keyBindingMap.find(keyBindings[j]);
+                                auto i = keyBindingMap.find(keyBindings[j]);
                                 if (i != keyBindingMap.end())
-                                    mappedKeyBinding.append(*i);
+                                    mappedKeyBinding.append(MAP_VALUE(i));
                                 else
                                     break;
                             }
@@ -880,20 +880,20 @@ TouchState* Input::GetTouch(unsigned index) const
     if (index >= touches_.size())
         return nullptr;
 
-    QHash<int, TouchState>::const_iterator i = touches_.begin();
+    auto i = touches_.begin();
     while (index--)
         ++i;
 
-    return const_cast<TouchState*>(&(*i));
+    return const_cast<TouchState*>(&MAP_VALUE(i));
 }
 
 JoystickState* Input::GetJoystickByIndex(unsigned index)
 {
     unsigned compare = 0;
-    for (JoystickState & elem : joysticks_)
+    for (auto & elem : joysticks_)
     {
         if (compare++ == index)
-            return &elem;
+            return &ELEMENT_VALUE(elem);
     }
 
     return nullptr;
@@ -901,14 +901,14 @@ JoystickState* Input::GetJoystickByIndex(unsigned index)
 
 JoystickState* Input::GetJoystick(SDL_JoystickID id)
 {
-    QHash<SDL_JoystickID, JoystickState>::Iterator i = joysticks_.find(id);
-    return i != joysticks_.end() ? &(*i) : nullptr;
+    auto i = joysticks_.find(id);
+    return i != joysticks_.end() ? &MAP_VALUE(i) : nullptr;
 }
 
 bool Input::IsScreenJoystickVisible(SDL_JoystickID id) const
 {
-    QHash<SDL_JoystickID, JoystickState>::const_iterator i = joysticks_.find(id);
-    return i != joysticks_.end() && i->screenJoystick_ && i->screenJoystick_->IsVisible();
+    auto i = joysticks_.find(id);
+    return i != joysticks_.end() && MAP_VALUE(i).screenJoystick_ && MAP_VALUE(i).screenJoystick_->IsVisible();
 }
 
 bool Input::GetScreenKeyboardSupport() const
@@ -1023,8 +1023,8 @@ void Input::ResetState()
     scancodePress_.clear();
 
     /// \todo Check if resetting joystick state on input focus loss is even necessary
-    for (JoystickState & elem : joysticks_)
-        elem.Reset();
+    for (auto & elem : joysticks_)
+        ELEMENT_VALUE(elem).Reset();
 
     ResetTouches();
 
@@ -1040,8 +1040,9 @@ void Input::ResetState()
 
 void Input::ResetTouches()
 {
-    for (TouchState & state : touches_)
+    for (auto & elem : touches_)
     {
+        TouchState & state(ELEMENT_VALUE(elem));
         using namespace TouchEnd;
 
         VariantMap& eventData = GetEventDataMap();
@@ -1064,7 +1065,7 @@ unsigned Input::GetTouchIndexFromID(int touchID)
     auto i = touchIDMap_.find(touchID);
     if (i != touchIDMap_.end())
     {
-        return *i;
+        return MAP_VALUE(i);
     }
 
     int index = PopTouchIndex();
@@ -1084,8 +1085,7 @@ unsigned Input::PopTouchIndex()
 
 void Input::PushTouchIndex(int touchID)
 {
-    QHash<int, int>::const_iterator ci = touchIDMap_.find(touchID);
-    if (ci == touchIDMap_.end())
+    if (!touchIDMap_.contains(touchID))
         return;
 
     int index = touchIDMap_[touchID];

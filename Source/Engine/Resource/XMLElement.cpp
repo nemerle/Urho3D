@@ -424,8 +424,8 @@ bool XMLElement::SetVariantMap(const VariantMap& value)
         XMLElement variantElem = CreateChild("variant");
         if (!variantElem)
             return false;
-        variantElem.SetInt("hash", iter.key().Value());
-        variantElem.SetVariant(iter.value());
+        variantElem.SetInt("hash", MAP_KEY(iter).Value());
+        variantElem.SetVariant(MAP_VALUE(iter));
     }
 
     return true;

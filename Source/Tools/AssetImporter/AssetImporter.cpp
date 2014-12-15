@@ -140,7 +140,7 @@ void BuildAndSaveAnimations(OutModel* model = nullptr);
 
 void ExportScene(const String& outName, bool asPrefab);
 void CollectSceneModels(OutScene& scene, aiNode* node);
-Node* CreateSceneNode(Scene* scene, aiNode* srcNode, QHash<aiNode*, WeakPtr<Node> >& nodeMapping);
+Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, WeakPtr<Node> >& nodeMapping);
 void BuildAndSaveScene(OutScene& scene, bool asPrefab);
 
 void ExportMaterials(QSet<String>& usedTextures);
@@ -1254,7 +1254,7 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
         CollectSceneModels(scene, node->mChildren[i]);
 }
 
-Node* CreateSceneNode(Scene* scene, aiNode* srcNode, QHash<aiNode*, Node*>& nodeMapping)
+Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping)
 {
     if (nodeMapping.contains(srcNode))
         return nodeMapping[srcNode];
@@ -1341,7 +1341,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
 
     ResourceCache* cache = context_->GetSubsystem<ResourceCache>();
 
-    QHash<aiNode*, Node*> nodeMapping;
+    HashMap<aiNode*, Node*> nodeMapping;
     Node* outRootNode = nullptr;
     if (asPrefab || !noHierarchy_)
         outRootNode = CreateSceneNode(outScene, rootNode_, nodeMapping);

@@ -496,18 +496,16 @@ void PhysicsWorld::ConvexCast(PhysicsRaycastResult& result, btCollisionShape* sh
 
 void PhysicsWorld::RemoveCachedGeometry(Model* model)
 {
-    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = triMeshCache_.begin();
-        i != triMeshCache_.end();)
+    for (auto i = triMeshCache_.begin(), fin = triMeshCache_.end(); i!=fin; )
     {
-        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current.key().first_ == model)
+        auto current = i++;
+        if (MAP_KEY(current).first_ == model)
             triMeshCache_.erase(current);
     }
-    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
-        i != convexCache_.end();)
+    for (auto i = convexCache_.begin(); i != convexCache_.end();)
     {
-        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current.key().first_ == model)
+        auto current = i++;
+        if (MAP_KEY(current).first_ == model)
             convexCache_.erase(current);
     }
 }
@@ -637,18 +635,16 @@ void PhysicsWorld::SetDebugDepthTest(bool enable)
 void PhysicsWorld::CleanupGeometryCache()
 {
     // Remove cached shapes whose only reference is the cache itself
-    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = triMeshCache_.begin();
-        i != triMeshCache_.end();)
+    for (auto i = triMeshCache_.begin(); i != triMeshCache_.end(); )
     {
-        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current->Refs() == 1)
+        auto current = i++;
+        if (MAP_VALUE(current).Refs() == 1)
             triMeshCache_.erase(current);
     }
-    for (QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator i = convexCache_.begin();
-        i != convexCache_.end();)
+    for (auto i = convexCache_.begin(); i != convexCache_.end();)
     {
-        QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator current = i++;
-        if (current->Refs() == 1)
+        auto current = i++;
+        if (MAP_VALUE(current).Refs() == 1)
             convexCache_.erase(current);
     }
 }
@@ -762,12 +758,12 @@ void PhysicsWorld::SendCollisionEvents()
 
         for (auto elem = currentCollisions_.begin(),fin=currentCollisions_.end(); elem!=fin; ++elem)
         {
-            RigidBody* bodyA = elem.key().first_;
-            RigidBody* bodyB = elem.key().second_;
+            RigidBody* bodyA = MAP_KEY(elem).first_;
+            RigidBody* bodyB = MAP_KEY(elem).second_;
             if (!bodyA || !bodyB)
                 continue;
 
-            btPersistentManifold* contactManifold = *elem;
+            btPersistentManifold* contactManifold = MAP_VALUE(elem);
 
             Node* nodeA = bodyA->GetNode();
             Node* nodeB = bodyB->GetNode();
@@ -775,7 +771,7 @@ void PhysicsWorld::SendCollisionEvents()
             WeakPtr<Node> nodeWeakB(nodeB);
 
             bool trigger = bodyA->IsTrigger() || bodyB->IsTrigger();
-            bool newCollision = !previousCollisions_.contains(elem.key());
+            bool newCollision = !previousCollisions_.contains(MAP_KEY(elem));
 
             physicsCollisionData_[PhysicsCollision::P_NODEA] = nodeA;
             physicsCollisionData_[PhysicsCollision::P_NODEB] = nodeB;
@@ -801,13 +797,13 @@ void PhysicsWorld::SendCollisionEvents()
             {
                 SendEvent(E_PHYSICSCOLLISIONSTART, physicsCollisionData_);
                 // Skip rest of processing if either of the nodes or bodies is removed as a response to the event
-                if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
+                if (!nodeWeakA || !nodeWeakB || !MAP_KEY(elem).first_ || !MAP_KEY(elem).second_)
                     continue;
             }
 
             // Then send the ongoing collision event
             SendEvent(E_PHYSICSCOLLISION, physicsCollisionData_);
-            if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
+            if (!nodeWeakA || !nodeWeakB || !MAP_KEY(elem).first_ || !MAP_KEY(elem).second_)
                 continue;
 
             nodeCollisionData_[NodeCollision::P_BODY] = bodyA;
@@ -819,12 +815,12 @@ void PhysicsWorld::SendCollisionEvents()
             if (newCollision)
             {
                 nodeA->SendEvent(E_NODECOLLISIONSTART, nodeCollisionData_);
-                if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
+                if (!nodeWeakA || !nodeWeakB || !MAP_KEY(elem).first_ || !MAP_KEY(elem).second_)
                     continue;
             }
 
             nodeA->SendEvent(E_NODECOLLISION, nodeCollisionData_);
-            if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
+            if (!nodeWeakA || !nodeWeakB || !MAP_KEY(elem).first_ || !MAP_KEY(elem).second_)
                 continue;
 
             contacts_.Clear();
@@ -845,7 +841,7 @@ void PhysicsWorld::SendCollisionEvents()
             if (newCollision)
             {
                 nodeB->SendEvent(E_NODECOLLISIONSTART, nodeCollisionData_);
-                if (!nodeWeakA || !nodeWeakB || !elem.key().first_ || !elem.key().second_)
+                if (!nodeWeakA || !nodeWeakB || !MAP_KEY(elem).first_ || !MAP_KEY(elem).second_)
                     continue;
             }
 

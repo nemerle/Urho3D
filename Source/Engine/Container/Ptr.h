@@ -161,7 +161,7 @@ public:
     int WeakRefs() const { return ptr_ ? ptr_->WeakRefs() : 0; }
     /// Return pointer to the RefCount structure.
     RefCount* RefCountPtr() const { return ptr_ ? ptr_->RefCountPtr() : 0; }
-    /// Return hash value for QSet & QHash.
+    /// Return hash value for QSet & HashMap.
     unsigned ToHash() const { return ((unsigned)(size_t)ptr_) / sizeof(T); }
 
 private:
@@ -388,7 +388,7 @@ public:
     bool Expired() const { return refCount_ ? refCount_->refs_ < 0 : true; }
     /// Return pointer to the RefCount structure.
     RefCount* RefCountPtr() const { return refCount_; }
-    /// Return hash value for QSet & QHash.
+    /// Return hash value for QSet & HashMap.
     unsigned ToHash() const { return ((unsigned)(size_t)ptr_) / sizeof(T); }
 
 private:
@@ -450,4 +450,13 @@ inline uint qHash(const Urho3D::WeakPtr<T> & key, uint seed)
     return key.ToHash();
 }
 
+}
+
+namespace std {
+template <class T>
+struct hash< Urho3D::WeakPtr<T> > {
+    size_t operator()(const Urho3D::WeakPtr<T> & key) const {
+        return key.ToHash();
+    }
+};
 }

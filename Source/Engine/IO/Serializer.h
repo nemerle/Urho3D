@@ -24,7 +24,6 @@
 
 #include "StringHash.h"
 #include "Variant.h"
-#include <QtCore/QHash>
 
 namespace Urho3D
 {

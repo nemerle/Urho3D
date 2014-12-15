@@ -1002,10 +1002,10 @@ void CollisionShape::UpdateShape()
             {
                 // Check the geometry cache
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
-                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetTriMeshCache();
-                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
+                auto & cache = physicsWorld_->GetTriMeshCache();
+                auto j = cache.find(id);
                 if (j != cache.end())
-                    geometry_ = *j;
+                    geometry_ = MAP_VALUE(j);
                 else
                 {
                     geometry_ = new TriangleMeshData(model_, lodLevel_);
@@ -1041,10 +1041,10 @@ void CollisionShape::UpdateShape()
             {
                 // Check the geometry cache
                 Pair<Model*, unsigned> id = MakePair(model_.Get(), lodLevel_);
-                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >& cache = physicsWorld_->GetConvexCache();
-                QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> >::Iterator j = cache.find(id);
+                auto & cache = physicsWorld_->GetConvexCache();
+                auto j = cache.find(id);
                 if (j != cache.end())
-                    geometry_ = *j;
+                    geometry_ = MAP_VALUE(j);
                 else
                 {
                     geometry_ = new ConvexData(model_, lodLevel_);

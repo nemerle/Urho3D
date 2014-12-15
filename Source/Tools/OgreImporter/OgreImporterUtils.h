@@ -219,7 +219,7 @@ struct ModelSubGeometryLodLevel
     unsigned indexBuffer_;
     unsigned indexStart_;
     unsigned indexCount_;
-    QHash<unsigned, PODVector<BoneWeightAssignment> > boneWeights_;
+    HashMap<unsigned, PODVector<BoneWeightAssignment> > boneWeights_;
     PODVector<unsigned> boneMapping_;
 
     ModelSubGeometryLodLevel() :

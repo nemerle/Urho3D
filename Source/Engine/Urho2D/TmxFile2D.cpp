@@ -419,19 +419,19 @@ bool TmxFile2D::EndLoad()
 
 Sprite2D* TmxFile2D::GetTileSprite(int gid) const
 {
-    QHash<int, SharedPtr<Sprite2D> >::const_iterator i = gidToSpriteMapping_.find(gid);
+    HashMap<int, SharedPtr<Sprite2D> >::const_iterator i = gidToSpriteMapping_.find(gid);
     if (i == gidToSpriteMapping_.end())
         return nullptr;
 
-    return (*i);
+    return MAP_VALUE(i);
 }
 
 PropertySet2D* TmxFile2D::GetTilePropertySet(int gid) const
 {
-    QHash<int, SharedPtr<PropertySet2D> >::const_iterator i = gidToPropertySetMapping_.find(gid);
+    HashMap<int, SharedPtr<PropertySet2D> >::const_iterator i = gidToPropertySetMapping_.find(gid);
     if (i == gidToPropertySetMapping_.end())
         return nullptr;
-    return (*i);
+    return MAP_VALUE(i);
 }
 
 const TmxLayer2D* TmxFile2D::GetLayer(unsigned index) const
@@ -465,7 +465,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
     if (element.HasAttribute("source"))
     {
         String source = element.GetAttribute("source");
-        QHash<String, SharedPtr<XMLFile> >::Iterator i = tsxXMLFiles_.find(source);
+        HashMap<String, SharedPtr<XMLFile> >::iterator i = tsxXMLFiles_.find(source);
         if (i == tsxXMLFiles_.end())
         {
             SharedPtr<XMLFile> tsxXMLFile = LoadTSXFile(source);
@@ -478,7 +478,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
             tileSetElem = tsxXMLFile->GetRoot("tileset");
         }
         else
-            tileSetElem = (*i)->GetRoot("tileset");
+            tileSetElem = MAP_VALUE(i)->GetRoot("tileset");
     }
     else
         tileSetElem = element;

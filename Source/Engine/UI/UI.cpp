@@ -301,7 +301,7 @@ void UI::Update(float timeStep)
 
     // Expire hovers
     for (auto & elem : hoveredElements_)
-        elem = false;
+        ELEMENT_VALUE(elem) = false;
 
     Input* input = GetSubsystem<Input>();
     bool mouseGrabbed = input->IsMouseGrabbed();
@@ -313,10 +313,10 @@ void UI::Update(float timeStep)
     // Drag begin based on time
     if (dragElementsCount_ > 0 && !mouseGrabbed)
     {
-        for (QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end(); )
+        for (auto i = dragElements_.begin(); i != dragElements_.end(); )
         {
-            WeakPtr<UIElement> dragElement = i.key();
-            UI::DragData* dragData = *i;
+            WeakPtr<UIElement> dragElement = MAP_KEY(i);
+            UI::DragData* dragData = MAP_VALUE(i);
 
             if (!dragElement)
             {
@@ -363,11 +363,11 @@ void UI::Update(float timeStep)
     }
 
     // End hovers that expired without refreshing
-    for (QHash<WeakPtr<UIElement>, bool>::Iterator i = hoveredElements_.begin(); i != hoveredElements_.end();)
+    for (auto i = hoveredElements_.begin(); i != hoveredElements_.end();)
     {
-        if (i.key().Expired() || !*i)
+        if (MAP_KEY(i).Expired() || !MAP_VALUE(i))
         {
-            UIElement* element = i.key();
+            UIElement* element = MAP_KEY(i);
             if (element)
             {
                 using namespace HoverEnd;
@@ -627,10 +627,10 @@ const Vector<UIElement*> UI::GetDragElements()
     if (!dragElementsConfirmed_.empty())
         return dragElementsConfirmed_;
 
-    for (QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end(); )
+    for (auto i = dragElements_.begin(); i != dragElements_.end(); )
     {
-        WeakPtr<UIElement> dragElement = i.key();
-        UI::DragData* dragData = *i;
+        WeakPtr<UIElement> dragElement = MAP_KEY(i);
+        UI::DragData* dragData = MAP_VALUE(i);
 
         if (!dragElement)
         {
@@ -986,10 +986,10 @@ void UI::ProcessHover(const IntVector2& cursorPos, int buttons, int qualifiers, 
 {
     WeakPtr<UIElement> element(GetElementAt(cursorPos));
 
-    for (QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
+    for (auto i = dragElements_.begin(); i != dragElements_.end();)
     {
-        WeakPtr<UIElement> dragElement = i.key();
-        UI::DragData* dragData = *i;
+        WeakPtr<UIElement> dragElement = MAP_KEY(i);
+        UI::DragData* dragData = MAP_VALUE(i);
 
         if (!dragElement)
         {
@@ -1154,10 +1154,10 @@ void UI::ProcessClickEnd(const IntVector2& cursorPos, int button, int buttons, i
         WeakPtr<UIElement> element(GetElementAt(cursorPos));
 
         // Handle end of drag
-        for (QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
+        for (auto i = dragElements_.begin(); i != dragElements_.end();)
         {
-            WeakPtr<UIElement> dragElement = i.key();
-            UI::DragData* dragData = *i;
+            WeakPtr<UIElement> dragElement = MAP_KEY(i);
+            UI::DragData* dragData = MAP_VALUE(i);
 
             if (!dragElement)
             {
@@ -1217,10 +1217,10 @@ void UI::ProcessMove(const IntVector2& cursorPos, const IntVector2& cursorDeltaP
     {
         Input* input = GetSubsystem<Input>();
         bool mouseGrabbed = input->IsMouseGrabbed();
-        for (QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
+        for (auto i = dragElements_.begin(); i != dragElements_.end();)
         {
-            WeakPtr<UIElement> dragElement = i.key();
-            UI::DragData* dragData = *i;
+            WeakPtr<UIElement> dragElement = MAP_KEY(i);
+            UI::DragData* dragData = MAP_VALUE(i);
 
             if (!dragElement)
             {
@@ -1510,7 +1510,7 @@ void UI::HandleTouchEnd(StringHash eventType, VariantMap& eventData)
     // Clear any drag events that were using the touch id
     for (auto i = touchDragElements_.begin(),fin=touchDragElements_.end(); i != fin; )
     {
-        int touches = *i;
+        int touches = MAP_VALUE(i);
         if (touches & touchId)
             i = touchDragElements_.erase(i);
         else
@@ -1672,12 +1672,12 @@ void UI::HandleDropFile(StringHash eventType, VariantMap& eventData)
     }
 }
 
-QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator UI::dragElementErase(QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i)
+HashMap<WeakPtr<UIElement>, UI::DragData*>::iterator UI::dragElementErase(HashMap<WeakPtr<UIElement>, DragData*>::iterator i)
 {
     dragElementsConfirmed_.clear();
 
-    WeakPtr<UIElement> dragElement = i.key();
-    DragData* dragData = *i;
+    WeakPtr<UIElement> dragElement = MAP_KEY(i);
+    DragData* dragData = MAP_VALUE(i);
 
     if (!dragData->dragBeginPending)
         dragConfirmedCount_ --;
@@ -1698,10 +1698,10 @@ void UI::ProcessDragCancel()
     bool cursorVisible;
     GetCursorPositionAndVisible(cursorPos, cursorVisible);
 
-    for (QHash<WeakPtr<UIElement>, UI::DragData*>::Iterator i = dragElements_.begin(); i != dragElements_.end();)
+    for (auto i = dragElements_.begin(); i != dragElements_.end();)
     {
-        WeakPtr<UIElement> dragElement = i.key();
-        UI::DragData* dragData = *i;
+        WeakPtr<UIElement> dragElement = MAP_KEY(i);
+        UI::DragData* dragData = MAP_VALUE(i);
 
         if (dragElement && dragElement->IsEnabled() && dragElement->IsVisible() && !dragData->dragBeginPending)
         {

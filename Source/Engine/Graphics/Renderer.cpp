@@ -421,8 +421,8 @@ void Renderer::SetMaxShadowMaps(int shadowMaps)
     maxShadowMaps_ = shadowMaps;
     for (auto & elem : shadowMaps_)
     {
-        if ((int)elem.size() > maxShadowMaps_)
-            elem.resize(maxShadowMaps_);
+        if ((int)ELEMENT_VALUE(elem).size() > maxShadowMaps_)
+            ELEMENT_VALUE(elem).resize(maxShadowMaps_);
     }
 }
 
@@ -867,7 +867,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     auto entry = shadowMaps_.find(searchKey);
     if (entry != shadowMaps_.end())
     {
-        Vector<SharedPtr<Texture2D> > &shadowmap(*entry);
+        Vector<SharedPtr<Texture2D> > &shadowmap(MAP_VALUE(entry));
         // If shadow maps are reused, always return the first
         if (reuseShadowMaps_)
             return shadowmap[0];
@@ -1341,9 +1341,9 @@ const Rect& Renderer::GetLightScissor(Light* light, Camera* camera)
 {
     Pair<Light*, Camera*> combination(light, camera);
 
-    QHash<Pair<Light*, Camera*>, Rect>::Iterator i = lightScissorCache_.find(combination);
+    HashMap<Pair<Light*, Camera*>, Rect>::iterator i = lightScissorCache_.find(combination);
     if (i != lightScissorCache_.end())
-        return *i;
+        return MAP_VALUE(i);
 
     const Matrix3x4& view = camera->GetView();
     const Matrix4& projection = camera->GetProjection();
@@ -1379,10 +1379,10 @@ void Renderer::RemoveUnusedBuffers()
         }
     }
 
-    for (QHash<long long, Vector<SharedPtr<Texture2D> > >::Iterator i = screenBuffers_.begin(); i != screenBuffers_.end();)
+    for (auto i = screenBuffers_.begin(); i != screenBuffers_.end();)
     {
-        QHash<long long, Vector<SharedPtr<Texture2D> > >::Iterator current = i++;
-        Vector<SharedPtr<Texture2D> >& buffers = *current;
+        auto current = i++;
+        Vector<SharedPtr<Texture2D> >& buffers = MAP_VALUE(current);
         for (unsigned j = buffers.size() - 1; j < buffers.size(); --j)
         {
             Texture2D* buffer = buffers[j];
@@ -1394,7 +1394,7 @@ void Renderer::RemoveUnusedBuffers()
         }
         if (buffers.empty())
         {
-            screenBufferAllocations_.remove(current.key());
+            screenBufferAllocations_.remove(MAP_KEY(current));
             screenBuffers_.erase(current);
         }
     }
@@ -1402,14 +1402,14 @@ void Renderer::RemoveUnusedBuffers()
 
 void Renderer::ResetShadowMapAllocations()
 {
-    for (PODVector<Light*> & elem : shadowMapAllocations_)
-        elem.clear();
+    for (auto & elem : shadowMapAllocations_)
+        ELEMENT_VALUE(elem).clear();
 }
 
 void Renderer::ResetScreenBufferAllocations()
 {
     for (auto & elem : screenBufferAllocations_)
-        elem = 0;
+        ELEMENT_VALUE(elem) = 0;
 }
 
 void Renderer::Initialize()

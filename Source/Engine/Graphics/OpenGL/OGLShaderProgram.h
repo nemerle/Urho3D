@@ -25,7 +25,8 @@
 #include "GPUObject.h"
 #include "GraphicsDefs.h"
 #include "RefCounted.h"
-#include <QtCore/QHash>
+#include "HashMap.h"
+
 
 namespace Urho3D
 {
@@ -78,7 +79,7 @@ private:
     /// Pixel shader.
     WeakPtr<ShaderVariation> pixelShader_;
     /// Shader parameters.
-    QHash<StringHash, ShaderParameter> shaderParameters_;
+    HashMap<StringHash, ShaderParameter> shaderParameters_;
     /// Texture unit use.
     bool useTextureUnit_[MAX_TEXTURE_UNITS];
     /// Shader link error string.

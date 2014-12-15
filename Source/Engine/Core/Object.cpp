@@ -350,11 +350,11 @@ bool Object::HasSubscribedToEvent(Object* sender, StringHash eventType) const
 
 const String& Object::GetCategory() const
 {
-    const QHash<String, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
+    const HashMap<String, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
     for (auto iter = objectCategories.begin(),fin=objectCategories.end(); iter!=fin; ++iter)
     {
-        if (iter->contains(GetType()))
-            return iter.key();
+        if (MAP_VALUE(iter).contains(GetType()))
+            return MAP_KEY(iter);
     }
 
     return String::EMPTY;

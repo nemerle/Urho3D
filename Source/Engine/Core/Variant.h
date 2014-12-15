@@ -28,8 +28,8 @@
 #include "Ptr.h"
 #include "Rect.h"
 #include "StringHash.h"
+#include "HashMap.h"
 
-#include <QtCore/QHash>
 
 namespace Urho3D
 {
@@ -187,7 +187,7 @@ static_assert(sizeof(VariantValue)>=sizeof(VariantVector),"Variant value must be
 
 
 /// Map of variants.
-typedef QHash<StringHash, Variant> VariantMap;
+typedef HashMap<StringHash, Variant> VariantMap;
 
 /// Variable that supports a fixed set of types.
 class URHO3D_API Variant

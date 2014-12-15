@@ -24,9 +24,9 @@
 
 #include "Urho3D.h"
 #include "Str.h"
-
+#include "HashMap.h"
 #include <angelscript.h>
-#include <QtCore/QHash>
+
 // Adapted from Angelscript's scriptarray, scriptdictionary & scriptstdstring add-ons, but with garbage collection disabled
 
 namespace Urho3D
@@ -260,11 +260,11 @@ public:
 
         CIterator();
         CIterator(const CScriptDictionary &dict,
-                  QHash<String, CScriptDictValue>::const_iterator it);
+                  HashMap<String, CScriptDictValue>::const_iterator it);
 
         CIterator &operator=(const CIterator &) {return *this;} // Not used
 
-        QHash<String, CScriptDictValue>::const_iterator m_it;
+        HashMap<String, CScriptDictValue>::const_iterator m_it;
         const CScriptDictionary &m_dict;
     };
 
@@ -294,7 +294,7 @@ protected:
     mutable bool gcFlag;
 
     // TODO: memory: The allocator should use the asAllocMem and asFreeMem
-    QHash<String, CScriptDictValue> dict;
+    HashMap<String, CScriptDictValue> dict;
 };
 
 /// Register the array type to script.

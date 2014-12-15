@@ -386,16 +386,17 @@ bool Material::Save(XMLElement& dest) const
     }
 
     // Write shader parameters
-    for (const MaterialShaderParameter & param : shaderParameters_)
+    for (const auto & param : shaderParameters_)
     {
         XMLElement parameterElem = dest.CreateChild("parameter");
-        parameterElem.SetString("name", param.name_);
-        parameterElem.SetVectorVariant("value", param.value_);
+        parameterElem.SetString("name", ELEMENT_VALUE(param).name_);
+        parameterElem.SetVectorVariant("value", ELEMENT_VALUE(param).value_);
     }
 
     // Write shader parameter animations
-    for (ShaderParameterAnimationInfo* info: shaderParameterAnimationInfos_)
+    for (auto &elem : shaderParameterAnimationInfos_)
     {
+        ShaderParameterAnimationInfo* info = ELEMENT_VALUE(elem);
         XMLElement parameterAnimationElem = dest.CreateChild("parameteranimation");
         parameterAnimationElem.SetString("name", info->GetName());
         if (!info->GetAnimation()->SaveXML(parameterAnimationElem))
@@ -661,7 +662,7 @@ Texture* Material::GetTexture(TextureUnit unit) const
 const Variant& Material::GetShaderParameter(const String& name) const
 {
     auto i = shaderParameters_.find(name);
-    return i != shaderParameters_.end() ? i->value_ : Variant::EMPTY;
+    return i != shaderParameters_.end() ? MAP_VALUE(i).value_ : Variant::EMPTY;
 }
 
 ValueAnimation* Material::GetShaderParameterAnimation(const String& name) const
@@ -762,7 +763,7 @@ ShaderParameterAnimationInfo* Material::GetShaderParameterAnimationInfo(const St
     auto i = shaderParameterAnimationInfos_.find(nameHash);
     if (i == shaderParameterAnimationInfos_.end())
         return nullptr;
-    return *i;
+    return MAP_VALUE(i);
 }
 
 void Material::UpdateEventSubscription()
@@ -790,10 +791,10 @@ void Material::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& 
 
     Vector<String> finishedNames;
 
-    for (SharedPtr<ShaderParameterAnimationInfo> &i : shaderParameterAnimationInfos_)
+    for (auto &i : shaderParameterAnimationInfos_)
     {
-        if (i->Update(timeStep))
-            finishedNames.push_back(i->GetName());
+        if (ELEMENT_VALUE(i)->Update(timeStep))
+            finishedNames.push_back(ELEMENT_VALUE(i)->GetName());
     }
 
     // Remove finished animations

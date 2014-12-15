@@ -127,7 +127,7 @@ protected:
     /// Animated network attribute set.
     QSet<const AttributeInfo*> animatedNetworkAttributes_;
     /// Attribute animation infos.
-    QHash<String, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
+    HashMap<String, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
 };
 
 }

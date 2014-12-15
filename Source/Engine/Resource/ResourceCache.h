@@ -56,7 +56,7 @@ struct ResourceGroup
     /// Current memory use.
     unsigned memoryUse_;
     /// Resources.
-    QHash<StringHash, SharedPtr<Resource> > resources_;
+    HashMap<StringHash, SharedPtr<Resource> > resources_;
 };
 
 /// Resource request types.
@@ -215,7 +215,7 @@ private:
     /// Package files.
     Vector<SharedPtr<PackageFile> > packages_;
     /// Dependent resources. Only used with automatic reload to eg. trigger reload of a cube texture when any of its faces change.
-    QHash<StringHash, QSet<StringHash> > dependentResources_;
+    HashMap<StringHash, QSet<StringHash> > dependentResources_;
     /// Resource background loader.
     SharedPtr<BackgroundLoader> backgroundLoader_;
     /// Resource router.

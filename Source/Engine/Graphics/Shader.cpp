@@ -113,10 +113,10 @@ bool Shader::BeginLoad(Deserializer& source)
 bool Shader::EndLoad()
 {
     // If variations had already been created, release them and require recompile
-    for (SharedPtr<ShaderVariation> & elem : vsVariations_)
-        elem->Release();
-    for (SharedPtr<ShaderVariation> & elem : psVariations_)
-        elem->Release();
+    for (auto & elem : vsVariations_)
+        ELEMENT_VALUE(elem)->Release();
+    for (auto & elem : psVariations_)
+        ELEMENT_VALUE(elem)->Release();
 
     return true;
 }
@@ -129,62 +129,33 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const String& defines)
 ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
 {
     StringHash definesHash(defines);
-
-    if (type == VS)
+    HashMap<StringHash, SharedPtr<ShaderVariation> > & variations(type == VS ? vsVariations_ : psVariations_);
+    auto i = variations.find(definesHash);
+    if (i == variations.end())
     {
-        QHash<StringHash, SharedPtr<ShaderVariation> >::Iterator i = vsVariations_.find(definesHash);
-        if (i == vsVariations_.end())
+        // If shader not found, normalize the defines (to prevent duplicates) and check again. In that case make an alias
+        // so that further queries are faster
+        String normalizedDefines = NormalizeDefines(defines);
+        StringHash normalizedHash(normalizedDefines);
+
+        i = variations.find(normalizedHash);
+        if (i != variations.end())
+            variations.emplace(definesHash, MAP_VALUE(i));
+        else
         {
-            // If shader not found, normalize the defines (to prevent duplicates) and check again. In that case make an alias
-            // so that further queries are faster
-            String normalizedDefines = NormalizeDefines(defines);
-            StringHash normalizedHash(normalizedDefines);
+            // No shader variation found. Create new
+            i = variations.emplace(normalizedHash, SharedPtr<ShaderVariation>(new ShaderVariation(this, type))).first;
+            if (definesHash != normalizedHash)
+                variations.emplace(definesHash, MAP_VALUE(i));
 
-            i = vsVariations_.find(normalizedHash);
-            if (i != vsVariations_.end())
-                vsVariations_.insert(definesHash, *i);
-            else
-            {
-                // No shader variation found. Create new
-                i = vsVariations_.insert(normalizedHash, SharedPtr<ShaderVariation>(new ShaderVariation(this, VS)));
-                if (definesHash != normalizedHash)
-                    vsVariations_.insert(definesHash, *i);
-
-                (*i)->SetName(GetFileName(GetName()));
-                (*i)->SetDefines(normalizedDefines);
-                ++numVariations_;
-                RefreshMemoryUse();
-            }
+            MAP_VALUE(i)->SetName(GetFileName(GetName()));
+            MAP_VALUE(i)->SetDefines(normalizedDefines);
+            ++numVariations_;
+            RefreshMemoryUse();
         }
-
-        return *i;
     }
-    else
-    {
-        QHash<StringHash, SharedPtr<ShaderVariation> >::Iterator i = psVariations_.find(definesHash);
-        if (i == psVariations_.end())
-        {
-            String normalizedDefines = NormalizeDefines(defines);
-            StringHash normalizedHash(normalizedDefines);
 
-            i = psVariations_.find(normalizedHash);
-            if (i != psVariations_.end())
-                psVariations_.insert(definesHash, *i);
-            else
-            {
-                i = psVariations_.insert(normalizedHash, SharedPtr<ShaderVariation>(new ShaderVariation(this, PS)));
-                if (definesHash != normalizedHash)
-                    psVariations_.insert(definesHash, *i);
-
-                (*i)->SetName(GetFileName(GetName()));
-                (*i)->SetDefines(normalizedDefines);
-                ++numVariations_;
-                RefreshMemoryUse();
-            }
-        }
-
-        return *i;
-    }
+    return MAP_VALUE(i);
 }
 
 bool Shader::ProcessSource(String& code, Deserializer& source)

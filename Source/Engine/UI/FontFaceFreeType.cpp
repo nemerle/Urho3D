@@ -132,7 +132,7 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
 
     FT_UInt glyphIndex;
     unsigned numGlyphs = 0;
-    QHash<unsigned, unsigned> indexToCharMapping;
+    HashMap<unsigned, unsigned> indexToCharMapping;
 
     FT_ULong charCode = FT_Get_First_Char(face, &glyphIndex);
     while (glyphIndex != 0)
@@ -239,11 +239,11 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
                         unsigned rightIndex = deserializer.ReadUShort();
                         short amount = (short)(deserializer.ReadShort() >> 6);
 
-                        QHash<unsigned, unsigned>::const_iterator leftIter = indexToCharMapping.find(leftIndex);
-                        QHash<unsigned, unsigned>::const_iterator rightIter = indexToCharMapping.find(rightIndex);
+                        HashMap<unsigned, unsigned>::const_iterator leftIter = indexToCharMapping.find(leftIndex);
+                        HashMap<unsigned, unsigned>::const_iterator rightIter = indexToCharMapping.find(rightIndex);
                         if (leftIter != indexToCharMapping.end() && rightIter != indexToCharMapping.end())
                         {
-                            unsigned value = (*leftIter << 16) + *rightIter;
+                            unsigned value = (MAP_VALUE(leftIter) << 16) + MAP_VALUE(rightIter);
                             kerningMapping_[value] = amount;
                         }
                         else
@@ -275,20 +275,20 @@ bool FontFaceFreeType::Load(const unsigned char* fontData, unsigned fontDataSize
 
 const FontGlyph* FontFaceFreeType::GetGlyph(unsigned c)
 {
-    QHash<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
+    HashMap<unsigned, FontGlyph>::iterator i = glyphMapping_.find(c);
     if (i != glyphMapping_.end())
     {
-        FontGlyph& glyph = *i;
+        FontGlyph& glyph = MAP_VALUE(i);
         glyph.used_ = true;
         return &glyph;
     }
 
     if (LoadCharGlyph(c))
     {
-        QHash<unsigned, FontGlyph>::Iterator i = glyphMapping_.find(c);
+        HashMap<unsigned, FontGlyph>::iterator i = glyphMapping_.find(c);
         if (i != glyphMapping_.end())
         {
-            FontGlyph& glyph = *i;
+            FontGlyph& glyph = MAP_VALUE(i);
             glyph.used_ = true;
             return &glyph;
         }

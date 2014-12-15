@@ -62,8 +62,9 @@ void SceneResolver::Resolve()
 {
     // Nodes do not have component or node ID attributes, so only have to go through components
     QSet<StringHash> noIDAttributes;
-    for (Component * component : components_)
+    for (auto & elem : components_)
     {
+        Component * component = ELEMENT_VALUE(elem);
         if (!component || noIDAttributes.contains(component->GetType()))
             continue;
 
@@ -85,11 +86,11 @@ void SceneResolver::Resolve()
 
                 if (oldNodeID)
                 {
-                    QHash<unsigned, WeakPtr<Node> >::ConstIterator k = nodes_.find(oldNodeID);
+                    HashMap<unsigned, WeakPtr<Node> >::const_iterator k = nodes_.find(oldNodeID);
 
-                    if (k != nodes_.end() && *k)
+                    if (k != nodes_.end() && MAP_VALUE(k))
                     {
-                        unsigned newNodeID = (*k)->GetID();
+                        unsigned newNodeID = MAP_VALUE(k)->GetID();
                         component->SetAttribute(j, Variant(newNodeID));
                     }
                     else
@@ -103,11 +104,11 @@ void SceneResolver::Resolve()
 
                 if (oldComponentID)
                 {
-                    QHash<unsigned, WeakPtr<Component> >::ConstIterator k = components_.find(oldComponentID);
+                    HashMap<unsigned, WeakPtr<Component> >::const_iterator k = components_.find(oldComponentID);
 
-                    if (k != components_.end() && *k)
+                    if (k != components_.end() && MAP_VALUE(k))
                     {
-                        unsigned newComponentID = (*k)->GetID();
+                        unsigned newComponentID = MAP_VALUE(k)->GetID();
                         component->SetAttribute(j, Variant(newComponentID));
                     }
                     else
@@ -129,10 +130,10 @@ void SceneResolver::Resolve()
                     for (unsigned k = 1; k < oldNodeIDs.size(); ++k)
                     {
                         unsigned oldNodeID = oldNodeIDs[k].GetUInt();
-                        QHash<unsigned, WeakPtr<Node> >::ConstIterator l = nodes_.find(oldNodeID);
+                        HashMap<unsigned, WeakPtr<Node> >::const_iterator l = nodes_.find(oldNodeID);
 
-                        if (l != nodes_.end() && (*l))
-                            newIDs.push_back((*l)->GetID());
+                        if (l != nodes_.end() && MAP_VALUE(l))
+                            newIDs.push_back(MAP_VALUE(l)->GetID());
                         else
                         {
                             // If node was not found, retain number of elements, just store ID 0

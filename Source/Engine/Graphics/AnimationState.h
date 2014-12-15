@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <QtCore/QHash>
 #include "Ptr.h"
 
 namespace Urho3D

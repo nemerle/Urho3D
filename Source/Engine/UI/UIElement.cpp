@@ -1521,7 +1521,7 @@ const Color& UIElement::GetDerivedColor() const
 const Variant& UIElement::GetVar(const StringHash& key) const
 {
     auto i = vars_.find(key);
-    return i != vars_.end() ? *i : Variant::EMPTY;
+    return i != vars_.end() ? MAP_VALUE(i) : Variant::EMPTY;
 }
 
 IntVector2 UIElement::ScreenToElement(const IntVector2& screenPosition)

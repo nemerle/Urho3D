@@ -1115,15 +1115,15 @@ void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
         pixelShader_ = ps;
 
         Pair<ShaderVariation*, ShaderVariation*> combination(vs, ps);
-        ShaderProgramMap::Iterator i = shaderPrograms_.find(combination);
+        ShaderProgramMap::iterator i = shaderPrograms_.find(combination);
 
         if (i != shaderPrograms_.end())
         {
             // Use the existing linked program
-            if ((*i)->GetGPUObject())
+            if (MAP_VALUE(i)->GetGPUObject())
             {
-                glUseProgram((*i)->GetGPUObject());
-                shaderProgram_ = *i;
+                glUseProgram(MAP_VALUE(i)->GetGPUObject());
+                shaderProgram_ = MAP_VALUE(i);
             }
             else
             {
@@ -1438,10 +1438,10 @@ void Graphics::CleanupShaderPrograms()
     if (releasingGPUObjects_)
         return;
 
-    for (ShaderProgramMap::Iterator i = shaderPrograms_.begin(); i != shaderPrograms_.end();)
+    for (ShaderProgramMap::iterator i = shaderPrograms_.begin(); i != shaderPrograms_.end();)
     {
-        ShaderVariation* vs = (*i)->GetVertexShader();
-        ShaderVariation* ps = (*i)->GetPixelShader();
+        ShaderVariation* vs = MAP_VALUE(i)->GetVertexShader();
+        ShaderVariation* ps = MAP_VALUE(i)->GetPixelShader();
 
         if (!vs || !ps || !vs->GetGPUObject() || !ps->GetGPUObject())
             i = shaderPrograms_.erase(i);
@@ -1619,9 +1619,9 @@ void Graphics::SetDepthStencil(RenderSurface* depthStencil)
         if (width <= width_ && height <= height_)
         {
             int searchKey = (width << 16) | height;
-            QHash<int, SharedPtr<Texture2D> >::Iterator i = depthTextures_.find(searchKey);
+            auto i = depthTextures_.find(searchKey);
             if (i != depthTextures_.end())
-                depthStencil = (*i)->GetRenderSurface();
+                depthStencil = MAP_VALUE(i)->GetRenderSurface();
             else
             {
                 SharedPtr<Texture2D> newDepthTexture(new Texture2D(context_));
@@ -2050,7 +2050,7 @@ unsigned Graphics::GetFormat(CompressedFormat format) const
     {
     case CF_RGBA:
         return GL_RGBA;
-        
+
     case CF_DXT1:
         return dxtTextureSupport_ ? GL_COMPRESSED_RGBA_S3TC_DXT1_EXT : 0;
 
@@ -2112,9 +2112,9 @@ VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
 
 TextureUnit Graphics::GetTextureUnit(const String& name)
 {
-    QHash<String, TextureUnit>::Iterator i = textureUnits_.find(name);
+    auto i = textureUnits_.find(name);
     if (i != textureUnits_.end())
-        return *i;
+        return MAP_VALUE(i);
     else
         return MAX_TEXTURE_UNITS;
 }
@@ -2123,8 +2123,8 @@ const String& Graphics::GetTextureUnitName(TextureUnit unit)
 {
     for (auto elem=textureUnits_.begin(),fin=textureUnits_.end(); elem!=fin; ++elem)
     {
-        if (*elem == unit)
-            return elem.key();
+        if (MAP_VALUE(elem) == unit)
+            return MAP_KEY(elem);
     }
     return String::EMPTY;
 }
@@ -2437,8 +2437,9 @@ void Graphics::CleanupRenderSurface(RenderSurface* surface)
     unsigned currentFbo = impl_->boundFbo_;
 
     // Go through all FBOs and clean up the surface from them
-    for (FrameBufferObject & elem : impl_->frameBuffers_)
+    for (auto & iter : impl_->frameBuffers_)
     {
+        FrameBufferObject & elem(ELEMENT_VALUE(iter));
         for (unsigned j = 0; j < MAX_RENDERTARGETS; ++j)
         {
             if (elem.colorAttachments_[j] == surface)
@@ -2749,28 +2750,28 @@ void Graphics::CommitFramebuffer()
 
     unsigned long long fboKey = (rtSize.x_ << 16 | rtSize.y_) | (((unsigned long long)format) << 32);
 
-    QHash<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.find(fboKey);
+    auto i = impl_->frameBuffers_.find(fboKey);
     if (i == impl_->frameBuffers_.end())
     {
         FrameBufferObject newFbo;
         glGenFramebuffersEXT(1, &newFbo.fbo_);
-        i = impl_->frameBuffers_.insert(fboKey, newFbo);
+        i = impl_->frameBuffers_.emplace(fboKey, newFbo).first;
     }
 
-    i->useTimer_.Reset();
+    MAP_VALUE(i).useTimer_.Reset();
 
-    if (impl_->boundFbo_ != i->fbo_)
+    if (impl_->boundFbo_ != MAP_VALUE(i).fbo_)
     {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, i->fbo_);
-        impl_->boundFbo_ = i->fbo_;
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, MAP_VALUE(i).fbo_);
+        impl_->boundFbo_ = MAP_VALUE(i).fbo_;
     }
 
     #ifndef GL_ES_VERSION_2_0
     // Setup readbuffers & drawbuffers if needed
-    if (i->readBuffers_ != GL_NONE)
+    if (MAP_VALUE(i).readBuffers_ != GL_NONE)
     {
         glReadBuffer(GL_NONE);
-        i->readBuffers_ = GL_NONE;
+        MAP_VALUE(i).readBuffers_ = GL_NONE;
     }
 
     // Calculate the bit combination of non-zero color rendertargets to first check if the combination changed
@@ -2781,7 +2782,7 @@ void Graphics::CommitFramebuffer()
             newDrawBuffers |= 1 << i;
     }
 
-    if (newDrawBuffers != i->drawBuffers_)
+    if (newDrawBuffers != MAP_VALUE(i).drawBuffers_)
     {
         // Check for no color rendertargets (depth rendering only)
         if (!newDrawBuffers)
@@ -2799,7 +2800,7 @@ void Graphics::CommitFramebuffer()
             glDrawBuffers(drawBufferCount, (const GLenum*)drawBufferIds);
         }
 
-        i->drawBuffers_ = newDrawBuffers;
+        MAP_VALUE(i).drawBuffers_ = newDrawBuffers;
     }
     #endif
 
@@ -2817,19 +2818,19 @@ void Graphics::CommitFramebuffer()
                 SetTexture(0, nullptr);
             }
 
-            if (i->colorAttachments_[j] != renderTargets_[j])
+            if (MAP_VALUE(i).colorAttachments_[j] != renderTargets_[j])
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, renderTargets_[j]->GetTarget(),
                     texture->GetGPUObject(), 0);
-                i->colorAttachments_[j] = renderTargets_[j];
+                MAP_VALUE(i).colorAttachments_[j] = renderTargets_[j];
             }
         }
         else
         {
-            if (i->colorAttachments_[j])
+            if (MAP_VALUE(i).colorAttachments_[j])
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, 0, 0);
-                i->colorAttachments_[j] = nullptr;
+                MAP_VALUE(i).colorAttachments_[j] = nullptr;
             }
         }
     }
@@ -2854,7 +2855,7 @@ void Graphics::CommitFramebuffer()
                 SetTexture(0, nullptr);
             }
 
-            if (i->depthAttachment_ != depthStencil_)
+            if (MAP_VALUE(i).depthAttachment_ != depthStencil_)
             {
                 glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, texture->GetGPUObject(), 0);
                 if (hasStencil)
@@ -2865,12 +2866,12 @@ void Graphics::CommitFramebuffer()
                 else
                     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
 
-                i->depthAttachment_ = depthStencil_;
+                MAP_VALUE(i).depthAttachment_ = depthStencil_;
             }
         }
         else
         {
-            if (i->depthAttachment_ != depthStencil_)
+            if (MAP_VALUE(i).depthAttachment_ != depthStencil_)
             {
                 glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, renderBufferID);
                 if (hasStencil)
@@ -2881,17 +2882,17 @@ void Graphics::CommitFramebuffer()
                 else
                     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
 
-                i->depthAttachment_ = depthStencil_;
+                MAP_VALUE(i).depthAttachment_ = depthStencil_;
             }
         }
     }
     else
     {
-        if (i->depthAttachment_)
+        if (MAP_VALUE(i).depthAttachment_)
         {
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, 0, 0);
-            i->depthAttachment_ = nullptr;
+            MAP_VALUE(i).depthAttachment_ = nullptr;
         }
     }
 
@@ -2921,13 +2922,12 @@ void Graphics::CleanupFramebuffers(bool force)
 {
     if (!IsDeviceLost())
     {
-        for (QHash<unsigned long long, FrameBufferObject>::Iterator i = impl_->frameBuffers_.begin();
-            i != impl_->frameBuffers_.end();)
+        for (auto i = impl_->frameBuffers_.begin(); i != impl_->frameBuffers_.end();)
         {
-            if (i->fbo_ != impl_->boundFbo_ && (force || i->useTimer_.GetMSec(false) >
+            if (MAP_VALUE(i).fbo_ != impl_->boundFbo_ && (force || MAP_VALUE(i).useTimer_.GetMSec(false) >
                 MAX_FRAMEBUFFER_AGE))
             {
-                glDeleteFramebuffersEXT(1, &i->fbo_);
+                glDeleteFramebuffersEXT(1, &MAP_VALUE(i).fbo_);
                 i = impl_->frameBuffers_.erase(i);
             }
             else

@@ -139,11 +139,11 @@ FontFace* Font::GetFace(int pointSize)
     else
         pointSize = Clamp(pointSize, MIN_POINT_SIZE, MAX_POINT_SIZE);
 
-    QHash<int, SharedPtr<FontFace> >::Iterator i = faces_.find(pointSize);
+    HashMap<int, SharedPtr<FontFace> >::iterator i = faces_.find(pointSize);
     if (i != faces_.end())
     {
-        if (!(*i)->IsDataLost())
-            return *i;
+        if (!MAP_VALUE(i)->IsDataLost())
+            return MAP_VALUE(i);
         else
         {
             // Erase and reload face if texture data lost (OpenGL mode only)

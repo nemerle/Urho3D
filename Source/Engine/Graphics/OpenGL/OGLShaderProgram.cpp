@@ -218,14 +218,14 @@ ShaderVariation* ShaderProgram::GetPixelShader() const
 
 bool ShaderProgram::HasParameter(StringHash param) const
 {
-    return shaderParameters_.find(param) != shaderParameters_.end();
+    return shaderParameters_.contains(param);
 }
 
 const ShaderParameter* ShaderProgram::GetParameter(StringHash param) const
 {
-    QHash<StringHash, ShaderParameter>::const_iterator i = shaderParameters_.find(param);
+    auto i = shaderParameters_.find(param);
     if (i != shaderParameters_.end())
-        return &(*i);
+        return &(MAP_VALUE(i));
     else
         return nullptr;
 }

@@ -573,7 +573,7 @@ SharedPtr<Model> Model::Clone(const String& cloneName) const
     ret->morphRangeCounts_ = morphRangeCounts_;
 
     // Deep copy vertex/index buffers
-    QHash<VertexBuffer*, VertexBuffer*> vbMapping;
+    HashMap<VertexBuffer*, VertexBuffer*> vbMapping;
     for (const SharedPtr<VertexBuffer> & elem : vertexBuffers_)
     {
         VertexBuffer* origBuffer = elem;
@@ -600,7 +600,7 @@ SharedPtr<Model> Model::Clone(const String& cloneName) const
         ret->vertexBuffers_.push_back(cloneBuffer);
     }
 
-    QHash<IndexBuffer*, IndexBuffer*> ibMapping;
+    HashMap<IndexBuffer*, IndexBuffer*> ibMapping;
     for (const SharedPtr<IndexBuffer> & elem : indexBuffers_)
     {
         IndexBuffer* origBuffer = elem;

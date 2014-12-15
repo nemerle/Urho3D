@@ -182,10 +182,10 @@ void Network::ClientDisconnected(kNet::MessageConnection* connection)
     connection->Disconnect(0);
 
     // Remove the client connection that corresponds to this MessageConnection
-    QHash<kNet::MessageConnection*, SharedPtr<Connection> >::Iterator i = clientConnections_.find(connection);
+    auto i = clientConnections_.find(connection);
     if (i != clientConnections_.end())
     {
-        Connection* connection = *i;
+        Connection* connection = MAP_VALUE(i);
         LOGINFO("Client " + connection->ToString() + " disconnected");
 
         using namespace ClientDisconnected;
@@ -291,16 +291,16 @@ void Network::BroadcastMessage(int msgID, bool reliable, bool inOrder, const uns
 
 void Network::BroadcastRemoteEvent(StringHash eventType, bool inOrder, const VariantMap& eventData)
 {
-    for (SharedPtr<Connection> & elem : clientConnections_)
-        elem->SendRemoteEvent(eventType, inOrder, eventData);
+    for (auto & elem : clientConnections_)
+        ELEMENT_VALUE(elem)->SendRemoteEvent(eventType, inOrder, eventData);
 }
 
 void Network::BroadcastRemoteEvent(Scene* scene, StringHash eventType, bool inOrder, const VariantMap& eventData)
 {
-    for (SharedPtr<Connection> & elem : clientConnections_)
+    for (auto & elem : clientConnections_)
     {
-        if (elem->GetScene() == scene)
-            elem->SendRemoteEvent(eventType, inOrder, eventData);
+        if (ELEMENT_VALUE(elem)->GetScene() == scene)
+            ELEMENT_VALUE(elem)->SendRemoteEvent(eventType, inOrder, eventData);
     }
 }
 
@@ -318,10 +318,10 @@ void Network::BroadcastRemoteEvent(Node* node, StringHash eventType, bool inOrde
     }
 
     Scene* scene = node->GetScene();
-    for (SharedPtr<Connection> & elem : clientConnections_)
+    for (auto & elem : clientConnections_)
     {
-        if (elem->GetScene() == scene)
-            elem->SendRemoteEvent(node, eventType, inOrder, eventData);
+        if (ELEMENT_VALUE(elem)->GetScene() == scene)
+            ELEMENT_VALUE(elem)->SendRemoteEvent(node, eventType, inOrder, eventData);
     }
 }
 
@@ -371,10 +371,10 @@ void Network::SendPackageToClients(Scene* scene, PackageFile* package)
         return;
     }
 
-    for (SharedPtr<Connection> & elem : clientConnections_)
+    for (auto & elem : clientConnections_)
     {
-        if (elem->GetScene() == scene)
-            elem->SendPackageToClient(package);
+        if (ELEMENT_VALUE(elem)->GetScene() == scene)
+            ELEMENT_VALUE(elem)->SendPackageToClient(package);
     }
 }
 
@@ -393,9 +393,9 @@ Connection* Network::GetConnection(kNet::MessageConnection* connection) const
         return serverConnection_;
     else
     {
-        QHash<kNet::MessageConnection*, SharedPtr<Connection> >::const_iterator i = clientConnections_.find(connection);
+        auto i = clientConnections_.find(connection);
         if (i != clientConnections_.end())
-            return *i;
+            return MAP_VALUE(i);
         return nullptr;
     }
 }
@@ -409,7 +409,7 @@ Vector<SharedPtr<Connection> > Network::GetClientConnections() const
 {
     Vector<SharedPtr<Connection> > ret;
     for (const auto & elem : clientConnections_)
-        ret.push_back(elem);
+        ret.push_back(ELEMENT_VALUE(elem));
 
     return ret;
 }
@@ -476,9 +476,9 @@ void Network::PostUpdate(float timeStep)
                 PROFILE(PrepareServerUpdate);
 
                 networkScenes_.clear();
-                for (SharedPtr<Connection> & elem : clientConnections_)
+                for (auto & elem : clientConnections_)
                 {
-                    Scene* scene = elem->GetScene();
+                    Scene* scene = ELEMENT_VALUE(elem)->GetScene();
                     if (scene)
                         networkScenes_.insert(scene);
                 }
@@ -491,11 +491,11 @@ void Network::PostUpdate(float timeStep)
                 PROFILE(SendServerUpdate);
 
                 // Then send server updates for each client connection
-                for (SharedPtr<Connection> & elem : clientConnections_)
+                for (auto & elem : clientConnections_)
                 {
-                    elem->SendServerUpdate();
-                    elem->SendRemoteEvents();
-                    elem->SendPackages();
+                    ELEMENT_VALUE(elem)->SendServerUpdate();
+                    ELEMENT_VALUE(elem)->SendRemoteEvents();
+                    ELEMENT_VALUE(elem)->SendPackages();
                 }
             }
         }

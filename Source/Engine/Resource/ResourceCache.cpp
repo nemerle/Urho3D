@@ -248,14 +248,15 @@ void ResourceCache::ReleaseResources(StringHash type, bool force)
     HashMap<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
     if (i == resourceGroups_.end())
         return;
-    for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = MAP_VALUE(i).resources_.begin();
-        j != MAP_VALUE(i).resources_.end();)
+    HashMap<StringHash,SharedPtr<Resource> > &resources(MAP_VALUE(i).resources_);
+    for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resources.begin();
+        j != resources.end();)
     {
-        QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
+        HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
         // If other references exist, do not release, unless forced
-        if ((current->Refs() == 1 && current->WeakRefs() == 0) || force)
+        if ((MAP_VALUE(current)->Refs() == 1 && MAP_VALUE(current)->WeakRefs() == 0) || force)
         {
-            MAP_VALUE(i).resources_.erase(current);
+            resources.erase(current);
             released = true;
         }
     }
@@ -269,18 +270,19 @@ void ResourceCache::ReleaseResources(StringHash type, const String& partialName,
     bool released = false;
 
     HashMap<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
+
     if (i != resourceGroups_.end())
     {
-        for (QHash<StringHash, SharedPtr<Resource> >::iterator j = MAP_VALUE(i).resources_.begin();
-            j != MAP_VALUE(i).resources_.end();)
+        HashMap<StringHash, SharedPtr<Resource> > &resource(MAP_VALUE(i).resources_);
+        for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resource.begin(); j != resource.end();)
         {
-            QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-            if ((*current)->GetName().contains(partialName))
+            HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
+            if (MAP_VALUE(current)->GetName().contains(partialName))
             {
                 // If other references exist, do not release, unless forced
-                if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
+                if ((MAP_VALUE(current).Refs() == 1 && MAP_VALUE(current).WeakRefs() == 0) || force)
                 {
-                    MAP_VALUE(i).resources_.erase(current);
+                    resource.erase(current);
                     released = true;
                 }
             }
@@ -301,19 +303,18 @@ void ResourceCache::ReleaseResources(const String& partialName, bool force)
     {
         for (auto iter = resourceGroups_.begin(),fin=resourceGroups_.end(); iter!=fin; ++iter)
         {
-            ResourceGroup & elem(MAP_VALUE(iter));
+            HashMap<StringHash, SharedPtr<Resource> > & resources(MAP_VALUE(iter).resources_);
             bool released = false;
 
-            for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = elem.resources_.begin();
-                j != elem.resources_.end();)
+            for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resources.begin(); j != resources.end();)
             {
-                QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
-                if ((*current)->GetName().contains(partialName))
+                HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
+                if (MAP_VALUE(current)->GetName().contains(partialName))
                 {
                     // If other references exist, do not release, unless forced
-                    if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
+                    if ((MAP_VALUE(current).Refs() == 1 && MAP_VALUE(current).WeakRefs() == 0) || force)
                     {
-                        elem.resources_.erase(current);
+                        resources.erase(current);
                         released = true;
                     }
                 }
@@ -335,12 +336,12 @@ void ResourceCache::ReleaseAllResources(bool force)
             ResourceGroup & elem(MAP_VALUE(iter));
             bool released = false;
 
-            for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = elem.resources_.begin();
+            for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = elem.resources_.begin();
                 j != elem.resources_.end();)
             {
-                QHash<StringHash, SharedPtr<Resource> >::Iterator current = j++;
+                HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
                 // If other references exist, do not release, unless forced
-                if (((*current).Refs() == 1 && (*current).WeakRefs() == 0) || force)
+                if ((MAP_VALUE(current).Refs() == 1 && MAP_VALUE(current).WeakRefs() == 0) || force)
                 {
                     elem.resources_.erase(current);
                     released = true;
@@ -392,16 +393,16 @@ void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
     if (!resource || GetExtension(resource->GetName()) == ".xml")
     {
         // Check if this is a dependency resource, reload dependents
-        QHash<StringHash, QSet<StringHash> >::const_iterator j = dependentResources_.find(fileNameHash);
+        auto j = dependentResources_.find(fileNameHash);
         if (j == dependentResources_.end())
             return;
 
         // Reloading a resource may modify the dependency tracking structure. Therefore collect the
         // resources we need to reload first
         Vector<SharedPtr<Resource> > dependents;
-        dependents.reserve(j->size());
+        dependents.reserve(MAP_VALUE(j).size());
 
-        for (const StringHash &k : *j)
+        for (const StringHash &k : MAP_VALUE(j))
         {
             const SharedPtr<Resource>& dependent = FindResource(k);
             if (dependent)
@@ -649,7 +650,7 @@ void ResourceCache::GetResources(PODVector<Resource*>& result, StringHash type) 
     if (i != resourceGroups_.end())
     {
         for (const auto & elem : MAP_VALUE(i).resources_)
-            result.push_back(elem);
+            result.push_back(ELEMENT_VALUE(elem));
     }
 }
 
@@ -825,10 +826,9 @@ void ResourceCache::ResetDependencies(Resource* resource)
 
     StringHash nameHash(resource->GetName());
 
-    for (QHash<StringHash, QSet<StringHash> >::Iterator i = dependentResources_.begin(); i !=
-        dependentResources_.end();)
+    for (auto i = dependentResources_.begin(); i !=dependentResources_.end();)
     {
-        QSet<StringHash>& dependents = *i;
+        QSet<StringHash>& dependents = MAP_VALUE(i);
         dependents.remove(nameHash);
         if (dependents.isEmpty())
             i = dependentResources_.erase(i);
@@ -844,11 +844,11 @@ const SharedPtr<Resource>& ResourceCache::FindResource(StringHash type, StringHa
     HashMap<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
     if (i == resourceGroups_.end())
         return noResource;
-    QHash<StringHash, SharedPtr<Resource> >::Iterator j = MAP_VALUE(i).resources_.find(nameHash);
+    HashMap<StringHash, SharedPtr<Resource> >::iterator j = MAP_VALUE(i).resources_.find(nameHash);
     if (j == MAP_VALUE(i).resources_.end())
         return noResource;
 
-    return *j;
+    return MAP_VALUE(j);
 }
 
 const SharedPtr<Resource>& ResourceCache::FindResource(StringHash nameHash)
@@ -857,9 +857,9 @@ const SharedPtr<Resource>& ResourceCache::FindResource(StringHash nameHash)
 
     for (auto & elem : resourceGroups_)
     {
-        QHash<StringHash, SharedPtr<Resource> >::Iterator j = elem.second.resources_.find(nameHash);
+        HashMap<StringHash, SharedPtr<Resource> >::iterator j = elem.second.resources_.find(nameHash);
         if (j != elem.second.resources_.end())
-            return *j;
+            return MAP_VALUE(j);
     }
 
     return noResource;
@@ -869,18 +869,18 @@ void ResourceCache::ReleasePackageResources(PackageFile* package, bool force)
 {
     QSet<StringHash> affectedGroups;
 
-    const QHash<String, PackageEntry>& entries = package->GetEntries();
+    const HashMap<String, PackageEntry>& entries = package->GetEntries();
     for (auto nameHash : entries.keys())
     {
         // We do not know the actual resource type, so search all type containers
         for (auto iter = resourceGroups_.begin(),fin=resourceGroups_.end(); iter!=fin; ++iter)
         {
             ResourceGroup & elem(MAP_VALUE(iter));
-            QHash<StringHash, SharedPtr<Resource> >::Iterator k = elem.resources_.find(nameHash);
+            HashMap<StringHash, SharedPtr<Resource> >::iterator k = elem.resources_.find(nameHash);
             if (k != elem.resources_.end())
             {
                 // If other references exist, do not release, unless forced
-                if (((*k).Refs() == 1 && (*k).WeakRefs() == 0) || force)
+                if ((MAP_VALUE(k).Refs() == 1 && MAP_VALUE(k).WeakRefs() == 0) || force)
                 {
                     elem.resources_.erase(k);
                     affectedGroups.insert(MAP_KEY(iter));
@@ -899,18 +899,17 @@ void ResourceCache::UpdateResourceGroup(StringHash type)
     HashMap<StringHash, ResourceGroup>::iterator i = resourceGroups_.find(type);
     if (i == resourceGroups_.end())
         return;
-
+    HashMap<StringHash, SharedPtr<Resource> > &resources(MAP_VALUE(i).resources_);
     for (;;)
     {
         unsigned totalSize = 0;
         unsigned oldestTimer = 0;
-        QHash<StringHash, SharedPtr<Resource> >::Iterator oldestResource = MAP_VALUE(i).resources_.end();
+        HashMap<StringHash, SharedPtr<Resource> >::iterator oldestResource = resources.end();
 
-        for (QHash<StringHash, SharedPtr<Resource> >::Iterator j = MAP_VALUE(i).resources_.begin();
-            j != MAP_VALUE(i).resources_.end(); ++j)
+        for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resources.begin(); j != resources.end(); ++j)
         {
-            totalSize += (*j)->GetMemoryUse();
-            unsigned useTimer = (*j)->GetUseTimer();
+            totalSize += MAP_VALUE(j)->GetMemoryUse();
+            unsigned useTimer = MAP_VALUE(j)->GetUseTimer();
             if (useTimer > oldestTimer)
             {
                 oldestTimer = useTimer;
@@ -923,11 +922,11 @@ void ResourceCache::UpdateResourceGroup(StringHash type)
         // If memory budget defined and is exceeded, remove the oldest resource and loop again
         // (resources in use always return a zero timer and can not be removed)
         if (MAP_VALUE(i).memoryBudget_ && MAP_VALUE(i).memoryUse_ > MAP_VALUE(i).memoryBudget_ &&
-            oldestResource != MAP_VALUE(i).resources_.end())
+            oldestResource != resources.end())
         {
-            LOGDEBUG("Resource group " + (*oldestResource)->GetTypeName() + " over memory budget, releasing resource " +
-                (*oldestResource)->GetName());
-            MAP_VALUE(i).resources_.erase(oldestResource);
+            LOGDEBUG("Resource group " + MAP_VALUE(oldestResource)->GetTypeName() +
+                     " over memory budget, releasing resource " + MAP_VALUE(oldestResource)->GetName());
+            resources.erase(oldestResource);
         }
         else
             break;

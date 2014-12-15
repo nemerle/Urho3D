@@ -194,21 +194,21 @@ static CScriptArray* SceneGetRequiredPackageFiles(Scene* ptr)
 
 static CScriptArray* GetObjectCategories()
 {
-    QList<String> categories = GetScriptContext()->GetObjectCategories().keys();
-    qSort(categories);
+    Vector<String> categories( GetScriptContext()->GetObjectCategories().keys() );
+    std::sort(categories.begin(),categories.end());
     return VectorToArray<String>(categories, "Array<String>");
 }
 
 static CScriptArray* GetObjectsByCategory(const String& category)
 {
-    const QHash<String, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
+    const HashMap<String, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
     Vector<String> components;
 
-    QHash<String, Vector<StringHash> >::const_iterator i = categories.find(category);
+    HashMap<String, Vector<StringHash> >::const_iterator i = categories.find(category);
     if (i != categories.end())
     {
         const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
-        const Vector<StringHash>& factoryHashes = *i;
+        const Vector<StringHash>& factoryHashes = MAP_VALUE(i);
         components.reserve(factoryHashes.size());
 
         for (unsigned j = 0; j < factoryHashes.size(); ++j)

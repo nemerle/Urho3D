@@ -1793,8 +1793,9 @@ bool CScriptDictionary::GetGCFlag()
 void CScriptDictionary::EnumReferences(asIScriptEngine *engine)
 {
     // Call the gc enum callback for each of the objects
-    for( CScriptDictValue & it : dict )
+    for( auto & i : dict )
     {
+        CScriptDictValue & it(ELEMENT_VALUE(i));
         if( it.m_typeId & asTYPEID_MASK_OBJECT )
             engine->GCEnumCallback(it.m_valueObj);
     }
@@ -1813,15 +1814,15 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
     DeleteAll();
 
     // Do a shallow copy of the dictionary
-    QHash<String, CScriptDictValue>::const_iterator it;
+    HashMap<String, CScriptDictValue>::const_iterator it;
     for( it = other.dict.cbegin(); it != other.dict.cend(); it++ )
     {
-        if( it->m_typeId & asTYPEID_OBJHANDLE )
-            Set(it.key(), (void*)&it->m_valueObj, it->m_typeId);
-        else if( it->m_typeId & asTYPEID_MASK_OBJECT )
-            Set(it.key(), (void*)it->m_valueObj, it->m_typeId);
+        if( MAP_VALUE(it).m_typeId & asTYPEID_OBJHANDLE )
+            Set(MAP_KEY(it), (void*)&MAP_VALUE(it).m_valueObj, MAP_VALUE(it).m_typeId);
+        else if( MAP_VALUE(it).m_typeId & asTYPEID_MASK_OBJECT )
+            Set(MAP_KEY(it), (void*)MAP_VALUE(it).m_valueObj, MAP_VALUE(it).m_typeId);
         else
-            Set(it.key(), (void*)&it->m_valueInt, it->m_typeId);
+            Set(MAP_KEY(it), (void*)&MAP_VALUE(it).m_valueInt, MAP_VALUE(it).m_typeId);
     }
 
     return *this;
@@ -1830,19 +1831,19 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
 CScriptDictValue *CScriptDictionary::operator[](const String &key)
 {
     // Return the existing value if it exists, else insert an empty value
-    QHash<String, CScriptDictValue>::Iterator it = dict.find(key);
+    HashMap<String, CScriptDictValue>::iterator it = dict.find(key);
     if( it == dict.end() )
-        it = dict.insert(key, CScriptDictValue());
+        it = dict.emplace(key, CScriptDictValue()).first;
 
-    return &(*it);
+    return &(MAP_VALUE(it));
 }
 
 const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 {
     // Return the existing value if it exists
-    QHash<String, CScriptDictValue>::const_iterator it = dict.find(key);
+    HashMap<String, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
-        return &(*it);
+        return &(MAP_VALUE(it));
 
     // Else raise an exception
     asIScriptContext *ctx = asGetActiveContext();
@@ -1854,11 +1855,11 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
 
 void CScriptDictionary::Set(const String &key, void *value, int typeId)
 {
-    QHash<String, CScriptDictValue>::Iterator it = dict.find(key);
+    HashMap<String, CScriptDictValue>::iterator it = dict.find(key);
     if( it == dict.end() )
-        it = dict.insert(key, CScriptDictValue());
+        it = dict.emplace(key, CScriptDictValue()).first;
 
-    it->Set(engine, value, typeId);
+    MAP_VALUE(it).Set(engine, value, typeId);
 }
 
 // This overloaded method is implemented so that all integer and
@@ -1883,9 +1884,9 @@ void CScriptDictionary::Set(const String &key, const double &value)
 // Returns true if the value was successfully retrieved
 bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 {
-    QHash<String, CScriptDictValue>::const_iterator it = dict.find(key);
+    HashMap<String, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
-        return it->Get(engine, value, typeId);
+        return MAP_VALUE(it).Get(engine, value, typeId);
 
     // AngelScript has already initialized the value with a default value,
     // so we don't have to do anything if we don't find the element, or if
@@ -1897,9 +1898,9 @@ bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 // Returns the type id of the stored value
 int CScriptDictionary::GetTypeId(const String &key) const
 {
-    QHash<String, CScriptDictValue>::const_iterator it = dict.find(key);
+    HashMap<String, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
-        return it->m_typeId;
+        return MAP_VALUE(it).m_typeId;
 
     return -1;
 }
@@ -1931,10 +1932,10 @@ asUINT CScriptDictionary::GetSize() const
 
 void CScriptDictionary::Delete(const String &key)
 {
-    QHash<String, CScriptDictValue>::Iterator it = dict.find(key);
+    HashMap<String, CScriptDictValue>::iterator it = dict.find(key);
     if( it != dict.end() )
     {
-        it->FreeValue(engine);
+        MAP_VALUE(it).FreeValue(engine);
         dict.erase(it);
     }
 }
@@ -1942,7 +1943,7 @@ void CScriptDictionary::Delete(const String &key)
 void CScriptDictionary::DeleteAll()
 {
     for(auto it = dict.begin(); it != dict.end(); it++ )
-        it->FreeValue(engine);
+        MAP_VALUE(it).FreeValue(engine);
 
     dict.clear();
 }

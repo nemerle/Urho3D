@@ -26,6 +26,8 @@
 #include "ArrayPtr.h"
 #include "List.h"
 
+#include "HashMap.h"
+
 namespace Urho3D
 {
 
@@ -97,9 +99,9 @@ protected:
     /// Parent font.
     Font* font_;
     /// Glyph mapping.
-    QHash<unsigned, FontGlyph> glyphMapping_;
+    HashMap<unsigned, FontGlyph> glyphMapping_;
     /// Kerning mapping.
-    QHash<unsigned, short> kerningMapping_;
+    HashMap<unsigned, short> kerningMapping_;
     /// Glyph texture pages.
     Vector<SharedPtr<Texture2D> > textures_;
     /// Point size.

@@ -69,7 +69,7 @@ private:
     /// The path being watched.
     String path_;
     /// Pending changes. These will be returned and removed from the list when their timer has exceeded the delay.
-    QHash<String, Timer> changes_;
+    HashMap<String, Timer> changes_;
     /// Mutex for the change buffer.
     Mutex changesMutex_;
     /// Delay in seconds for notifying changes.
@@ -84,8 +84,8 @@ private:
 
 #elif __linux__
 
-    /// QHash for the directory and sub-directories (needed for inotify's int handles).
-    QHash<int, String> dirHandle_;
+    /// HashMap for the directory and sub-directories (needed for inotify's int handles).
+    HashMap<int, String> dirHandle_;
     /// Linux inotify needs a handle.
     int watchHandle_;
 

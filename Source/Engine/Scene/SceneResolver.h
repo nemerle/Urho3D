@@ -24,7 +24,7 @@
 
 #include "Ptr.h"
 
-#include <QtCore/QHash>
+#include "HashMap.h"
 
 namespace Urho3D
 {
@@ -52,9 +52,9 @@ public:
 
 private:
     /// Nodes.
-    QHash<unsigned, WeakPtr<Node> > nodes_;
+    HashMap<unsigned, WeakPtr<Node> > nodes_;
     /// Components.
-    QHash<unsigned, WeakPtr<Component> > components_;
+    HashMap<unsigned, WeakPtr<Component> > components_;
 };
 
 }

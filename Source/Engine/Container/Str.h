@@ -399,7 +399,7 @@ public:
     /// Return a UTF8 substring with length from position.
     String SubstringUTF8(unsigned pos, unsigned length) const;
 
-    /// Return hash value for QSet & QHash.
+    /// Return hash value for QSet & HashMap.
     unsigned ToHash() const
     {
         unsigned hash = 0;

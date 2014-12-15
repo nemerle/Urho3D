@@ -394,19 +394,19 @@ private:
     /// Reusable occlusion buffers.
     Vector<SharedPtr<OcclusionBuffer> > occlusionBuffers_;
     /// Shadow maps by resolution.
-    QHash<int, Vector<SharedPtr<Texture2D> > > shadowMaps_;
+    HashMap<int, Vector<SharedPtr<Texture2D> > > shadowMaps_;
     /// Shadow map dummy color buffers by resolution.
-    QHash<int, SharedPtr<Texture2D> > colorShadowMaps_;
+    HashMap<int, SharedPtr<Texture2D> > colorShadowMaps_;
     /// Shadow map allocations by resolution.
-    QHash<int, PODVector<Light*> > shadowMapAllocations_;
+    HashMap<int, PODVector<Light*> > shadowMapAllocations_;
     /// Screen buffers by resolution and format.
-    QHash<long long, Vector<SharedPtr<Texture2D> > > screenBuffers_;
+    HashMap<long long, Vector<SharedPtr<Texture2D> > > screenBuffers_;
     /// Current screen buffer allocations by resolution and format.
-    QHash<long long, unsigned> screenBufferAllocations_;
+    HashMap<long long, unsigned> screenBufferAllocations_;
     /// Saved status of screen buffer allocations for restoring.
-    QHash<long long, unsigned> savedScreenBufferAllocations_;
+    HashMap<long long, unsigned> savedScreenBufferAllocations_;
     /// Cache for light scissor queries.
-    QHash<Pair<Light*, Camera*>, Rect> lightScissorCache_;
+    HashMap<Pair<Light*, Camera*>, Rect> lightScissorCache_;
     /// Backbuffer viewports.
     Vector<SharedPtr<Viewport> > viewports_;
     /// Render surface viewports queued for update.

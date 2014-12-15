@@ -1686,7 +1686,7 @@ void View::RenderQuad(RenderPathCommand& command)
 
     const VariantMap& parameters = command.shaderParameters_;
     for (VariantMap::const_iterator parameter=parameters.begin(),fin=parameters.end(); parameter!=fin; ++parameter)
-        graphics_->SetShaderParameter(parameter.key(), parameter.value());
+        graphics_->SetShaderParameter(MAP_KEY(parameter), MAP_VALUE(parameter));
 
     SetGlobalShaderParameters();
     SetCameraShaderParameters(camera_, false, false);
@@ -2724,7 +2724,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
     {
         renderer_->SetBatchShaders(batch, tech, allowShadows);
         batch.CalculateSortKey();
-        
+
         // If batch is static with multiple world transforms and cannot instance, we must push copies of the batch individually
         if (batch.geometryType_ == GEOM_STATIC && batch.numWorldTransforms_ > 1)
         {

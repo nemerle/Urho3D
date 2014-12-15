@@ -135,16 +135,16 @@ void PropertySet2D::Load(const XMLElement& element)
 
 bool PropertySet2D::HasProperty(const String& name) const
 {
-    return nameToValueMapping_.find(name) != nameToValueMapping_.end();
+    return nameToValueMapping_.contains(name);
 }
 
 const String& PropertySet2D::GetProperty(const String& name) const
 {
-    QHash<String, String>::const_iterator i = nameToValueMapping_.find(name);
+    HashMap<String, String>::const_iterator i = nameToValueMapping_.find(name);
     if (i == nameToValueMapping_.end())
         return String::EMPTY;
 
-    return *i;
+    return MAP_VALUE(i);
 }
 
 Tile2D::Tile2D() :

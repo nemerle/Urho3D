@@ -126,15 +126,15 @@ private:
     /// Encountered include files during script file loading.
     QSet<String> includeFiles_;
     /// Search cache for checking whether script classes implement "ScriptObject" interface.
-    QHash<asIObjectType*, bool> validClasses_;
+    HashMap<asIObjectType*, bool> validClasses_;
     /// Search cache for functions.
-    QHash<String, asIScriptFunction*> functions_;
+    HashMap<String, asIScriptFunction*> functions_;
     /// Search cache for methods.
-    QHash<asIObjectType*, QHash<String, asIScriptFunction*> > methods_;
+    HashMap<asIObjectType*, HashMap<String, asIScriptFunction*> > methods_;
     /// Delayed function calls.
     Vector<DelayedCall> delayedCalls_;
     /// Event helper objects for handling procedural or non-ScriptInstance script events
-    QHash<asIScriptObject*, SharedPtr<ScriptEventInvoker> > eventInvokers_;
+    HashMap<asIScriptObject*, SharedPtr<ScriptEventInvoker> > eventInvokers_;
     /// Byte code for asynchronous loading.
     SharedArrayPtr<unsigned char> loadByteCode_;
     /// Byte code size for asynchronous loading.

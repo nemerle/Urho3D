@@ -87,7 +87,7 @@ private:
     FontFace* GetFaceBitmap(int pointSize);
 
     /// Created faces.
-    QHash<int, SharedPtr<FontFace> > faces_;
+    HashMap<int, SharedPtr<FontFace> > faces_;
     /// Font data.
     SharedArrayPtr<unsigned char> fontData_;
     /// Size of font data.

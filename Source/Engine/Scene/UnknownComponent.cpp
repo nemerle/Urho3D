@@ -33,7 +33,7 @@
 namespace Urho3D
 {
 
-static QHash<StringHash, String> unknownTypeToName;
+static HashMap<StringHash, String> unknownTypeToName;
 static String letters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 static String GenerateNameFromType(StringHash typeHash)

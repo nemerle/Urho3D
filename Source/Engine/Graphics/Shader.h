@@ -70,9 +70,9 @@ private:
     /// Source code adapted for pixel shader.
     String psSourceCode_;
     /// Vertex shader variations.
-    QHash<StringHash, SharedPtr<ShaderVariation> > vsVariations_;
+    HashMap<StringHash, SharedPtr<ShaderVariation> > vsVariations_;
     /// Pixel shader variations.
-    QHash<StringHash, SharedPtr<ShaderVariation> > psVariations_;
+    HashMap<StringHash, SharedPtr<ShaderVariation> > psVariations_;
     /// Source code timestamp.
     unsigned timeStamp_;
     /// Number of unique variations so far.

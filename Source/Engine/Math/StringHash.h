@@ -96,7 +96,7 @@ public:
     unsigned Value() const { return value_; }
     /// Return as string.
     String ToString() const;
-    /// Return hash value for QSet & QHash.
+    /// Return hash value for QSet & HashMap.
     unsigned ToHash() const { return value_; }
 
     /// Calculate hash value case-insensitively from a C string.

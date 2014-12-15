@@ -238,13 +238,13 @@ private:
     /// Network replication state of the scene.
     SceneReplicationState sceneState_;
     /// Waiting or ongoing package file receive transfers.
-    QHash<StringHash, PackageDownload> downloads_;
+    HashMap<StringHash, PackageDownload> downloads_;
     /// Ongoing package send transfers.
-    QHash<StringHash, PackageUpload> uploads_;
+    HashMap<StringHash, PackageUpload> uploads_;
     /// Pending latest data for not yet received nodes.
-    QHash<unsigned, PODVector<unsigned char> > nodeLatestData_;
+    HashMap<unsigned, PODVector<unsigned char> > nodeLatestData_;
     /// Pending latest data for not yet received components.
-    QHash<unsigned, PODVector<unsigned char> > componentLatestData_;
+    HashMap<unsigned, PODVector<unsigned char> > componentLatestData_;
     /// Node ID's to process during a replication update.
     QSet<unsigned> nodesToProcess_;
     /// Reusable message buffer.
