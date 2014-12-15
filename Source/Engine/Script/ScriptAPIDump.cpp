@@ -180,7 +180,7 @@ void Script::OutputAPIRow(DumpMode mode, const String& row, bool removeReference
     }
 }
 
-void Script::DumpAPI(DumpMode mode)
+void Script::DumpAPI(DumpMode mode, const String& sourceTree)
 {
     // Does not use LOGRAW macro here to ensure the messages are always dumped regardless of URHO3D_LOGGING compiler directive
     // and of Log subsystem availability
@@ -195,8 +195,9 @@ void Script::DumpAPI(DumpMode mode)
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
         Vector<String> headerFiles;
-        String path = fileSystem->GetProgramDir();
-        path.replace("/Bin", "/Source/Engine");
+        String path = AddTrailingSlash(sourceTree);
+        if (!path.isEmpty())
+            path.append("Source/Engine/");
 
         fileSystem->ScanDir(headerFiles, path, "*.h", SCAN_FILES, true);
         if (!headerFiles.empty())
