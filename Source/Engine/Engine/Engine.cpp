@@ -540,7 +540,7 @@ void Engine::DumpResources(bool dumpFileName)
 {
     #ifdef URHO3D_LOGGING
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    const QHash<StringHash, ResourceGroup>& resourceGroups = cache->GetAllResources();
+    const HashMap<StringHash, ResourceGroup>& resourceGroups = cache->GetAllResources();
     LOGRAW("\n");
 
     if (dumpFileName)
@@ -548,8 +548,9 @@ void Engine::DumpResources(bool dumpFileName)
         LOGRAW("Used resources:\n");
     }
 
-    for (const ResourceGroup & resourceGroup : resourceGroups)
+    for (const auto & entry : resourceGroups)
     {
+        const ResourceGroup & resourceGroup(entry.second);
         const QHash<StringHash, SharedPtr<Resource> >& resources = resourceGroup.resources_;
         if (dumpFileName)
         {

@@ -34,18 +34,21 @@ Array<String> uiElementFilters = {"*.xml"};
 Array<String> uiAllFilters = {"*.*"};
 Array<String> uiScriptFilters = {"*.as", "*.*"};
 Array<String> uiParticleFilters = {"*.xml"};
+Array<String> uiRenderPathFilters = {"*.xml"};
 uint uiSceneFilter = 0;
 uint uiElementFilter = 0;
 uint uiNodeFilter = 0;
 uint uiImportFilter = 0;
 uint uiScriptFilter = 0;
 uint uiParticleFilter = 0;
+uint uiRenderPathFilter = 0;
 String uiScenePath = fileSystem.programDir + "Data/Scenes";
 String uiElementPath = fileSystem.programDir + "Data/UI";
 String uiNodePath = fileSystem.programDir + "Data/Objects";
 String uiImportPath;
 String uiScriptPath = fileSystem.programDir + "Data/Scripts";
 String uiParticlePath = fileSystem.programDir + "Data/Particles";
+String uiRenderPathPath = fileSystem.programDir + "CoreData/RenderPaths";
 Array<String> uiRecentScenes;
 String screenshotDir = fileSystem.programDir + "Screenshots";
 
@@ -60,9 +63,9 @@ void CreateUI()
     /// \todo The console will not be properly recreated as it has already been created once
     ui.root.RemoveAllChildren();
 
-    uiStyle = cache.GetResource("XMLFile", "UI/DefaultStyle.xml");
+    uiStyle = GetEditorUIXMLFile("UI/DefaultStyle.xml");
     ui.root.defaultStyle = uiStyle;
-    iconStyle = cache.GetResource("XMLFile", "UI/EditorIcons.xml");
+    iconStyle = GetEditorUIXMLFile("UI/EditorIcons.xml");
 
     CreateCursor();
     CreateMenuBar();
@@ -75,7 +78,9 @@ void CreateUI()
     CreateEditorSettingsDialog();
     CreateEditorPreferencesDialog();
     CreateMaterialEditor();
+    CreateParticleEffectEditor();
     CreateSpawnEditor();
+    CreateSoundTypeEditor();
     CreateStatsBar();
     CreateConsole();
     CreateDebugHud();
@@ -239,7 +244,7 @@ void CreateQuickMenu()
     if (quickMenu !is null)
         return;
 
-    quickMenu = ui.LoadLayout(cache.GetResource("XMLFile", "UI/EditorQuickMenu.xml"));
+    quickMenu = LoadEditorUI("UI/EditorQuickMenu.xml");
     quickMenu.enabled = false;
     quickMenu.visible = false;
     quickMenu.opacity = uiMaxOpacity;
@@ -317,6 +322,7 @@ void CreateMenuBar()
         popup.AddChild(CreateMenuItem("Redo", @Redo, 'Y', QUAL_CTRL));
         CreateChildDivider(popup);
         popup.AddChild(CreateMenuItem("Cut", @Cut, 'X', QUAL_CTRL));
+        popup.AddChild(CreateMenuItem("Duplicate", @Duplicate, 'D', QUAL_CTRL));
         popup.AddChild(CreateMenuItem("Copy", @Copy, 'C', QUAL_CTRL));
         popup.AddChild(CreateMenuItem("Paste", @Paste, 'V', QUAL_CTRL));
         popup.AddChild(CreateMenuItem("Delete", @Delete, KEY_DELETE, QUAL_ANY));
@@ -413,7 +419,9 @@ void CreateMenuBar()
         popup.AddChild(CreateMenuItem("Attribute inspector", @ShowAttributeInspectorWindow, 'I', QUAL_CTRL));
         popup.AddChild(CreateMenuItem("Resource browser", @ShowResourceBrowserWindow, 'B', QUAL_CTRL));
         popup.AddChild(CreateMenuItem("Material editor", @ShowMaterialEditor));
+        popup.AddChild(CreateMenuItem("Particle editor", @ShowParticleEffectEditor));
         popup.AddChild(CreateMenuItem("Spawn editor", @ShowSpawnEditor));
+        popup.AddChild(CreateMenuItem("Sound Type editor", @ShowSoundTypeEditor));
         popup.AddChild(CreateMenuItem("Editor settings", @ShowEditorSettingsDialog));
         popup.AddChild(CreateMenuItem("Editor preferences", @ShowEditorPreferencesDialog));
         CreateChildDivider(popup);
@@ -926,7 +934,7 @@ void CenterDialog(UIElement@ element)
 
 void CreateContextMenu()
 {
-    contextMenu = ui.LoadLayout(cache.GetResource("XMLFile", "UI/EditorContextMenu.xml"));
+    contextMenu = LoadEditorUI("UI/EditorContextMenu.xml");
     ui.root.AddChild(contextMenu);
 }
 
@@ -1439,4 +1447,30 @@ void ContextMenuEventWrapper(StringHash eventType, VariantMap& eventData)
         uiElement.SendEvent("Released", eventData);
     }
     CloseContextMenu();
+}
+
+/// Load a UI XML file used by the editor
+XMLFile@ GetEditorUIXMLFile(const String&in fileName)
+{
+    // Prefer the executable path to avoid using the user's resource path, which may point
+    // to an outdated Urho installation
+    String fullFileName = fileSystem.programDir + "Data/" + fileName;
+    if (fileSystem.FileExists(fullFileName))
+    {
+        File@ file = File(fullFileName, FILE_READ);
+        XMLFile@ xml = XMLFile();
+        xml.name = fileName;
+        if (xml.Load(file))
+            return xml;
+    }
+
+    // Fallback to resource system
+    return cache.GetResource("XMLFile", fileName);
+}
+
+
+/// Load an UI layout used by the editor
+UIElement@ LoadEditorUI(const String&in fileName)
+{
+    return ui.LoadLayout(GetEditorUIXMLFile(fileName));
 }

@@ -53,8 +53,8 @@ struct Batch
 {
     /// Construct with defaults.
     Batch() :
-        lightQueue_(0),
         geometry_(0),
+        lightQueue_(0),
         isBase_(false)
     {
     }

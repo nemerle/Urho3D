@@ -15,6 +15,8 @@ int  viewportBorderOffset = 2; // used to center borders over viewport seams,  s
 int  viewportBorderWidth = 4; // width of a viewport resize border
 IntRect viewportArea; // the area where the editor viewport is. if we ever want to have the viewport not take up the whole screen this abstracts that
 IntRect viewportUIClipBorder = IntRect(27, 60, 0, 0); // used to clip viewport borders, the borders are ugly when going behind the transparent toolbars
+RenderPath@ renderPath; // Renderpath to use on all views
+String renderPathName;
 bool mouseWheelCameraPosition = false;
 bool contextMenuActionWaitFrame = false;
 
@@ -102,7 +104,7 @@ class ViewportContext
         camera = cameraNode.CreateComponent("Camera");
         camera.fillMode = fillMode;
         soundListener = cameraNode.CreateComponent("SoundListener");
-        viewport = Viewport(editorScene, camera, viewRect);
+        viewport = Viewport(editorScene, camera, viewRect, renderPath);
         index = index_;
         viewportId = viewportId_;
         camera.viewMask = 0xffffffff; // It's easier to only have 1 gizmo active this viewport is shared with the gizmo
@@ -153,7 +155,7 @@ class ViewportContext
         cameraPosText.textEffect = TE_SHADOW;
         cameraPosText.priority = -100;
 
-        settingsWindow = ui.LoadLayout(cache.GetResource("XMLFile", "UI/EditorViewport.xml"));
+        settingsWindow = LoadEditorUI("UI/EditorViewport.xml");
         settingsWindow.opacity = uiMaxOpacity;
         settingsWindow.visible = false;
         viewportContextUI.AddChild(settingsWindow);
@@ -396,6 +398,34 @@ Array<String> fillModeText = {
     "Point"
 };
 
+void SetRenderPath(const String&in newRenderPathName)
+{
+    renderPath = null;
+    renderPathName = newRenderPathName.Trimmed();
+
+    if (renderPathName.length > 0)
+    {
+        File@ file = cache.GetFile(renderPathName);
+        if (file !is null)
+        {
+            XMLFile@ xml = XMLFile();
+            if (xml.Load(file))
+            {
+                renderPath = RenderPath();
+                if (!renderPath.Load(xml))
+                    renderPath = null;
+            }
+        }
+    }
+    
+    // If renderPath is null, the engine default will be used
+    for (uint i = 0; i < renderer.numViewports; ++i)
+        renderer.viewports[i].renderPath = renderPath;
+
+    if (materialPreview !is null && materialPreview.viewport !is null)
+        materialPreview.viewport.renderPath = renderPath;
+}
+
 void CreateCamera()
 {
     // Set the initial viewport rect
@@ -415,6 +445,9 @@ void CreateCamera()
     SubscribeToEvent("EndViewUpdate", "HandleEndViewUpdate");
     SubscribeToEvent("BeginViewRender", "HandleBeginViewRender");
     SubscribeToEvent("EndViewRender", "HandleEndViewRender");
+
+    // Set initial renderpath if defined
+    SetRenderPath(renderPathName);
 }
 
 // Create any UI associated with changing the editor viewports
@@ -677,6 +710,7 @@ void UpdateCameraPreview()
         previewView.scene = editorScene;
         previewView.camera = previewCamera.Get();
         previewView.rect = IntRect(previewX, previewY, previewX + previewWidth, previewY + previewHeight);
+        previewView.renderPath = renderPath;
         renderer.viewports[viewports.length] = previewView;
     }
 }
@@ -948,6 +982,9 @@ void UpdateViewParameters()
 
 void CreateGrid()
 {
+    if (gridNode !is null)
+        gridNode.Remove();
+
     gridNode = Node();
     grid = gridNode.CreateComponent("CustomGeometry");
     grid.numGeometries = 1;
@@ -1397,8 +1434,9 @@ void DrawNodeDebug(Node@ node, DebugRenderer@ debug, bool drawNode = true)
         debug.AddNode(node, 1.0, false);
 
     // Exception for the scene to avoid bringing the editor to its knees: drawing either the whole hierarchy or the subsystem-
-    // components can have a large performance hit
-    if (node !is editorScene)
+    // components can have a large performance hit. Also do not draw terrain child nodes due to their large amount
+    // (TerrainPatch component itself draws nothing as debug geometry)
+    if (node !is editorScene && node.GetComponent("Terrain") is null)
     {
         for (uint j = 0; j < node.numComponents; ++j)
             node.components[j].DrawDebugGeometry(debug, false);

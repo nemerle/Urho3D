@@ -29,6 +29,8 @@
 
 #include <QtCore/QSet>
 
+#include <HashMap.h>
+
 namespace Urho3D
 {
 
@@ -141,7 +143,7 @@ public:
     /// Return all loaded resources of a specific type.
     void GetResources(PODVector<Resource*>& result, StringHash type) const;
     /// Return all loaded resources.
-    const QHash<StringHash, ResourceGroup>& GetAllResources() const { return resourceGroups_; }
+    const HashMap<StringHash, ResourceGroup>& GetAllResources() const { return resourceGroups_; }
     /// Return added resource load directories.
     const Vector<String>& GetResourceDirs() const { return resourceDirs_; }
     /// Return added package files.
@@ -205,7 +207,7 @@ private:
     /// Mutex for thread-safe access to the resource directories, resource packages and resource dependencies.
     mutable Mutex resourceMutex_;
     /// Resources by type.
-    QHash<StringHash, ResourceGroup> resourceGroups_;
+    HashMap<StringHash, ResourceGroup> resourceGroups_;
     /// Resource load directories.
     Vector<String> resourceDirs_;
     /// File watchers for resource directories, if automatic reloading enabled.

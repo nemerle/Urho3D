@@ -24,7 +24,7 @@ public:
     /// Erase an element if found.
     bool remove(const T& value)
     {
-        iterator i = find(value);
+        iterator i = this->find(value);
         if (i == this->end())
             return false;
         this->erase(i);

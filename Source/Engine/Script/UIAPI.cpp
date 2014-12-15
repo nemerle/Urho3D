@@ -154,18 +154,25 @@ static void RegisterCursor(asIScriptEngine* engine)
 {
     engine->RegisterEnum("CursorShape");
     engine->RegisterEnumValue("CursorShape", "CS_NORMAL", CS_NORMAL);
+    engine->RegisterEnumValue("CursorShape", "CS_IBEAM", CS_IBEAM);
+    engine->RegisterEnumValue("CursorShape", "CS_CROSS", CS_CROSS);
     engine->RegisterEnumValue("CursorShape", "CS_RESIZEVERTICAL", CS_RESIZEVERTICAL);
     engine->RegisterEnumValue("CursorShape", "CS_RESIZEDIAGONAL_TOPRIGHT", CS_RESIZEDIAGONAL_TOPRIGHT);
     engine->RegisterEnumValue("CursorShape", "CS_RESIZEHORIZONTAL", CS_RESIZEHORIZONTAL);
     engine->RegisterEnumValue("CursorShape", "CS_RESIZEDIAGONAL_TOPLEFT", CS_RESIZEDIAGONAL_TOPLEFT);
+    engine->RegisterEnumValue("CursorShape", "CS_RESIZE_ALL", CS_RESIZE_ALL);
     engine->RegisterEnumValue("CursorShape", "CS_ACCEPTDROP", CS_ACCEPTDROP);
     engine->RegisterEnumValue("CursorShape", "CS_REJECTDROP", CS_REJECTDROP);
     engine->RegisterEnumValue("CursorShape", "CS_BUSY", CS_BUSY);
+    engine->RegisterEnumValue("CursorShape", "CS_BUSY_ARROW", CS_BUSY_ARROW);
 
     RegisterBorderImage<Cursor>(engine, "Cursor");
-    engine->RegisterObjectMethod("Cursor", "void DefineShape(CursorShape, Texture@+, const IntRect&in, const IntVector2&in)", asMETHOD(Cursor, DefineShape), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Cursor", "void set_shape(CursorShape)", asMETHOD(Cursor, SetShape), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Cursor", "CursorShape get_shape() const", asMETHOD(Cursor, GetShape), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void DefineShape(const String&in, Texture@+, const IntRect&in, const IntVector2&in)", asMETHODPR(Cursor, DefineShape, (CursorShape, Image*, const IntRect&, const IntVector2&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void DefineShape(CursorShape, Texture@+, const IntRect&in, const IntVector2&in)", asMETHODPR(Cursor, DefineShape, (const String&, Image*, const IntRect&, const IntVector2&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void SetShape(const String&in)", asMETHODPR(Cursor, SetShape, (const String&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void SetShape(CursorShape)", asMETHODPR(Cursor, SetShape, (CursorShape), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void set_shape(const String&in)", asMETHODPR(Cursor, SetShape, (const String&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "const String& get_shape() const", asMETHOD(Cursor, GetShape), asCALL_THISCALL);
     engine->RegisterObjectMethod("Cursor", "void set_useSystemShapes(bool)", asMETHOD(Cursor, SetUseSystemShapes), asCALL_THISCALL);
     engine->RegisterObjectMethod("Cursor", "bool get_useSystemShapes() const", asMETHOD(Cursor, GetUseSystemShapes), asCALL_THISCALL);
 }
@@ -323,6 +330,10 @@ static void RegisterListView(asIScriptEngine* engine)
     engine->RegisterObjectMethod("ListView", "float get_scrollDeceleration() const", asMETHOD(ListView, GetScrollDeceleration), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "void set_scrollSnapEpsilon(float)", asMETHOD(ListView, SetScrollSnapEpsilon), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "float get_scrollSnapEpsilon() const", asMETHOD(ListView, GetScrollSnapEpsilon), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ListView", "void set_autoDisableChildren(bool)", asMETHOD(ListView, SetAutoDisableChildren), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ListView", "bool get_autoDisableChildren() const", asMETHOD(ListView, GetAutoDisableChildren), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ListView", "void set_autoDisableThreshold(float)", asMETHOD(ListView, SetAutoDisableThreshold), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ListView", "float get_autoDisableThreshold() const", asMETHOD(ListView, GetAutoDisableThreshold), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "uint get_numItems() const", asMETHOD(ListView, GetNumItems), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "UIElement@+ get_items(uint) const", asMETHOD(ListView, GetItem), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "void set_selection(uint)", asMETHOD(ListView, SetSelection), asCALL_THISCALL);
@@ -528,7 +539,7 @@ static void RegisterWindow(asIScriptEngine* engine)
 static void RegisterView3D(asIScriptEngine* engine)
 {
     RegisterWindow<View3D>(engine, "View3D");
-    engine->RegisterObjectMethod("View3D", "void SetView(Scene@+, Camera@+)", asMETHOD(View3D, SetView), asCALL_THISCALL);
+    engine->RegisterObjectMethod("View3D", "void SetView(Scene@+, Camera@+, bool ownScene=true)", asMETHOD(View3D, SetView), asCALL_THISCALL);
     engine->RegisterObjectMethod("View3D", "void QueueUpdate()", asMETHOD(View3D, QueueUpdate), asCALL_THISCALL);
     engine->RegisterObjectMethod("View3D", "void set_format(uint)", asMETHOD(View3D, SetFormat), asCALL_THISCALL);
     engine->RegisterObjectMethod("View3D", "uint get_format() const", asMETHOD(View3D, GetFormat), asCALL_THISCALL);

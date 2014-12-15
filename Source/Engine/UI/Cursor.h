@@ -26,6 +26,7 @@
 #include "Image.h"
 #include "Texture.h"
 
+#include "HashMap.h"
 #include <SDL_mouse.h>
 
 namespace Urho3D
@@ -35,13 +36,17 @@ namespace Urho3D
 enum CursorShape
 {
     CS_NORMAL = 0,
+    CS_IBEAM,
+    CS_CROSS,
     CS_RESIZEVERTICAL,
     CS_RESIZEDIAGONAL_TOPRIGHT,
     CS_RESIZEHORIZONTAL,
     CS_RESIZEDIAGONAL_TOPLEFT,
+    CS_RESIZE_ALL,
     CS_ACCEPTDROP,
     CS_REJECTDROP,
     CS_BUSY,
+    CS_BUSY_ARROW,
     CS_MAX_SHAPES
 };
 
@@ -52,6 +57,17 @@ struct URHO3D_API CursorShapeInfo
     CursorShapeInfo() :
         imageRect_(IntRect::ZERO),
         hotSpot_(IntVector2::ZERO),
+        systemCursor_(-1),
+        osCursor_(0),
+        systemDefined_(false)
+    {
+    }
+
+    /// Construct with system cursor.
+    CursorShapeInfo(int systemCursor) :
+        imageRect_(IntRect::ZERO),
+        hotSpot_(IntVector2::ZERO),
+        systemCursor_(systemCursor),
         osCursor_(0),
         systemDefined_(false)
     {
@@ -65,6 +81,8 @@ struct URHO3D_API CursorShapeInfo
     IntRect imageRect_;
     /// Hotspot coordinates.
     IntVector2 hotSpot_;
+    /// System cursor index.
+    int systemCursor_;
     /// OS cursor.
     SDL_Cursor* osCursor_;
     /// Whether the OS cursor is system defined.
@@ -88,13 +106,17 @@ public:
     virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor);
 
     /// Define a shape.
+    void DefineShape(const String& shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot);
+    /// Define a shape.
     void DefineShape(CursorShape shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot);
+    /// Set current shape.
+    void SetShape(const String& shape);
     /// Set current shape.
     void SetShape(CursorShape shape);
     /// Set whether to use system default shapes. Is only possible when the OS mouse cursor has been set visible from the Input subsystem.
     void SetUseSystemShapes(bool enable);
     /// Get current shape.
-    CursorShape GetShape() const { return shape_; }
+    const String& GetShape() const { return shape_; }
     /// Return whether is using system default shapes.
     bool GetUseSystemShapes() const { return useSystemShapes_; }
 
@@ -109,10 +131,10 @@ protected:
     /// Handle operating system mouse cursor visibility change event.
     void HandleMouseVisibleChanged(StringHash eventType, VariantMap& eventData);
 
-    /// Current shape index.
-    CursorShape shape_;
+    /// Current shape definition.
+    String shape_;
     /// Shape definitions.
-    CursorShapeInfo shapeInfos_[CS_MAX_SHAPES];
+    HashMap<String, CursorShapeInfo> shapeInfos_;
     /// Use system default shapes flag.
     bool useSystemShapes_;
     /// OS cursor shape needs update flag.

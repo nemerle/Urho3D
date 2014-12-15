@@ -7,6 +7,7 @@
 #include "Scripts/Editor/EditorUIElement.as"
 #include "Scripts/Editor/EditorGizmo.as"
 #include "Scripts/Editor/EditorMaterial.as"
+#include "Scripts/Editor/EditorParticleEffect.as"
 #include "Scripts/Editor/EditorSettings.as"
 #include "Scripts/Editor/EditorPreferences.as"
 #include "Scripts/Editor/EditorToolBar.as"
@@ -15,6 +16,7 @@
 #include "Scripts/Editor/EditorImport.as"
 #include "Scripts/Editor/EditorResourceBrowser.as"
 #include "Scripts/Editor/EditorSpawn.as"
+#include "Scripts/Editor/EditorSoundType.as"
 
 String configFileName;
 
@@ -109,6 +111,25 @@ void HandleUpdate(StringHash eventType, VariantMap& eventData)
     UpdateTestAnimation(timeStep);
     UpdateGizmo();
     UpdateDirtyUI();
+
+    // Handle Particle Editor looping.
+    if (particleEffectWindow !is null and particleEffectWindow.visible)
+    {
+        if (!particleEffectEmitter.emitting)
+        {
+            if (particleResetTimer == 0.0f)
+                particleResetTimer = editParticleEffect.maxTimeToLive + 0.2f;
+            else
+            {
+                particleResetTimer = Max(particleResetTimer - timeStep, 0.0f);
+                if (particleResetTimer <= 0.0001f)
+                {
+                    particleEffectEmitter.Reset();
+                    particleResetTimer = 0.0f;
+                }
+            }
+        }
+    }
 }
 
 void HandleReloadFinished(StringHash eventType, VariantMap& eventData)
@@ -143,6 +164,7 @@ void LoadConfig()
     XMLElement resourcesElem = configElem.GetChild("resources");
     XMLElement consoleElem = configElem.GetChild("console");
     XMLElement varNamesElem = configElem.GetChild("varnames");
+    XMLElement soundTypesElem = configElem.GetChild("soundtypes");
 
     if (!cameraElem.isNull)
     {
@@ -196,6 +218,7 @@ void LoadConfig()
 
     if (!renderingElem.isNull)
     {
+        if (renderingElem.HasAttribute("renderpath")) renderPathName = renderingElem.GetAttribute("renderpath");
         if (renderingElem.HasAttribute("texturequality")) renderer.textureQuality = renderingElem.GetInt("texturequality");
         if (renderingElem.HasAttribute("materialquality")) renderer.materialQuality = renderingElem.GetInt("materialquality");
         if (renderingElem.HasAttribute("shadowresolution")) SetShadowResolution(renderingElem.GetInt("shadowresolution"));
@@ -248,9 +271,13 @@ void LoadConfig()
         // Console does not exist yet at this point, so store the string in a global variable
         if (consoleElem.HasAttribute("commandinterpreter")) consoleCommandInterpreter = consoleElem.GetAttribute("commandinterpreter");
     }
-    
+
     if (!varNamesElem.isNull)
         globalVarNames = varNamesElem.GetVariantMap();
+
+    if (!soundTypesElem.isNull)
+        LoadSoundTypes(soundTypesElem);
+
 }
 
 void SaveConfig()
@@ -267,6 +294,7 @@ void SaveConfig()
     XMLElement resourcesElem = configElem.CreateChild("resources");
     XMLElement consoleElem = configElem.CreateChild("console");
     XMLElement varNamesElem = configElem.CreateChild("varnames");
+    XMLElement soundTypesElem = configElem.CreateChild("soundtypes");
 
     cameraElem.SetFloat("nearclip", viewNearClip);
     cameraElem.SetFloat("farclip", viewFarClip);
@@ -297,6 +325,7 @@ void SaveConfig()
 
     if (renderer !is null && graphics !is null)
     {
+        renderingElem.SetAttribute("renderpath", renderPathName);
         renderingElem.SetInt("texturequality", renderer.textureQuality);
         renderingElem.SetInt("materialquality", renderer.materialQuality);
         renderingElem.SetInt("shadowresolution", GetShadowResolution());
@@ -337,6 +366,8 @@ void SaveConfig()
     consoleElem.SetAttribute("commandinterpreter", console.commandInterpreter);
 
     varNamesElem.SetVariantMap(globalVarNames);
+
+    SaveSoundTypes(soundTypesElem);
 
     config.Save(File(configFileName, FILE_WRITE));
 }

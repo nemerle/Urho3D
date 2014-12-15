@@ -546,3 +546,11 @@ inline uint qHash(const Urho3D::String & key, uint seed)
     return key.ToHash();
 }
 }
+namespace std {
+template<> struct hash<Urho3D::String> {
+    inline size_t operator()(const Urho3D::String & key) const
+    {
+        return key.ToHash();
+    }
+};
+}

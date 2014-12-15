@@ -1864,8 +1864,12 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
     if (model.bones_.size() > MAX_SKIN_MATRICES)
     {
         if (mesh->mNumBones > MAX_SKIN_MATRICES)
-            ErrorExit("Geometry has too many bone influences");
-        boneMappings.resize(mesh->mNumBones);
+        {
+            ErrorExit(
+                "Geometry (submesh) has over 64 bone influences. Try splitting to more submeshes\n"
+                "that each stay at 64 bones or below."
+            );
+        }
         for (unsigned i = 0; i < mesh->mNumBones; ++i)
         {
             aiBone* bone = mesh->mBones[i];

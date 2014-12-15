@@ -5,7 +5,7 @@ class View3D : public Window
     View3D();
     ~View3D();
 
-    void SetView(Scene* scene, Camera* camera);
+    void SetView(Scene* scene, Camera* camera, bool ownScene = true);
     void SetFormat(unsigned format);
     void SetAutoUpdate(bool enable);
     void QueueUpdate();

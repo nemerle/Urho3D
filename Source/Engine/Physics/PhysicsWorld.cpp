@@ -260,17 +260,18 @@ void PhysicsWorld::Update(float timeStep)
     // Apply delayed (parented) world transforms now
     while (!delayedWorldTransforms_.isEmpty())
     {
-        for (QHash<RigidBody*, DelayedWorldTransform>::Iterator i = delayedWorldTransforms_.begin();
-            i != delayedWorldTransforms_.end(); ++i)
+        for (auto i = delayedWorldTransforms_.begin(); i != delayedWorldTransforms_.end(); )
         {
-            const DelayedWorldTransform& transform = *i;
+            const DelayedWorldTransform& transform(MAP_VALUE(i));
 
             // If parent's transform has already been assigned, can proceed
             if (!delayedWorldTransforms_.contains(transform.parentRigidBody_))
             {
                 transform.rigidBody_->ApplyWorldTransform(transform.worldPosition_, transform.worldRotation_);
-                delayedWorldTransforms_.erase(i);
+                i = delayedWorldTransforms_.erase(i);
             }
+            else
+                ++i;
         }
     }
 }

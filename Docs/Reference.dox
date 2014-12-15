@@ -21,7 +21,7 @@ The list, set and map classes use a fixed-size allocator internally. This can al
 In script, the String class is exposed as it is. The template containers can not be directly exposed to script, but instead a template Array type exists, which behaves like a Vector, but does not expose iterators. In addition the VariantMap is available, which is a HashMap<StringHash, Variant>.
 
 
-\page ObjectTypes %Object types and factories
+\page ObjectTypes Object types and factories
 
 Classes that derive from Object contain type-identification, they can be created through object factories, and they can send and receive \ref Events "events". Examples of these are all Component, Resource and UIElement subclasses. To be able to be constructed by a factory, they need to have a constructor that takes a Context pointer as the only parameter.
 
@@ -117,7 +117,7 @@ SendEvent("Update", eventData);
 Because the \ref Object::SendEvent "SendEvent()" function is public, an event can be "masqueraded" as originating from any object, even when not actually sent by that object's member function code. This can be used to simplify communication, particularly between components in the scene. For example, the \ref Physics "physics simulation" signals collision events by using the participating \ref Node "scene nodes" as senders. This means that any component can easily subscribe to its own node's collisions without having to know of the actual physics components involved. The same principle can also be used in any game-specific messaging, for example making a "damage received" event originate from the scene node, though it itself has no concept of damage or health.
 
 
-\page MainLoop %Engine initialization and main loop
+\page MainLoop Engine initialization and main loop
 
 Before a Urho3D application can enter its main loop, the Engine subsystem object must be created and initialized by calling its \ref Engine::Initialize "Initialize()" function. Parameters sent in a VariantMap can be used to direct how the Engine initializes itself and the subsystems. One way to configure the parameters is to parse them from the command line like the Urho3DPlayer application does: this is accomplished by the helper function \ref Engine::ParseParameters "ParseParameters()".
 
@@ -249,7 +249,7 @@ public:
 DEFINE_APPLICATION_MAIN(MyApp)
 \endcode
 
-\page SceneModel %Scene model
+\page SceneModel Scene model
 
 Urho3D's scene model can be described as a component-based scene graph. The Scene consists of a hierarchy of scene nodes, starting from the root node, which also represents the whole scene. Each Node has a 3D transform (position, rotation and scale), a name and an ID, and a freeform VariantMap for \ref Node::GetVars "user variables", but no other functionality.
 
@@ -1336,7 +1336,7 @@ Like with skeletal animations, there are two ways to play back node animations:
 %Node animations do not support blending, as there is no initial pose to blend from. Instead they are always played back with full weight. Note that the scene node names in the animation and in the scene must match exactly, otherwise the animation will not play.
 
 
-\page Particles %Particle systems
+\page Particles Particle systems
 
 The ParticleEmitter class derives from BillboardSet to implement a particle system that updates automatically. 
 
@@ -1411,7 +1411,7 @@ Rendering detailed auxiliary views can easily have a large performance impact. S
 The surface can also be configured to always update its viewports, or to only update when manually requested. See \ref RenderSurface::SetUpdateMode "SetUpdateMode()". For example an editor widget showing a rendered texture might use either of those modes. Call \ref RenderSurface::QueueUpdate "QueueUpdate()" to request a manual update of the surface on the current frame.
 
 
-\page Input %Input
+\page Input Input
 
 The Input subsystem provides keyboard, mouse, joystick and touch input both via a polled interface and events. This subsystem is also used for querying whether the application window has input focus or is minimized.
 
@@ -1498,7 +1498,7 @@ On platforms that support it (such as Android) an on-screen virtual keyboard can
 
 On Windows the user must first touch the screen once before touch input is activated. Trying to record or load touch gestures will fail before that.
 
-\page Audio %Audio
+\page Audio Audio
 
 The Audio subsystem implements an audio output stream. Once it has been initialized, the following operations are supported:
 
@@ -1509,14 +1509,9 @@ To hear pseudo-3D positional sounds, a SoundListener component must exist in a s
 
 The output is software mixed for an unlimited amount of simultaneous sounds. Ogg Vorbis sounds are decoded on the fly, and decoding them can be memory- and CPU-intensive, so WAV files are recommended when a large number of short sound effects need to be played.
 
-For purposes of volume control, each SoundSource is classified into one of four categories:
+For purposes of volume control, each SoundSource can be classified into a user defined group which is multiplied with a master category and the individual SoundSource gain set using \ref SoundSource::SetGain "SetGain()" for the final volume level.
 
-- %Sound effects
-- Ambient
-- Music
-- Voice
-
-A master gain category also exists that affects the final output level. To control the category volumes, use \ref Audio::SetMasterGain "SetMasterGain()".
+To control the category volumes, use \ref Audio::SetMasterGain "SetMasterGain()", which defines the category if it didn't already exist.
 
 The SoundSource components support automatic removal from the node they belong to, once playback is finished. To use, call \ref SoundSource::SetAutoRemove "SetAutoRemove()" on them. This may be useful when a game object plays several "fire and forget" sound effects.
 
@@ -1752,6 +1747,79 @@ For FreeType fonts, it is possible to adjust the positioning of the font glyphs.
 Sprites are a special kind of %UI element that allow subpixel (float) positioning and scaling, as well as rotation, while the other elements use integer positioning for pixel-perfect display. Sprites can be used to implement rotating HUD elements such as minimaps or speedometer needles.
 
 Due to the free transformability, sprites can not be reliably queried with \ref UI::GetElementAt "GetElementAt()". Also, only other sprites should be parented to sprites, as the other elements do not support scaling and rotation.
+
+\section UI_Cursor_Shapes Cursor Shapes
+
+Urho3D supports custom Cursor Shapes defined from an \ref Image.
+
+The Shape can be an OS default from the \ref CursorShape "CursorShape" enum, which are automatically switched to and from by the \ref UI "UI" subsystem, but can be manually switched to using \ref Cursor::SetShape "Cursor::SetShape(CursorShape)".
+
+Alternatively they can be defined using a name in String format to identify it, which can only be manually switched to and from using \ref Cursor::SetShape "Cursor::SetShape(const String&)".
+
+There are a number of reserved names that are used for the OS defaults:
+    - Normal
+    - IBeam
+    - Cross
+    - ResizeVertical
+    - ResizeDiagonalTopRight
+    - ResizeHorizontal
+    - ResizeDiagonalTopLeft
+    - ResizeAll
+    - AcceptDrop
+    - RejectDrop
+    - Busy
+    - BusyArrow
+	
+Cursor Shapes can be define in a number of different ways:
+
+XML:
+\code
+	<element type="Cursor">
+		<attribute name="Shapes">
+			<variant type="VariantVector" >
+				<variant type="String" value="Normal" />
+				<variant type="ResourceRef" value="Image;Textures/UI.png" />
+				<variant type="IntRect" value="0 0 12 24" />
+				<variant type="IntVector2" value="0 0" />
+			</variant>  
+			<variant type="VariantVector" >
+				<variant type="String" value="Custom" />
+				<variant type="ResourceRef" value="Image;Textures/UI.png" />
+				<variant type="IntRect" value="12 0 12 36" />
+				<variant type="IntVector2" value="0 0" />
+			</variant>  
+		</atrribute>
+	</element>
+\endcode
+
+C++:
+\code
+    UI* ui = GetSubsystem<UI>();
+    ResourceCache* rc = GetSubsystem<ResourceCache>();
+
+    Cursor* cursor = new Cursor(context_);
+    Image* image = rc->GetResource<Image>("Textures/UI.png");
+    if (image)
+	{
+        cursor->DefineShape(CS_NORMAL, image, IntRect(0, 0, 12, 24), IntVector2(0, 0));
+		cursor->DefineShape("Custom", image, IntRect(12, 0, 12, 36), IntVector2(0, 0));
+	}
+
+    ui->SetCursor(cursor);
+\endcode
+
+Angelcode:
+\code
+	Cursor@ cursor = new Cursor();
+	Image@ image = cache.GetResource("Image", "Textures/UI.png");
+	if (image !is null)
+	{
+		cursor.DefineShape(CS_NORMAL, image, IntRect(0, 0, 12, 24), IntVector2(0, 0));
+		cursor.DefineShape("Custom", image, IntRect(12, 0, 12, 36), IntVector2(0, 0));
+	}
+		
+	ui.SetCursor(cursor);
+\endcode
 
 \page Urho2D Urho2D
 In order to make 2D games in Urho3D, the Urho2D sublibrary is provided. Urho2D includes 2D graphics and 2D physics.
@@ -2153,8 +2221,9 @@ When making your own work functions or threads, observe that the following thing
 
 Using the Profiler is treated as a no-op when called from outside the main thread. Trying to send an event or get a resource from the ResourceCache when not in the main thread will cause an error to be logged. %Log messages from other threads are collected and handled in the main thread at the end of the frame.
 
-\page AttributeAnimation %Attribute animation
-Attribute animation is a new system for Urho3D, With it user can apply animation to object's attribute. All object derived from Animatable can use attribute animation, currently these classes include Node, Component and UIElement.
+\page AttributeAnimation Attribute animation
+
+Attribute animation is mechanism to apply animation to an object's attribute. All objects derived from Animatable can use attribute animation, currently these classes include Node, Component and UIElement.
 
 These are two way to use use attribute animation. First user can create attribute animation with code, and then apply it to object's attribute. Here is a simple code for light color animation:
 \code

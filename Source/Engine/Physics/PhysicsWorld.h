@@ -28,6 +28,7 @@
 #include "Vector3.h"
 #include "VectorBuffer.h"
 #include "Pair.h"
+#include "HashMap.h"
 
 #include <LinearMath/btIDebugDraw.h>
 #include <QtCore/QSet>
@@ -256,7 +257,7 @@ private:
     /// Collision pairs on the previous frame. Used to check if a collision is "new." Manifolds are not guaranteed to exist anymore.
     QHash<Pair<WeakPtr<RigidBody>, WeakPtr<RigidBody> >, btPersistentManifold* > previousCollisions_;
     /// Delayed (parented) world transform assignments.
-    QHash<RigidBody*, DelayedWorldTransform> delayedWorldTransforms_;
+    HashMap<RigidBody*, DelayedWorldTransform> delayedWorldTransforms_;
     /// Cache for trimesh geometry data by model and LOD level.
     QHash<Pair<Model*, unsigned>, SharedPtr<CollisionGeometryData> > triMeshCache_;
     /// Cache for convex geometry data by model and LOD level.
