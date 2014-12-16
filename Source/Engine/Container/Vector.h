@@ -23,7 +23,7 @@
 #pragma once
 
 #include "VectorBase.h"
-
+#include "SmallVector.h"
 #include <cassert>
 #include <vector>
 #include <algorithm>
@@ -54,5 +54,6 @@ public:
 };
 template<typename T>
 using Vector = PODVector<T> ;
-
+template<typename T>
+using PODVector4 = lls::SmallVector<T,4>;
 }

@@ -23,5 +23,4 @@
 #pragma once
 
 
-#include <QtCore/QSet>
 #include "Str.h"

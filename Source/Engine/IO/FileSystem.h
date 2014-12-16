@@ -25,7 +25,7 @@
 #include "List.h"
 #include "Object.h"
 
-#include <QtCore/QSet>
+#include "HashMap.h"
 
 namespace Urho3D
 {
@@ -109,7 +109,7 @@ private:
     void HandleConsoleCommand(StringHash eventType, VariantMap& eventData);
 
     /// Allowed directories.
-    QSet<String> allowedPaths_;
+    HashSet<String> allowedPaths_;
     /// Cached program directory.
     mutable String programDir_;
     /// Async execution queue.

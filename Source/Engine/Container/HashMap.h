@@ -1,10 +1,10 @@
 #ifndef HASHMAP
 #define HASHMAP
-#include <QtCore/QHash>
 #include "Vector.h"
 #include <unordered_map>
 #include <unordered_set>
 #ifdef USE_QT_HASHMAP
+#include <QtCore/QHash>
 #endif
 namespace Urho3D {
 #ifdef USE_QT_HASHMAP
@@ -63,7 +63,7 @@ public:
     /// Erase an element if found.
     bool remove(const T& value)
     {
-        iterator i = find(value);
+        iterator i = this->find(value);
         if (i == this->end())
             return false;
         this->erase(i);

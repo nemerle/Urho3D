@@ -25,8 +25,8 @@
 #include "BoundingBox.h"
 #include "Component.h"
 #include "GraphicsDefs.h"
-#include <QtCore/QSet>
-#include <HashMap.h>
+#include "HashMap.h"
+#include "Vector.h"
 
 namespace Urho3D
 {
@@ -230,7 +230,7 @@ public:
     /// Return whether has a base pass.
     bool HasBasePass(unsigned batchIndex) const { return (basePassFlags_ & (1 << batchIndex)) != 0; }
     /// Return per-pixel lights.
-    const PODVector<Light*>& GetLights() const { return lights_; }
+    const PODVector4<Light*>& GetLights() const { return lights_; }
     /// Return per-vertex lights.
     const PODVector<Light*>& GetVertexLights() const { return vertexLights_; }
     /// Return the first added per-pixel light.
@@ -252,9 +252,8 @@ public:
     // Add a per-pixel light affecting the object this frame.
     void AddLight(Light* light)
     {
-        if (lights_.empty())
-            firstLight_ = light;
         lights_.push_back(light);
+        firstLight_ = lights_[0];
     }
 
     // Add a per-vertex light affecting the object this frame.
@@ -332,7 +331,7 @@ protected:
     /// First per-pixel light added this frame.
     Light* firstLight_;
     /// Per-pixel lights affecting this drawable.
-    PODVector<Light*> lights_;
+    PODVector4<Light *> lights_;
     /// Per-vertex lights affecting this drawable.
     PODVector<Light*> vertexLights_;
     /// Current zone.

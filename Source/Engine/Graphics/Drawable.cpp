@@ -81,6 +81,7 @@ Drawable::Drawable(Context* context, unsigned char drawableFlags) :
     zone_(nullptr),
     zoneDirty_(false)
 {
+    lights_.reserve(1);
 }
 
 Drawable::~Drawable()

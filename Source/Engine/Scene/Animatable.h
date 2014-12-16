@@ -24,7 +24,7 @@
 
 #include "Serializable.h"
 #include "ValueAnimationInfo.h"
-#include <QtCore/QSet>
+#include "HashMap.h"
 
 namespace Urho3D
 {
@@ -125,7 +125,7 @@ protected:
     /// Animation.
     SharedPtr<ObjectAnimation> objectAnimation_;
     /// Animated network attribute set.
-    QSet<const AttributeInfo*> animatedNetworkAttributes_;
+    HashSet<const AttributeInfo*> animatedNetworkAttributes_;
     /// Attribute animation infos.
     HashMap<String, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
 };

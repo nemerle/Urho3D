@@ -67,7 +67,7 @@ class ShadowCasterOctreeQuery : public FrustumOctreeQuery
 public:
     /// Construct with frustum and query parameters.
     ShadowCasterOctreeQuery(PODVector<Drawable*>& result, const Frustum& frustum, unsigned char drawableFlags = DRAWABLE_ANY,
-        unsigned viewMask = DEFAULT_VIEWMASK) :
+                            unsigned viewMask = DEFAULT_VIEWMASK) :
         FrustumOctreeQuery(result, frustum, drawableFlags, viewMask)
     {
     }
@@ -80,7 +80,7 @@ public:
             Drawable* drawable = *start++;
 
             if (drawable->GetCastShadows() && (drawable->GetDrawableFlags() & drawableFlags_) &&
-                (drawable->GetViewMask() & viewMask_))
+                    (drawable->GetViewMask() & viewMask_))
             {
                 if (inside || frustum_.IsInsideFast(drawable->GetWorldBoundingBox()))
                     result_.push_back(drawable);
@@ -95,7 +95,7 @@ class ZoneOccluderOctreeQuery : public FrustumOctreeQuery
 public:
     /// Construct with frustum and query parameters.
     ZoneOccluderOctreeQuery(PODVector<Drawable*>& result, const Frustum& frustum, unsigned char drawableFlags = DRAWABLE_ANY,
-        unsigned viewMask = DEFAULT_VIEWMASK) :
+                            unsigned viewMask = DEFAULT_VIEWMASK) :
         FrustumOctreeQuery(result, frustum, drawableFlags, viewMask)
     {
     }
@@ -109,7 +109,7 @@ public:
             unsigned char flags = drawable->GetDrawableFlags();
 
             if ((flags == DRAWABLE_ZONE || ((flags == DRAWABLE_GEOMETRY || flags == DRAWABLE_RENDERER2D) &&
-                drawable->IsOccluder())) && (drawable->GetViewMask() & viewMask_))
+                                            drawable->IsOccluder())) && (drawable->GetViewMask() & viewMask_))
             {
                 if (inside || frustum_.IsInsideFast(drawable->GetWorldBoundingBox()))
                     result_.push_back(drawable);
@@ -124,7 +124,7 @@ class OccludedFrustumOctreeQuery : public FrustumOctreeQuery
 public:
     /// Construct with frustum, occlusion buffer and query parameters.
     OccludedFrustumOctreeQuery(PODVector<Drawable*>& result, const Frustum& frustum, OcclusionBuffer* buffer, unsigned char
-        drawableFlags = DRAWABLE_ANY, unsigned viewMask = DEFAULT_VIEWMASK) :
+                               drawableFlags = DRAWABLE_ANY, unsigned viewMask = DEFAULT_VIEWMASK) :
         FrustumOctreeQuery(result, frustum, drawableFlags, viewMask),
         buffer_(buffer)
     {
@@ -175,8 +175,7 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
     unsigned cameraViewMask = view->camera_->GetViewMask();
     bool cameraZoneOverride = view->cameraZoneOverride_;
     PerThreadSceneResult& result = view->sceneResults_[threadIndex];
-
-    while (start != end)
+    while(start!=end)
     {
         Drawable* drawable = *start++;
         bool batchesUpdated = false;
@@ -190,28 +189,26 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
             if (drawable->GetDistance() > maxDistance)
                 continue;
         }
-
-        if (!buffer || !drawable->IsOccludee() || buffer->IsVisible(drawable->GetWorldBoundingBox()))
+        const BoundingBox& geomBox(drawable->GetWorldBoundingBox());
+        uint8_t drawableFlags = drawable->GetDrawableFlags();
+        if (!buffer || !drawable->IsOccludee() || buffer->IsVisible(geomBox))
         {
             if (!batchesUpdated)
                 drawable->UpdateBatches(view->frame_);
             drawable->MarkInView(view->frame_);
 
             // For geometries, find zone, clear lights and calculate view space Z range
-            if (drawable->GetDrawableFlags() & (DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D))
+            if (drawableFlags & (DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D))
             {
                 Zone* drawableZone = drawable->GetZone();
                 if (!cameraZoneOverride && (drawable->IsZoneDirty() || !drawableZone || (drawableZone->GetViewMask() &
-                    cameraViewMask) == 0))
+                                                                                         cameraViewMask) == 0))
                     view->FindZone(drawable);
-
-                const BoundingBox& geomBox = drawable->GetWorldBoundingBox();
+                assert(geomBox==drawable->GetWorldBoundingBox());
                 Vector3 center = geomBox.Center();
                 float viewCenterZ = viewZ.DotProduct(center) + viewMatrix.m23_;
                 Vector3 edge = geomBox.Size() * 0.5f;
                 float viewEdgeZ = absViewZ.DotProduct(edge);
-                float minZ = viewCenterZ - viewEdgeZ;
-                float maxZ = viewCenterZ + viewEdgeZ;
 
                 drawable->SetMinMaxZ(viewCenterZ - viewEdgeZ, viewCenterZ + viewEdgeZ);
                 drawable->ClearLights();
@@ -219,13 +216,15 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
                 // Expand the scene bounding box and Z range (skybox not included because of infinite size) and store the drawawble
                 if (drawable->GetType() != Skybox::GetTypeStatic())
                 {
-                    result.minZ_ = Min(result.minZ_, minZ);
-                    result.maxZ_ = Max(result.maxZ_, maxZ);
+                    float minZ = viewCenterZ - viewEdgeZ;
+                    float maxZ = viewCenterZ + viewEdgeZ;
+                    result.minZ_ = std::min(result.minZ_, minZ);
+                    result.maxZ_ = std::max(result.maxZ_, maxZ);
                 }
 
                 result.geometries_.push_back(drawable);
             }
-            else if (drawable->GetDrawableFlags() & DRAWABLE_LIGHT)
+            else if (drawableFlags & DRAWABLE_LIGHT)
             {
                 Light* light = static_cast<Light*>(drawable);
                 // Skip lights with zero brightness or black color
@@ -453,13 +452,13 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     rtSize_ = IntVector2(rtWidth, rtHeight);
 
     // On OpenGL flip the viewport if rendering to a texture for consistent UV addressing with Direct3D9
-    #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
     if (renderTarget_)
     {
         viewRect_.bottom_ = rtHeight - viewRect_.top_;
         viewRect_.top_ = viewRect_.bottom_ - viewSize_.y_;
     }
-    #endif
+#endif
 
     drawShadows_ = renderer_->GetDrawShadows();
     materialQuality_ = renderer_->GetMaterialQuality();
@@ -540,22 +539,22 @@ void View::Render()
     }
 
     // Bind the face selection and indirection cube maps for point light shadows
-    #ifndef GL_ES_VERSION_2_0
+#ifndef GL_ES_VERSION_2_0
     if (renderer_->GetDrawShadows())
     {
         graphics_->SetTexture(TU_FACESELECT, renderer_->GetFaceSelectCubeMap());
         graphics_->SetTexture(TU_INDIRECTION, renderer_->GetIndirectionCubeMap());
     }
-    #endif
+#endif
 
     if (renderTarget_)
     {
         // On OpenGL, flip the projection if rendering to a texture so that the texture can be addressed in the same way
         // as a render texture produced on Direct3D9
-        #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
         if (camera_)
             camera_->SetFlipVertical(true);
-        #endif
+#endif
     }
 
     // Render
@@ -570,7 +569,7 @@ void View::Render()
     graphics_->SetDepthStencil(GetDepthStencil(currentRenderTarget_));
     IntVector2 rtSizeNow = graphics_->GetRenderTargetDimensions();
     IntRect viewport = (currentRenderTarget_ == renderTarget_) ? viewRect_ : IntRect(0, 0, rtSizeNow.x_,
-        rtSizeNow.y_);
+                                                                                     rtSizeNow.y_);
     graphics_->SetViewport(viewport);
 
     graphics_->SetFillMode(FILL_SOLID);
@@ -591,10 +590,10 @@ void View::Render()
         }
     }
 
-    #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
     if (camera_)
         camera_->SetFlipVertical(false);
-    #endif
+#endif
 
     // Run framebuffer blitting if necessary
     if (currentRenderTarget_ != renderTarget_)
@@ -655,12 +654,12 @@ void View::SetCameraShaderParameters(Camera* camera, bool setProjection, bool ov
     if (camera->IsOrthographic())
     {
         depthMode.x_ = 1.0f;
-        #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
         depthMode.z_ = 0.5f;
         depthMode.w_ = 0.5f;
-        #else
+#else
         depthMode.z_ = 1.0f;
-        #endif
+#endif
     }
     else
         depthMode.w_ = 1.0f / camera->GetFarClip();
@@ -674,12 +673,12 @@ void View::SetCameraShaderParameters(Camera* camera, bool setProjection, bool ov
     if (setProjection)
     {
         Matrix4 projection = camera->GetProjection();
-        #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
         // Add constant depth bias manually to the projection matrix due to glPolygonOffset() inconsistency
         float constantBias = 2.0f * graphics_->GetDepthConstantBias();
         projection.m22_ += projection.m32_ * constantBias;
         projection.m23_ += projection.m33_ * constantBias;
-        #endif
+#endif
 
         if (overrideView)
             graphics_->SetShaderParameter(VSP_VIEWPROJ, projection);
@@ -695,13 +694,13 @@ void View::SetGBufferShaderParameters(const IntVector2& texSize, const IntRect& 
     float widthRange = 0.5f * viewRect.Width() / texWidth;
     float heightRange = 0.5f * viewRect.Height() / texHeight;
 
-    #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
     Vector4 bufferUVOffset(((float)viewRect.left_) / texWidth + widthRange,
-        1.0f - (((float)viewRect.top_) / texHeight + heightRange), widthRange, heightRange);
-    #else
+                           1.0f - (((float)viewRect.top_) / texHeight + heightRange), widthRange, heightRange);
+#else
     Vector4 bufferUVOffset((0.5f + (float)viewRect.left_) / texWidth + widthRange,
-        (0.5f + (float)viewRect.top_) / texHeight + heightRange, widthRange, heightRange);
-    #endif
+                           (0.5f + (float)viewRect.top_) / texHeight + heightRange, widthRange, heightRange);
+#endif
     graphics_->SetShaderParameter(VSP_GBUFFEROFFSETS, bufferUVOffset);
 
     float invSizeX = 1.0f / texWidth;
@@ -717,7 +716,7 @@ void View::GetDrawables()
     PROFILE(GetDrawables);
 
     WorkQueue* queue = GetSubsystem<WorkQueue>();
-    PODVector<Drawable*>& tempDrawables = tempDrawables_[0];
+    PODVector<Drawable*>& tempDrawables(tempDrawables_[0]);
 
     // Get zones and occluders first
     {
@@ -729,9 +728,8 @@ void View::GetDrawables()
     int bestPriority = M_MIN_INT;
     Vector3 cameraPos = cameraNode_->GetWorldPosition();
 
-    for (PODVector<Drawable*>::const_iterator i = tempDrawables.begin(); i != tempDrawables.end(); ++i)
+    for (Drawable* drawable : tempDrawables)
     {
-        Drawable* drawable = *i;
         unsigned char flags = drawable->GetDrawableFlags();
 
         if (flags & DRAWABLE_ZONE)
@@ -789,22 +787,20 @@ void View::GetDrawables()
     if (occlusionBuffer_)
     {
         OccludedFrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), occlusionBuffer_, DRAWABLE_GEOMETRY |
-            DRAWABLE_RENDERER2D | DRAWABLE_LIGHT, camera_->GetViewMask());
+                                         DRAWABLE_RENDERER2D | DRAWABLE_LIGHT, camera_->GetViewMask());
         octree_->GetDrawables(query);
     }
     else
     {
         FrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D |
-            DRAWABLE_LIGHT, camera_->GetViewMask());
+                                 DRAWABLE_LIGHT, camera_->GetViewMask());
         octree_->GetDrawables(query);
     }
 
     // Check drawable occlusion, find zones for moved drawables and collect geometries & lights in worker threads
     {
-        for (unsigned i = 0; i < sceneResults_.size(); ++i)
+        for (PerThreadSceneResult& result : sceneResults_)
         {
-            PerThreadSceneResult& result = sceneResults_[i];
-
             result.geometries_.clear();
             result.lights_.clear();
             result.minZ_ = M_INFINITY;
@@ -848,9 +844,8 @@ void View::GetDrawables()
 
     if (sceneResults_.size() > 1)
     {
-        for (unsigned i = 0; i < sceneResults_.size(); ++i)
+        for (PerThreadSceneResult& result : sceneResults_)
         {
-            PerThreadSceneResult& result = sceneResults_[i];
             geometries_.insert(geometries_.end(),result.geometries_.begin(),result.geometries_.end());
             lights_.insert(lights_.end(),result.lights_.begin(),result.lights_.end());
             minZ_ = Min(minZ_, result.minZ_);
@@ -863,17 +858,16 @@ void View::GetDrawables()
         PerThreadSceneResult& result = sceneResults_[0];
         minZ_ = result.minZ_;
         maxZ_ = result.maxZ_;
-        Swap(geometries_, result.geometries_);
-        Swap(lights_, result.lights_);
+        std::swap(geometries_, result.geometries_);
+        std::swap(lights_, result.lights_);
     }
 
     if (minZ_ == M_INFINITY)
         minZ_ = 0.0f;
 
     // Sort the lights to brightest/closest first, and per-vertex lights first so that per-vertex base pass can be evaluated first
-    for (unsigned i = 0; i < lights_.size(); ++i)
+    for (Light* light : lights_)
     {
-        Light* light = lights_[i];
         light->SetIntensitySortValue(camera_->GetDistance(light->GetNode()->GetWorldPosition()));
         light->SetLightQueue(nullptr);
     }
@@ -924,9 +918,9 @@ void View::GetBatches()
         // Preallocate light queues: per-pixel lights which have lit geometries
         unsigned numLightQueues = 0;
         unsigned usedLightQueues = 0;
-        for (Vector<LightQueryResult>::const_iterator i = lightQueryResults_.begin(); i != lightQueryResults_.end(); ++i)
+        for (LightQueryResult & i : lightQueryResults_)
         {
-            if (!i->light_->GetPerVertex() && i->litGeometries_.size())
+            if (!i.light_->GetPerVertex() && i.litGeometries_.size())
                 ++numLightQueues;
         }
 
@@ -936,8 +930,6 @@ void View::GetBatches()
 
         for (LightQueryResult & query : lightQueryResults_)
         {
-
-
             // If light has no affected geometries, no need to process further
             if (query.litGeometries_.empty())
                 continue;
@@ -983,8 +975,9 @@ void View::GetBatches()
                     FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, query.shadowCasterBox_[j]);
 
                     // Loop through shadow casters
-                    for (PODVector<Drawable*>::const_iterator k = query.shadowCasters_.begin() + query.shadowCasterBegin_[j];
-                        k < query.shadowCasters_.begin() + query.shadowCasterEnd_[j]; ++k)
+                    PODVector<Drawable*>::const_iterator start = query.shadowCasters_.begin() + query.shadowCasterBegin_[j];
+                    PODVector<Drawable*>::const_iterator fin = query.shadowCasters_.begin() + query.shadowCasterEnd_[j];
+                    for (PODVector<Drawable*>::const_iterator k = start; k!=fin; ++k)
                     {
                         Drawable* drawable = *k;
                         // If drawable is not in actual view frustum, mark it in view here and check its geometry update type
@@ -999,12 +992,9 @@ void View::GetBatches()
                         }
 
                         Zone* zone = GetZone(drawable);
-                        const Vector<SourceBatch>& batches = drawable->GetBatches();
 
-                        for (unsigned l = 0; l < batches.size(); ++l)
+                        for (const SourceBatch& srcBatch : drawable->GetBatches())
                         {
-                            const SourceBatch& srcBatch = batches[l];
-
                             Technique* tech = GetTechnique(drawable, srcBatch.material_);
                             if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
                                 continue;
@@ -1060,9 +1050,8 @@ void View::GetBatches()
             else
             {
                 // Add the vertex light to lit drawables. It will be processed later during base pass batch generation
-                for (PODVector<Drawable*>::const_iterator j = query.litGeometries_.begin(); j != query.litGeometries_.end(); ++j)
+                for (Drawable* drawable : query.litGeometries_)
                 {
-                    Drawable* drawable = *j;
                     drawable->AddVertexLight(light);
                 }
             }
@@ -1077,7 +1066,7 @@ void View::GetBatches()
         for (Drawable* drawable : maxLightsDrawables_)
         {
             drawable->LimitLights();
-            const PODVector<Light*>& lights = drawable->GetLights();
+            const PODVector4<Light*>& lights = drawable->GetLights();
 
             for (unsigned i = 0; i < lights.size(); ++i)
             {
@@ -1094,6 +1083,7 @@ void View::GetBatches()
     {
         PROFILE(GetBaseBatches);
 
+        unsigned frameNo = frame_.frameNumber_;
         for (Drawable* drawable : geometries_)
         {
             UpdateGeometryType type = drawable->GetUpdateGeometryType();
@@ -1108,83 +1098,160 @@ void View::GetBatches()
             const PODVector<Light*>& drawableVertexLights(drawable->GetVertexLights());
             if (!drawableVertexLights.empty())
                 drawable->LimitVertexLights();
-
-            for (unsigned j = 0; j < batches.size(); ++j)
+            unsigned drawableLightMask = GetLightMask(drawable);
+            // For each batch check here if the material refers to a rendertarget texture with camera(s) attached
+            // Only check this for backbuffer views (null rendertarget)
+            if(renderTarget_)
             {
-                const SourceBatch& srcBatch = batches[j];
-
-                // Check here if the material refers to a rendertarget texture with camera(s) attached
-                // Only check this for backbuffer views (null rendertarget)
-                if (!renderTarget_ && srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frame_.frameNumber_)
-                    CheckMaterialForAuxView(srcBatch.material_);
-
-                Technique* tech = GetTechnique(drawable, srcBatch.material_);
-                if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
-                    continue;
-
-                Batch destBatch(srcBatch,true);
-                destBatch.camera_ = camera_;
-                destBatch.zone_ = zone;
-                destBatch.pass_ = nullptr;
-                destBatch.lightMask_ = GetLightMask(drawable);
-
-                // Check each of the scene passes
-                for (unsigned k = 0; k < scenePasses_.size(); ++k)
+                for (unsigned j = 0,fin=batches.size(); j < fin; ++j)
                 {
-                    ScenePassInfo& info = scenePasses_[k];
-                    destBatch.pass_ = tech->GetSupportedPass(info.pass_);
-                    if (!destBatch.pass_)
+                    const SourceBatch& srcBatch(batches[j]);
+
+                    Technique* tech = GetTechnique(drawable, srcBatch.material_);
+                    if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
                         continue;
 
-                    // Skip forward base pass if the corresponding litbase pass already exists
-                    if (info.pass_ == basePassName_ && j < 32 && drawable->HasBasePass(j))
-                        continue;
-
-                    if (info.vertexLights_ && !drawableVertexLights.empty())
+                    Batch destBatch(srcBatch,true);
+                    destBatch.camera_ = camera_;
+                    destBatch.zone_ = zone;
+                    destBatch.pass_ = nullptr;
+                    destBatch.lightMask_ = drawableLightMask;
+                    // Check each of the scene passes
+                    for (ScenePassInfo& info : scenePasses_)
                     {
-                        // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
-                        // them to prevent double-lighting
-                        if (deferred_ && destBatch.pass_->GetBlendMode() == BLEND_REPLACE)
+                        destBatch.pass_ = tech->GetSupportedPass(info.pass_);
+                        if (!destBatch.pass_)
+                            continue;
+
+                        // Skip forward base pass if the corresponding litbase pass already exists
+                        if (j < 32 && info.pass_ == basePassName_ && drawable->HasBasePass(j))
+                            continue;
+
+                        if (info.vertexLights_ && !drawableVertexLights.empty())
                         {
-                            vertexLights.clear();
-                            for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
+                            // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
+                            // them to prevent double-lighting
+                            if (deferred_ && destBatch.pass_->GetBlendMode() == BLEND_REPLACE)
                             {
-                                if (drawableVertexLights[i]->GetPerVertex())
-                                    vertexLights.push_back(drawableVertexLights[i]);
+                                vertexLights.clear();
+                                for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
+                                {
+                                    if (drawableVertexLights[i]->GetPerVertex())
+                                        vertexLights.push_back(drawableVertexLights[i]);
+                                }
+                            }
+                            else
+                                vertexLights = drawableVertexLights;
+
+                            if (!vertexLights.empty())
+                            {
+                                // Find a vertex light queue. If not found, create new
+                                unsigned long long hash = GetVertexLightQueueHash(vertexLights);
+                                HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
+                                if (i == vertexLightQueues_.end())
+                                {
+#ifdef USE_QT_HASHMAP
+                                    i = vertexLightQueues_.insert(hash, LightBatchQueue());
+#else
+                                    i = vertexLightQueues_.emplace(hash, LightBatchQueue()).first;
+#endif
+                                    MAP_VALUE(i).light_ = nullptr;
+                                    MAP_VALUE(i).shadowMap_ = nullptr;
+                                    MAP_VALUE(i).vertexLights_ = vertexLights;
+                                }
+
+                                destBatch.lightQueue_ = &(MAP_VALUE(i));
                             }
                         }
                         else
-                            vertexLights = drawableVertexLights;
+                            destBatch.lightQueue_ = nullptr;
 
-                        if (!vertexLights.empty())
-                        {
-                            // Find a vertex light queue. If not found, create new
-                            unsigned long long hash = GetVertexLightQueueHash(vertexLights);
-                            HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
-                            if (i == vertexLightQueues_.end())
-                            {
-#ifdef USE_QT_HASHMAP
-                                i = vertexLightQueues_.insert(hash, LightBatchQueue());
-#else
-                                i = vertexLightQueues_.emplace(hash, LightBatchQueue()).first;
-#endif
-                                MAP_VALUE(i).light_ = nullptr;
-                                MAP_VALUE(i).shadowMap_ = nullptr;
-                                MAP_VALUE(i).vertexLights_ = vertexLights;
-                            }
+                        bool allowInstancing = info.allowInstancing_;
+                        if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
+                            allowInstancing = false;
 
-                            destBatch.lightQueue_ = &(MAP_VALUE(i));
-                        }
+                        AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
                     }
-                    else
-                        destBatch.lightQueue_ = nullptr;
-
-                    bool allowInstancing = info.allowInstancing_;
-                    if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
-                        allowInstancing = false;
-
-                    AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
                 }
+            }
+            else
+            {
+                for (unsigned j = 0,fin=batches.size(); j < fin; ++j)
+                {
+                    const SourceBatch& srcBatch(batches[j]);
+
+                    // Check here if the material refers to a rendertarget texture with camera(s) attached
+                    // Only check this for backbuffer views (null rendertarget)
+                    if (srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frameNo)
+                        CheckMaterialForAuxView(srcBatch.material_);
+
+                    Technique* tech = GetTechnique(drawable, srcBatch.material_);
+                    if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
+                        continue;
+
+                    Batch destBatch(srcBatch,true);
+                    destBatch.camera_ = camera_;
+                    destBatch.zone_ = zone;
+                    destBatch.pass_ = nullptr;
+                    destBatch.lightMask_ = drawableLightMask;
+                    // Check each of the scene passes
+                    for (ScenePassInfo& info : scenePasses_)
+                    {
+                        destBatch.pass_ = tech->GetSupportedPass(info.pass_);
+                        if (!destBatch.pass_)
+                            continue;
+
+                        // Skip forward base pass if the corresponding litbase pass already exists
+                        if (info.pass_ == basePassName_ && j < 32 && drawable->HasBasePass(j))
+                            continue;
+
+                        if (info.vertexLights_ && !drawableVertexLights.empty())
+                        {
+                            // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
+                            // them to prevent double-lighting
+                            if (deferred_ && destBatch.pass_->GetBlendMode() == BLEND_REPLACE)
+                            {
+                                vertexLights.clear();
+                                for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
+                                {
+                                    if (drawableVertexLights[i]->GetPerVertex())
+                                        vertexLights.push_back(drawableVertexLights[i]);
+                                }
+                            }
+                            else
+                                vertexLights = drawableVertexLights;
+
+                            if (!vertexLights.empty())
+                            {
+                                // Find a vertex light queue. If not found, create new
+                                unsigned long long hash = GetVertexLightQueueHash(vertexLights);
+                                HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
+                                if (i == vertexLightQueues_.end())
+                                {
+#ifdef USE_QT_HASHMAP
+                                    i = vertexLightQueues_.insert(hash, LightBatchQueue());
+#else
+                                    i = vertexLightQueues_.emplace(hash, LightBatchQueue()).first;
+#endif
+                                    MAP_VALUE(i).light_ = nullptr;
+                                    MAP_VALUE(i).shadowMap_ = nullptr;
+                                    MAP_VALUE(i).vertexLights_ = vertexLights;
+                                }
+
+                                destBatch.lightQueue_ = &(MAP_VALUE(i));
+                            }
+                        }
+                        else
+                            destBatch.lightQueue_ = nullptr;
+
+                        bool allowInstancing = info.allowInstancing_;
+                        if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
+                            allowInstancing = false;
+
+                        AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
+                    }
+                }
+
             }
         }
     }
@@ -1294,12 +1361,11 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
     // Shadows on transparencies can only be rendered if shadow maps are not reused
     bool allowTransparentShadows = !renderer_->GetReuseShadowMaps();
     bool allowLitBase = useLitBase_ && !light->IsNegative() && light == drawable->GetFirstLight() &&
-        drawable->GetVertexLights().empty() && !hasAmbientGradient;
-
-    for (unsigned i = 0,fin=batches.size(); i < fin; ++i)
+            drawable->GetVertexLights().empty() && !hasAmbientGradient;
+    int i=-1;
+    for (const SourceBatch& srcBatch : batches)
     {
-        const SourceBatch& srcBatch = batches[i];
-
+        ++i;
         Technique* tech = GetTechnique(drawable, srcBatch.material_);
         if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
             continue;
@@ -1420,7 +1486,7 @@ void View::ExecuteRenderPathCommands()
                         if (viewportWrite)
                         {
                             BlitFramebuffer(static_cast<Texture2D*>(currentRenderTarget_->GetParentTexture()),
-                                viewportTextures_[0]->GetRenderSurface(), false);
+                                            viewportTextures_[0]->GetRenderSurface(), false);
                             currentViewportTexture_ = viewportTextures_[0];
                             viewportModified = false;
                         }
@@ -1463,16 +1529,16 @@ void View::ExecuteRenderPathCommands()
             switch (command.type_)
             {
             case CMD_CLEAR:
-                {
-                    PROFILE(ClearRenderTarget);
+            {
+                PROFILE(ClearRenderTarget);
 
-                    Color clearColor = command.clearColor_;
-                    if (command.useFogColor_)
-                        clearColor = farClipZone_->GetFogColor();
+                Color clearColor = command.clearColor_;
+                if (command.useFogColor_)
+                    clearColor = farClipZone_->GetFogColor();
 
-                    SetRenderTargets(command);
-                    graphics_->Clear(command.clearFlags_, clearColor, command.clearDepth_, command.clearStencil_);
-                }
+                SetRenderTargets(command);
+                graphics_->Clear(command.clearFlags_, clearColor, command.clearDepth_, command.clearStencil_);
+            }
                 break;
 
             case CMD_SCENEPASS:
@@ -1490,13 +1556,13 @@ void View::ExecuteRenderPathCommands()
                 break;
 
             case CMD_QUAD:
-                {
-                    PROFILE(RenderQuad);
+            {
+                PROFILE(RenderQuad);
 
-                    SetRenderTargets(command);
-                    SetTextures(command);
-                    RenderQuad(command);
-                }
+                SetRenderTargets(command);
+                SetTextures(command);
+                RenderQuad(command);
+            }
                 break;
 
             case CMD_FORWARDLIGHTS:
@@ -1612,7 +1678,7 @@ void View::SetRenderTargets(RenderPathCommand& command)
     // viewport-sized, so they should use their full size as the viewport
     IntVector2 rtSizeNow = graphics_->GetRenderTargetDimensions();
     IntRect viewport = (graphics_->GetRenderTarget(0) == renderTarget_) ? viewRect_ : IntRect(0, 0, rtSizeNow.x_,
-        rtSizeNow.y_);
+                                                                                              rtSizeNow.y_);
 
     graphics_->SetDepthStencil(GetDepthStencil(graphics_->GetRenderTarget(0)));
     graphics_->SetViewport(viewport);
@@ -1713,11 +1779,11 @@ void View::RenderQuad(RenderPathCommand& command)
         float height = (float)renderTargets_[nameHash]->GetHeight();
 
         graphics_->SetShaderParameter(invSizeName, Vector2(1.0f / width, 1.0f / height));
-        #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
         graphics_->SetShaderParameter(offsetsName, Vector2::ZERO);
-        #else
+#else
         graphics_->SetShaderParameter(offsetsName, Vector2(0.5f / width, 0.5f / height));
-        #endif
+#endif
     }
 
     graphics_->SetBlendMode(BLEND_REPLACE);
@@ -1735,7 +1801,7 @@ void View::RenderQuad(RenderPathCommand& command)
 bool View::IsNecessary(const RenderPathCommand& command)
 {
     return command.enabled_ && command.outputNames_.size() && (command.type_ != CMD_SCENEPASS ||
-        !batchQueues_[command.pass_].IsEmpty());
+            !batchQueues_[command.pass_].IsEmpty());
 }
 
 bool View::CheckViewportRead(const RenderPathCommand& command)
@@ -1790,13 +1856,13 @@ void View::AllocateScreenBuffers()
     bool needSubstitute = false;
     unsigned numViewportTextures = 0;
 
-    #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
     // Due to FBO limitations, in OpenGL deferred modes need to render to texture first and then blit to the backbuffer
     // Also, if rendering to a texture with full deferred rendering, it must be RGBA to comply with the rest of the buffers.
     if ((deferred_ && !renderTarget_) || (deferredAmbient_ && renderTarget_ && renderTarget_->GetParentTexture()->GetFormat() !=
-        Graphics::GetRGBAFormat()))
+                                          Graphics::GetRGBAFormat()))
         needSubstitute = true;
-    #endif
+#endif
     // If backbuffer is antialiased when using deferred rendering, need to reserve a buffer
     if (deferred_ && !renderTarget_ && graphics_->GetMultiSample() > 1)
         needSubstitute = true;
@@ -1843,10 +1909,10 @@ void View::AllocateScreenBuffers()
         needSubstitute = true;
     }
 
-    #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
     if (deferred_ && !hdrRendering)
         format = Graphics::GetRGBAFormat();
-    #endif
+#endif
 
     // Check for commands which read the viewport, or pingpong between viewport textures
     bool hasViewportRead = false;
@@ -1869,10 +1935,10 @@ void View::AllocateScreenBuffers()
 
         // If OpenGL ES, use substitute target to avoid resolve from the backbuffer, which may be slow. However if multisampling
         // is specified, there is no choice
-        #ifdef GL_ES_VERSION_2_0
+#ifdef GL_ES_VERSION_2_0
         if (!renderTarget_ && graphics_->GetMultiSample() < 2)
             needSubstitute = true;
-        #endif
+#endif
 
         // If we have viewport read and target is a cube map, must allocate a substitute target instead as BlitFramebuffer()
         // does not support reading a cube map
@@ -1892,11 +1958,11 @@ void View::AllocateScreenBuffers()
     // Follow the sRGB mode of the destination render target
     bool sRGB = renderTarget_ ? renderTarget_->GetParentTexture()->GetSRGB() : graphics_->GetSRGB();
     substituteRenderTarget_ = needSubstitute ? renderer_->GetScreenBuffer(viewSize_.x_, viewSize_.y_, format, true,
-        sRGB)->GetRenderSurface() : (RenderSurface*)nullptr;
+                                                                          sRGB)->GetRenderSurface() : (RenderSurface*)nullptr;
     for (unsigned i = 0; i < MAX_VIEWPORT_TEXTURES; ++i)
     {
         viewportTextures_[i] = i < numViewportTextures ? renderer_->GetScreenBuffer(viewSize_.x_, viewSize_.y_, format, true, sRGB) :
-            (Texture2D*)nullptr;
+                                                         (Texture2D*)nullptr;
     }
     // If using a substitute render target and pingponging, the substitute can act as the second viewport texture
     if (numViewportTextures == 1 && substituteRenderTarget_)
@@ -1928,7 +1994,7 @@ void View::AllocateScreenBuffers()
 
         // If the rendertarget is persistent, key it with a hash derived from the RT name and the view's pointer
         renderTargets_[rtInfo.name_] = renderer_->GetScreenBuffer(intWidth, intHeight, rtInfo.format_, rtInfo.filtered_,
-            rtInfo.sRGB_, rtInfo.persistent_ ? StringHash(rtInfo.name_).Value() + (unsigned)(size_t)this : 0);
+                                                                  rtInfo.sRGB_, rtInfo.persistent_ ? StringHash(rtInfo.name_).Value() + (unsigned)(size_t)this : 0);
     }
 }
 
@@ -1943,7 +2009,7 @@ void View::BlitFramebuffer(Texture2D* source, RenderSurface* destination, bool d
     // are always viewport-sized
     IntVector2 srcSize(source->GetWidth(), source->GetHeight());
     IntVector2 destSize = destination ? IntVector2(destination->GetWidth(), destination->GetHeight()) : IntVector2(
-        graphics_->GetWidth(), graphics_->GetHeight());
+                                            graphics_->GetWidth(), graphics_->GetHeight());
 
     IntRect srcRect = (source->GetRenderSurface() == renderTarget_) ? viewRect_ : IntRect(0, 0, srcSize.x_, srcSize.y_);
     IntRect destRect = (destination == renderTarget_) ? viewRect_ : IntRect(0, 0, destSize.x_, destSize.y_);
@@ -1977,13 +2043,13 @@ void View::DrawFullscreenQuad(bool nearQuad)
     Matrix3x4 model = Matrix3x4::IDENTITY;
     Matrix4 projection = Matrix4::IDENTITY;
 
-    #ifdef URHO3D_OPENGL
+#ifdef URHO3D_OPENGL
     if (camera_ && camera_->GetFlipVertical())
         projection.m11_ = -1.0f;
     model.m23_ = nearQuad ? -1.0f : 1.0f;
-    #else
+#else
     model.m23_ = nearQuad ? 0.0f : 1.0f;
-    #endif
+#endif
 
     graphics_->SetCullMode(CULL_NONE);
     graphics_->SetShaderParameter(VSP_MODEL, model);
@@ -2078,10 +2144,10 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     if (isShadowed && light->GetShadowDistance() > 0.0f && light->GetDistance() > light->GetShadowDistance())
         isShadowed = false;
     // OpenGL ES can not support point light shadows
-    #ifdef GL_ES_VERSION_2_0
+#ifdef GL_ES_VERSION_2_0
     if (isShadowed && type == LIGHT_POINT)
         isShadowed = false;
-    #endif
+#endif
     // Get lit geometries. They must match the light mask and be inside the main camera frustum to be considered
     PODVector<Drawable*>& tempDrawables = tempDrawables_[threadIndex];
     query.litGeometries_.clear();
@@ -2097,29 +2163,29 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
         break;
 
     case LIGHT_SPOT:
+    {
+        FrustumOctreeQuery octreeQuery(tempDrawables, light->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D,
+                                       camera_->GetViewMask());
+        octree_->GetDrawables(octreeQuery);
+        for (unsigned i = 0; i < tempDrawables.size(); ++i)
         {
-            FrustumOctreeQuery octreeQuery(tempDrawables, light->GetFrustum(), DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D,
-                camera_->GetViewMask());
-            octree_->GetDrawables(octreeQuery);
-            for (unsigned i = 0; i < tempDrawables.size(); ++i)
-            {
-                if (tempDrawables[i]->IsInView(frame_) && (GetLightMask(tempDrawables[i]) & light->GetLightMask()))
-                    query.litGeometries_.push_back(tempDrawables[i]);
-            }
+            if (tempDrawables[i]->IsInView(frame_) && (GetLightMask(tempDrawables[i]) & light->GetLightMask()))
+                query.litGeometries_.push_back(tempDrawables[i]);
         }
+    }
         break;
 
     case LIGHT_POINT:
+    {
+        SphereOctreeQuery octreeQuery(tempDrawables, Sphere(light->GetNode()->GetWorldPosition(), light->GetRange()),
+                                      DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D, camera_->GetViewMask());
+        octree_->GetDrawables(octreeQuery);
+        for (unsigned i = 0; i < tempDrawables.size(); ++i)
         {
-            SphereOctreeQuery octreeQuery(tempDrawables, Sphere(light->GetNode()->GetWorldPosition(), light->GetRange()),
-                DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D, camera_->GetViewMask());
-            octree_->GetDrawables(octreeQuery);
-            for (unsigned i = 0; i < tempDrawables.size(); ++i)
-            {
-                if (tempDrawables[i]->IsInView(frame_) && (GetLightMask(tempDrawables[i]) & light->GetLightMask()))
-                    query.litGeometries_.push_back(tempDrawables[i]);
-            }
+            if (tempDrawables[i]->IsInView(frame_) && (GetLightMask(tempDrawables[i]) & light->GetLightMask()))
+                query.litGeometries_.push_back(tempDrawables[i]);
         }
+    }
         break;
     }
 
@@ -2155,7 +2221,7 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
 
             // Reuse lit geometry query for all except directional lights
             ShadowCasterOctreeQuery query(tempDrawables, shadowCameraFrustum, DRAWABLE_GEOMETRY | DRAWABLE_RENDERER2D,
-                camera_->GetViewMask());
+                                          camera_->GetViewMask());
             octree_->GetDrawables(query);
         }
 
@@ -2189,7 +2255,7 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
         lightViewFrustum = camera_->GetSplitFrustum(minZ_, maxZ_).Transformed(lightView);
     else
         lightViewFrustum = camera_->GetSplitFrustum(Max(minZ_, query.shadowNearSplits_[splitIndex]),
-            Min(maxZ_, query.shadowFarSplits_[splitIndex])).Transformed(lightView);
+                                                    Min(maxZ_, query.shadowFarSplits_[splitIndex])).Transformed(lightView);
 
     BoundingBox lightViewFrustumBox(lightViewFrustum);
 
@@ -2210,7 +2276,7 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
         // Check shadow mask
         if (!(GetShadowMask(drawable) & light->GetLightMask()))
             continue;
-       // For point light, check that this drawable is inside the split shadow camera frustum
+        // For point light, check that this drawable is inside the split shadow camera frustum
         if (type == LIGHT_POINT && shadowCameraFrustum.IsInsideFast(drawable->GetWorldBoundingBox()) == OUTSIDE)
             continue;
 
@@ -2257,7 +2323,7 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
 }
 
 bool View::IsShadowCasterVisible(Drawable* drawable, BoundingBox lightViewBox, Camera* shadowCamera, const Matrix3x4& lightView,
-    const Frustum& lightViewFrustum, const BoundingBox& lightViewFrustumBox)
+                                 const Frustum& lightViewFrustum, const BoundingBox& lightViewFrustumBox)
 {
     if (shadowCamera->IsOrthographic())
     {
@@ -2300,23 +2366,23 @@ IntRect View::GetShadowMapViewport(Light* light, unsigned splitIndex, Texture2D*
     switch (light->GetLightType())
     {
     case LIGHT_DIRECTIONAL:
-        {
-            int numSplits = light->GetNumShadowSplits();
-            if (numSplits == 1)
-                return IntRect(0, 0, width, height);
-            else if (numSplits == 2)
-                return IntRect(splitIndex * width / 2, 0, (splitIndex + 1) * width / 2, height);
-            else
-                return IntRect((splitIndex & 1) * width / 2, (splitIndex / 2) * height / 2, ((splitIndex & 1) + 1) * width / 2,
-                    (splitIndex / 2 + 1) * height / 2);
-        }
+    {
+        int numSplits = light->GetNumShadowSplits();
+        if (numSplits == 1)
+            return IntRect(0, 0, width, height);
+        else if (numSplits == 2)
+            return IntRect(splitIndex * width / 2, 0, (splitIndex + 1) * width / 2, height);
+        else
+            return IntRect((splitIndex & 1) * width / 2, (splitIndex / 2) * height / 2, ((splitIndex & 1) + 1) * width / 2,
+                           (splitIndex / 2 + 1) * height / 2);
+    }
 
     case LIGHT_SPOT:
         return IntRect(0, 0, width, height);
 
     case LIGHT_POINT:
         return IntRect((splitIndex & 1) * width / 2, (splitIndex / 2) * height / 3, ((splitIndex & 1) + 1) * width / 2,
-            (splitIndex / 2 + 1) * height / 3);
+                       (splitIndex / 2 + 1) * height / 3);
     }
 
     return IntRect();
@@ -2331,72 +2397,72 @@ void View::SetupShadowCameras(LightQueryResult& query)
     switch (light->GetLightType())
     {
     case LIGHT_DIRECTIONAL:
+    {
+        const CascadeParameters& cascade = light->GetShadowCascade();
+
+        float nearSplit = camera_->GetNearClip();
+        float farSplit;
+        int numSplits = light->GetNumShadowSplits();
+
+        while (splits < numSplits)
         {
-            const CascadeParameters& cascade = light->GetShadowCascade();
+            // If split is completely beyond camera far clip, we are done
+            if (nearSplit > camera_->GetFarClip())
+                break;
 
-            float nearSplit = camera_->GetNearClip();
-            float farSplit;
-            int numSplits = light->GetNumShadowSplits();
+            farSplit = Min(camera_->GetFarClip(), cascade.splits_[splits]);
+            if (farSplit <= nearSplit)
+                break;
 
-            while (splits < numSplits)
-            {
-                // If split is completely beyond camera far clip, we are done
-                if (nearSplit > camera_->GetFarClip())
-                    break;
+            // Setup the shadow camera for the split
+            Camera* shadowCamera = renderer_->GetShadowCamera();
+            query.shadowCameras_[splits] = shadowCamera;
+            query.shadowNearSplits_[splits] = nearSplit;
+            query.shadowFarSplits_[splits] = farSplit;
+            SetupDirLightShadowCamera(shadowCamera, light, nearSplit, farSplit);
 
-                farSplit = Min(camera_->GetFarClip(), cascade.splits_[splits]);
-                if (farSplit <= nearSplit)
-                    break;
-
-                // Setup the shadow camera for the split
-                Camera* shadowCamera = renderer_->GetShadowCamera();
-                query.shadowCameras_[splits] = shadowCamera;
-                query.shadowNearSplits_[splits] = nearSplit;
-                query.shadowFarSplits_[splits] = farSplit;
-                SetupDirLightShadowCamera(shadowCamera, light, nearSplit, farSplit);
-
-                nearSplit = farSplit;
-                ++splits;
-            }
+            nearSplit = farSplit;
+            ++splits;
         }
+    }
         break;
 
     case LIGHT_SPOT:
-        {
-            Camera* shadowCamera = renderer_->GetShadowCamera();
-            query.shadowCameras_[0] = shadowCamera;
-            Node* cameraNode = shadowCamera->GetNode();
-            Node* lightNode = light->GetNode();
+    {
+        Camera* shadowCamera = renderer_->GetShadowCamera();
+        query.shadowCameras_[0] = shadowCamera;
+        Node* cameraNode = shadowCamera->GetNode();
+        Node* lightNode = light->GetNode();
 
-            cameraNode->SetTransform(lightNode->GetWorldPosition(), lightNode->GetWorldRotation());
-            shadowCamera->SetNearClip(light->GetShadowNearFarRatio() * light->GetRange());
-            shadowCamera->SetFarClip(light->GetRange());
-            shadowCamera->SetFov(light->GetFov());
-            shadowCamera->SetAspectRatio(light->GetAspectRatio());
+        cameraNode->SetTransform(lightNode->GetWorldPosition(), lightNode->GetWorldRotation());
+        shadowCamera->SetNearClip(light->GetShadowNearFarRatio() * light->GetRange());
+        shadowCamera->SetFarClip(light->GetRange());
+        shadowCamera->SetFov(light->GetFov());
+        shadowCamera->SetAspectRatio(light->GetAspectRatio());
 
-            splits = 1;
-        }
+        splits = 1;
+    }
         break;
 
     case LIGHT_POINT:
+    {
+        for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
         {
-            for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
-            {
-                Camera* shadowCamera = renderer_->GetShadowCamera();
-                query.shadowCameras_[i] = shadowCamera;
-                Node* cameraNode = shadowCamera->GetNode();
+            Camera* shadowCamera = renderer_->GetShadowCamera();
+            query.shadowCameras_[i] = shadowCamera;
+            Node* cameraNode = shadowCamera->GetNode();
 
-                // When making a shadowed point light, align the splits along X, Y and Z axes regardless of light rotation
-                cameraNode->SetPosition(light->GetNode()->GetWorldPosition());
-                cameraNode->SetDirection(*directions[i]);
-                shadowCamera->SetNearClip(light->GetShadowNearFarRatio() * light->GetRange());
-                shadowCamera->SetFarClip(light->GetRange());
-                shadowCamera->SetFov(90.0f);
-                shadowCamera->SetAspectRatio(1.0f);
-            }
-
-            splits = MAX_CUBEMAP_FACES;
+            // When making a shadowed point light, align the splits along X, Y and Z axes regardless of light rotation
+            cameraNode->SetPosition(light->GetNode()->GetWorldPosition());
+            cameraNode->SetDirection(*directions[i]);
+            shadowCamera->SetNearClip(light->GetShadowNearFarRatio() * light->GetRange());
+            shadowCamera->SetFarClip(light->GetRange());
+            shadowCamera->SetFov(90.0f);
+            shadowCamera->SetAspectRatio(1.0f);
         }
+
+        splits = MAX_CUBEMAP_FACES;
+    }
         break;
     }
 
@@ -2439,7 +2505,7 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
                 continue;
 
             if (drawable->GetMinZ() <= farSplit && drawable->GetMaxZ() >= nearSplit &&
-                (GetLightMask(drawable) & light->GetLightMask()))
+                    (GetLightMask(drawable) & light->GetLightMask()))
                 litGeometriesBox.Merge(drawable->GetWorldBoundingBox());
         }
         if (litGeometriesBox.defined_)
@@ -2472,7 +2538,7 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
 }
 
 void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport,
-    const BoundingBox& shadowCasterBox)
+                                const BoundingBox& shadowCasterBox)
 {
     const FocusParameters& parameters = light->GetShadowFocus();
     float shadowMapWidth = (float)(shadowViewport.Width());
@@ -2516,17 +2582,17 @@ void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRec
             shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 2.0f) / shadowMapWidth));
         else
         {
-            #ifdef URHO3D_OPENGL
-                shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 3.0f) / shadowMapWidth));
-            #else
-                shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 4.0f) / shadowMapWidth));
-            #endif
+#ifdef URHO3D_OPENGL
+            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 3.0f) / shadowMapWidth));
+#else
+            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 4.0f) / shadowMapWidth));
+#endif
         }
     }
 }
 
 void View::QuantizeDirLightShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport,
-    const BoundingBox& viewBox)
+                                        const BoundingBox& viewBox)
 {
     Node* shadowCameraNode = shadowCamera->GetNode();
     const FocusParameters& parameters = light->GetShadowFocus();
@@ -2590,7 +2656,7 @@ void View::FindZone(Drawable* drawable)
     Zone* lastZone = drawable->GetZone();
 
     if (lastZone && (lastZone->GetViewMask() & camera_->GetViewMask()) && lastZone->GetPriority() >= highestZonePriority_ &&
-        (drawable->GetZoneMask() & lastZone->GetZoneMask()) && lastZone->IsInside(center))
+            (drawable->GetZoneMask() & lastZone->GetZoneMask()) && lastZone->IsInside(center))
         newZone = lastZone;
     else
     {
@@ -2614,36 +2680,34 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
     if (!material)
     {
         const Vector<TechniqueEntry>& techniques = renderer_->GetDefaultMaterial()->GetTechniques();
-        return techniques.size() ? techniques[0].technique_ : (Technique*)nullptr;
+        return techniques.size() ? techniques.back().technique_ : (Technique*)nullptr;
     }
 
     const Vector<TechniqueEntry>& techniques = material->GetTechniques();
-    // If only one technique, no choice
+    if (techniques.empty())
+        return nullptr;                      // No techniques no choice at all
     if (techniques.size() == 1)
-        return techniques[0].technique_;
-    else
+        return techniques.back().technique_; // If only one technique, no choice
+
+    float lodDistance = drawable->GetLodDistance();
+
+    // Check for suitable technique. Techniques should be ordered like this:
+    // Most distant & highest quality
+    // Most distant & lowest quality
+    // Second most distant & highest quality
+    // ...
+    for (const TechniqueEntry& entry : techniques)
     {
-        float lodDistance = drawable->GetLodDistance();
+        Technique* tech = entry.technique_;
 
-        // Check for suitable technique. Techniques should be ordered like this:
-        // Most distant & highest quality
-        // Most distant & lowest quality
-        // Second most distant & highest quality
-        // ...
-        for (unsigned i = 0; i < techniques.size(); ++i)
-        {
-            const TechniqueEntry& entry = techniques[i];
-            Technique* tech = entry.technique_;
-
-            if (!tech || (!tech->IsSupported()) || materialQuality_ < entry.qualityLevel_)
-                continue;
-            if (lodDistance >= entry.lodDistance_)
-                return tech;
-        }
-
-        // If no suitable technique found, fallback to the last
-        return techniques.size() ? techniques.back().technique_ : (Technique*)nullptr;
+        if (!tech || (!tech->IsSupported()) || materialQuality_ < entry.qualityLevel_)
+            continue;
+        if (lodDistance >= entry.lodDistance_)
+            return tech;
     }
+
+    // If no suitable technique found, fallback to the last
+    return techniques.back().technique_;
 }
 
 void View::CheckMaterialForAuxView(Material* material)
@@ -2863,10 +2927,10 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
 
         // Perform further modification of depth bias on OpenGL ES, as shadow calculations' precision is limited
         float addition = 0.0f;
-        #ifdef GL_ES_VERSION_2_0
+#ifdef GL_ES_VERSION_2_0
         multiplier *= renderer_->GetMobileShadowBiasMul();
         addition = renderer_->GetMobileShadowBiasAdd();
-        #endif
+#endif
 
         graphics_->SetDepthBias(multiplier * parameters.constantBias_ + addition, multiplier * parameters.slopeScaledBias_);
 
