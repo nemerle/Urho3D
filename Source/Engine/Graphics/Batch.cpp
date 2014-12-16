@@ -159,7 +159,7 @@ Batch::Batch(const SourceBatch &rhs, bool is_base) :
     material_(rhs.material_),
     worldTransform_(rhs.worldTransform_),
     numWorldTransforms_(rhs.numWorldTransforms_),
-    lightQueue_(0),
+    lightQueue_(nullptr),
     geometryType_(rhs.geometryType_),
     overrideView_(rhs.overrideView_),
     isBase_(is_base)
@@ -710,14 +710,7 @@ void BatchGroup::Draw(View* view) const
     }
 }
 
-unsigned BatchGroupKey::ToHash() const
-{
-    return ((unsigned)(size_t)zone_) / sizeof(Zone) +
-        ((unsigned)(size_t)lightQueue_) / sizeof(LightBatchQueue) +
-        ((unsigned)(size_t)pass_) / sizeof(Pass) +
-        ((unsigned)(size_t)material_) / sizeof(Material) +
-        ((unsigned)(size_t)geometry_) / sizeof(Geometry);
-}
+
 
 void BatchQueue::Clear(int maxSortedInstances)
 {

@@ -307,9 +307,8 @@ void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
         viewFrameNumber_ = frameNumber;
         viewCameras_.clear();
     }
-
     if (camera)
-        viewCameras_.emplace(camera);
+        viewCameras_.push_back(camera);
 }
 
 void Drawable::LimitLights()

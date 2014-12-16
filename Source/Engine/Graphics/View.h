@@ -214,7 +214,7 @@ private:
     /// Check if material should render an auxiliary view (if it has a camera attached.)
     void CheckMaterialForAuxView(Material* material);
     /// Choose shaders for a batch and add it to queue.
-    void AddBatchToQueue(BatchQueue& queue, Batch& batch, Technique* tech, bool allowInstancing = true, bool allowShadows = true);
+    void AddBatchToQueue(BatchQueue& queue, Batch& batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
     /// Prepare instancing buffer by filling it with all instance transforms.
     void PrepareInstancingBuffer();
     /// Set up a light volume rendering batch.
@@ -249,8 +249,8 @@ private:
     unsigned long long GetVertexLightQueueHash(const PODVector<Light*>& vertexLights)
     {
         unsigned long long hash = 0;
-        for (PODVector<Light*>::const_iterator i = vertexLights.begin(); i != vertexLights.end(); ++i)
-            hash += (unsigned long long)(*i);
+        for (Light * light : vertexLights)
+            hash ^= uintptr_t(light)>>4;
         return hash;
     }
 

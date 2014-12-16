@@ -54,7 +54,7 @@ struct Batch
     /// Construct with defaults.
     Batch() :
         geometry_(0),
-        lightQueue_(0),
+        lightQueue_(nullptr),
         isBase_(false)
     {
     }
@@ -112,7 +112,7 @@ struct InstanceData
     }
 
     /// Construct with transform and distance.
-    InstanceData(const Matrix3x4* worldTransform, float distance) :
+    constexpr InstanceData(const Matrix3x4* worldTransform, float distance) :
         worldTransform_(worldTransform),
         distance_(distance)
     {
@@ -148,13 +148,9 @@ struct BatchGroup : public Batch
     /// Add world transform(s) from a batch.
     void AddTransforms(const Batch& batch)
     {
-        InstanceData newInstance;
-        newInstance.distance_ = batch.distance_;
-
         for (unsigned i = 0; i < batch.numWorldTransforms_; ++i)
         {
-            newInstance.worldTransform_ = &batch.worldTransform_[i];
-            instances_.push_back(newInstance);
+            instances_.push_back({&batch.worldTransform_[i],batch.distance_});
         }
     }
 
@@ -164,28 +160,14 @@ struct BatchGroup : public Batch
     void Draw(View* view) const;
 
     /// Instance data.
-    PODVector<InstanceData> instances_;
+    PODVectorN<InstanceData,4> instances_;
     /// Instance stream start index, or M_MAX_UNSIGNED if transforms not pre-set.
     unsigned startIndex_;
 };
 /// Instanced draw call grouping key.
 struct BatchGroupKey
 {
-    /// Construct undefined.
-    BatchGroupKey()
-    {
-    }
-
-    /// Construct from a batch.
-    BatchGroupKey(const Batch& batch) :
-        zone_(batch.zone_),
-        lightQueue_(batch.lightQueue_),
-        pass_(batch.pass_),
-        material_(batch.material_),
-        geometry_(batch.geometry_)
-    {
-    }
-
+protected:
     /// Zone.
     Zone* zone_;
     /// Light properties.
@@ -196,14 +178,34 @@ struct BatchGroupKey
     Material* material_;
     /// Geometry.
     Geometry* geometry_;
+    uintptr_t hashCode_;
+public:
+    /// Construct undefined.
+    BatchGroupKey() = default;
+
+    /// Construct from a batch.
+    BatchGroupKey(const Batch& batch) :
+        zone_(batch.zone_),
+        lightQueue_(batch.lightQueue_),
+        pass_(batch.pass_),
+        material_(batch.material_),
+        geometry_(batch.geometry_),
+        hashCode_ ( (uintptr_t(zone_) >> 1) ^
+                    (uintptr_t(lightQueue_) >>3) ^
+                    (uintptr_t(pass_) >>5) ^
+                    (uintptr_t(material_) >>7) ^
+                    (uintptr_t(geometry_)))
+    {
+    }
+
 
     /// Test for equality with another batch group key.
-    bool operator == (const BatchGroupKey& rhs) const { return zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
+    constexpr bool operator == (const BatchGroupKey& rhs) const { return zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
     /// Test for inequality with another batch group key.
-    bool operator != (const BatchGroupKey& rhs) const { return zone_ != rhs.zone_ || lightQueue_ != rhs.lightQueue_ || pass_ != rhs.pass_ || material_ != rhs.material_ || geometry_ != rhs.geometry_; }
+    constexpr bool operator != (const BatchGroupKey& rhs) const { return zone_ != rhs.zone_ || lightQueue_ != rhs.lightQueue_ || pass_ != rhs.pass_ || material_ != rhs.material_ || geometry_ != rhs.geometry_; }
 
     /// Return hash value.
-    unsigned ToHash() const;
+    constexpr unsigned ToHash() const { return  hashCode_; }
 };
 }
 namespace std {

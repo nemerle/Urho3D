@@ -311,7 +311,7 @@ public:
     /// Allocate a temporary shadow camera and a scene node for it. Is thread-safe.
     Camera* GetShadowCamera();
     /// Choose shaders for a forward rendering batch.
-    void SetBatchShaders(Batch& batch, Technique* tech, bool allowShadows = true);
+    void SetBatchShaders(Batch& batch, const Urho3D::Technique *tech, bool allowShadows = true);
     /// Choose shaders for a deferred light volume batch.
     void SetLightVolumeBatchShaders(Batch& batch, const String& vsName, const String& psName);
     /// Set cull mode while taking possible projection flipping into account.
@@ -335,7 +335,7 @@ private:
     /// Reload shaders.
     void LoadShaders();
     /// Reload shaders for a material pass.
-    void LoadPassShaders(Technique* tech, StringHash passType);
+    void LoadPassShaders(const Urho3D::Technique *tech, StringHash passType);
     /// Release shaders used in materials.
     void ReleaseMaterialShaders();
     /// Reload textures.
@@ -414,9 +414,9 @@ private:
     /// Views that have been processed this frame.
     Vector<WeakPtr<View> > views_;
     /// Octrees that have been updated during the frame.
-    QSet<Octree*> updatedOctrees_;
+    HashSet<Octree*> updatedOctrees_;
     /// Techniques for which missing shader error has been displayed.
-    QSet<Technique*> shaderErrorDisplayed_;
+    HashSet<const Technique*> shaderErrorDisplayed_;
     /// Mutex for shadow camera allocation.
     Mutex rendererMutex_;
     /// Current variation names for deferred light volume shaders.

@@ -1053,7 +1053,7 @@ Camera* Renderer::GetShadowCamera()
     return camera;
 }
 
-void Renderer::SetBatchShaders(Batch& batch, Technique* tech, bool allowShadows)
+void Renderer::SetBatchShaders(Batch& batch, const Technique* tech, bool allowShadows)
 {
     // Check if shaders are unloaded or need reloading
     Pass* pass = batch.pass_;
@@ -1474,7 +1474,7 @@ void Renderer::LoadShaders()
     shadersDirty_ = false;
 }
 
-void Renderer::LoadPassShaders(Technique* tech, StringHash type)
+void Renderer::LoadPassShaders(const Technique* tech, StringHash type)
 {
     Pass* pass = tech->GetPass(type);
     if (!pass)

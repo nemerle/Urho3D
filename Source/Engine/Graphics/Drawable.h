@@ -339,7 +339,7 @@ protected:
     /// Zone inconclusive or dirtied flag.
     bool zoneDirty_;
     /// Set of cameras from which is seen on the current frame.
-    HashSet<Camera*> viewCameras_;
+    PODVectorN<Camera*,2> viewCameras_;
 };
 
 inline bool CompareDrawables(Drawable* lhs, Drawable* rhs)

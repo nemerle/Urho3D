@@ -54,6 +54,26 @@ public:
 };
 template<typename T>
 using Vector = PODVector<T> ;
+template <typename T,int N>
+class PODVectorN : public lls::SmallVector<T,N> {
+public:
+    typedef typename lls::SmallVector<T,N>::iterator iterator;
+    typedef typename lls::SmallVector<T,N>::const_iterator const_iterator;
+    PODVectorN() {}
+    PODVectorN(int sz) : lls::SmallVector<T,N>(sz) {}
+    constexpr bool contains(const T &v) const { return find(v)!=this->end();}
+    iterator find(const T &v) { return std::find(this->begin(),this->end(),v);}
+    const_iterator find(const T &v) const { return std::find(this->begin(),this->end(),v);}
+    /// Erase an element if found.
+    bool remove(const T& value)
+    {
+        iterator i = find(value);
+        if (i == this->end())
+            return false;
+        this->erase(i);
+        return true;
+    }
+};
 template<typename T>
-using PODVector4 = lls::SmallVector<T,4>;
+using PODVector4 = PODVectorN<T,4>;
 }

@@ -1363,6 +1363,7 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
     bool allowLitBase = useLitBase_ && !light->IsNegative() && light == drawable->GetFirstLight() &&
             drawable->GetVertexLights().empty() && !hasAmbientGradient;
     int i=-1;
+    Pass * dest_pass;
     for (const SourceBatch& srcBatch : batches)
     {
         ++i;
@@ -1374,36 +1375,39 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
         if (gBufferPassName_.Value() && tech->HasPass(gBufferPassName_))
             continue;
 
-        Batch destBatch(srcBatch);
         bool isLitAlpha = false;
-
+        bool isBase = false;
         // Check for lit base pass. Because it uses the replace blend mode, it must be ensured to be the first light
         // Also vertex lighting or ambient gradient require the non-lit base pass, so skip in those cases
         if (i < 32 && allowLitBase)
         {
-            destBatch.pass_ = tech->GetSupportedPass(litBasePassName_);
-            if (destBatch.pass_)
+            dest_pass = tech->GetSupportedPass(litBasePassName_);
+            if (dest_pass)
             {
-                destBatch.isBase_ = true;
+                isBase = true;
                 drawable->SetBasePass(i);
             }
             else
-                destBatch.pass_ = tech->GetSupportedPass(lightPassName_);
+                dest_pass = tech->GetSupportedPass(lightPassName_);
         }
         else
-            destBatch.pass_ = tech->GetSupportedPass(lightPassName_);
+            dest_pass = tech->GetSupportedPass(lightPassName_);
 
         // If no lit pass, check for lit alpha
-        if (!destBatch.pass_)
+        if (!dest_pass)
         {
-            destBatch.pass_ = tech->GetSupportedPass(litAlphaPassName_);
+            dest_pass = tech->GetSupportedPass(litAlphaPassName_);
             isLitAlpha = true;
         }
 
         // Skip if material does not receive light at all
-        if (!destBatch.pass_)
+        if (!dest_pass)
+            continue;
+        if(isLitAlpha && !alphaQueue)
             continue;
 
+        Batch destBatch(srcBatch,isBase);
+        destBatch.pass_ = dest_pass;
         destBatch.camera_ = camera_;
         destBatch.lightQueue_ = &lightQueue;
         destBatch.zone_ = zone;
@@ -1415,7 +1419,7 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
             else
                 AddBatchToQueue(lightQueue.litBatches_, destBatch, tech);
         }
-        else if (alphaQueue)
+        else /*if (alphaQueue)*/
         {
             // Transparent batches can not be instanced
             AddBatchToQueue(*alphaQueue, destBatch, tech, false, allowTransparentShadows);
@@ -2745,7 +2749,7 @@ void View::CheckMaterialForAuxView(Material* material)
     material->MarkForAuxView(frame_.frameNumber_);
 }
 
-void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech, bool allowInstancing, bool allowShadows)
+void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, const Technique* tech, bool allowInstancing, bool allowShadows)
 {
     if (!batch.material_)
         batch.material_ = renderer_->GetDefaultMaterial();
@@ -2757,7 +2761,6 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, Technique* tech
     if (batch.geometryType_ == GEOM_INSTANCED)
     {
         BatchGroupKey key(batch);
-
         HashMap<BatchGroupKey, BatchGroup>::iterator i = batchQueue.batchGroups_.find(key);
         if (i == batchQueue.batchGroups_.end())
         {
