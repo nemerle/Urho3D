@@ -884,7 +884,7 @@ void View::GetBatches()
     threadedGeometries_.clear();
 
     WorkQueue* queue = GetSubsystem<WorkQueue>();
-    PODVector<Light*> vertexLights;
+    PODVector4<Light*> vertexLights;
     BatchQueue* alphaQueue = batchQueues_.contains(alphaPassName_) ? &batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
 
     // Process lit geometries and shadow casters for each light
@@ -1066,7 +1066,7 @@ void View::GetBatches()
         for (Drawable* drawable : maxLightsDrawables_)
         {
             drawable->LimitLights();
-            const PODVector4<Light*>& lights = drawable->GetLights();
+            const PODVector4<Light*>& lights(drawable->GetLights());
 
             for (unsigned i = 0; i < lights.size(); ++i)
             {
@@ -1086,6 +1086,8 @@ void View::GetBatches()
         unsigned frameNo = frame_.frameNumber_;
         for (Drawable* drawable : geometries_)
         {
+            const Vector<SourceBatch>& batches(drawable->GetBatches());
+            const PODVector4<Light*>& drawableVertexLights(drawable->GetVertexLights());
             UpdateGeometryType type = drawable->GetUpdateGeometryType();
             if (type == UPDATE_MAIN_THREAD)
                 nonThreadedGeometries_.push_back(drawable);
@@ -1093,165 +1095,87 @@ void View::GetBatches()
                 threadedGeometries_.push_back(drawable);
 
             Zone* zone = GetZone(drawable);
-            const Vector<SourceBatch>& batches(drawable->GetBatches());
 
-            const PODVector<Light*>& drawableVertexLights(drawable->GetVertexLights());
             if (!drawableVertexLights.empty())
                 drawable->LimitVertexLights();
+
             unsigned drawableLightMask = GetLightMask(drawable);
-            // For each batch check here if the material refers to a rendertarget texture with camera(s) attached
-            // Only check this for backbuffer views (null rendertarget)
-            if(renderTarget_)
-            {
-                for (unsigned j = 0,fin=batches.size(); j < fin; ++j)
-                {
-                    const SourceBatch& srcBatch(batches[j]);
 
-                    Technique* tech = GetTechnique(drawable, srcBatch.material_);
-                    if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
+            for (unsigned j = 0,fin=batches.size(); j < fin; ++j)
+            {
+                const SourceBatch& srcBatch(batches[j]);
+                if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_)
+                    continue;
+
+                // Check here if the material refers to a rendertarget texture with camera(s) attached
+                // Only check this for backbuffer views (null rendertarget)
+                if (srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frameNo && !renderTarget_)
+                    CheckMaterialForAuxView(srcBatch.material_);
+
+                Technique* tech = GetTechnique(drawable, srcBatch.material_);
+                if (!tech)
+                    continue;
+
+                Batch destBatch(srcBatch,true);
+                destBatch.camera_ = camera_;
+                destBatch.zone_ = zone;
+                destBatch.pass_ = nullptr;
+                destBatch.lightMask_ = drawableLightMask;
+                bool drawableHasBasePass = j < 32 && drawable->HasBasePass(j);
+                // Check each of the scene passes
+                LightBatchQueue* lq = nullptr;
+
+                for (ScenePassInfo& info : scenePasses_)
+                {
+                    Pass *destPass = tech->GetSupportedPass(info.pass_);
+                    if (!destPass)
                         continue;
 
-                    Batch destBatch(srcBatch,true);
-                    destBatch.camera_ = camera_;
-                    destBatch.zone_ = zone;
-                    destBatch.pass_ = nullptr;
-                    destBatch.lightMask_ = drawableLightMask;
-                    // Check each of the scene passes
-                    for (ScenePassInfo& info : scenePasses_)
+                    // Skip forward base pass if the corresponding litbase pass already exists
+                    if (info.pass_ == basePassName_ && drawableHasBasePass)
+                        continue;
+
+                    if (info.vertexLights_ && !drawableVertexLights.empty())
                     {
-                        destBatch.pass_ = tech->GetSupportedPass(info.pass_);
-                        if (!destBatch.pass_)
-                            continue;
-
-                        // Skip forward base pass if the corresponding litbase pass already exists
-                        if (j < 32 && info.pass_ == basePassName_ && drawable->HasBasePass(j))
-                            continue;
-
-                        if (info.vertexLights_ && !drawableVertexLights.empty())
+                        // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
+                        // them to prevent double-lighting
+                        if (deferred_ && destPass->GetBlendMode() == BLEND_REPLACE)
                         {
-                            // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
-                            // them to prevent double-lighting
-                            if (deferred_ && destBatch.pass_->GetBlendMode() == BLEND_REPLACE)
+                            vertexLights.clear();
+                            vertexLights.reserve(drawableVertexLights.size());
+                            for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
                             {
-                                vertexLights.clear();
-                                for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
-                                {
-                                    if (drawableVertexLights[i]->GetPerVertex())
-                                        vertexLights.push_back(drawableVertexLights[i]);
-                                }
-                            }
-                            else
-                                vertexLights = drawableVertexLights;
-
-                            if (!vertexLights.empty())
-                            {
-                                // Find a vertex light queue. If not found, create new
-                                unsigned long long hash = GetVertexLightQueueHash(vertexLights);
-                                HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
-                                if (i == vertexLightQueues_.end())
-                                {
-#ifdef USE_QT_HASHMAP
-                                    i = vertexLightQueues_.insert(hash, LightBatchQueue());
-#else
-                                    i = vertexLightQueues_.emplace(hash, LightBatchQueue()).first;
-#endif
-                                    MAP_VALUE(i).light_ = nullptr;
-                                    MAP_VALUE(i).shadowMap_ = nullptr;
-                                    MAP_VALUE(i).vertexLights_ = vertexLights;
-                                }
-
-                                destBatch.lightQueue_ = &(MAP_VALUE(i));
+                                if (drawableVertexLights[i]->GetPerVertex())
+                                    vertexLights.push_back(drawableVertexLights[i]);
                             }
                         }
                         else
-                            destBatch.lightQueue_ = nullptr;
+                            vertexLights = drawableVertexLights;
 
-                        bool allowInstancing = info.allowInstancing_;
-                        if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
-                            allowInstancing = false;
-
-                        AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
-                    }
-                }
-            }
-            else
-            {
-                for (unsigned j = 0,fin=batches.size(); j < fin; ++j)
-                {
-                    const SourceBatch& srcBatch(batches[j]);
-
-                    // Check here if the material refers to a rendertarget texture with camera(s) attached
-                    // Only check this for backbuffer views (null rendertarget)
-                    if (srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frameNo)
-                        CheckMaterialForAuxView(srcBatch.material_);
-
-                    Technique* tech = GetTechnique(drawable, srcBatch.material_);
-                    if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
-                        continue;
-
-                    Batch destBatch(srcBatch,true);
-                    destBatch.camera_ = camera_;
-                    destBatch.zone_ = zone;
-                    destBatch.pass_ = nullptr;
-                    destBatch.lightMask_ = drawableLightMask;
-                    // Check each of the scene passes
-                    for (ScenePassInfo& info : scenePasses_)
-                    {
-                        destBatch.pass_ = tech->GetSupportedPass(info.pass_);
-                        if (!destBatch.pass_)
-                            continue;
-
-                        // Skip forward base pass if the corresponding litbase pass already exists
-                        if (info.pass_ == basePassName_ && j < 32 && drawable->HasBasePass(j))
-                            continue;
-
-                        if (info.vertexLights_ && !drawableVertexLights.empty())
+                        if (!vertexLights.empty())
                         {
-                            // For a deferred opaque batch, check if the vertex lights include converted per-pixel lights, and remove
-                            // them to prevent double-lighting
-                            if (deferred_ && destBatch.pass_->GetBlendMode() == BLEND_REPLACE)
+                            // Find a vertex light queue. If not found, create new
+                            unsigned long long hash = GetVertexLightQueueHash(vertexLights);
+                            HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
+                            if (i == vertexLightQueues_.end())
                             {
-                                vertexLights.clear();
-                                for (unsigned i = 0; i < drawableVertexLights.size(); ++i)
-                                {
-                                    if (drawableVertexLights[i]->GetPerVertex())
-                                        vertexLights.push_back(drawableVertexLights[i]);
-                                }
+                                lq = &MAP_VALUE(vertexLightQueues_.emplace(hash, LightBatchQueue()).first);
+                                lq->light_ = nullptr;
+                                lq->shadowMap_ = nullptr;
+                                std::swap(lq->vertexLights_,vertexLights);
                             }
                             else
-                                vertexLights = drawableVertexLights;
-
-                            if (!vertexLights.empty())
-                            {
-                                // Find a vertex light queue. If not found, create new
-                                unsigned long long hash = GetVertexLightQueueHash(vertexLights);
-                                HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
-                                if (i == vertexLightQueues_.end())
-                                {
-#ifdef USE_QT_HASHMAP
-                                    i = vertexLightQueues_.insert(hash, LightBatchQueue());
-#else
-                                    i = vertexLightQueues_.emplace(hash, LightBatchQueue()).first;
-#endif
-                                    MAP_VALUE(i).light_ = nullptr;
-                                    MAP_VALUE(i).shadowMap_ = nullptr;
-                                    MAP_VALUE(i).vertexLights_ = vertexLights;
-                                }
-
-                                destBatch.lightQueue_ = &(MAP_VALUE(i));
-                            }
+                                lq = &MAP_VALUE(i);
                         }
-                        else
-                            destBatch.lightQueue_ = nullptr;
-
-                        bool allowInstancing = info.allowInstancing_;
-                        if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
-                            allowInstancing = false;
-
-                        AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
                     }
-                }
 
+                    bool allowInstancing = info.allowInstancing_;
+                    if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
+                        allowInstancing = false;
+                    destBatch.lightQueue_ = lq;
+                    destBatch.pass_ = destPass;
+                    AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
+                }
             }
         }
     }
@@ -2770,11 +2694,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, const Technique
             newGroup.geometryType_ = GEOM_STATIC;
             renderer_->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
-#ifdef USE_QT_HASHMAP
-            i = batchQueue.batchGroups_.insert(key, newGroup);
-#else
             i = batchQueue.batchGroups_.emplace(key, newGroup).first;
-#endif
         }
         BatchGroup &group(MAP_VALUE(i));
         int oldSize = group.instances_.size();
@@ -2815,13 +2735,13 @@ void View::PrepareInstancingBuffer()
 
     unsigned totalInstances = 0;
 
-    for (auto iter = batchQueues_.cbegin(),fin=batchQueues_.cend(); iter!=fin; ++iter)
-        totalInstances += MAP_VALUE(iter).GetNumInstances();
+    for (auto iter : batchQueues_)
+        totalInstances += ELEMENT_VALUE(iter).GetNumInstances();
 
     for (const LightBatchQueue & elem : lightQueues_)
     {
-        for (unsigned j = 0; j < elem.shadowSplits_.size(); ++j)
-            totalInstances += elem.shadowSplits_[j].shadowBatches_.GetNumInstances();
+        for (const ShadowBatchQueue & split : elem.shadowSplits_)
+            totalInstances += split.shadowBatches_.GetNumInstances();
         totalInstances += elem.litBaseBatches_.GetNumInstances();
         totalInstances += elem.litBatches_.GetNumInstances();
     }

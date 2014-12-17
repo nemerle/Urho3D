@@ -1,10 +1,12 @@
 #ifndef HASHMAP
 #define HASHMAP
 #include "Vector.h"
-#include <unordered_map>
-#include <unordered_set>
 #ifdef USE_QT_HASHMAP
 #include <QtCore/QHash>
+#else
+#include <unordered_map>
+#include <unordered_set>
+#include <set>
 #endif
 namespace Urho3D {
 #ifdef USE_QT_HASHMAP
@@ -70,6 +72,32 @@ public:
         return true;
     }
     constexpr bool isEmpty() const { return this->empty(); }
+};
+template <typename T,int N>
+class SmallMembershipSet {
+    PODVectorN<T,N> members;
+public:
+    constexpr bool contains(const T &v) const {
+        for(const T&elem : members)
+            if(v==elem)
+                return true;
+        return false;
+        //return std::binary_search(members.begin(),members.end(),v);
+    }
+    /// Erase an element if found.
+    void clear()
+    {
+        members.resize(0);
+    }
+    void insert(const T &val) {
+        if(contains(val))
+            return;
+        members.push_back(val);
+//        auto loc = std::lower_bound(members.begin(),members.end(),val);
+//        members.insert(loc,val);
+    }
+    bool empty() const { return members.empty(); }
+
 };
 #endif
 }

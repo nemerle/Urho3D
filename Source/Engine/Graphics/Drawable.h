@@ -232,7 +232,7 @@ public:
     /// Return per-pixel lights.
     const PODVector4<Light*>& GetLights() const { return lights_; }
     /// Return per-vertex lights.
-    const PODVector<Light*>& GetVertexLights() const { return vertexLights_; }
+    const PODVector4<Light*>& GetVertexLights() const { return vertexLights_; }
     /// Return the first added per-pixel light.
     Light* GetFirstLight() const { return firstLight_; }
     /// Return the minimum view-space depth.
@@ -333,13 +333,13 @@ protected:
     /// Per-pixel lights affecting this drawable.
     PODVector4<Light *> lights_;
     /// Per-vertex lights affecting this drawable.
-    PODVector<Light*> vertexLights_;
+    PODVector4<Light*> vertexLights_;
     /// Current zone.
     Zone* zone_;
     /// Zone inconclusive or dirtied flag.
     bool zoneDirty_;
     /// Set of cameras from which is seen on the current frame.
-    PODVectorN<Camera*,2> viewCameras_;
+    SmallMembershipSet<Camera *,4> viewCameras_;
 };
 
 inline bool CompareDrawables(Drawable* lhs, Drawable* rhs)

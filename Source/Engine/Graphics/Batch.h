@@ -148,9 +148,11 @@ struct BatchGroup : public Batch
     /// Add world transform(s) from a batch.
     void AddTransforms(const Batch& batch)
     {
-        for (unsigned i = 0; i < batch.numWorldTransforms_; ++i)
+        size_t original_size = instances_.size();
+        instances_.resize(original_size+batch.numWorldTransforms_);
+        for (unsigned i = 0,fin=batch.numWorldTransforms_; i < fin; ++i)
         {
-            instances_.push_back({&batch.worldTransform_[i],batch.distance_});
+            instances_[i+original_size] = {&batch.worldTransform_[i],batch.distance_};
         }
     }
 
@@ -288,7 +290,7 @@ struct LightBatchQueue
     /// Shadow map split queues.
     Vector<ShadowBatchQueue> shadowSplits_;
     /// Per-vertex lights.
-    PODVector<Light*> vertexLights_;
+    PODVector4<Light*> vertexLights_;
     /// Light volume draw calls.
     PODVector<Batch> volumeBatches_;
 };

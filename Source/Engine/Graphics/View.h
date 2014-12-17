@@ -246,11 +246,11 @@ private:
     }
 
     /// Return hash code for a vertex light queue.
-    unsigned long long GetVertexLightQueueHash(const PODVector<Light*>& vertexLights)
+    unsigned long long GetVertexLightQueueHash(const PODVector4<Light*>& vertexLights)
     {
         unsigned long long hash = 0;
         for (Light * light : vertexLights)
-            hash ^= uintptr_t(light)>>4;
+            hash += uintptr_t(light);
         return hash;
     }
 

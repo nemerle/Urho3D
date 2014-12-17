@@ -311,7 +311,7 @@ void Batch::Prepare(View* view, bool setModelTransform) const
         if (graphics->NeedParameterUpdate(SP_VERTEXLIGHTS, lightQueue_) && graphics->HasShaderParameter(VS, VSP_VERTEXLIGHTS))
         {
             Vector4 vertexLights[MAX_VERTEX_LIGHTS * 3];
-            const PODVector<Light*>& lights = lightQueue_->vertexLights_;
+            const PODVector4<Light*>& lights = lightQueue_->vertexLights_;
 
             for (unsigned i = 0; i < lights.size(); ++i)
             {

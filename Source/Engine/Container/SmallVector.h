@@ -50,7 +50,27 @@ protected:
 
   /// grow_pod - This is an implementation of the grow() method which only works
   /// on POD-like data types and is out of line to reduce code duplication.
-  void grow_pod(void *FirstEl, size_t MinSizeInBytes, size_t TSize);
+  void grow_pod(void *FirstEl, size_t MinSizeInBytes, size_t TSize) {
+      size_t CurSizeBytes = size_in_bytes();
+      size_t NewCapacityInBytes = 2 * capacity_in_bytes() + TSize; // Always grow.
+      if (NewCapacityInBytes < MinSizeInBytes)
+          NewCapacityInBytes = MinSizeInBytes;
+
+      void *NewElts;
+      if (BeginX == FirstEl) {
+          NewElts = malloc(NewCapacityInBytes);
+
+          // Copy the elements over.  No need to run dtors on PODs.
+          memcpy(NewElts, this->BeginX, CurSizeBytes);
+      } else {
+          // If this wasn't grown from the inline copy, grow the allocated space.
+          NewElts = realloc(this->BeginX, NewCapacityInBytes);
+      }
+
+      this->EndX = (char*)NewElts+CurSizeBytes;
+      this->BeginX = NewElts;
+      this->CapacityX = (char*)this->BeginX + NewCapacityInBytes;
+  }
 
 public:
   /// size_in_bytes - This returns size()*sizeof(T).
@@ -625,7 +645,8 @@ public:
     // reallocate the vector.
     if (size_t(this->end()-I) >= NumToInsert) {
       T *OldEnd = this->end();
-      append(this->end()-NumToInsert, this->end());
+      append(std::move_iterator<iterator>(this->end() - NumToInsert),
+             std::move_iterator<iterator>(this->end()));
 
       // Copy the existing elements that get replaced.
       this->move_backward(I, OldEnd-NumToInsert, OldEnd);
@@ -678,7 +699,8 @@ public:
     // reallocate the vector.
     if (size_t(this->end()-I) >= NumToInsert) {
       T *OldEnd = this->end();
-      append(this->end()-NumToInsert, this->end());
+      append(std::move_iterator<iterator>(this->end() - NumToInsert),
+             std::move_iterator<iterator>(this->end()));
 
       // Copy the existing elements that get replaced.
       this->move_backward(I, OldEnd-NumToInsert, OldEnd);
@@ -878,7 +900,7 @@ SmallVectorImpl<T> &SmallVectorImpl<T>::operator=(SmallVectorImpl<T> &&RHS) {
     this->grow(RHSSize);
   } else if (CurSize) {
     // Otherwise, use assignment for the already-constructed elements.
-    this->move(RHS.begin(), RHS.end(), this->begin());
+    this->move(RHS.begin(), RHS.begin()+CurSize, this->begin());
   }
 
   // Move-construct the new elements in place.
