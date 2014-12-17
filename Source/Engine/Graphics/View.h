@@ -214,7 +214,7 @@ private:
     /// Check if material should render an auxiliary view (if it has a camera attached.)
     void CheckMaterialForAuxView(Material* material);
     /// Choose shaders for a batch and add it to queue.
-    void AddBatchToQueue(BatchQueue& queue, Batch& batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
+    void AddBatchToQueue(BatchQueue& queue, Batch &&batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
     /// Prepare instancing buffer by filling it with all instance transforms.
     void PrepareInstancingBuffer();
     /// Set up a light volume rendering batch.
@@ -335,7 +335,7 @@ private:
     /// Lights.
     PODVector<Light*> lights_;
     /// Drawables that limit their maximum light count.
-    QSet<Drawable*> maxLightsDrawables_;
+    HashSet<Drawable*> maxLightsDrawables_;
     /// Rendertargets defined by the renderpath.
     HashMap<StringHash, Texture2D*> renderTargets_;
     /// Intermediate light processing results.

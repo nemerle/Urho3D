@@ -1004,13 +1004,8 @@ void View::GetBatches()
                             if (!pass)
                                 continue;
 
-                            Batch destBatch(srcBatch);
-                            destBatch.pass_ = pass;
-                            destBatch.camera_ = shadowCamera;
-                            destBatch.zone_ = zone;
-                            destBatch.lightQueue_ = &lightQueue;
-
-                            AddBatchToQueue(shadowQueue.shadowBatches_, destBatch, tech);
+                            AddBatchToQueue(shadowQueue.shadowBatches_,
+                                            Batch(srcBatch,shadowCamera,zone,&lightQueue,pass), tech);
                         }
                     }
                 }
@@ -1116,23 +1111,18 @@ void View::GetBatches()
                 if (!tech)
                     continue;
 
-                Batch destBatch(srcBatch,true);
-                destBatch.camera_ = camera_;
-                destBatch.zone_ = zone;
-                destBatch.pass_ = nullptr;
-                destBatch.lightMask_ = drawableLightMask;
                 bool drawableHasBasePass = j < 32 && drawable->HasBasePass(j);
                 // Check each of the scene passes
                 LightBatchQueue* lq = nullptr;
 
                 for (ScenePassInfo& info : scenePasses_)
                 {
-                    Pass *destPass = tech->GetSupportedPass(info.pass_);
-                    if (!destPass)
-                        continue;
-
                     // Skip forward base pass if the corresponding litbase pass already exists
                     if (info.pass_ == basePassName_ && drawableHasBasePass)
+                        continue;
+
+                    Pass *destPass = tech->GetSupportedPass(info.pass_);
+                    if (!destPass)
                         continue;
 
                     if (info.vertexLights_ && !drawableVertexLights.empty())
@@ -1170,11 +1160,10 @@ void View::GetBatches()
                     }
 
                     bool allowInstancing = info.allowInstancing_;
-                    if (allowInstancing && info.markToStencil_ && destBatch.lightMask_ != (zone->GetLightMask() & 0xff))
+                    if (allowInstancing && info.markToStencil_ && drawableLightMask != (zone->GetLightMask() & 0xff))
                         allowInstancing = false;
-                    destBatch.lightQueue_ = lq;
-                    destBatch.pass_ = destPass;
-                    AddBatchToQueue(*info.batchQueue_, destBatch, tech, allowInstancing);
+                    AddBatchToQueue(*info.batchQueue_, Batch(srcBatch,camera_,zone,lq,destPass,drawableLightMask,true),
+                                    tech, allowInstancing);
                 }
             }
         }
@@ -1330,23 +1319,23 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
         if(isLitAlpha && !alphaQueue)
             continue;
 
-        Batch destBatch(srcBatch,isBase);
-        destBatch.pass_ = dest_pass;
-        destBatch.camera_ = camera_;
-        destBatch.lightQueue_ = &lightQueue;
-        destBatch.zone_ = zone;
+
 
         if (!isLitAlpha)
         {
-            if (destBatch.isBase_)
-                AddBatchToQueue(lightQueue.litBaseBatches_, destBatch, tech);
+            if (isBase)
+                AddBatchToQueue(lightQueue.litBaseBatches_,
+                                Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech);
             else
-                AddBatchToQueue(lightQueue.litBatches_, destBatch, tech);
+                AddBatchToQueue(lightQueue.litBatches_,
+                                Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech);
         }
         else /*if (alphaQueue)*/
         {
             // Transparent batches can not be instanced
-            AddBatchToQueue(*alphaQueue, destBatch, tech, false, allowTransparentShadows);
+            AddBatchToQueue(*alphaQueue,
+                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
+                            false, allowTransparentShadows);
         }
     }
 }
@@ -2607,15 +2596,16 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
 {
     if (!material)
     {
-        const Vector<TechniqueEntry>& techniques = renderer_->GetDefaultMaterial()->GetTechniques();
-        return techniques.size() ? techniques.back().technique_ : (Technique*)nullptr;
+        const Vector<TechniqueEntry>& techniques(renderer_->GetDefaultMaterial()->GetTechniques());
+        size_t tech_count = techniques.size();
+        return tech_count ? techniques[tech_count-1].technique_ : (Technique*)nullptr;
     }
 
     const Vector<TechniqueEntry>& techniques = material->GetTechniques();
     if (techniques.empty())
         return nullptr;                      // No techniques no choice at all
     if (techniques.size() == 1)
-        return techniques.back().technique_; // If only one technique, no choice
+        return techniques[0].technique_; // If only one technique, no choice
 
     float lodDistance = drawable->GetLodDistance();
 
@@ -2673,10 +2663,11 @@ void View::CheckMaterialForAuxView(Material* material)
     material->MarkForAuxView(frame_.frameNumber_);
 }
 
-void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, const Technique* tech, bool allowInstancing, bool allowShadows)
+void View::AddBatchToQueue(BatchQueue& batchQueue, Batch&& batch, const Technique* tech, bool allowInstancing, bool allowShadows)
 {
+    Renderer * ren = renderer_.Get();
     if (!batch.material_)
-        batch.material_ = renderer_->GetDefaultMaterial();
+        batch.material_ = ren->GetDefaultMaterial();
 
     // Convert to instanced if possible
     if (allowInstancing && batch.geometryType_ == GEOM_STATIC && batch.geometry_->GetIndexBuffer() && !batch.overrideView_)
@@ -2692,7 +2683,7 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, const Technique
             // In case the group remains below the instancing limit, do not enable instancing shaders yet
             BatchGroup newGroup(batch);
             newGroup.geometryType_ = GEOM_STATIC;
-            renderer_->SetBatchShaders(newGroup, tech, allowShadows);
+            ren->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
             i = batchQueue.batchGroups_.emplace(key, newGroup).first;
         }
@@ -2703,13 +2694,13 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch& batch, const Technique
         if (oldSize < minInstances_ && (int)group.instances_.size() >= minInstances_)
         {
             group.geometryType_ = GEOM_INSTANCED;
-            renderer_->SetBatchShaders(MAP_VALUE(i), tech, allowShadows);
+            ren->SetBatchShaders(group, tech, allowShadows);
             group.CalculateSortKey();
         }
     }
     else
     {
-        renderer_->SetBatchShaders(batch, tech, allowShadows);
+        ren->SetBatchShaders(batch, tech, allowShadows);
         batch.CalculateSortKey();
 
         // If batch is static with multiple world transforms and cannot instance, we must push copies of the batch individually

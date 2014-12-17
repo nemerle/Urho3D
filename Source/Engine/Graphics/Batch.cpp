@@ -886,10 +886,10 @@ void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimizatio
 unsigned BatchQueue::GetNumInstances() const
 {
     unsigned total = 0;
-    for (auto iter=batchGroups_.cbegin(),fin=batchGroups_.cend(); iter!=fin; ++iter)
+    for (auto elem : batchGroups_)
     {
-       if (MAP_VALUE(iter).geometryType_ == GEOM_INSTANCED)
-            total += MAP_VALUE(iter).instances_.size();
+       if (ELEMENT_VALUE(elem).geometryType_ == GEOM_INSTANCED)
+            total += ELEMENT_VALUE(elem).instances_.size();
     }
 
     return total;

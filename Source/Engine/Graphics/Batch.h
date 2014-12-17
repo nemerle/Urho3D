@@ -61,6 +61,16 @@ struct Batch
 
     /// Construct from a drawable's source batch.
     Batch(const SourceBatch& rhs,bool is_base=false);
+    Batch(const SourceBatch& rhs, Camera *cam,Zone *z, LightBatchQueue *l, Pass *p,
+          unsigned char lmask=DEFAULT_LIGHTMASK,bool is_base=false) :
+        Batch(rhs,is_base)
+    {
+        camera_=cam;
+        zone_=z;
+        lightQueue_=l;
+        pass_=p;
+        //lightMask_ = lmask;
+    }
 
     /// Calculate state sorting key, which consists of base pass flag, light, pass and geometry.
     void CalculateSortKey();
@@ -148,11 +158,9 @@ struct BatchGroup : public Batch
     /// Add world transform(s) from a batch.
     void AddTransforms(const Batch& batch)
     {
-        size_t original_size = instances_.size();
-        instances_.resize(original_size+batch.numWorldTransforms_);
         for (unsigned i = 0,fin=batch.numWorldTransforms_; i < fin; ++i)
         {
-            instances_[i+original_size] = {&batch.worldTransform_[i],batch.distance_};
+            instances_.emplace_back( &batch.worldTransform_[i],batch.distance_ );
         }
     }
 
@@ -169,7 +177,7 @@ struct BatchGroup : public Batch
 /// Instanced draw call grouping key.
 struct BatchGroupKey
 {
-protected:
+private:
     /// Zone.
     Zone* zone_;
     /// Light properties.
@@ -204,7 +212,14 @@ public:
     /// Test for equality with another batch group key.
     constexpr bool operator == (const BatchGroupKey& rhs) const { return zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
     /// Test for inequality with another batch group key.
-    constexpr bool operator != (const BatchGroupKey& rhs) const { return zone_ != rhs.zone_ || lightQueue_ != rhs.lightQueue_ || pass_ != rhs.pass_ || material_ != rhs.material_ || geometry_ != rhs.geometry_; }
+    constexpr bool operator != (const BatchGroupKey& rhs) const {
+        return  hashCode_   != rhs.hashCode_ ||
+                zone_       != rhs.zone_ ||
+                lightQueue_ != rhs.lightQueue_ ||
+                pass_       != rhs.pass_ ||
+                material_   != rhs.material_ ||
+                geometry_   != rhs.geometry_;
+    }
 
     /// Return hash value.
     constexpr unsigned ToHash() const { return  hashCode_; }

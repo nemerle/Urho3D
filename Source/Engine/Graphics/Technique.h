@@ -189,7 +189,7 @@ public:
     {
         SharedPtr<Pass>* passPtr = passes_.Find(type.Value());
         Pass* pass = passPtr ? passPtr->Get() : 0;
-        return pass && (!pass->IsSM3() || sm3Support_) && (!pass->IsDesktop() || desktopSupport_) ? pass : 0;
+        return pass && (sm3Support_ || !pass->IsSM3()) && (desktopSupport_ || !pass->IsDesktop()) ? pass : 0;
     }
 
     /// Return number of passes.
