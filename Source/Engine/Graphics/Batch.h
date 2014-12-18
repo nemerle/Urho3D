@@ -27,6 +27,7 @@
 #include "Matrix3x4.h"
 #include "Rect.h"
 #include "HashMap.h"
+#include "Light.h"
 #include <functional>
 
 
@@ -210,7 +211,7 @@ public:
 
 
     /// Test for equality with another batch group key.
-    constexpr bool operator == (const BatchGroupKey& rhs) const { return zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
+    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
     /// Test for inequality with another batch group key.
     constexpr bool operator != (const BatchGroupKey& rhs) const {
         return  hashCode_   != rhs.hashCode_ ||
@@ -303,7 +304,7 @@ struct LightBatchQueue
     /// Lit geometry draw calls, non-base (additive)
     BatchQueue litBatches_;
     /// Shadow map split queues.
-    Vector<ShadowBatchQueue> shadowSplits_;
+    PODVectorN<ShadowBatchQueue,MAX_LIGHT_SPLITS> shadowSplits_;
     /// Per-vertex lights.
     PODVector4<Light*> vertexLights_;
     /// Light volume draw calls.

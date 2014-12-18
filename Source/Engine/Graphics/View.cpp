@@ -886,6 +886,10 @@ void View::GetBatches()
     WorkQueue* queue = GetSubsystem<WorkQueue>();
     PODVector4<Light*> vertexLights;
     BatchQueue* alphaQueue = batchQueues_.contains(alphaPassName_) ? &batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
+    // retrieve default technique.
+    const Vector<TechniqueEntry>& techniques(renderer_->GetDefaultMaterial()->GetTechniques());
+    size_t tech_count = techniques.size();
+    Technique *default_tech = tech_count ? techniques[tech_count-1].technique_ : (Technique*)nullptr;
 
     // Process lit geometries and shadow casters for each light
     {
@@ -931,7 +935,7 @@ void View::GetBatches()
         for (LightQueryResult & query : lightQueryResults_)
         {
             // If light has no affected geometries, no need to process further
-            if (query.litGeometries_.empty())
+            if (0==query.litGeometries_.size())
                 continue;
 
             Light* light = query.light_;
@@ -995,8 +999,10 @@ void View::GetBatches()
 
                         for (const SourceBatch& srcBatch : drawable->GetBatches())
                         {
-                            Technique* tech = GetTechnique(drawable, srcBatch.material_);
-                            if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
+                            if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_)
+                                continue;
+                            Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
+                            if (!tech)
                                 continue;
 
                             Pass* pass = tech->GetSupportedPass(PASS_SHADOW);
@@ -1017,7 +1023,7 @@ void View::GetBatches()
 
                     // If drawable limits maximum lights, only record the light, and check maximum count / build batches later
                     if (!drawable->GetMaxLights())
-                        GetLitBatches(drawable, lightQueue, alphaQueue);
+                        GetLitBatches(drawable, lightQueue, alphaQueue,default_tech);
                     else
                         maxLightsDrawables_.insert(drawable);
                 }
@@ -1026,17 +1032,17 @@ void View::GetBatches()
                 if (deferred_)
                 {
                     Batch volumeBatch;
-                    volumeBatch.geometry_ = renderer_->GetLightGeometry(light);
-                    volumeBatch.geometryType_ = GEOM_STATIC;
-                    volumeBatch.worldTransform_ = &light->GetVolumeTransform(camera_);
+                    volumeBatch.geometry_           = renderer_->GetLightGeometry(light);
+                    volumeBatch.geometryType_       = GEOM_STATIC;
+                    volumeBatch.worldTransform_     = &light->GetVolumeTransform(camera_);
                     volumeBatch.numWorldTransforms_ = 1;
-                    volumeBatch.overrideView_ = light->GetLightType() == LIGHT_DIRECTIONAL;
-                    volumeBatch.camera_ = camera_;
-                    volumeBatch.lightQueue_ = &lightQueue;
-                    volumeBatch.distance_ = light->GetDistance();
-                    volumeBatch.material_ = nullptr;
-                    volumeBatch.pass_ = nullptr;
-                    volumeBatch.zone_ = nullptr;
+                    volumeBatch.overrideView_       = light->GetLightType() == LIGHT_DIRECTIONAL;
+                    volumeBatch.camera_             = camera_;
+                    volumeBatch.lightQueue_         = &lightQueue;
+                    volumeBatch.distance_           = light->GetDistance();
+                    volumeBatch.material_           = nullptr;
+                    volumeBatch.pass_               = nullptr;
+                    volumeBatch.zone_               = nullptr;
                     renderer_->SetLightVolumeBatchShaders(volumeBatch, lightVolumeVSName_, lightVolumePSName_);
                     lightQueue.volumeBatches_.push_back(volumeBatch);
                 }
@@ -1069,7 +1075,7 @@ void View::GetBatches()
                 // Find the correct light queue again
                 LightBatchQueue* queue = light->GetLightQueue();
                 if (queue)
-                    GetLitBatches(drawable, *queue, alphaQueue);
+                    GetLitBatches(drawable, *queue, alphaQueue,default_tech);
             }
         }
     }
@@ -1107,7 +1113,7 @@ void View::GetBatches()
                 if (srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frameNo && !renderTarget_)
                     CheckMaterialForAuxView(srcBatch.material_);
 
-                Technique* tech = GetTechnique(drawable, srcBatch.material_);
+                Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
                 if (!tech)
                     continue;
 
@@ -1264,11 +1270,11 @@ void View::UpdateGeometries()
     queue->Complete(M_MAX_UNSIGNED);
 }
 
-void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQueue* alphaQueue)
+void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQueue* alphaQueue,Technique *default_tech)
 {
     Light* light = lightQueue.light_;
     Zone* zone = GetZone(drawable);
-    const Vector<SourceBatch>& batches = drawable->GetBatches();
+    const Vector<SourceBatch>& batches(drawable->GetBatches());
 
     bool hasAmbientGradient = zone->GetAmbientGradient() && zone->GetAmbientStartColor() != zone->GetAmbientEndColor();
     // Shadows on transparencies can only be rendered if shadow maps are not reused
@@ -1280,7 +1286,7 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
     for (const SourceBatch& srcBatch : batches)
     {
         ++i;
-        Technique* tech = GetTechnique(drawable, srcBatch.material_);
+        Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
         if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
             continue;
 
@@ -1319,24 +1325,25 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
         if(isLitAlpha && !alphaQueue)
             continue;
 
-
+        bool useInstancing=true;
+        BatchQueue *usedQ;
 
         if (!isLitAlpha)
         {
             if (isBase)
-                AddBatchToQueue(lightQueue.litBaseBatches_,
-                                Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech);
+                usedQ=&lightQueue.litBaseBatches_;
             else
-                AddBatchToQueue(lightQueue.litBatches_,
-                                Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech);
+                usedQ=&lightQueue.litBatches_;
         }
         else /*if (alphaQueue)*/
         {
             // Transparent batches can not be instanced
-            AddBatchToQueue(*alphaQueue,
-                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
-                            false, allowTransparentShadows);
+            usedQ = alphaQueue;
+            useInstancing = false;
         }
+        AddBatchToQueue(*usedQ,
+                        Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
+                        useInstancing, useInstancing || allowTransparentShadows);
     }
 }
 
@@ -2594,12 +2601,8 @@ void View::FindZone(Drawable* drawable)
 
 Technique* View::GetTechnique(Drawable* drawable, Material* material)
 {
-    if (!material)
-    {
-        const Vector<TechniqueEntry>& techniques(renderer_->GetDefaultMaterial()->GetTechniques());
-        size_t tech_count = techniques.size();
-        return tech_count ? techniques[tech_count-1].technique_ : (Technique*)nullptr;
-    }
+
+    assert(material!=nullptr);
 
     const Vector<TechniqueEntry>& techniques = material->GetTechniques();
     if (techniques.empty())
