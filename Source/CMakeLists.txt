@@ -62,7 +62,7 @@ if (URHO3D_ANGELSCRIPT)
 endif ()
 
 if (URHO3D_LUA)
-    add_subdirectory (Engine/LuaScript)
+    add_subdirectory (Urho3D/LuaScript)
     add_subdirectory (ThirdParty/Lua${JIT})
     add_subdirectory (ThirdParty/toluapp/src/lib)
 endif ()
