@@ -20,14 +20,16 @@
 // THE SOFTWARE.
 //
 
-#include "Context.h"
-#include "File.h"
-#include "FileSystem.h"
+#include <Urho3D/Context.h>
+#include <Urho3D/File.h>
+#include <Urho3D/FileSystem.h>
 #include <QtCore/QSet>
+#include <Urho3D/ProcessUtils.h>
+#include <Urho3D/Sort.h>
+#include <Urho3D/Tangent.h>
+#include <Urho3D/XMLFile.h>
+
 #include "OgreImporterUtils.h"
-#include "ProcessUtils.h"
-#include "Tangent.h"
-#include "XMLFile.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -36,7 +38,7 @@
 #include <cstddef>
 #include <cstring>
 
-#include "DebugNew.h"
+#include <Urho3D/DebugNew.h>
 
 static const int VERTEX_CACHE_SIZE = 32;
 

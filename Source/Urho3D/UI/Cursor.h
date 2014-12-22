@@ -27,7 +27,7 @@
 #include "Texture.h"
 
 #include "HashMap.h"
-#include <SDL_mouse.h>
+#include <SDL/SDL_mouse.h>
 
 namespace Urho3D
 {

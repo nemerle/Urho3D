@@ -28,8 +28,8 @@
 #include "Timer.h"
 #include "VectorBuffer.h"
 
-#include <kNetFwd.h>
-#include <kNet/SharedPtr.h>
+#include <kNet/kNetFwd.h>
+#include <kNet/kNet/SharedPtr.h>
 #include <QtCore/QSet>
 
 #ifdef SendMessage

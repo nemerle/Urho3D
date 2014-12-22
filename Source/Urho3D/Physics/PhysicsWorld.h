@@ -30,7 +30,7 @@
 #include "Pair.h"
 #include "HashMap.h"
 
-#include <LinearMath/btIDebugDraw.h>
+#include <Bullet/LinearMath/btIDebugDraw.h>
 #include <QtCore/QSet>
 
 class btCollisionConfiguration;
