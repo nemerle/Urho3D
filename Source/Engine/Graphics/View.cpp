@@ -789,7 +789,7 @@ void View::GetDrawables()
     }
     else
     {
-        FrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), DRAWABLE_GEOMETRY | 
+        FrustumOctreeQuery query(tempDrawables, camera_->GetFrustum(), DRAWABLE_GEOMETRY |
                                  DRAWABLE_LIGHT, camera_->GetViewMask());
         octree_->GetDrawables(query);
     }
@@ -919,6 +919,7 @@ void View::GetBatches()
         // Preallocate light queues: per-pixel lights which have lit geometries
         unsigned numLightQueues = 0;
         unsigned usedLightQueues = 0;
+        BatchQueue::BatchGroupMap dummy; // used in cases where don't have alphaqueue
         for (LightQueryResult & i : lightQueryResults_)
         {
             if (!i.light_->GetPerVertex() && i.litGeometries_.size())
@@ -928,6 +929,8 @@ void View::GetBatches()
         lightQueues_.resize(numLightQueues);
         maxLightsDrawables_.clear();
         unsigned maxSortedInstances = renderer_->GetMaxSortedInstances();
+        // group drawables by their zones
+        FasterHashMap<Zone *,PODVector<Drawable *> > zoneDrawableMap;
 
         for (LightQueryResult & query : lightQueryResults_)
         {
@@ -943,7 +946,7 @@ void View::GetBatches()
                 unsigned shadowSplits = query.numSplits_;
 
                 // Initialize light queue and store it to the light so that it can be found later
-                LightBatchQueue& lightQueue = lightQueues_[usedLightQueues++];
+                LightBatchQueue& lightQueue(lightQueues_[usedLightQueues++]);
                 light->SetLightQueue(&lightQueue);
                 lightQueue.light_ = light;
                 lightQueue.shadowMap_ = nullptr;
@@ -977,9 +980,9 @@ void View::GetBatches()
                     FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, entry.shadowCasterBox_);
 
                     // Loop through shadow casters
-                    PODVector<Drawable*>::const_iterator start = query.shadowCasters_.begin() + entry.shadowCasterBegin_;
+                    PODVector<Drawable*>::const_iterator k = query.shadowCasters_.begin() + entry.shadowCasterBegin_;
                     PODVector<Drawable*>::const_iterator fin = query.shadowCasters_.begin() + entry.shadowCasterEnd_;
-                    for (PODVector<Drawable*>::const_iterator k = start; k!=fin; ++k)
+                    for (; k!=fin; ++k)
                     {
                         Drawable* drawable = *k;
                         // If drawable is not in actual view frustum, mark it in view here and check its geometry update type
@@ -994,6 +997,7 @@ void View::GetBatches()
                         }
 
                         Zone* zone = GetZone(drawable);
+                        BatchQueue::BatchGroupMap &groupMap(shadowQueue.shadowBatches_.zoneLightGroups_[ZoneLightKey(zone,&lightQueue)]);
 
                         for (const SourceBatch& srcBatch : drawable->GetBatches())
                         {
@@ -1008,22 +1012,38 @@ void View::GetBatches()
                             if (!pass)
                                 continue;
 
-                            AddBatchToQueue(shadowQueue.shadowBatches_,
+                            AddBatchToQueue(shadowQueue.shadowBatches_,groupMap,
                                             Batch(srcBatch,shadowCamera,zone,&lightQueue,pass), tech);
                         }
                     }
                 }
 
-                // Process lit geometries
-                for (Drawable* drawable : query.litGeometries_)
-                {
+                zoneDrawableMap.clear();
+                for (Drawable* drawable : query.litGeometries_) {
                     drawable->AddLight(light);
-
-                    // If drawable limits maximum lights, only record the light, and check maximum count / build batches later
-                    if (!drawable->GetMaxLights())
-                        GetLitBatches(drawable, lightQueue, alphaQueue,default_tech);
-                    else
+                    if(drawable->GetMaxLights()==0)
+                        zoneDrawableMap[GetZone(drawable)].push_back(drawable);
+                    else {
+                        // If drawable limits maximum lights, only record the light, and check maximum count / build batches later
                         maxLightsDrawables_.insert(drawable);
+                    }
+                }
+
+                // fill in lit non-maxLights geometries' batches
+                BatchQueue *availableQueues[] = { &lightQueue.litBaseBatches_,&lightQueue.litBatches_,alphaQueue };
+                for(std::pair<Zone *,PODVector<Drawable *> > &elem : zoneDrawableMap) {
+                    Zone *zone { elem.first };
+                    ZoneLightKey zoneLightKey(zone,&lightQueue);
+                    BatchQueue::BatchGroupMap *groupMaps[] = {
+                        &lightQueue.litBaseBatches_.zoneLightGroups_[zoneLightKey],
+                        &lightQueue.litBatches_.zoneLightGroups_[zoneLightKey],
+                        alphaQueue ? &alphaQueue->zoneLightGroups_[zoneLightKey] : &dummy
+                    };
+
+                    for (Drawable* drawable : elem.second)
+                    {
+                        GetLitBatches(drawable, zone,lightQueue, availableQueues,groupMaps,default_tech);
+                    }
                 }
 
                 // In deferred modes, store the light volume batch now
@@ -1062,8 +1082,11 @@ void View::GetBatches()
     {
         PROFILE(GetMaxLightsBatches);
 
+        // Process lit geometries
+        BatchQueue::BatchGroupMap dummy; // in case we dont have alphaqueue
         for (Drawable* drawable : maxLightsDrawables_)
         {
+            Zone *zone=GetZone(drawable);
             drawable->LimitLights();
             const PODVectorN<Light*,4>& lights(drawable->GetLights());
 
@@ -1071,8 +1094,16 @@ void View::GetBatches()
             {
                 // Find the correct light queue again
                 LightBatchQueue* queue = light->GetLightQueue();
-                if (queue)
-                    GetLitBatches(drawable, *queue, alphaQueue,default_tech);
+                if (queue) {
+                    BatchQueue *availableQueues[3] = { &queue->litBaseBatches_,&queue->litBatches_,alphaQueue };
+                    ZoneLightKey zoneLightKey(zone,queue);
+                    BatchQueue::BatchGroupMap *groupMaps[3] = {
+                        &availableQueues[0]->zoneLightGroups_[zoneLightKey],
+                        &availableQueues[1]->zoneLightGroups_[zoneLightKey],
+                        availableQueues[2] ? &availableQueues[2]->zoneLightGroups_[zoneLightKey] : &dummy
+                    };
+                    GetLitBatches(drawable,zone, *queue, availableQueues,groupMaps,default_tech);
+                }
             }
         }
     }
@@ -1161,11 +1192,14 @@ void View::GetBatches()
                                 lq = &MAP_VALUE(i);
                         }
                     }
+                    ZoneLightKey zoneLightKey(zone,lq);
+                    BatchQueue::BatchGroupMap &groupMap(info.batchQueue_->zoneLightGroups_[ZoneLightKey(zone,lq)]);
 
                     bool allowInstancing = info.allowInstancing_;
                     if (allowInstancing && info.markToStencil_ && drawableLightMask != (zone->GetLightMask() & 0xff))
                         allowInstancing = false;
-                    AddBatchToQueue(*info.batchQueue_, Batch(srcBatch,camera_,zone,lq,destPass,drawableLightMask,true),
+                    AddBatchToQueue(*info.batchQueue_, groupMap,
+                                    Batch(srcBatch,camera_,zone,lq,destPass,drawableLightMask,true),
                                     tech, allowInstancing);
                 }
             }
@@ -1267,10 +1301,11 @@ void View::UpdateGeometries()
     queue->Complete(M_MAX_UNSIGNED);
 }
 
-void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQueue* alphaQueue,Technique *default_tech)
+void View::GetLitBatches(Drawable* drawable, Zone *zone,LightBatchQueue& lightQueue, BatchQueue* availableQueues[3],
+                         BatchQueue::BatchGroupMap *groupMaps[3],
+                         Technique *default_tech)
 {
     Light* light = lightQueue.light_;
-    Zone* zone = GetZone(drawable);
     const Vector<SourceBatch>& batches(drawable->GetBatches());
 
     bool hasAmbientGradient = zone->GetAmbientGradient() && zone->GetAmbientStartColor() != zone->GetAmbientEndColor();
@@ -1280,6 +1315,9 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
             drawable->GetVertexLights().empty() && !hasAmbientGradient;
     int i=-1;
     Pass * dest_pass;
+    int gBufferPassValue = gBufferPassName_.Value();
+    int queueIndex;
+
     if(allowLitBase) {
         for (const SourceBatch& srcBatch : batches)
         {
@@ -1289,57 +1327,42 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
                 continue;
 
             // Do not create pixel lit forward passes for materials that render into the G-buffer
-            if (gBufferPassName_.Value() && tech->HasPass(gBufferPassName_))
+            if (gBufferPassValue && tech->HasPassHash(gBufferPassValue))
                 continue;
 
-            bool isLitAlpha = false;
+            bool useInstancing = true;
             bool isBase = false;
             // Check for lit base pass. Because it uses the replace blend mode, it must be ensured to be the first light
             // Also vertex lighting or ambient gradient require the non-lit base pass, so skip in those cases
+            queueIndex = 1;
             if (i < 32)
             {
                 dest_pass = tech->GetSupportedPass(litBasePassName_);
                 if (dest_pass)
                 {
                     isBase = true;
+                    queueIndex = 0;
                     drawable->SetBasePass(i);
                 }
-                else
-                    dest_pass = tech->GetSupportedPass(lightPassName_);
             }
-            else
+
+            if(queueIndex==1)
                 dest_pass = tech->GetSupportedPass(lightPassName_);
 
             // If no lit pass, check for lit alpha
             if (!dest_pass)
             {
+                if(!availableQueues[2])
+                    continue; // no alpha queue, skip it then.
                 dest_pass = tech->GetSupportedPass(litAlphaPassName_);
-                isLitAlpha = true;
+                // Skip if material does not receive light at all
+                if (!dest_pass)
+                    continue;
+                useInstancing = false; // Transparent batches can not be instanced
+                queueIndex = 2;
             }
 
-            // Skip if material does not receive light at all
-            if (!dest_pass)
-                continue;
-            if(isLitAlpha && !alphaQueue)
-                continue;
-
-            bool useInstancing=true;
-            BatchQueue *usedQ;
-
-            if (!isLitAlpha)
-            {
-                if (isBase)
-                    usedQ=&lightQueue.litBaseBatches_;
-                else
-                    usedQ=&lightQueue.litBatches_;
-            }
-            else /*if (alphaQueue)*/
-            {
-                // Transparent batches can not be instanced
-                usedQ = alphaQueue;
-                useInstancing = false;
-            }
-            AddBatchToQueue(*usedQ,
+            AddBatchToQueue(*availableQueues[queueIndex],*groupMaps[queueIndex],
                             Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
                             useInstancing, useInstancing || allowTransparentShadows);
         }
@@ -1354,39 +1377,27 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
                 continue;
 
             // Do not create pixel lit forward passes for materials that render into the G-buffer
-            if (gBufferPassName_.Value() && tech->HasPass(gBufferPassName_))
+            if (gBufferPassValue && tech->HasPassHash(gBufferPassValue))
                 continue;
 
-            bool isLitAlpha = false;
+            bool useInstancing = true;
             dest_pass = tech->GetSupportedPass(lightPassName_);
 
+            queueIndex = 1;
             // If no lit pass, check for lit alpha
             if (!dest_pass)
             {
+                if(!availableQueues[2])
+                    continue; // no alpha queue, skip it then.
                 dest_pass = tech->GetSupportedPass(litAlphaPassName_);
-                isLitAlpha = true;
+                // Skip if material does not receive light at all
+                if (!dest_pass)
+                    continue;
+                useInstancing = false; // Transparent batches can not be instanced
+                queueIndex = 2;
             }
 
-            // Skip if material does not receive light at all
-            if (!dest_pass)
-                continue;
-            if(isLitAlpha && !alphaQueue)
-                continue;
-
-            bool useInstancing=true;
-            BatchQueue *usedQ;
-
-            if (!isLitAlpha)
-            {
-                usedQ=&lightQueue.litBatches_;
-            }
-            else /*if (alphaQueue)*/
-            {
-                // Transparent batches can not be instanced
-                usedQ = alphaQueue;
-                useInstancing = false;
-            }
-            AddBatchToQueue(*usedQ,
+            AddBatchToQueue(*availableQueues[queueIndex],*groupMaps[queueIndex],
                             Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,false), tech,
                             useInstancing, useInstancing || allowTransparentShadows);
         }
@@ -2715,7 +2726,8 @@ void View::CheckMaterialForAuxView(Material* material)
     material->MarkForAuxView(frame_.frameNumber_);
 }
 
-void View::AddBatchToQueue(BatchQueue& batchQueue, Batch&& batch, const Technique* tech, bool allowInstancing, bool allowShadows)
+void View::AddBatchToQueue(BatchQueue& batchQueue,BatchQueue::BatchGroupMap &batchGroupMap,
+                           Batch&& batch, const Technique* tech, bool allowInstancing, bool allowShadows)
 {
     Renderer * ren = renderer_.Get();
     if (!batch.material_)
@@ -2727,26 +2739,27 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch&& batch, const Techniqu
 
     if (batch.geometryType_ == GEOM_INSTANCED)
     {
-        BatchGroupKey key(batch);
-        BatchQueue::BatchGroupMap::iterator i = batchQueue.batchGroups_.find(key);
         BatchGroup *grp_ptr;
-        if (i == batchQueue.batchGroups_.end())
+        BatchGroupKey key(batch);
+        BatchQueue::BatchGroupMap::iterator i = batchGroupMap.find(key);
+        if (i == batchGroupMap.end())
         {
             // Create a new group based on the batch
             // In case the group remains below the instancing limit, do not enable instancing shaders yet
-            BatchGroup newGroup(batch);
+            batchQueue.batchGroupStorage_.emplace_back(batch);
+            BatchGroup &newGroup(batchQueue.batchGroupStorage_.back());
+            grp_ptr = &batchQueue.batchGroupStorage_.back();
+
             newGroup.geometryType_ = GEOM_STATIC;
             ren->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
-            batchQueue.batchGroupStorage_.push_back(newGroup);
-            grp_ptr = &batchQueue.batchGroupStorage_.back();
-            batchQueue.batchGroups_.emplace(key, grp_ptr);
+            batchGroupMap.emplace(key, grp_ptr);
         }
         else
-            grp_ptr = i->second;
+            grp_ptr = MAP_VALUE(i);
         BatchGroup &group(*grp_ptr);
         int oldSize = group.instances_.size();
-        group.AddTransforms(batch);
+        group.AddTransforms(batch.distance_,batch.numWorldTransforms_,batch.worldTransform_);
         // Convert to using instancing shaders when the instancing limit is reached
         if (oldSize < minInstances_ && (int)group.instances_.size() >= minInstances_)
         {

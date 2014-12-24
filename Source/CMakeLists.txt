@@ -35,7 +35,7 @@ ELSE()
     add_definitions(-D__STDC_FORMAT_MACROS)
 ENDIF()
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    add_definitions(-D_GLIBCXX_DEBUG)
+#    add_definitions(-D_GLIBCXX_DEBUG)
 ENDIF()
 
 find_package(Qt5Core)

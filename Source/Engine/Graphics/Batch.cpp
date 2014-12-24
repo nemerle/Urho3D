@@ -717,7 +717,7 @@ void BatchQueue::Clear(int maxSortedInstances)
     batches_.clear();
     sortedBatches_.clear();
     batchGroupStorage_.clear();
-    batchGroups_.clear();
+    zoneLightGroups_.clear();
     maxSortedInstances_ = maxSortedInstances;
 }
 
@@ -740,10 +740,12 @@ void BatchQueue::SortBackToFront()
 
 void BatchQueue::SortFrontToBack()
 {
-    sortedBatches_.clear();
+    sortedBatches_.resize(batches_.size());
 
-    for (unsigned i = 0; i < batches_.size(); ++i)
-        sortedBatches_.push_back(&batches_[i]);
+    unsigned index = 0;
+
+    for (Batch &b : batches_)
+        sortedBatches_[index++] = &b;
 
     SortFrontToBack2Pass(sortedBatches_);
 
@@ -767,7 +769,7 @@ void BatchQueue::SortFrontToBack()
 
     sortedBatchGroups_.resize(batchGroupStorage_.size());
 
-    unsigned index = 0;
+    index = 0;
     for (BatchGroup & elem : batchGroupStorage_)
         sortedBatchGroups_[index++] = &elem;
 

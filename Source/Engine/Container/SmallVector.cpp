@@ -6,9 +6,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "SmallVector.h"
+#include <type_traits>
 
-#ifndef LIBLLS_NO_NAMESPACE
-using namespace LIBLLS_NAMESPACE;
-#endif
-
+using namespace lls;
 

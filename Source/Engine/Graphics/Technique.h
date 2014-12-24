@@ -176,6 +176,8 @@ public:
     bool IsSupported() const { return (!isSM3_ || sm3Support_) && (!isDesktop_ || desktopSupport_); }
     /// Return whether has a pass.
     bool HasPass(StringHash type) const { return  passes_.Find(type.Value()) != 0; }
+    /// Return whether has a pass given it's hash
+    bool HasPassHash(unsigned type_hash) const { return  passes_.Find(type_hash) != 0; }
 
     /// Return a pass, or null if not found.
     Pass* GetPass(StringHash type) const

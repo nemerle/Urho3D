@@ -171,7 +171,7 @@ private:
     /// Update geometries and sort batches.
     void UpdateGeometries();
     /// Get pixel lit batches for a certain light and drawable.
-    void GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQueue* alphaQueue, Technique *default_tech);
+    void GetLitBatches(Drawable* drawable, Zone *zone, LightBatchQueue& lightQueue, BatchQueue *availableQueues[], BatchQueue::BatchGroupMap *groupMaps[], Technique *default_tech);
     /// Execute render commands.
     void ExecuteRenderPathCommands();
     /// Set rendertargets for current render command.
@@ -221,7 +221,7 @@ private:
     /// Check if material should render an auxiliary view (if it has a camera attached.)
     void CheckMaterialForAuxView(Material* material);
     /// Choose shaders for a batch and add it to queue.
-    void AddBatchToQueue(BatchQueue& queue, Batch &&batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
+    void AddBatchToQueue(BatchQueue& queue, BatchQueue::BatchGroupMap &batchGroupMap, Batch &&batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
     /// Prepare instancing buffer by filling it with all instance transforms.
     void PrepareInstancingBuffer();
     /// Set up a light volume rendering batch.

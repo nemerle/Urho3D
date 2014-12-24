@@ -29,7 +29,7 @@
 #include "HashMap.h"
 #include "Light.h"
 #include <functional>
-
+#include <cstdio>
 
 namespace Urho3D
 {
@@ -118,9 +118,7 @@ struct Batch
 struct InstanceData
 {
     /// Construct undefined.
-    InstanceData()
-    {
-    }
+    InstanceData() = default;
 
     /// Construct with transform and distance.
     constexpr InstanceData(const Matrix3x4* worldTransform, float distance) :
@@ -157,11 +155,13 @@ struct BatchGroup : public Batch
     }
 
     /// Add world transform(s) from a batch.
-    void AddTransforms(const Batch& batch)
+    void AddTransforms(float distance,unsigned int numTransforms,const Matrix3x4 *transforms)
     {
-        for (unsigned i = 0,fin=batch.numWorldTransforms_; i < fin; ++i)
+        InstanceData instance {nullptr,distance};
+        for (unsigned i = 0; i < numTransforms; ++i)
         {
-            instances_.emplace_back( &batch.worldTransform_[i],batch.distance_ );
+            instance.worldTransform_ = transforms + i;
+            instances_.push_back( instance );
         }
     }
 
@@ -171,18 +171,55 @@ struct BatchGroup : public Batch
     void Draw(View* view) const;
 
     /// Instance data.
-    PODVectorN<InstanceData,4> instances_;
+    PODVector<InstanceData> instances_;
     /// Instance stream start index, or M_MAX_UNSIGNED if transforms not pre-set.
     unsigned startIndex_;
 };
-/// Instanced draw call grouping key.
-struct BatchGroupKey
-{
+struct ZoneLightKey {
 private:
     /// Zone.
     Zone* zone_;
     /// Light properties.
     LightBatchQueue* lightQueue_;
+    uintptr_t hashCode_;
+public:
+    /// Construct undefined.
+    ZoneLightKey() = default;
+
+    /// Construct from a batch.
+    ZoneLightKey(const Batch& batch) :
+        zone_(batch.zone_),
+        lightQueue_(batch.lightQueue_),
+        hashCode_ ( (uintptr_t(zone_) >> 1) ^
+                    (uintptr_t(lightQueue_) >>3))
+    {
+    }
+    ZoneLightKey(Zone *z, LightBatchQueue *q) :
+        zone_(z),
+        lightQueue_(q),
+        hashCode_ ( (uintptr_t(zone_) >> 1) ^
+                    (uintptr_t(lightQueue_) >>3))
+    {
+    }
+
+
+    /// Test for equality with another batch group key.
+    constexpr bool operator == (const ZoneLightKey& rhs) const { return hashCode_ == rhs.hashCode_ && zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_; }
+    /// Test for inequality with another batch group key.
+    constexpr bool operator != (const ZoneLightKey& rhs) const {
+        return  hashCode_   != rhs.hashCode_ ||
+                zone_       != rhs.zone_ ||
+                lightQueue_ != rhs.lightQueue_;
+    }
+
+    /// Return hash value.
+    constexpr unsigned ToHash() const { return  hashCode_; }
+
+};
+/// Instanced draw call grouping key.
+struct BatchGroupKey
+{
+private:
     /// Material pass.
     Pass* pass_;
     /// Material.
@@ -196,27 +233,21 @@ public:
 
     /// Construct from a batch.
     BatchGroupKey(const Batch& batch) :
-        zone_(batch.zone_),
-        lightQueue_(batch.lightQueue_),
         pass_(batch.pass_),
         material_(batch.material_),
         geometry_(batch.geometry_),
-        hashCode_ ( (uintptr_t(zone_) >> 1) ^
-                    (uintptr_t(lightQueue_) >>3) ^
-                    (uintptr_t(pass_) >>5) ^
-                    (uintptr_t(material_) >>7) ^
-                    (uintptr_t(geometry_)))
+        hashCode_ ( (uintptr_t(pass_) >>1) ^
+                    (uintptr_t(material_) >>3) ^
+                    (uintptr_t(geometry_))>>5)
     {
     }
 
 
     /// Test for equality with another batch group key.
-    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
+    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
     /// Test for inequality with another batch group key.
     constexpr bool operator != (const BatchGroupKey& rhs) const {
         return  hashCode_   != rhs.hashCode_ ||
-                zone_       != rhs.zone_ ||
-                lightQueue_ != rhs.lightQueue_ ||
                 pass_       != rhs.pass_ ||
                 material_   != rhs.material_ ||
                 geometry_   != rhs.geometry_;
@@ -227,6 +258,12 @@ public:
 };
 }
 namespace std {
+template<> struct hash<Urho3D::ZoneLightKey> {
+    inline size_t operator()(const Urho3D::ZoneLightKey & key) const
+    {
+        return key.ToHash();
+    }
+};
 template<> struct hash<Urho3D::BatchGroupKey> {
     inline size_t operator()(const Urho3D::BatchGroupKey & key) const
     {
@@ -242,6 +279,7 @@ struct BatchQueue
 {
 public:
     typedef FasterHashMap<BatchGroupKey, BatchGroup *> BatchGroupMap;
+    typedef FasterHashMap<ZoneLightKey, BatchGroupMap> ZoneLightToGroupMap;
 
     /// Clear for new frame by clearing all groups and batches.
     void Clear(int maxSortedInstances);
@@ -262,7 +300,8 @@ public:
 
     /// Instanced draw calls.
     std::deque<BatchGroup> batchGroupStorage_;
-    BatchGroupMap batchGroups_;
+    //BatchGroupMap batchGroups_;
+    ZoneLightToGroupMap zoneLightGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
     HashMap<unsigned, unsigned> shaderRemapping_;
     /// Material remapping table for 2-pass state and distance sort.
