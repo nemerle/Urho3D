@@ -361,6 +361,14 @@ namespace Urho3D
 - %Scene : Scene pointer
 - %TimeStep : float
 
+### AttributeAnimationAdded
+- %ObjectAnimation : Object animation pointer
+- %AttributeAnimationName : String
+
+### AttributeAnimationRemoved
+- %ObjectAnimation : Object animation pointer
+- %AttributeAnimationName : String
+
 ### ScenePostUpdate
 - %Scene : Scene pointer
 - %TimeStep : float
@@ -7338,7 +7346,7 @@ Methods:
 - Component@ GetComponent(const String&) const
 - Component@[]@ GetComponents() const
 - Component@[]@ GetComponents(const String&, bool = false) const
-- Component@ GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0)
+- Component@ GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0, bool = false)
 - ScriptObject@ GetScriptObject() const
 - ScriptObject@ GetScriptObject(const String&) const
 - bool HasComponent(const String&) const
@@ -8675,7 +8683,7 @@ Methods:
 - Component@[]@ GetComponents() const
 - Component@[]@ GetComponents(const String&, bool = false) const
 - Node@ GetNode(uint)
-- Component@ GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0)
+- Component@ GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0, bool = false)
 - ScriptObject@ GetScriptObject() const
 - ScriptObject@ GetScriptObject(const String&) const
 - bool HasComponent(const String&) const
@@ -11164,7 +11172,7 @@ Properties:
 - Variant[] attributes
 - StringHash baseType // readonly
 - String category // readonly
-- int drawOrder // writeonly
+- int drawOrder
 - bool enabled
 - bool enabledEffective // readonly
 - int height // readonly
@@ -11176,7 +11184,6 @@ Properties:
 - uint numObjects // readonly
 - ObjectAnimation@ objectAnimation
 - int refs // readonly
-- int rrawOrder // readonly
 - bool temporary
 - StringHash type // readonly
 - String typeName // readonly
@@ -13072,8 +13079,8 @@ Properties:
 - uint DEFAULT_VIEWMASK
 - uint DRAWABLE_ANY
 - uint DRAWABLE_GEOMETRY
+- uint DRAWABLE_GEOMETRY2D
 - uint DRAWABLE_LIGHT
-- uint DRAWABLE_PROXYGEOMETRY
 - uint DRAWABLE_ZONE
 - uint FIRST_LOCAL_ID
 - uint FIRST_REPLICATED_ID

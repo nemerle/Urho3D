@@ -202,7 +202,7 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
     Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
-    Vector<String> autoloadFolders = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().split(';');
+    Vector<String> autoloadPaths = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().Split(';');
 
     for (unsigned i = 0; i < resourcePaths.size(); ++i)
     {
@@ -267,22 +267,25 @@ bool Engine::Initialize(const VariantMap& parameters)
     }
 
     // Add auto load folders. Prioritize these (if exist) before the default folders
-    for (unsigned i = 0; i < autoloadFolders.size(); ++i)
+    for (unsigned i = 0; i < autoloadPaths.Size(); ++i)
     {
         bool success = true;
-        String autoloadFolder = autoloadFolders[i];
+        String autoloadPath = autoloadPaths[i];
+        if (!IsAbsolutePath(autoloadPath))
+            autoloadPath = exePath + autoloadPath;
+
         String badResource;
-        if (fileSystem->DirExists(autoloadFolder))
+        if (fileSystem->DirExists(autoloadPath))
         {
             Vector<String> folders;
-            fileSystem->ScanDir(folders, autoloadFolder, "*", SCAN_DIRS, false);
+            fileSystem->ScanDir(folders, autoloadPath, "*", SCAN_DIRS, false);
             for (unsigned y = 0; y < folders.size(); ++y)
             {
                 String folder = folders[y];
                 if (folder.startsWith("."))
                     continue;
 
-                String autoResourceDir = exePath + autoloadFolder + "/" + folder;
+                String autoResourceDir = autoloadPath + "/" + folder;
                 success = cache->AddResourceDir(autoResourceDir, 0);
                 if (!success)
                 {
@@ -294,14 +297,14 @@ bool Engine::Initialize(const VariantMap& parameters)
             if (success)
             {
                 Vector<String> paks;
-                fileSystem->ScanDir(paks, autoloadFolder, "*.pak", SCAN_FILES, false);
+                fileSystem->ScanDir(paks, autoloadPath, "*.pak", SCAN_FILES, false);
                 for (unsigned y = 0; y < paks.size(); ++y)
                 {
                     String pak = paks[y];
                     if (pak.startsWith("."))
                         continue;
 
-                    String autoResourcePak = exePath + autoloadFolder + "/" + pak;
+                    String autoResourcePak = autoloadPath + "/" + pak;
                     SharedPtr<PackageFile> package(new PackageFile(context_));
                     if (package->Open(autoResourcePak))
                         cache->AddPackageFile(package, 0);
@@ -315,11 +318,11 @@ bool Engine::Initialize(const VariantMap& parameters)
             }
         }
         else
-            LOGWARNING("Skipped autoload folder " + autoloadFolders[i] + " as it does not exist");
+            LOGWARNING("Skipped autoload folder " + autoloadPaths[i] + " as it does not exist");
 
         if (!success)
         {
-            LOGERROR("Failed to add resource " + badResource + " in autoload folder " + autoloadFolders[i]);
+            LOGERROR("Failed to add resource " + badResource + " in autoload folder " + autoloadPaths[i]);
             return false;
         }
     }

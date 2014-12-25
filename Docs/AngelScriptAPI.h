@@ -5972,7 +5972,7 @@ Array<Node> GetChildrenWithScript(const String&, bool = false) const;
 Component GetComponent(const String&) const;
 Array<Component> GetComponents() const;
 Array<Component> GetComponents(const String&, bool = false) const;
-Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0);
+Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0, bool = false);
 ScriptObject GetScriptObject() const;
 ScriptObject GetScriptObject(const String&) const;
 bool HasComponent(const String&) const;
@@ -7466,7 +7466,7 @@ Component GetComponent(uint);
 Array<Component> GetComponents() const;
 Array<Component> GetComponents(const String&, bool = false) const;
 Node GetNode(uint);
-Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0);
+Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0, bool = false);
 ScriptObject GetScriptObject() const;
 ScriptObject GetScriptObject(const String&) const;
 bool HasComponent(const String&) const;
@@ -10396,7 +10396,6 @@ Array<Variant> attributes;
 StringHash baseType;
 /* readonly */
 String category;
-/* writeonly */
 int drawOrder;
 bool enabled;
 /* readonly */
@@ -10418,8 +10417,6 @@ uint numObjects;
 ObjectAnimation objectAnimation;
 /* readonly */
 int refs;
-/* readonly */
-int rrawOrder;
 bool temporary;
 /* readonly */
 StringHash type;
@@ -12486,8 +12483,8 @@ uint DEFAULT_LIGHTMASK;
 uint DEFAULT_VIEWMASK;
 uint DRAWABLE_ANY;
 uint DRAWABLE_GEOMETRY;
+uint DRAWABLE_GEOMETRY2D;
 uint DRAWABLE_LIGHT;
-uint DRAWABLE_PROXYGEOMETRY;
 uint DRAWABLE_ZONE;
 uint FIRST_LOCAL_ID;
 uint FIRST_REPLICATED_ID;

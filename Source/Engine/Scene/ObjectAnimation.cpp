@@ -23,6 +23,7 @@
 #include "Precompiled.h"
 #include "Context.h"
 #include "ObjectAnimation.h"
+#include "SceneEvents.h"
 #include "ValueAnimation.h"
 #include "ValueAnimationInfo.h"
 #include "XMLFile.h"
@@ -134,6 +135,8 @@ void ObjectAnimation::AddAttributeAnimation(const String& name, ValueAnimation* 
 
     attributeAnimation->SetOwner(this);
     attributeAnimationInfos_[name] = new ValueAnimationInfo(attributeAnimation, wrapMode, speed);
+
+    SendAttributeAnimationAddedEvent(name);
 }
 
 void ObjectAnimation::RemoveAttributeAnimation(const String& name)
@@ -141,6 +144,7 @@ void ObjectAnimation::RemoveAttributeAnimation(const String& name)
     HashMap<String, SharedPtr<ValueAnimationInfo> >::iterator i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
     {
+        SendAttributeAnimationRemovedEvent(name);
         MAP_VALUE(i)->GetAnimation()->SetOwner(nullptr);
         attributeAnimationInfos_.erase(i);
     }
@@ -150,11 +154,12 @@ void ObjectAnimation::RemoveAttributeAnimation(ValueAnimation* attributeAnimatio
 {
     if (!attributeAnimation)
         return;
-
+    
     for (auto i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
     {
         if (MAP_VALUE(i)->GetAnimation() == attributeAnimation)
         {
+            SendAttributeAnimationRemovedEvent(i->first_);
             attributeAnimation->SetOwner(nullptr);
             attributeAnimationInfos_.erase(i);
             return;
@@ -186,6 +191,24 @@ ValueAnimationInfo* ObjectAnimation::GetAttributeAnimationInfo(const String& nam
     if (i != attributeAnimationInfos_.end())
         return MAP_VALUE(i);
     return nullptr;
+}
+
+void ObjectAnimation::SendAttributeAnimationAddedEvent(const String& name)
+{
+    using namespace AttributeAnimationAdded;
+    VariantMap& eventData = GetEventDataMap();
+    eventData[P_OBJECTANIMATION] = this;
+    eventData[P_ATTRIBUTEANIMATIONNAME] = name;
+    SendEvent(E_ATTRIBUTEANIMATIONADDED, eventData);
+}
+
+void ObjectAnimation::SendAttributeAnimationRemovedEvent(const String& name)
+{
+    using namespace AttributeAnimationRemoved;
+    VariantMap& eventData = GetEventDataMap();
+    eventData[P_OBJECTANIMATION] = this;
+    eventData[P_ATTRIBUTEANIMATIONNAME] = name;
+    SendEvent(E_ATTRIBUTEANIMATIONREMOVED, eventData);
 }
 
 }

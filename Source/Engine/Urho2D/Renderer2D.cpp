@@ -46,10 +46,10 @@ namespace Urho3D
 extern const char* blendModeNames[];
 
 Renderer2D::Renderer2D(Context* context) :
-    Drawable(context, DRAWABLE_RENDERER2D),
+    Drawable(context, DRAWABLE_GEOMETRY),
     indexBuffer_(new IndexBuffer(context_)),
     vertexBuffer_(new VertexBuffer(context_)),
-    frustum_(nullptr),
+    orderDirty_(true),
     indexCount_(0),
     vertexCount_(0)
 {
@@ -63,6 +63,39 @@ Renderer2D::~Renderer2D()
 void Renderer2D::RegisterObject(Context* context)
 {
     context->RegisterFactory<Renderer2D>();
+}
+
+static inline bool CompareDrawable2Ds(Drawable2D* lhs, Drawable2D* rhs)
+{
+    if (lhs->GetLayer() != rhs->GetLayer())
+        return lhs->GetLayer() < rhs->GetLayer();
+
+    if (lhs->GetOrderInLayer() != rhs->GetOrderInLayer())
+        return lhs->GetOrderInLayer() < rhs->GetOrderInLayer();
+
+    Material* lhsUsedMaterial = lhs->GetMaterial();
+    Material* rhsUsedMaterial = rhs->GetMaterial();
+    if (lhsUsedMaterial != rhsUsedMaterial)
+        return lhsUsedMaterial->GetNameHash() < rhsUsedMaterial->GetNameHash();
+
+    return lhs->GetID() < rhs->GetID();
+}
+
+void Renderer2D::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResult>& results)
+{
+    if (orderDirty_)
+    {
+        Sort(drawables_.Begin(), drawables_.End(), CompareDrawable2Ds);
+        orderDirty_ = false;
+    }
+
+    unsigned resultSize = results.Size();
+    for (unsigned i = drawables_.Size() - 1; i < drawables_.Size(); --i)
+    {
+        drawables_[i]->ProcessRayQuery(query, results);
+        if (results.Size() != resultSize)
+            return;
+    }
 }
 
 void Renderer2D::UpdateBatches(const FrameInfo& frame)
@@ -159,6 +192,32 @@ UpdateGeometryType Renderer2D::GetUpdateGeometryType()
     return UPDATE_MAIN_THREAD;
 }
 
+void Renderer2D::AddDrawable(Drawable2D* drawable)
+{
+    if (!drawable)
+        return;
+
+    drawables_.Push(drawable);
+    materialDirtyDrawables_.Push(drawable);
+
+    orderDirty_ = true;
+}
+
+void Renderer2D::RemoveDrawable(Drawable2D* drawable)
+{
+    if (!drawable)
+        return;
+
+    drawables_.Remove(drawable);
+    materialDirtyDrawables_.Remove(drawable);
+    orderDirty_ = true;
+}
+
+void Renderer2D::MarkMaterialDirty(Drawable2D* drawable)
+{
+    materialDirtyDrawables_.Push(drawable);
+}
+
 bool Renderer2D::CheckVisibility(Drawable2D* drawable) const
 {
     const BoundingBox& box = drawable->GetWorldBoundingBox();
@@ -184,27 +243,11 @@ static void CheckDrawableVisibility(const WorkItem* item, unsigned threadIndex)
     while (start != end)
     {
         Drawable2D* drawable = *start++;
-        if (renderer->CheckVisibility(drawable) && drawable->GetMaterial() && drawable->GetVertices().size())
+        if (renderer->CheckVisibility(drawable) && drawable->GetVertices().Size())
             drawable->SetVisibility(true);
         else
             drawable->SetVisibility(false);
     }
-}
-
-static inline bool CompareDrawable2Ds(Drawable2D* lhs, Drawable2D* rhs)
-{
-    if (lhs->GetLayer() != rhs->GetLayer())
-        return lhs->GetLayer() < rhs->GetLayer();
-
-    if (lhs->GetOrderInLayer() != rhs->GetOrderInLayer())
-        return lhs->GetOrderInLayer() < rhs->GetOrderInLayer();
-
-    Material* lhsUsedMaterial = lhs->GetMaterial();
-    Material* rhsUsedMaterial = rhs->GetMaterial();
-    if (lhsUsedMaterial != rhsUsedMaterial)
-        return lhsUsedMaterial->GetNameHash() < rhsUsedMaterial->GetNameHash();
-
-    return lhs->GetID() < rhs->GetID();
 }
 
 void Renderer2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& eventData)
@@ -218,18 +261,22 @@ void Renderer2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& eventDa
 
     PROFILE(UpdateRenderer2D);
 
-    drawables_.clear();
-    GetDrawables(drawables_, scene);
-
-    // Check and set default material
-    for (unsigned i = 0; i < drawables_.size(); ++i)
+    if (!materialDirtyDrawables_.Empty())
     {
-        Drawable2D* drawable = drawables_[i];
-        if (!drawable->GetMaterial())
-            drawable->SetMaterial(GetMaterial(drawable->GetTexture(), drawable->GetBlendMode()));
+        for (unsigned i = 0; i < materialDirtyDrawables_.Size(); ++i)
+        {
+            Drawable2D* drawable = materialDirtyDrawables_[i];
+            if (!drawable->GetMaterial())
+                drawable->SetMaterial(GetMaterial(drawable->GetTexture(), drawable->GetBlendMode()));
+        }
+        materialDirtyDrawables_.Clear();
     }
 
-    std::sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
+    if (orderDirty_)
+    {
+        std::sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
+        orderDirty_ = false;
+    }
 
     Camera* camera = static_cast<Camera*>(eventData[P_CAMERA].GetPtr());
     frustum_ = &camera->GetFrustum();
@@ -381,11 +428,8 @@ Material* Renderer2D::CreateMaterial(Texture2D* texture, BlendMode blendMode)
     Pass* pass = tech->CreatePass(PASS_ALPHA);
     pass->SetBlendMode(blendMode);
 
-    pass->SetVertexShader("Basic");
-    pass->SetVertexShaderDefines("DIFFMAP VERTEXCOLOR");
-
-    pass->SetPixelShader("Basic");
-    pass->SetPixelShaderDefines("DIFFMAP VERTEXCOLOR");
+    pass->SetVertexShader("Urho2D");
+    pass->SetPixelShader("Urho2D");
 
     pass->SetDepthWrite(false);
 

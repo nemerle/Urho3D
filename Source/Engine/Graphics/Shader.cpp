@@ -130,14 +130,14 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
 {
     StringHash definesHash(defines);
     HashMap<StringHash, SharedPtr<ShaderVariation> > & variations(type == VS ? vsVariations_ : psVariations_);
-    auto i = variations.find(definesHash);
-    if (i == variations.end())
+    HashMap<StringHash, SharedPtr<ShaderVariation> >::Iterator i = variations.find(definesHash);
+    if (i == variations.End())
     {
         // If shader not found, normalize the defines (to prevent duplicates) and check again. In that case make an alias
         // so that further queries are faster
         String normalizedDefines = NormalizeDefines(defines);
         StringHash normalizedHash(normalizedDefines);
-
+        
         i = variations.find(normalizedHash);
         if (i != variations.end())
             variations.insert(std::make_pair(definesHash, MAP_VALUE(i)));
