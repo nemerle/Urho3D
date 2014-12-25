@@ -74,6 +74,4 @@ public:
         return true;
     }
 };
-template<typename T>
-using PODVector4 = PODVectorN<T,4>;
 }

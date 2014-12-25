@@ -61,7 +61,8 @@ set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/Modules)
 
 # Include Urho3D cmake common module
 include (Urho3D-CMake-common)
-
+INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(ThirdParty)
 # Check existence of stdint.h for LibCpuId
 include (CheckIncludeFiles)
 CHECK_INCLUDE_FILES (stdint.h HAVE_STDINT_H)

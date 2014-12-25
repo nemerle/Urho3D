@@ -69,7 +69,7 @@ void Skybox::UpdateBatches(const FrameInfo& frame)
     // Add camera position to fix the skybox in space. Use effective world transform to take reflection into account
     Matrix3x4 customWorldTransform = node_->GetWorldTransform();
     customWorldTransform.SetTranslation(node_->GetWorldPosition() + frame.camera_->GetEffectiveWorldTransform().Translation());
-    auto it = customWorldTransforms_.emplace(frame.camera_, customWorldTransform).first;
+    auto it = customWorldTransforms_.insert(std::make_pair(frame.camera_, customWorldTransform)).first;
 
     for (unsigned i = 0; i < batches_.size(); ++i)
     {

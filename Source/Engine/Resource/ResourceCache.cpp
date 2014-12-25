@@ -252,13 +252,14 @@ void ResourceCache::ReleaseResources(StringHash type, bool force)
     for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resources.begin();
         j != resources.end();)
     {
-        HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
         // If other references exist, do not release, unless forced
-        if ((MAP_VALUE(current)->Refs() == 1 && MAP_VALUE(current)->WeakRefs() == 0) || force)
+        if ((MAP_VALUE(j)->Refs() == 1 && MAP_VALUE(j)->WeakRefs() == 0) || force)
         {
-            resources.erase(current);
+            j = resources.erase(j);
             released = true;
         }
+        else
+            ++j;
     }
 
     if (released)
@@ -276,16 +277,17 @@ void ResourceCache::ReleaseResources(StringHash type, const String& partialName,
         HashMap<StringHash, SharedPtr<Resource> > &resource(MAP_VALUE(i).resources_);
         for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resource.begin(); j != resource.end();)
         {
-            HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
-            if (MAP_VALUE(current)->GetName().contains(partialName))
+            if (MAP_VALUE(j)->GetName().contains(partialName))
             {
                 // If other references exist, do not release, unless forced
-                if ((MAP_VALUE(current).Refs() == 1 && MAP_VALUE(current).WeakRefs() == 0) || force)
+                if ((MAP_VALUE(j).Refs() == 1 && MAP_VALUE(j).WeakRefs() == 0) || force)
                 {
-                    resource.erase(current);
+                    j = resource.erase(j);
                     released = true;
+                    continue;
                 }
             }
+            ++j;
         }
     }
 
@@ -308,16 +310,17 @@ void ResourceCache::ReleaseResources(const String& partialName, bool force)
 
             for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = resources.begin(); j != resources.end();)
             {
-                HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
-                if (MAP_VALUE(current)->GetName().contains(partialName))
+                if (MAP_VALUE(j)->GetName().contains(partialName))
                 {
                     // If other references exist, do not release, unless forced
-                    if ((MAP_VALUE(current).Refs() == 1 && MAP_VALUE(current).WeakRefs() == 0) || force)
+                    if ((MAP_VALUE(j).Refs() == 1 && MAP_VALUE(j).WeakRefs() == 0) || force)
                     {
-                        resources.erase(current);
+                        j = resources.erase(j);
                         released = true;
+                        continue;
                     }
                 }
+                ++j;
             }
             if (released)
                 UpdateResourceGroup(MAP_KEY(iter));
@@ -339,13 +342,14 @@ void ResourceCache::ReleaseAllResources(bool force)
             for (HashMap<StringHash, SharedPtr<Resource> >::iterator j = elem.resources_.begin();
                 j != elem.resources_.end();)
             {
-                HashMap<StringHash, SharedPtr<Resource> >::iterator current = j++;
                 // If other references exist, do not release, unless forced
-                if ((MAP_VALUE(current).Refs() == 1 && MAP_VALUE(current).WeakRefs() == 0) || force)
+                if ((MAP_VALUE(j).Refs() == 1 && MAP_VALUE(j).WeakRefs() == 0) || force)
                 {
-                    elem.resources_.erase(current);
+                    j=elem.resources_.erase(j);
                     released = true;
                 }
+                else
+                    ++j;
             }
             if (released)
                 UpdateResourceGroup(MAP_KEY(iter));

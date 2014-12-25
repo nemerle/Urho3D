@@ -140,13 +140,13 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
 
         i = variations.find(normalizedHash);
         if (i != variations.end())
-            variations.emplace(definesHash, MAP_VALUE(i));
+            variations.insert(std::make_pair(definesHash, MAP_VALUE(i)));
         else
         {
             // No shader variation found. Create new
-            i = variations.emplace(normalizedHash, SharedPtr<ShaderVariation>(new ShaderVariation(this, type))).first;
+            i = variations.insert(std::make_pair(normalizedHash, SharedPtr<ShaderVariation>(new ShaderVariation(this, type)))).first;
             if (definesHash != normalizedHash)
-                variations.emplace(definesHash, MAP_VALUE(i));
+                variations.insert(std::make_pair(definesHash, MAP_VALUE(i)));
 
             MAP_VALUE(i)->SetName(GetFileName(GetName()));
             MAP_VALUE(i)->SetDefines(normalizedDefines);

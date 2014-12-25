@@ -326,20 +326,21 @@ void Connection::SendPackages()
 
         for (HashMap<StringHash, PackageUpload>::iterator i = uploads_.begin(); i != uploads_.end();)
         {
-            HashMap<StringHash, PackageUpload>::iterator current = i++;
-            PackageUpload& upload = MAP_VALUE(current);
+            PackageUpload& upload = MAP_VALUE(i);
             unsigned fragmentSize = Min((int)(upload.file_->GetSize() - upload.file_->GetPosition()), (int)PACKAGE_FRAGMENT_SIZE);
             upload.file_->Read(buffer, fragmentSize);
 
             msg_.Clear();
-            msg_.WriteStringHash(MAP_KEY(current));
+            msg_.WriteStringHash(MAP_KEY(i));
             msg_.WriteUInt(upload.fragment_++);
             msg_.Write(buffer, fragmentSize);
             SendMessage(MSG_PACKAGEDATA, true, false, msg_);
 
             // Check if upload finished
             if (upload.fragment_ == upload.totalFragments_)
-                uploads_.erase(current);
+                i = uploads_.erase(i);
+            else
+                ++i;
         }
     }
 }
@@ -352,32 +353,34 @@ void Connection::ProcessPendingLatestData()
     // Iterate through pending node data and see if we can find the nodes now
     for (HashMap<unsigned, PODVector<unsigned char> >::iterator i = nodeLatestData_.begin(); i != nodeLatestData_.end();)
     {
-        HashMap<unsigned, PODVector<unsigned char> >::iterator current = i++;
-        Node* node = scene_->GetNode(MAP_KEY(current));
+        Node* node = scene_->GetNode(MAP_KEY(i));
         if (node)
         {
-            MemoryBuffer msg(MAP_VALUE(current));
+            MemoryBuffer msg(MAP_VALUE(i));
             msg.ReadNetID(); // Skip the node ID
             node->ReadLatestDataUpdate(msg);
             // ApplyAttributes() is deliberately skipped, as Node has no attributes that require late applying.
             // Furthermore it would propagate to components and child nodes, which is not desired in this case
-            nodeLatestData_.erase(current);
+            i=nodeLatestData_.erase(i);
         }
+        else
+            ++i;
     }
 
     // Iterate through pending component data and see if we can find the components now
     for (HashMap<unsigned, PODVector<unsigned char> >::iterator i = componentLatestData_.begin(); i != componentLatestData_.end();)
     {
-        HashMap<unsigned, PODVector<unsigned char> >::iterator current = i++;
-        Component* component = scene_->GetComponent(MAP_KEY(current));
+        Component* component = scene_->GetComponent(MAP_KEY(i));
         if (component)
         {
-            MemoryBuffer msg(MAP_VALUE(current));
+            MemoryBuffer msg(MAP_VALUE(i));
             msg.ReadNetID(); // Skip the component ID
             component->ReadLatestDataUpdate(msg);
             component->ApplyAttributes();
-            componentLatestData_.erase(current);
+            i=componentLatestData_.erase(i);
         }
+        else
+            ++i;
     }
 }
 
@@ -1206,17 +1209,16 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
     for (HashMap<unsigned, ComponentReplicationState>::iterator i = nodeState.componentStates_.begin();
         i != nodeState.componentStates_.end(); )
     {
-        HashMap<unsigned, ComponentReplicationState>::iterator current = i++;
-        ComponentReplicationState& componentState = MAP_VALUE(current);
+        ComponentReplicationState& componentState = MAP_VALUE(i);
         Component* component = componentState.component_;
         if (!component)
         {
             // Removed component
             msg_.Clear();
-            msg_.WriteNetID(MAP_KEY(current));
+            msg_.WriteNetID(MAP_KEY(i));
 
             SendMessage(MSG_REMOVECOMPONENT, true, true, msg_);
-            nodeState.componentStates_.erase(current);
+            i=nodeState.componentStates_.erase(i);
         }
         else
         {
@@ -1258,6 +1260,7 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
                     componentState.dirtyAttributes_.ClearAll();
                 }
             }
+            ++i;
         }
     }
 

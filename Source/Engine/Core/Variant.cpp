@@ -89,7 +89,7 @@ Variant& Variant::operator = (const Variant& rhs)
         break;
 
     case VAR_VARIANTMAP:
-        *(reinterpret_cast<VariantMap*>(&value_)) = *(reinterpret_cast<const VariantMap*>(&rhs.value_));
+        *(reinterpret_cast<VariantMap*>(value_.ptr_)) = *(reinterpret_cast<const VariantMap*>(rhs.value_.ptr_));
         break;
 
     case VAR_PTR:
@@ -162,7 +162,7 @@ bool Variant::operator == (const Variant& rhs) const
         return *(reinterpret_cast<const VariantVector*>(&value_)) == *(reinterpret_cast<const VariantVector*>(&rhs.value_));
 
     case VAR_VARIANTMAP:
-        return *(reinterpret_cast<const VariantMap*>(&value_)) == *(reinterpret_cast<const VariantMap*>(&rhs.value_));
+        return *(reinterpret_cast<const VariantMap*>(value_.ptr_)) == *(reinterpret_cast<const VariantMap*>(rhs.value_.ptr_));
 
     case VAR_INTRECT:
         return *(reinterpret_cast<const IntRect*>(&value_)) == *(reinterpret_cast<const IntRect*>(&rhs.value_));
@@ -450,7 +450,7 @@ bool Variant::IsZero() const
         return reinterpret_cast<const VariantVector*>(&value_)->empty();
 
     case VAR_VARIANTMAP:
-        return reinterpret_cast<const VariantMap*>(&value_)->empty();
+        return reinterpret_cast<const VariantMap*>(value_.ptr_)->empty();
 
     case VAR_INTRECT:
         return *reinterpret_cast<const IntRect*>(&value_) == IntRect::ZERO;
@@ -503,7 +503,7 @@ void Variant::SetType(VariantType newType)
         break;
 
     case VAR_VARIANTMAP:
-        (reinterpret_cast<VariantMap*>(&value_))->~VariantMap();
+        delete reinterpret_cast<VariantMap*>(value_.ptr_);
         break;
 
     case VAR_PTR:
@@ -535,6 +535,7 @@ void Variant::SetType(VariantType newType)
         break;
 
     case VAR_BUFFER:
+        static_assert(sizeof(PODVector<unsigned char>)<=sizeof(VariantValue),"Cannot construct PODVector<unsigned char> in-place");
         new(reinterpret_cast<PODVector<unsigned char>*>(&value_)) PODVector<unsigned char>();
         break;
 
@@ -544,17 +545,20 @@ void Variant::SetType(VariantType newType)
 
     case VAR_RESOURCEREFLIST:
         new(reinterpret_cast<ResourceRefList*>(&value_)) ResourceRefList();
+        static_assert(sizeof(ResourceRefList)<=sizeof(VariantValue),"Cannot construct ResourceRefList in-place");
         break;
 
     case VAR_VARIANTVECTOR:
+        static_assert(sizeof(VariantVector)<=sizeof(VariantValue),"Cannot construct VariantVector in-place");
         new(reinterpret_cast<VariantVector*>(&value_)) VariantVector();
         break;
 
     case VAR_VARIANTMAP:
-        new(reinterpret_cast<VariantMap*>(&value_)) VariantMap();
+        value_.ptr_ = new VariantMap();
         break;
 
     case VAR_PTR:
+        static_assert(sizeof(WeakPtr<RefCounted>)<=sizeof(VariantValue),"Cannot construct WeakPtr<RefCounted> in-place");
         new(reinterpret_cast<WeakPtr<RefCounted>*>(&value_)) WeakPtr<RefCounted>();
         break;
 

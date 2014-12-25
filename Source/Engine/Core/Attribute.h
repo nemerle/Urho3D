@@ -71,7 +71,7 @@ struct AttributeInfo
         ptr_(0)
     {
     }
-    
+
     /// Construct offset attribute.
     AttributeInfo(VariantType type, const char* name, size_t offset, const Variant& defaultValue, unsigned mode) :
         type_(type),
@@ -83,7 +83,7 @@ struct AttributeInfo
         ptr_(0)
     {
     }
-    
+
     /// Construct offset enum attribute.
     AttributeInfo(const char* name, size_t offset, const char** enumNames, const Variant& defaultValue, unsigned mode) :
         type_(VAR_INT),
@@ -95,7 +95,7 @@ struct AttributeInfo
         ptr_(0)
     {
     }
-    
+
     /// Construct accessor attribute.
     AttributeInfo(VariantType type, const char* name, AttributeAccessor* accessor, const Variant& defaultValue, unsigned mode) :
         type_(type),
@@ -108,7 +108,7 @@ struct AttributeInfo
         ptr_(0)
     {
     }
-    
+
     /// Construct accessor enum attribute.
     AttributeInfo(const char* name, AttributeAccessor* accessor, const char** enumNames, const Variant& defaultValue, unsigned mode) :
         type_(VAR_INT),
@@ -121,7 +121,47 @@ struct AttributeInfo
         ptr_(0)
     {
     }
-    
+    AttributeInfo(const AttributeInfo &other) :
+        type_(other.type_),
+        name_(other.name_),
+        offset_(other.offset_),
+        enumNames_(other.enumNames_),
+        accessor_(other.accessor_),
+        defaultValue_(other.defaultValue_),
+        mode_(other.mode_),
+        ptr_(other.ptr_)
+    {}
+    AttributeInfo(AttributeInfo &&other) :
+        type_(other.type_),
+        name_(other.name_),
+        offset_(other.offset_),
+        enumNames_(other.enumNames_),
+        accessor_(other.accessor_),
+        defaultValue_(other.defaultValue_),
+        mode_(other.mode_),
+        ptr_(other.ptr_)
+    {
+        other.type_ = VAR_NONE;
+        other.offset_ = 0;
+        other.enumNames_ = nullptr;
+        other.mode_ = AM_DEFAULT;
+        other.ptr_ = nullptr;
+    }
+    /// Unifying assignment operator
+    AttributeInfo &operator=(AttributeInfo op) {
+        swap(op);
+        return *this;
+    }
+    void swap(AttributeInfo &rhs) {
+        std::swap(type_,rhs.type_);
+        std::swap(name_,rhs.name_);
+        std::swap(offset_,rhs.offset_);
+        std::swap(enumNames_,rhs.enumNames_);
+        std::swap(accessor_,rhs.accessor_);
+        std::swap(defaultValue_,rhs.defaultValue_);
+        std::swap(mode_,rhs.mode_);
+        std::swap(ptr_,rhs.ptr_);
+    }
     /// Attribute type.
     VariantType type_;
     /// Name.

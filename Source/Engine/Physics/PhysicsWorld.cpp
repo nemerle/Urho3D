@@ -498,15 +498,17 @@ void PhysicsWorld::RemoveCachedGeometry(Model* model)
 {
     for (auto i = triMeshCache_.begin(), fin = triMeshCache_.end(); i!=fin; )
     {
-        auto current = i++;
-        if (MAP_KEY(current).first_ == model)
-            triMeshCache_.erase(current);
+        if (MAP_KEY(i).first_ == model)
+            i=triMeshCache_.erase(i);
+        else
+            ++i;
     }
     for (auto i = convexCache_.begin(); i != convexCache_.end();)
     {
-        auto current = i++;
-        if (MAP_KEY(current).first_ == model)
-            convexCache_.erase(current);
+        if (MAP_KEY(i).first_ == model)
+            i=convexCache_.erase(i);
+        else
+            ++i;
     }
 }
 
@@ -637,15 +639,17 @@ void PhysicsWorld::CleanupGeometryCache()
     // Remove cached shapes whose only reference is the cache itself
     for (auto i = triMeshCache_.begin(); i != triMeshCache_.end(); )
     {
-        auto current = i++;
-        if (MAP_VALUE(current).Refs() == 1)
-            triMeshCache_.erase(current);
+        if (MAP_VALUE(i).Refs() == 1)
+            i=triMeshCache_.erase(i);
+        else
+            ++i;
     }
     for (auto i = convexCache_.begin(); i != convexCache_.end();)
     {
-        auto current = i++;
-        if (MAP_VALUE(current).Refs() == 1)
-            convexCache_.erase(current);
+        if (MAP_VALUE(i).Refs() == 1)
+            i=convexCache_.erase(i);
+        else
+            ++i;
     }
 }
 

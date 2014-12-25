@@ -262,7 +262,7 @@ bool Console::PopulateInterpreter()
 {
     interpreters_->RemoveAllItems();
 
-    QSet<Object*>* receivers = context_->GetEventReceivers(E_CONSOLECOMMAND);
+    HashSet<Object*>* receivers = context_->GetEventReceivers(E_CONSOLECOMMAND);
     if (!receivers || receivers->isEmpty())
         return false;
 

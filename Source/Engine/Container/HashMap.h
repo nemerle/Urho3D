@@ -1,6 +1,8 @@
 #ifndef HASHMAP
 #define HASHMAP
 #include "Vector.h"
+//#include <mct/hash-map.hpp>
+#include <sherwood_map/sherwood_map.hpp>
 #ifdef USE_QT_HASHMAP
 #include <QtCore/QHash>
 #else
@@ -20,12 +22,14 @@ using HashMap = ::QHash<T,U> ;
 #define MAP_VALUE(i) (i->second)
 #define MAP_KEY(i) (i->first)
 #define ELEMENT_VALUE(e) e.second
+
 template <typename T,typename U>
-class HashMap : public std::unordered_map<T,U,std::hash<T> > {
+class HashMap : public std::unordered_map<T,U> {
+    typedef std::unordered_map<T,U> ParentClass;
 public:
     HashMap() {}
-    typedef typename std::unordered_map<T,U>::iterator iterator;
-    typedef typename std::unordered_map<T,U>::const_iterator const_iterator;
+    typedef typename ParentClass::iterator iterator;
+    typedef typename ParentClass::const_iterator const_iterator;
 
     constexpr bool contains(const T &v) const { return this->find(v)!=this->cend();}
     /// Erase an element if found.
@@ -55,6 +59,43 @@ public:
         return result;
     }
 };
+template <typename T,typename U>
+class FasterHashMap : public sherwood_map<T,U> {
+    typedef sherwood_map<T,U> ParentClass;
+public:
+    FasterHashMap() {}
+    typedef typename ParentClass::iterator iterator;
+    typedef typename ParentClass::const_iterator const_iterator;
+
+    constexpr bool contains(const T &v) const { return this->find(v)!=this->cend();}
+    /// Erase an element if found.
+    bool remove(const T& value)
+    {
+        iterator i = this->find(value);
+        if (i == this->end())
+            return false;
+        this->erase(i);
+        return true;
+    }
+    constexpr bool isEmpty() const { return this->empty(); }
+    Vector<T> keys() const {
+        Vector<T> result;
+        result.reserve(this->size());
+        for(const std::pair<const T,U> v : *this) {
+            result.push_back(v.first);
+        }
+        return result;
+    }
+    Vector<U> values() const {
+        Vector<U> result;
+        result.reserve(this->size());
+        for(const std::pair<const T,U> v : *this) {
+            result.push_back(v.second);
+        }
+        return result;
+    }
+};
+
 template <typename T>
 class HashSet : public std::unordered_set<T> {
 public:

@@ -311,7 +311,7 @@ void Batch::Prepare(View* view, bool setModelTransform) const
         if (graphics->NeedParameterUpdate(SP_VERTEXLIGHTS, lightQueue_) && graphics->HasShaderParameter(VS, VSP_VERTEXLIGHTS))
         {
             Vector4 vertexLights[MAX_VERTEX_LIGHTS * 3];
-            const PODVector4<Light*>& lights = lightQueue_->vertexLights_;
+            const PODVectorN<Light*,4>& lights(lightQueue_->vertexLights_);
 
             for (unsigned i = 0; i < lights.size(); ++i)
             {
@@ -624,8 +624,8 @@ void BatchGroup::SetTransforms(void* lockedData, unsigned& freeIndex)
     Matrix3x4* dest = (Matrix3x4*)lockedData;
     dest += freeIndex;
 
-    for (unsigned i = 0; i < instances_.size(); ++i)
-        *dest++ = *instances_[i].worldTransform_;
+    for (InstanceData &elem : instances_)
+        *dest++ = *elem.worldTransform_;
 
     freeIndex += instances_.size();
 }
@@ -716,6 +716,7 @@ void BatchQueue::Clear(int maxSortedInstances)
 {
     batches_.clear();
     sortedBatches_.clear();
+    batchGroupStorage_.clear();
     batchGroups_.clear();
     maxSortedInstances_ = maxSortedInstances;
 }
@@ -730,11 +731,11 @@ void BatchQueue::SortBackToFront()
     std::sort(sortedBatches_.begin(), sortedBatches_.end(), CompareBatchesBackToFront);
 
     // Do not actually sort batch groups, just list them
-    sortedBatchGroups_.resize(batchGroups_.size());
+    sortedBatchGroups_.resize(batchGroupStorage_.size());
 
     unsigned index = 0;
-    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
-        sortedBatchGroups_[index++] = &MAP_VALUE(iter);
+    for (BatchGroup & elem: batchGroupStorage_)
+        sortedBatchGroups_[index++] = &elem;
 }
 
 void BatchQueue::SortFrontToBack()
@@ -747,9 +748,8 @@ void BatchQueue::SortFrontToBack()
     SortFrontToBack2Pass(sortedBatches_);
 
     // Sort each group front to back
-    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
+    for (BatchGroup & elem : batchGroupStorage_)
     {
-        BatchGroup & elem(MAP_VALUE(iter));
         if (elem.instances_.size() <= maxSortedInstances_)
         {
             std::sort(elem.instances_.begin(), elem.instances_.end(), CompareInstancesFrontToBack);
@@ -765,11 +765,11 @@ void BatchQueue::SortFrontToBack()
         }
     }
 
-    sortedBatchGroups_.resize(batchGroups_.size());
+    sortedBatchGroups_.resize(batchGroupStorage_.size());
 
     unsigned index = 0;
-    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
-        sortedBatchGroups_[index++] = &MAP_VALUE(iter);
+    for (BatchGroup & elem : batchGroupStorage_)
+        sortedBatchGroups_[index++] = &elem;
 
     SortFrontToBack2Pass(reinterpret_cast<PODVector<Batch*>& >(sortedBatchGroups_));
 }
@@ -836,8 +836,8 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
 void BatchQueue::SetTransforms(void* lockedData, unsigned& freeIndex)
 {
-    for (auto iter=batchGroups_.begin(),fin=batchGroups_.end(); iter!=fin; ++iter)
-        MAP_VALUE(iter).SetTransforms(lockedData, freeIndex);
+    for (BatchGroup & elem : batchGroupStorage_)
+        elem.SetTransforms(lockedData, freeIndex);
 }
 
 void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimization) const
@@ -886,10 +886,10 @@ void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimizatio
 unsigned BatchQueue::GetNumInstances() const
 {
     unsigned total = 0;
-    for (auto elem : batchGroups_)
+    for (const BatchGroup & elem : batchGroupStorage_)
     {
-       if (ELEMENT_VALUE(elem).geometryType_ == GEOM_INSTANCED)
-            total += ELEMENT_VALUE(elem).instances_.size();
+       if (elem.geometryType_ == GEOM_INSTANCED)
+            total += elem.instances_.size();
     }
 
     return total;

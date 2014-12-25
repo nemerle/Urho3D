@@ -28,7 +28,7 @@
 #include "Object.h"
 #include "Polyhedron.h"
 #include "Zone.h"
-#include <QtCore/QSet>
+#include <array>
 namespace Urho3D
 {
 
@@ -47,6 +47,22 @@ class Renderer;
 struct RenderPathCommand;
 struct WorkItem;
 
+struct LightQueryShadowEntry {
+    /// Shadow cameras.
+    Camera* shadowCameras_;
+    /// Shadow caster start indices.
+    unsigned shadowCasterBegin_;
+    /// Shadow caster end indices.
+    unsigned shadowCasterEnd_;
+    /// Combined bounding box of shadow casters in light view or projection space.
+    BoundingBox shadowCasterBox_;
+    /// Shadow camera near splits (directional lights only.)
+    float shadowNearSplits_;
+    /// Shadow camera far splits (directional lights only.)
+    float shadowFarSplits_;
+
+};
+
 /// Intermediate light processing result.
 struct LightQueryResult
 {
@@ -56,18 +72,9 @@ struct LightQueryResult
     PODVector<Drawable*> litGeometries_;
     /// Shadow casters.
     PODVector<Drawable*> shadowCasters_;
-    /// Shadow cameras.
-    Camera* shadowCameras_[MAX_LIGHT_SPLITS];
-    /// Shadow caster start indices.
-    unsigned shadowCasterBegin_[MAX_LIGHT_SPLITS];
-    /// Shadow caster end indices.
-    unsigned shadowCasterEnd_[MAX_LIGHT_SPLITS];
-    /// Combined bounding box of shadow casters in light view or projection space.
-    BoundingBox shadowCasterBox_[MAX_LIGHT_SPLITS];
-    /// Shadow camera near splits (directional lights only.)
-    float shadowNearSplits_[MAX_LIGHT_SPLITS];
-    /// Shadow camera far splits (directional lights only.)
-    float shadowFarSplits_[MAX_LIGHT_SPLITS];
+
+    std::array<LightQueryShadowEntry,MAX_LIGHT_SPLITS> shadowEntries_;
+
     /// Shadow map split count.
     unsigned numSplits_;
 };
@@ -111,7 +118,7 @@ class URHO3D_API View : public Object
     friend void ProcessLightWork(const WorkItem* item, unsigned threadIndex);
 
     OBJECT(View);
-
+    typedef FasterHashMap<StringHash, BatchQueue *> BatchQueueMap;
 public:
     /// Construct.
     View(Context* context);
@@ -202,7 +209,7 @@ private:
     /// Finalize shadow camera view after shadow casters and the shadow map are known.
     void FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport, const BoundingBox& shadowCasterBox);
     /// Quantize a directional light shadow camera view to eliminate swimming.
-    void QuantizeDirLightShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport, const BoundingBox& viewBox);
+    void QuantizeDirLightShadowCamera(Camera* shadowCamera, const FocusParameters &shadowFocusParameters, const IntRect& shadowViewport, const BoundingBox& viewBox);
     /// Check visibility of one shadow caster.
     bool IsShadowCasterVisible(Drawable* drawable, BoundingBox lightViewBox, Camera* shadowCamera, const Matrix3x4& lightView, const Frustum& lightViewFrustum, const BoundingBox& lightViewFrustumBox);
     /// Return the viewport for a shadow map split.
@@ -246,7 +253,7 @@ private:
     }
 
     /// Return hash code for a vertex light queue.
-    unsigned long long GetVertexLightQueueHash(const PODVector4<Light*>& vertexLights)
+    unsigned long long GetVertexLightQueueHash(const PODVectorN<Light*,4>& vertexLights)
     {
         unsigned long long hash = 0;
         for (Light * light : vertexLights)
@@ -347,7 +354,8 @@ private:
     /// Per-vertex light queues.
     HashMap<unsigned long long, LightBatchQueue> vertexLightQueues_;
     /// Batch queues.
-    HashMap<StringHash, BatchQueue> batchQueues_;
+    std::deque<BatchQueue> batchQueueStorage_;
+    BatchQueueMap batchQueues_;
     /// Hash of the GBuffer pass, or null if none.
     StringHash gBufferPassName_;
     /// Hash of the opaque forward base pass.

@@ -166,15 +166,17 @@ VariantMap& Context::GetEventDataMap()
 void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
 {
     const Vector<AttributeInfo>* baseAttributes = GetAttributes(baseType);
-    if (baseAttributes)
+    if (!baseAttributes)
+        return;
+
+    Vector<AttributeInfo> &target(attributes_[derivedType]);
+    baseAttributes = GetAttributes(baseType);
+
+    for (const AttributeInfo& attr : *baseAttributes)
     {
-        for (unsigned i = 0; i < baseAttributes->size(); ++i)
-        {
-            const AttributeInfo& attr = baseAttributes->at(i);
-            attributes_[derivedType].push_back(attr);
-            if (attr.mode_ & AM_NET)
-                networkAttributes_[derivedType].push_back(attr);
-        }
+        target.push_back(attr);
+        if (attr.mode_ & AM_NET)
+            networkAttributes_[derivedType].push_back(attr);
     }
 }
 
@@ -231,10 +233,10 @@ void Context::AddEventReceiver(Object* receiver, Object* sender, StringHash even
 
 void Context::RemoveEventSender(Object* sender)
 {
-    HashMap<Object*, HashMap<StringHash, QSet<Object*> > >::iterator i = specificEventReceivers_.find(sender);
+    HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::iterator i = specificEventReceivers_.find(sender);
     if (i == specificEventReceivers_.end())
         return;
-    for (const std::pair<const StringHash,QSet<Object*>> & elem : MAP_VALUE(i))
+    for (const std::pair<const StringHash,HashSet<Object*>> & elem : MAP_VALUE(i))
     {
         for (Object* k : elem.second)
             k->RemoveEventSender(sender);
@@ -244,14 +246,14 @@ void Context::RemoveEventSender(Object* sender)
 
 void Context::RemoveEventReceiver(Object* receiver, StringHash eventType)
 {
-    QSet<Object*>* group = GetEventReceivers(eventType);
+    HashSet<Object*>* group = GetEventReceivers(eventType);
     if (group)
         group->remove(receiver);
 }
 
 void Context::RemoveEventReceiver(Object* receiver, Object* sender, StringHash eventType)
 {
-    QSet<Object*>* group = GetEventReceivers(sender, eventType);
+    HashSet<Object*>* group = GetEventReceivers(sender, eventType);
     if (group)
         group->remove(receiver);
 }

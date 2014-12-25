@@ -59,6 +59,16 @@ public:
     {
         *this = str;
     }
+    /// Construct from another string.
+    String(String && str) :
+        length_(str.length_),
+        capacity_(str.capacity_),
+        buffer_(str.buffer_)
+    {
+        str.length_ = 0;
+        str.capacity_ = 0;
+        str.buffer_ = &endZero;
+    }
 
     /// Construct from a C string.
     String(const char* str) :

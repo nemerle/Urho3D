@@ -118,12 +118,12 @@ public:
     const HashMap<StringHash, Vector<AttributeInfo> >& GetAllAttributes() const { return attributes_; }
 
     /// Return event receivers for a sender and event type, or null if they do not exist.
-    QSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
+    HashSet<Object*>* GetEventReceivers(Object* sender, StringHash eventType)
     {
-        HashMap<Object*, HashMap<StringHash, QSet<Object*> > >::iterator i = specificEventReceivers_.find(sender);
+        HashMap<Object*, HashMap<StringHash, HashSet<Object*> > >::iterator i = specificEventReceivers_.find(sender);
         if (i != specificEventReceivers_.end())
         {
-            HashMap<StringHash, QSet<Object*> >::iterator j = MAP_VALUE(i).find(eventType);
+            HashMap<StringHash, HashSet<Object*> >::iterator j = MAP_VALUE(i).find(eventType);
             return j != MAP_VALUE(i).end() ? &MAP_VALUE(j) : 0;
         }
         else
@@ -131,9 +131,9 @@ public:
     }
 
     /// Return event receivers for an event type, or null if they do not exist.
-    QSet<Object*>* GetEventReceivers(StringHash eventType)
+    HashSet<Object*>* GetEventReceivers(StringHash eventType)
     {
-        HashMap<StringHash, QSet<Object*> >::iterator i = eventReceivers_.find(eventType);
+        HashMap<StringHash, HashSet<Object*> >::iterator i = eventReceivers_.find(eventType);
         return i != eventReceivers_.end() ? &MAP_VALUE(i) : 0;
     }
 
@@ -164,9 +164,9 @@ private:
     /// Network replication attribute descriptions per object type.
     HashMap<StringHash, Vector<AttributeInfo> > networkAttributes_;
     /// Event receivers for non-specific events.
-    HashMap<StringHash, QSet<Object*> > eventReceivers_;
+    HashMap<StringHash, HashSet<Object*> > eventReceivers_;
     /// Event receivers for specific senders' events.
-    HashMap<Object*, HashMap<StringHash, QSet<Object*> > > specificEventReceivers_;
+    HashMap<Object*, HashMap<StringHash, HashSet<Object*> > > specificEventReceivers_;
     /// Event sender stack.
     PODVector<Object*> eventSenders_;
     /// Event data stack.

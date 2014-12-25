@@ -87,7 +87,7 @@ Cursor::Cursor(Context* context) :
 
 Cursor::~Cursor()
 {
-    for (auto iter=shapeInfos_.begin(); iter != shapeInfos_.end(); iter++)
+    for (auto iter=shapeInfos_.begin(); iter != shapeInfos_.end(); ++iter)
     {
         CursorShapeInfo &info(MAP_VALUE(iter));
 
@@ -214,12 +214,12 @@ void Cursor::SetUseSystemShapes(bool enable)
 
 void Cursor::SetShapesAttr(const VariantVector& value)
 {
-    unsigned index = 0;
+
     if (!value.size())
         return;
 
-    VariantVector::const_iterator iter = value.begin();
-    for (iter; iter != value.end(); iter++)
+    VariantVector::const_iterator iter = value.cbegin();
+    for (; iter != value.end(); iter++)
     {
         VariantVector shapeVector = iter->GetVariantVector();
         if (shapeVector.size() >= 4)

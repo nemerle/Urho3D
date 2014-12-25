@@ -51,7 +51,7 @@
 namespace Urho3D
 {
 
-static const Vector3* directions[] =
+static constexpr const Vector3* directions[] =
 {
     &Vector3::RIGHT,
     &Vector3::LEFT,
@@ -73,7 +73,7 @@ public:
     }
 
     /// Intersection test for drawables.
-    virtual void TestDrawables(Drawable** start, Drawable** end, bool inside) override
+    void TestDrawables(Drawable** start, Drawable** end, bool inside) override
     {
         while (start != end)
         {
@@ -145,7 +145,7 @@ public:
     }
 
     /// Intersection test for drawables. Note: drawable occlusion is performed later in worker threads.
-    virtual void TestDrawables(Drawable** start, Drawable** end, bool inside) override
+    void TestDrawables(Drawable** start, Drawable** end, bool inside) override
     {
         while (start != end)
         {
@@ -353,15 +353,12 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
                 }
             }
 
-            HashMap<StringHash, BatchQueue>::iterator j = batchQueues_.find(command.pass_);
+            BatchQueueMap::iterator j = batchQueues_.find(command.pass_);
             if (j == batchQueues_.end()) {
-#ifdef USE_QT_HASHMAP
-                j = batchQueues_.insert(command.pass_, BatchQueue());
-#else
-                j = batchQueues_.emplace(command.pass_, BatchQueue()).first;
-#endif
+                batchQueueStorage_.emplace_back();
+                j = batchQueues_.emplace(command.pass_, &batchQueueStorage_.back()).first;
             }
-            info.batchQueue_ = &(MAP_VALUE(j));
+            info.batchQueue_ = MAP_VALUE(j);
 
             scenePasses_.push_back(info);
         }
@@ -497,8 +494,8 @@ void View::Update(const FrameInfo& frame)
     zones_.clear();
     occluders_.clear();
     vertexLightQueues_.clear();
-    for (auto elem=batchQueues_.begin(),fin=batchQueues_.end(); elem!=fin ;++elem)
-        MAP_VALUE(elem).Clear(maxSortedInstances);
+    for (BatchQueue &elem : batchQueueStorage_)
+        elem.Clear(maxSortedInstances);
 
     if (hasScenePasses_ && (!camera_ || !octree_))
         return;
@@ -884,8 +881,8 @@ void View::GetBatches()
     threadedGeometries_.clear();
 
     WorkQueue* queue = GetSubsystem<WorkQueue>();
-    PODVector4<Light*> vertexLights;
-    BatchQueue* alphaQueue = batchQueues_.contains(alphaPassName_) ? &batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
+    PODVectorN<Light*,4> vertexLights;
+    BatchQueue* alphaQueue = batchQueues_.contains(alphaPassName_) ? batchQueues_[alphaPassName_] : (BatchQueue*)nullptr;
     // retrieve default technique.
     const Vector<TechniqueEntry>& techniques(renderer_->GetDefaultMaterial()->GetTechniques());
     size_t tech_count = techniques.size();
@@ -968,19 +965,20 @@ void View::GetBatches()
                 for (unsigned j = 0; j < shadowSplits; ++j)
                 {
                     ShadowBatchQueue& shadowQueue = lightQueue.shadowSplits_[j];
-                    Camera* shadowCamera = query.shadowCameras_[j];
+                    LightQueryShadowEntry &entry(query.shadowEntries_[j]);
+                    Camera* shadowCamera = entry.shadowCameras_;
                     shadowQueue.shadowCamera_ = shadowCamera;
-                    shadowQueue.nearSplit_ = query.shadowNearSplits_[j];
-                    shadowQueue.farSplit_ = query.shadowFarSplits_[j];
+                    shadowQueue.nearSplit_ = entry.shadowNearSplits_;
+                    shadowQueue.farSplit_ = entry.shadowFarSplits_;
                     shadowQueue.shadowBatches_.Clear(maxSortedInstances);
 
                     // Setup the shadow split viewport and finalize shadow camera parameters
                     shadowQueue.shadowViewport_ = GetShadowMapViewport(light, j, lightQueue.shadowMap_);
-                    FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, query.shadowCasterBox_[j]);
+                    FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, entry.shadowCasterBox_);
 
                     // Loop through shadow casters
-                    PODVector<Drawable*>::const_iterator start = query.shadowCasters_.begin() + query.shadowCasterBegin_[j];
-                    PODVector<Drawable*>::const_iterator fin = query.shadowCasters_.begin() + query.shadowCasterEnd_[j];
+                    PODVector<Drawable*>::const_iterator start = query.shadowCasters_.begin() + entry.shadowCasterBegin_;
+                    PODVector<Drawable*>::const_iterator fin = query.shadowCasters_.begin() + entry.shadowCasterEnd_;
                     for (PODVector<Drawable*>::const_iterator k = start; k!=fin; ++k)
                     {
                         Drawable* drawable = *k;
@@ -1067,11 +1065,10 @@ void View::GetBatches()
         for (Drawable* drawable : maxLightsDrawables_)
         {
             drawable->LimitLights();
-            const PODVector4<Light*>& lights(drawable->GetLights());
+            const PODVectorN<Light*,4>& lights(drawable->GetLights());
 
-            for (unsigned i = 0; i < lights.size(); ++i)
+            for (Light* light : lights)
             {
-                Light* light = lights[i];
                 // Find the correct light queue again
                 LightBatchQueue* queue = light->GetLightQueue();
                 if (queue)
@@ -1088,7 +1085,7 @@ void View::GetBatches()
         for (Drawable* drawable : geometries_)
         {
             const Vector<SourceBatch>& batches(drawable->GetBatches());
-            const PODVector4<Light*>& drawableVertexLights(drawable->GetVertexLights());
+            const PODVectorN<Light*,4>& drawableVertexLights(drawable->GetVertexLights());
             UpdateGeometryType type = drawable->GetUpdateGeometryType();
             if (type == UPDATE_MAIN_THREAD)
                 nonThreadedGeometries_.push_back(drawable);
@@ -1196,7 +1193,7 @@ void View::UpdateGeometries()
                 SharedPtr<WorkItem> item = queue->GetFreeItem();
                 item->priority_ = M_MAX_UNSIGNED;
                 item->workFunction_ = command.sortMode_ == SORT_FRONTTOBACK ? SortBatchQueueFrontToBackWork : SortBatchQueueBackToFrontWork;
-                item->start_ = &batchQueues_[command.pass_];
+                item->start_ = batchQueues_[command.pass_];
                 queue->AddWorkItem(item);
             }
         }
@@ -1283,67 +1280,116 @@ void View::GetLitBatches(Drawable* drawable, LightBatchQueue& lightQueue, BatchQ
             drawable->GetVertexLights().empty() && !hasAmbientGradient;
     int i=-1;
     Pass * dest_pass;
-    for (const SourceBatch& srcBatch : batches)
-    {
-        ++i;
-        Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
-        if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
-            continue;
-
-        // Do not create pixel lit forward passes for materials that render into the G-buffer
-        if (gBufferPassName_.Value() && tech->HasPass(gBufferPassName_))
-            continue;
-
-        bool isLitAlpha = false;
-        bool isBase = false;
-        // Check for lit base pass. Because it uses the replace blend mode, it must be ensured to be the first light
-        // Also vertex lighting or ambient gradient require the non-lit base pass, so skip in those cases
-        if (i < 32 && allowLitBase)
+    if(allowLitBase) {
+        for (const SourceBatch& srcBatch : batches)
         {
-            dest_pass = tech->GetSupportedPass(litBasePassName_);
-            if (dest_pass)
+            ++i;
+            Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
+            if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
+                continue;
+
+            // Do not create pixel lit forward passes for materials that render into the G-buffer
+            if (gBufferPassName_.Value() && tech->HasPass(gBufferPassName_))
+                continue;
+
+            bool isLitAlpha = false;
+            bool isBase = false;
+            // Check for lit base pass. Because it uses the replace blend mode, it must be ensured to be the first light
+            // Also vertex lighting or ambient gradient require the non-lit base pass, so skip in those cases
+            if (i < 32)
             {
-                isBase = true;
-                drawable->SetBasePass(i);
+                dest_pass = tech->GetSupportedPass(litBasePassName_);
+                if (dest_pass)
+                {
+                    isBase = true;
+                    drawable->SetBasePass(i);
+                }
+                else
+                    dest_pass = tech->GetSupportedPass(lightPassName_);
             }
             else
                 dest_pass = tech->GetSupportedPass(lightPassName_);
+
+            // If no lit pass, check for lit alpha
+            if (!dest_pass)
+            {
+                dest_pass = tech->GetSupportedPass(litAlphaPassName_);
+                isLitAlpha = true;
+            }
+
+            // Skip if material does not receive light at all
+            if (!dest_pass)
+                continue;
+            if(isLitAlpha && !alphaQueue)
+                continue;
+
+            bool useInstancing=true;
+            BatchQueue *usedQ;
+
+            if (!isLitAlpha)
+            {
+                if (isBase)
+                    usedQ=&lightQueue.litBaseBatches_;
+                else
+                    usedQ=&lightQueue.litBatches_;
+            }
+            else /*if (alphaQueue)*/
+            {
+                // Transparent batches can not be instanced
+                usedQ = alphaQueue;
+                useInstancing = false;
+            }
+            AddBatchToQueue(*usedQ,
+                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
+                            useInstancing, useInstancing || allowTransparentShadows);
         }
-        else
+
+    }
+    else {
+        for (const SourceBatch& srcBatch : batches)
+        {
+            ++i;
+            Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
+            if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
+                continue;
+
+            // Do not create pixel lit forward passes for materials that render into the G-buffer
+            if (gBufferPassName_.Value() && tech->HasPass(gBufferPassName_))
+                continue;
+
+            bool isLitAlpha = false;
             dest_pass = tech->GetSupportedPass(lightPassName_);
 
-        // If no lit pass, check for lit alpha
-        if (!dest_pass)
-        {
-            dest_pass = tech->GetSupportedPass(litAlphaPassName_);
-            isLitAlpha = true;
-        }
+            // If no lit pass, check for lit alpha
+            if (!dest_pass)
+            {
+                dest_pass = tech->GetSupportedPass(litAlphaPassName_);
+                isLitAlpha = true;
+            }
 
-        // Skip if material does not receive light at all
-        if (!dest_pass)
-            continue;
-        if(isLitAlpha && !alphaQueue)
-            continue;
+            // Skip if material does not receive light at all
+            if (!dest_pass)
+                continue;
+            if(isLitAlpha && !alphaQueue)
+                continue;
 
-        bool useInstancing=true;
-        BatchQueue *usedQ;
+            bool useInstancing=true;
+            BatchQueue *usedQ;
 
-        if (!isLitAlpha)
-        {
-            if (isBase)
-                usedQ=&lightQueue.litBaseBatches_;
-            else
+            if (!isLitAlpha)
+            {
                 usedQ=&lightQueue.litBatches_;
+            }
+            else /*if (alphaQueue)*/
+            {
+                // Transparent batches can not be instanced
+                usedQ = alphaQueue;
+                useInstancing = false;
+            }
+            AddBatchToQueue(*usedQ,
+                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,false), tech,
+                            useInstancing, useInstancing || allowTransparentShadows);
         }
-        else /*if (alphaQueue)*/
-        {
-            // Transparent batches can not be instanced
-            usedQ = alphaQueue;
-            useInstancing = false;
-        }
-        AddBatchToQueue(*usedQ,
-                        Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
-                        useInstancing, useInstancing || allowTransparentShadows);
     }
 }
 
@@ -1466,7 +1512,7 @@ void View::ExecuteRenderPathCommands()
                 break;
 
             case CMD_SCENEPASS:
-                if (!batchQueues_[command.pass_].IsEmpty())
+                if (!batchQueues_[command.pass_]->IsEmpty())
                 {
                     PROFILE(RenderScenePass);
 
@@ -1475,7 +1521,7 @@ void View::ExecuteRenderPathCommands()
                     graphics_->SetDrawAntialiased(true);
                     graphics_->SetFillMode(camera_->GetFillMode());
                     graphics_->SetClipPlane(camera_->GetUseClipping(), camera_->GetClipPlane(), camera_->GetView(), camera_->GetProjection());
-                    batchQueues_[command.pass_].Draw(this, command.markToStencil_, false);
+                    batchQueues_[command.pass_]->Draw(this, command.markToStencil_, false);
                 }
                 break;
 
@@ -1725,7 +1771,7 @@ void View::RenderQuad(RenderPathCommand& command)
 bool View::IsNecessary(const RenderPathCommand& command)
 {
     return command.enabled_ && command.outputNames_.size() && (command.type_ != CMD_SCENEPASS ||
-            !batchQueues_[command.pass_].IsEmpty());
+            !batchQueues_[command.pass_]->IsEmpty());
 }
 
 bool View::CheckViewportRead(const RenderPathCommand& command)
@@ -2127,9 +2173,10 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     query.shadowCasters_.clear();
     for (unsigned i = 0; i < query.numSplits_; ++i)
     {
-        Camera* shadowCamera = query.shadowCameras_[i];
+        LightQueryShadowEntry &entry(query.shadowEntries_[i]);
+        Camera* shadowCamera = entry.shadowCameras_;
         const Frustum& shadowCameraFrustum = shadowCamera->GetFrustum();
-        query.shadowCasterBegin_[i] = query.shadowCasterEnd_[i] = query.shadowCasters_.size();
+        entry.shadowCasterBegin_ = entry.shadowCasterEnd_ = query.shadowCasters_.size();
 
         // For point light check that the face is visible: if not, can skip the split
         if (type == LIGHT_POINT && frustum.IsInsideFast(BoundingBox(shadowCameraFrustum)) == OUTSIDE)
@@ -2138,9 +2185,9 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
         // For directional light check that the split is inside the visible scene: if not, can skip the split
         if (type == LIGHT_DIRECTIONAL)
         {
-            if (minZ_ > query.shadowFarSplits_[i])
+            if (minZ_ > entry.shadowFarSplits_)
                 continue;
-            if (maxZ_ < query.shadowNearSplits_[i])
+            if (maxZ_ < entry.shadowNearSplits_)
                 continue;
 
             // Reuse lit geometry query for all except directional lights
@@ -2162,14 +2209,15 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
 void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawable*>& drawables, unsigned splitIndex)
 {
     Light* light = query.light_;
+    LightQueryShadowEntry &entry(query.shadowEntries_[splitIndex]);
 
-    Camera* shadowCamera = query.shadowCameras_[splitIndex];
+    Camera* shadowCamera = entry.shadowCameras_;
     const Frustum& shadowCameraFrustum = shadowCamera->GetFrustum();
     const Matrix3x4& lightView = shadowCamera->GetView();
     const Matrix4& lightProj = shadowCamera->GetProjection();
     LightType type = light->GetLightType();
 
-    query.shadowCasterBox_[splitIndex].defined_ = false;
+    entry.shadowCasterBox_.defined_ = false;
 
     // Transform scene frustum into shadow camera's view space for shadow caster visibility check. For point & spot lights,
     // we can use the whole scene frustum. For directional lights, use the intersection of the scene frustum and the split
@@ -2178,8 +2226,8 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
     if (type != LIGHT_DIRECTIONAL)
         lightViewFrustum = camera_->GetSplitFrustum(minZ_, maxZ_).Transformed(lightView);
     else
-        lightViewFrustum = camera_->GetSplitFrustum(Max(minZ_, query.shadowNearSplits_[splitIndex]),
-                                                    Min(maxZ_, query.shadowFarSplits_[splitIndex])).Transformed(lightView);
+        lightViewFrustum = camera_->GetSplitFrustum(Max(minZ_, entry.shadowNearSplits_),
+                                                    Min(maxZ_, entry.shadowFarSplits_)).Transformed(lightView);
 
     BoundingBox lightViewFrustumBox(lightViewFrustum);
 
@@ -2233,17 +2281,17 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
         {
             // Merge to shadow caster bounding box and add to the list
             if (type == LIGHT_DIRECTIONAL)
-                query.shadowCasterBox_[splitIndex].Merge(lightViewBox);
+                entry.shadowCasterBox_.Merge(lightViewBox);
             else
             {
                 lightProjBox = lightViewBox.Projected(lightProj);
-                query.shadowCasterBox_[splitIndex].Merge(lightProjBox);
+                entry.shadowCasterBox_.Merge(lightProjBox);
             }
             query.shadowCasters_.push_back(drawable);
         }
     }
 
-    query.shadowCasterEnd_[splitIndex] = query.shadowCasters_.size();
+    entry.shadowCasterEnd_ = query.shadowCasters_.size();
 }
 
 bool View::IsShadowCasterVisible(Drawable* drawable, BoundingBox lightViewBox, Camera* shadowCamera, const Matrix3x4& lightView,
@@ -2317,7 +2365,6 @@ void View::SetupShadowCameras(LightQueryResult& query)
     Light* light = query.light_;
 
     int splits = 0;
-
     switch (light->GetLightType())
     {
     case LIGHT_DIRECTIONAL:
@@ -2339,10 +2386,11 @@ void View::SetupShadowCameras(LightQueryResult& query)
                 break;
 
             // Setup the shadow camera for the split
+            LightQueryShadowEntry &entry(query.shadowEntries_[splits]);
             Camera* shadowCamera = renderer_->GetShadowCamera();
-            query.shadowCameras_[splits] = shadowCamera;
-            query.shadowNearSplits_[splits] = nearSplit;
-            query.shadowFarSplits_[splits] = farSplit;
+            entry.shadowCameras_ = shadowCamera;
+            entry.shadowNearSplits_ = nearSplit;
+            entry.shadowFarSplits_ = farSplit;
             SetupDirLightShadowCamera(shadowCamera, light, nearSplit, farSplit);
 
             nearSplit = farSplit;
@@ -2354,7 +2402,7 @@ void View::SetupShadowCameras(LightQueryResult& query)
     case LIGHT_SPOT:
     {
         Camera* shadowCamera = renderer_->GetShadowCamera();
-        query.shadowCameras_[0] = shadowCamera;
+        query.shadowEntries_[0].shadowCameras_ = shadowCamera;
         Node* cameraNode = shadowCamera->GetNode();
         Node* lightNode = light->GetNode();
 
@@ -2373,7 +2421,8 @@ void View::SetupShadowCameras(LightQueryResult& query)
         for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
         {
             Camera* shadowCamera = renderer_->GetShadowCamera();
-            query.shadowCameras_[i] = shadowCamera;
+            LightQueryShadowEntry &entry(query.shadowEntries_[i]);
+            entry.shadowCameras_ = shadowCamera;
             Node* cameraNode = shadowCamera->GetNode();
 
             // When making a shadowed point light, align the splits along X, Y and Z axes regardless of light rotation
@@ -2458,13 +2507,13 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
     shadowCamera->SetFarClip(shadowBox.max_.z_);
 
     // Center shadow camera on the bounding box. Can not snap to texels yet as the shadow map viewport is unknown
-    QuantizeDirLightShadowCamera(shadowCamera, light, IntRect(0, 0, 0, 0), shadowBox);
+    QuantizeDirLightShadowCamera(shadowCamera, parameters, IntRect(0, 0, 0, 0), shadowBox);
 }
 
 void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport,
                                 const BoundingBox& shadowCasterBox)
 {
-    const FocusParameters& parameters = light->GetShadowFocus();
+    const FocusParameters& parameters(light->GetShadowFocus());
     float shadowMapWidth = (float)(shadowViewport.Width());
     LightType type = light->GetLightType();
 
@@ -2477,7 +2526,7 @@ void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRec
         shadowBox.min_.x_ = -shadowBox.max_.x_;
 
         // Requantize and snap to shadow map texels
-        QuantizeDirLightShadowCamera(shadowCamera, light, shadowViewport, shadowBox);
+        QuantizeDirLightShadowCamera(shadowCamera, parameters, shadowViewport, shadowBox);
     }
 
     if (type == LIGHT_SPOT)
@@ -2500,26 +2549,26 @@ void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRec
 
     // Perform a finalization step for all lights: ensure zoom out of 2 pixels to eliminate border filtering issues
     // For point lights use 4 pixels, as they must not cross sides of the virtual cube map (maximum 3x3 PCF)
-    if (shadowCamera->GetZoom() >= 1.0f)
+    float shadowCamZoom = shadowCamera->GetZoom();
+    if (shadowCamZoom >= 1.0f)
     {
         if (light->GetLightType() != LIGHT_POINT)
-            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 2.0f) / shadowMapWidth));
+            shadowCamera->SetZoom(shadowCamZoom * ((shadowMapWidth - 2.0f) / shadowMapWidth));
         else
         {
 #ifdef URHO3D_OPENGL
-            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 3.0f) / shadowMapWidth));
+            shadowCamera->SetZoom(shadowCamZoom * ((shadowMapWidth - 3.0f) / shadowMapWidth));
 #else
-            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 4.0f) / shadowMapWidth));
+            shadowCamera->SetZoom(shadowCamZoom * ((shadowMapWidth - 4.0f) / shadowMapWidth));
 #endif
         }
     }
 }
 
-void View::QuantizeDirLightShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport,
+void View::QuantizeDirLightShadowCamera(Camera* shadowCamera, const FocusParameters &shadowFocusParameters, const IntRect& shadowViewport,
                                         const BoundingBox& viewBox)
 {
     Node* shadowCameraNode = shadowCamera->GetNode();
-    const FocusParameters& parameters = light->GetShadowFocus();
     float shadowMapWidth = (float)(shadowViewport.Width());
 
     float minX = viewBox.min_.x_;
@@ -2532,18 +2581,18 @@ void View::QuantizeDirLightShadowCamera(Camera* shadowCamera, Light* light, cons
 
     // Quantize size to reduce swimming
     // Note: if size is uniform and there is no focusing, quantization is unnecessary
-    if (parameters.nonUniform_)
+    if (shadowFocusParameters.nonUniform_)
     {
-        viewSize.x_ = ceilf(sqrtf(viewSize.x_ / parameters.quantize_));
-        viewSize.y_ = ceilf(sqrtf(viewSize.y_ / parameters.quantize_));
-        viewSize.x_ = Max(viewSize.x_ * viewSize.x_ * parameters.quantize_, parameters.minView_);
-        viewSize.y_ = Max(viewSize.y_ * viewSize.y_ * parameters.quantize_, parameters.minView_);
+        viewSize.x_ = ceilf(sqrtf(viewSize.x_ / shadowFocusParameters.quantize_));
+        viewSize.y_ = ceilf(sqrtf(viewSize.y_ / shadowFocusParameters.quantize_));
+        viewSize.x_ = Max(viewSize.x_ * viewSize.x_ * shadowFocusParameters.quantize_, shadowFocusParameters.minView_);
+        viewSize.y_ = Max(viewSize.y_ * viewSize.y_ * shadowFocusParameters.quantize_, shadowFocusParameters.minView_);
     }
-    else if (parameters.focus_)
+    else if (shadowFocusParameters.focus_)
     {
         viewSize.x_ = Max(viewSize.x_, viewSize.y_);
-        viewSize.x_ = ceilf(sqrtf(viewSize.x_ / parameters.quantize_));
-        viewSize.x_ = Max(viewSize.x_ * viewSize.x_ * parameters.quantize_, parameters.minView_);
+        viewSize.x_ = ceilf(sqrtf(viewSize.x_ / shadowFocusParameters.quantize_));
+        viewSize.x_ = Max(viewSize.x_ * viewSize.x_ * shadowFocusParameters.quantize_, shadowFocusParameters.minView_);
         viewSize.y_ = viewSize.x_;
     }
 
@@ -2679,7 +2728,8 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch&& batch, const Techniqu
     if (batch.geometryType_ == GEOM_INSTANCED)
     {
         BatchGroupKey key(batch);
-        HashMap<BatchGroupKey, BatchGroup>::iterator i = batchQueue.batchGroups_.find(key);
+        BatchQueue::BatchGroupMap::iterator i = batchQueue.batchGroups_.find(key);
+        BatchGroup *grp_ptr;
         if (i == batchQueue.batchGroups_.end())
         {
             // Create a new group based on the batch
@@ -2688,9 +2738,13 @@ void View::AddBatchToQueue(BatchQueue& batchQueue, Batch&& batch, const Techniqu
             newGroup.geometryType_ = GEOM_STATIC;
             ren->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
-            i = batchQueue.batchGroups_.emplace(key, newGroup).first;
+            batchQueue.batchGroupStorage_.push_back(newGroup);
+            grp_ptr = &batchQueue.batchGroupStorage_.back();
+            batchQueue.batchGroups_.emplace(key, grp_ptr);
         }
-        BatchGroup &group(MAP_VALUE(i));
+        else
+            grp_ptr = i->second;
+        BatchGroup &group(*grp_ptr);
         int oldSize = group.instances_.size();
         group.AddTransforms(batch);
         // Convert to using instancing shaders when the instancing limit is reached
@@ -2729,8 +2783,8 @@ void View::PrepareInstancingBuffer()
 
     unsigned totalInstances = 0;
 
-    for (auto iter : batchQueues_)
-        totalInstances += ELEMENT_VALUE(iter).GetNumInstances();
+    for (const BatchQueue &elem : batchQueueStorage_)
+        totalInstances += elem.GetNumInstances();
 
     for (const LightBatchQueue & elem : lightQueues_)
     {
@@ -2749,8 +2803,8 @@ void View::PrepareInstancingBuffer()
         if (!dest)
             return;
 
-        for (auto iter = batchQueues_.begin(),fin=batchQueues_.end(); iter!=fin; ++iter)
-            MAP_VALUE(iter).SetTransforms(dest, freeIndex);
+        for (BatchQueue &elem : batchQueueStorage_)
+            elem.SetTransforms(dest, freeIndex);
 
         for (LightBatchQueue & elem : lightQueues_)
         {

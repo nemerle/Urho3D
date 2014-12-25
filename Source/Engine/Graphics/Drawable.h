@@ -230,9 +230,9 @@ public:
     /// Return whether has a base pass.
     bool HasBasePass(unsigned batchIndex) const { return (basePassFlags_ & (1 << batchIndex)) != 0; }
     /// Return per-pixel lights.
-    const PODVector4<Light*>& GetLights() const { return lights_; }
+    const PODVectorN<Light*,4>& GetLights() const { return lights_; }
     /// Return per-vertex lights.
-    const PODVector4<Light*>& GetVertexLights() const { return vertexLights_; }
+    const PODVectorN<Light*,4>& GetVertexLights() const { return vertexLights_; }
     /// Return the first added per-pixel light.
     Light* GetFirstLight() const { return firstLight_; }
     /// Return the minimum view-space depth.
@@ -253,7 +253,7 @@ public:
     void AddLight(Light* light)
     {
         lights_.push_back(light);
-        firstLight_ = lights_[0];
+        firstLight_ = firstLight_ ? firstLight_ : lights_[0];
     }
 
     // Add a per-vertex light affecting the object this frame.
@@ -331,9 +331,9 @@ protected:
     /// First per-pixel light added this frame.
     Light* firstLight_;
     /// Per-pixel lights affecting this drawable.
-    PODVector4<Light *> lights_;
+    PODVectorN<Light *,4> lights_;
     /// Per-vertex lights affecting this drawable.
-    PODVector4<Light*> vertexLights_;
+    PODVectorN<Light*,4> vertexLights_;
     /// Current zone.
     Zone* zone_;
     /// Zone inconclusive or dirtied flag.

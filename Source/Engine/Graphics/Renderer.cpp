@@ -1381,8 +1381,7 @@ void Renderer::RemoveUnusedBuffers()
 
     for (auto i = screenBuffers_.begin(); i != screenBuffers_.end();)
     {
-        auto current = i++;
-        Vector<SharedPtr<Texture2D> >& buffers = MAP_VALUE(current);
+        Vector<SharedPtr<Texture2D> >& buffers = MAP_VALUE(i);
         for (unsigned j = buffers.size() - 1; j < buffers.size(); --j)
         {
             Texture2D* buffer = buffers[j];
@@ -1394,9 +1393,11 @@ void Renderer::RemoveUnusedBuffers()
         }
         if (buffers.empty())
         {
-            screenBufferAllocations_.remove(MAP_KEY(current));
-            screenBuffers_.erase(current);
+            screenBufferAllocations_.remove(MAP_KEY(i));
+            i = screenBuffers_.erase(i);
         }
+        else
+            ++i;
     }
 }
 

@@ -1942,7 +1942,7 @@ void CScriptDictionary::Delete(const String &key)
 
 void CScriptDictionary::DeleteAll()
 {
-    for(auto it = dict.begin(); it != dict.end(); it++ )
+    for(auto it = dict.begin(); it != dict.end(); ++it )
         MAP_VALUE(it).FreeValue(engine);
 
     dict.clear();

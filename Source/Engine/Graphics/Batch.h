@@ -241,6 +241,8 @@ namespace Urho3D {
 struct BatchQueue
 {
 public:
+    typedef FasterHashMap<BatchGroupKey, BatchGroup *> BatchGroupMap;
+
     /// Clear for new frame by clearing all groups and batches.
     void Clear(int maxSortedInstances);
     /// Sort non-instanced draw calls back to front.
@@ -256,10 +258,11 @@ public:
     /// Return the combined amount of instances.
     unsigned GetNumInstances() const;
     /// Return whether the batch group is empty.
-    bool IsEmpty() const { return batches_.empty() && batchGroups_.isEmpty(); }
+    bool IsEmpty() const { return batches_.empty() && batchGroupStorage_.empty(); }
 
     /// Instanced draw calls.
-    HashMap<BatchGroupKey, BatchGroup> batchGroups_;
+    std::deque<BatchGroup> batchGroupStorage_;
+    BatchGroupMap batchGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
     HashMap<unsigned, unsigned> shaderRemapping_;
     /// Material remapping table for 2-pass state and distance sort.
@@ -306,7 +309,7 @@ struct LightBatchQueue
     /// Shadow map split queues.
     PODVectorN<ShadowBatchQueue,MAX_LIGHT_SPLITS> shadowSplits_;
     /// Per-vertex lights.
-    PODVector4<Light*> vertexLights_;
+    PODVectorN<Light*,4> vertexLights_;
     /// Light volume draw calls.
     PODVector<Batch> volumeBatches_;
 };

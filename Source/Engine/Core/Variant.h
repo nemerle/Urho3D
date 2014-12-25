@@ -93,22 +93,17 @@ struct VariantValue
         float float4_;
         void* ptr4_;
     };
-#ifdef _GLIBCXX_DEBUG
     union
     {
         void* ptr5_;
     };
+#ifdef _GLIBCXX_DEBUG
     union
     {
-        void* ptr6_;
-    };
-    union
-    {
-        void* ptr7_;
+        void* ptr7_[8];
     };
 #endif
 };
-static_assert(sizeof(VariantValue)>=sizeof(String),"Variant value must be large enough to hold string");
 /// Typed resource reference.
 struct URHO3D_API ResourceRef
 {
@@ -563,7 +558,7 @@ public:
     Variant& operator = (const VariantMap& rhs)
     {
         SetType(VAR_VARIANTMAP);
-        *(reinterpret_cast<VariantMap*>(&value_)) = rhs;
+        *(reinterpret_cast<VariantMap*>(value_.ptr_)) = rhs;
         return *this;
     }
 
@@ -658,7 +653,7 @@ public:
     /// Test for equality with a variant vector. To return true, both the type and value must match.
     bool operator == (const VariantVector& rhs) const { return type_ == VAR_VARIANTVECTOR ? *(reinterpret_cast<const VariantVector*>(&value_)) == rhs : false; }
     /// Test for equality with a variant map. To return true, both the type and value must match.
-    bool operator == (const VariantMap& rhs) const { return type_ == VAR_VARIANTMAP ? *(reinterpret_cast<const VariantMap*>(&value_)) == rhs : false; }
+    bool operator == (const VariantMap& rhs) const { return type_ == VAR_VARIANTMAP ? *(reinterpret_cast<const VariantMap*>(value_.ptr_)) == rhs : false; }
     /// Test for equality with an integer rect. To return true, both the type and value must match.
     bool operator == (const IntRect& rhs) const { return type_ == VAR_INTRECT ? *(reinterpret_cast<const IntRect*>(&value_)) == rhs : false; }
     /// Test for equality with an IntVector2. To return true, both the type and value must match.
@@ -785,7 +780,7 @@ public:
     /// Return a variant vector or empty on type mismatch.
     const VariantVector& GetVariantVector() const { return type_ == VAR_VARIANTVECTOR ? *reinterpret_cast<const VariantVector*>(&value_) : emptyVariantVector; }
     /// Return a variant map or empty on type mismatch.
-    const VariantMap& GetVariantMap() const { return type_ == VAR_VARIANTMAP ? *reinterpret_cast<const VariantMap*>(&value_) : emptyVariantMap; }
+    const VariantMap& GetVariantMap() const { return type_ == VAR_VARIANTMAP ? *reinterpret_cast<const VariantMap*>(value_.ptr_) : emptyVariantMap; }
     /// Return an integer rect or empty on type mismatch.
     const IntRect& GetIntRect() const { return type_ == VAR_INTRECT ? *reinterpret_cast<const IntRect*>(&value_) : IntRect::ZERO; }
     /// Return an IntVector2 or empty on type mismatch.
@@ -816,7 +811,7 @@ public:
     /// Return a pointer to a modifiable variant vector or null on type mismatch.
     VariantVector* GetVariantVectorPtr() { return type_ == VAR_VARIANTVECTOR ? reinterpret_cast<VariantVector*>(&value_) : 0; }
     /// Return a pointer to a modifiable variant map or null on type mismatch.
-    VariantMap* GetVariantMapPtr() { return type_ == VAR_VARIANTMAP ? reinterpret_cast<VariantMap*>(&value_) : 0; }
+    VariantMap* GetVariantMapPtr() { return type_ == VAR_VARIANTMAP ? reinterpret_cast<VariantMap*>(value_.ptr_) : 0; }
 
     /// Return name for variant type.
     static String GetTypeName(VariantType type);
@@ -874,4 +869,5 @@ template<> inline VariantType GetVariantType<Matrix3>() { return VAR_MATRIX3; }
 template<> inline VariantType GetVariantType<Matrix3x4>() { return VAR_MATRIX3X4; }
 template<> inline VariantType GetVariantType<Matrix4>() { return VAR_MATRIX4; }
 
+static_assert(sizeof(VariantValue)>=sizeof(String),"Variant value must be large enough to hold VariantMap");
 }
