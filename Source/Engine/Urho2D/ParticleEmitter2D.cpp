@@ -258,7 +258,7 @@ void ParticleEmitter2D::Update(float timeStep)
     {
         float worldAngle = GetNode()->GetWorldRotation().RollAngle();
 
-        float timeBetweenParticles = effect_->GetParticleLifeSpan() / particles_.Size();
+        float timeBetweenParticles = effect_->GetParticleLifeSpan() / particles_.size();
         emitParticleTime_ += timeStep;
 
         while (emitParticleTime_ > 0.0f)

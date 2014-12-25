@@ -704,8 +704,8 @@ Component* Node::GetOrCreateComponent(StringHash type, CreateMode mode, unsigned
         SharedPtr<Component> newComponent(CreateComponent(type, mode, id));
         if (pushFront)
         {
-            components_.Remove(newComponent);
-            components_.Insert(0, newComponent);
+            components_.remove(newComponent);
+            components_.insert(components_.begin(), newComponent);
         }
         return newComponent;
     }

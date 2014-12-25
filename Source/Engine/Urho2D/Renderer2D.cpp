@@ -40,6 +40,8 @@
 
 #include "DebugNew.h"
 
+#include <OctreeQuery.h>
+
 namespace Urho3D
 {
 
@@ -85,15 +87,15 @@ void Renderer2D::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQuery
 {
     if (orderDirty_)
     {
-        Sort(drawables_.Begin(), drawables_.End(), CompareDrawable2Ds);
+        std::sort(drawables_.begin(), drawables_.end(), CompareDrawable2Ds);
         orderDirty_ = false;
     }
 
-    unsigned resultSize = results.Size();
-    for (unsigned i = drawables_.Size() - 1; i < drawables_.Size(); --i)
+    unsigned resultSize = results.size();
+    for (unsigned i = drawables_.size() - 1; i < drawables_.size(); --i)
     {
         drawables_[i]->ProcessRayQuery(query, results);
-        if (results.Size() != resultSize)
+        if (results.size() != resultSize)
             return;
     }
 }
@@ -197,8 +199,8 @@ void Renderer2D::AddDrawable(Drawable2D* drawable)
     if (!drawable)
         return;
 
-    drawables_.Push(drawable);
-    materialDirtyDrawables_.Push(drawable);
+    drawables_.push_back(drawable);
+    materialDirtyDrawables_.push_back(drawable);
 
     orderDirty_ = true;
 }
@@ -208,14 +210,14 @@ void Renderer2D::RemoveDrawable(Drawable2D* drawable)
     if (!drawable)
         return;
 
-    drawables_.Remove(drawable);
-    materialDirtyDrawables_.Remove(drawable);
+    drawables_.remove(drawable);
+    materialDirtyDrawables_.remove(drawable);
     orderDirty_ = true;
 }
 
 void Renderer2D::MarkMaterialDirty(Drawable2D* drawable)
 {
-    materialDirtyDrawables_.Push(drawable);
+    materialDirtyDrawables_.push_back(drawable);
 }
 
 bool Renderer2D::CheckVisibility(Drawable2D* drawable) const
@@ -243,7 +245,7 @@ static void CheckDrawableVisibility(const WorkItem* item, unsigned threadIndex)
     while (start != end)
     {
         Drawable2D* drawable = *start++;
-        if (renderer->CheckVisibility(drawable) && drawable->GetVertices().Size())
+        if (renderer->CheckVisibility(drawable) && drawable->GetVertices().size())
             drawable->SetVisibility(true);
         else
             drawable->SetVisibility(false);
@@ -261,15 +263,15 @@ void Renderer2D::HandleBeginViewUpdate(StringHash eventType, VariantMap& eventDa
 
     PROFILE(UpdateRenderer2D);
 
-    if (!materialDirtyDrawables_.Empty())
+    if (!materialDirtyDrawables_.empty())
     {
-        for (unsigned i = 0; i < materialDirtyDrawables_.Size(); ++i)
+        for (unsigned i = 0; i < materialDirtyDrawables_.size(); ++i)
         {
             Drawable2D* drawable = materialDirtyDrawables_[i];
             if (!drawable->GetMaterial())
                 drawable->SetMaterial(GetMaterial(drawable->GetTexture(), drawable->GetBlendMode()));
         }
-        materialDirtyDrawables_.Clear();
+        materialDirtyDrawables_.clear();
     }
 
     if (orderDirty_)

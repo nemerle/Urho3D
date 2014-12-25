@@ -154,12 +154,12 @@ void ObjectAnimation::RemoveAttributeAnimation(ValueAnimation* attributeAnimatio
 {
     if (!attributeAnimation)
         return;
-    
+
     for (auto i = attributeAnimationInfos_.begin(); i != attributeAnimationInfos_.end(); ++i)
     {
         if (MAP_VALUE(i)->GetAnimation() == attributeAnimation)
         {
-            SendAttributeAnimationRemovedEvent(i->first_);
+            SendAttributeAnimationRemovedEvent(MAP_KEY(i));
             attributeAnimation->SetOwner(nullptr);
             attributeAnimationInfos_.erase(i);
             return;

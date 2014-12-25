@@ -202,7 +202,7 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
     Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
-    Vector<String> autoloadPaths = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().Split(';');
+    Vector<String> autoloadPaths = GetParameter(parameters, "AutoloadPaths", "Extra").GetString().split(';');
 
     for (unsigned i = 0; i < resourcePaths.size(); ++i)
     {
@@ -267,7 +267,7 @@ bool Engine::Initialize(const VariantMap& parameters)
     }
 
     // Add auto load folders. Prioritize these (if exist) before the default folders
-    for (unsigned i = 0; i < autoloadPaths.Size(); ++i)
+    for (unsigned i = 0; i < autoloadPaths.size(); ++i)
     {
         bool success = true;
         String autoloadPath = autoloadPaths[i];

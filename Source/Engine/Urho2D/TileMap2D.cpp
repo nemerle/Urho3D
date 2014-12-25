@@ -108,7 +108,7 @@ void TileMap2D::SetTmxFile(TmxFile2D* tmxFile)
     if (rootNode_)
         rootNode_->RemoveAllChildren();
 
-    layers_.Clear();
+    layers_.clear();
 
     tmxFile_ = tmxFile;
     if (!tmxFile_)
@@ -182,7 +182,7 @@ void TileMap2D::OnNodeSet(Node* node)
             rootNode_->Remove();
 
         rootNode_ = 0;
-        layers_.Clear();
+        layers_.clear();
     }
 }
 
