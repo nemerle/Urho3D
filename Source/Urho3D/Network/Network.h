@@ -27,8 +27,8 @@
 #include "VectorBuffer.h"
 #include "HashMap.h"
 
-#include <kNet/kNet/IMessageHandler.h>
-#include <kNet/kNet/INetworkServerListener.h>
+#include <kNet/IMessageHandler.h>
+#include <kNet/INetworkServerListener.h>
 #include <QtCore/QSet>
 
 namespace Urho3D

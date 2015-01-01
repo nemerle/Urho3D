@@ -29,7 +29,7 @@
 #include "VectorBuffer.h"
 
 #include <kNet/kNetFwd.h>
-#include <kNet/kNet/SharedPtr.h>
+#include <kNet/SharedPtr.h>
 #include <QtCore/QSet>
 
 #ifdef SendMessage

@@ -28,7 +28,7 @@
 #include "Script.h"
 #include "Pair.h"
 
-#include <angelscript.h>
+#include <AngelScript/angelscript.h>
 
 #include "DebugNew.h"
 

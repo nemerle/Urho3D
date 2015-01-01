@@ -25,7 +25,7 @@
 #include "Urho3D.h"
 #include "Str.h"
 #include "HashMap.h"
-#include <angelscript.h>
+#include <AngelScript/angelscript.h>
 
 // Adapted from Angelscript's scriptarray, scriptdictionary & scriptstdstring add-ons, but with garbage collection disabled
 

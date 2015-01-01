@@ -37,7 +37,7 @@
 #include "StaticModel.h"
 #include "Texture.h"
 
-#include <angelscript.h>
+#include <AngelScript/angelscript.h>
 #include <cstring>
 #include <QtCore/QSet>
 #include <QtCore/QList>

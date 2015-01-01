@@ -22,9 +22,10 @@
 
 #pragma once
 
-#include "Color.h"
-#include "Timer.h"
-#include "HashMap.h"
+#include "../Color.h"
+#include "../HashMap.h"
+#include "../Timer.h"
+
 
 #if defined(ANDROID) || defined (RPI)
 #include <GLES2/gl2.h>
