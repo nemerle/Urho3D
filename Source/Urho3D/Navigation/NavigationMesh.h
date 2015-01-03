@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "ArrayPtr.h"
-#include "BoundingBox.h"
-#include "Component.h"
-#include "Matrix3x4.h"
+#include "../Container/ArrayPtr.h"
+#include "../Math/BoundingBox.h"
+#include "../Scene/Component.h"
+#include "../Math/Matrix3x4.h"
 #include <QtCore/QSet>
 
 class dtNavMesh;

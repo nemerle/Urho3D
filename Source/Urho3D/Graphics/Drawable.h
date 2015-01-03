@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "BoundingBox.h"
-#include "Component.h"
-#include "GraphicsDefs.h"
-#include "HashMap.h"
+#include "../Math/BoundingBox.h"
+#include "../Scene/Component.h"
+#include "../Graphics/GraphicsDefs.h"
+#include "../Container/HashMap.h"
 #include "Vector.h"
 
 namespace Urho3D

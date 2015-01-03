@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "Serializable.h"
-#include "ValueAnimationInfo.h"
+#include "../Scene/Serializable.h"
+#include "../Scene/ValueAnimationInfo.h"
 #include "HashMap.h"
 
 namespace Urho3D

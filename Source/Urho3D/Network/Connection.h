@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "Controls.h"
-#include "Object.h"
-#include "ReplicationState.h"
-#include "Timer.h"
-#include "VectorBuffer.h"
+#include "../Network/Controls.h"
+#include "../Core/Object.h"
+#include "../Scene/ReplicationState.h"
+#include "../Core/Timer.h"
+#include "../IO/VectorBuffer.h"
 
 #include <kNet/kNetFwd.h>
 #include <kNet/SharedPtr.h>

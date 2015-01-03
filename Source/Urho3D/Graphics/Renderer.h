@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "Batch.h"
-#include "Color.h"
-#include "Drawable.h"
-#include "Mutex.h"
-#include "Viewport.h"
+#include "../Graphics/Batch.h"
+#include "../Math/Color.h"
+#include "../Graphics/Drawable.h"
+#include "../Core/Mutex.h"
+#include "../Graphics/Viewport.h"
 #include "Pair.h"
 #include <QtCore/QSet>
 namespace Urho3D

@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "File.h"
-#include "List.h"
-#include "Mutex.h"
-#include "Resource.h"
+#include "../IO/File.h"
+#include "../Container/List.h"
+#include "../Core/Mutex.h"
+#include "../Resource/Resource.h"
 
 #include <QtCore/QSet>
 

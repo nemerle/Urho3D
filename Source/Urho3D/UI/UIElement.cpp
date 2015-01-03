@@ -20,18 +20,18 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
-#include "Context.h"
-#include "CoreEvents.h"
-#include "Cursor.h"
-#include "Log.h"
-#include "ObjectAnimation.h"
-#include "ResourceCache.h"
-#include "UI.h"
-#include "UIElement.h"
-#include "UIEvents.h"
+#include "../Precompiled.h"
+#include "../Core/Context.h"
+#include "../Core/CoreEvents.h"
+#include "../UI/Cursor.h"
+#include "../IO/Log.h"
+#include "../Scene/ObjectAnimation.h"
+#include "../Resource/ResourceCache.h"
+#include "../UI/UI.h"
+#include "../UI/UIElement.h"
+#include "../UI/UIEvents.h"
 
-#include "DebugNew.h"
+#include "../Container/DebugNew.h"
 #include <QtCore/QSet>
 
 namespace Urho3D

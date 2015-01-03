@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "Connection.h"
-#include "Object.h"
-#include "VectorBuffer.h"
+#include "../Network/Connection.h"
+#include "../Core/Object.h"
+#include "../IO/VectorBuffer.h"
 #include "HashMap.h"
 
 #include <kNet/IMessageHandler.h>

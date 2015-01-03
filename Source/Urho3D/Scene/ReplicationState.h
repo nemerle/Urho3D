@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "Attribute.h"
-#include "Ptr.h"
-#include "StringHash.h"
+#include "../Core/Attribute.h"
+#include "../Container/Ptr.h"
+#include "../Math/StringHash.h"
 #include "HashMap.h"
 
 #include <QtCore/QSet>

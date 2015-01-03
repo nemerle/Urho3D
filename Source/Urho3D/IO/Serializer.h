@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "StringHash.h"
-#include "Variant.h"
+#include "../Math/StringHash.h"
+#include "../Core/Variant.h"
 
 namespace Urho3D
 {

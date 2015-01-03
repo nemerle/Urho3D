@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "List.h"
-#include "Object.h"
+#include "../Container/List.h"
+#include "../Core/Object.h"
 
-#include "HashMap.h"
+#include "../Container/HashMap.h"
 
 namespace Urho3D
 {

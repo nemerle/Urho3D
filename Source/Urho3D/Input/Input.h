@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "InputEvents.h"
-#include "Mutex.h"
-#include "Object.h"
+#include "../Input/InputEvents.h"
+#include "../Core/Mutex.h"
+#include "../Core/Object.h"
 #include <QtCore/QSet>
 
-#include "Cursor.h"
+#include "../UI/Cursor.h"
 
 namespace Urho3D
 {

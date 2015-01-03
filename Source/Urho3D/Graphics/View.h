@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "Batch.h"
-#include "Light.h"
-#include "List.h"
-#include "Object.h"
-#include "Polyhedron.h"
-#include "Zone.h"
+#include "../Graphics/Batch.h"
+#include "../Graphics/Light.h"
+#include "../Container/List.h"
+#include "../Core/Object.h"
+#include "../Math/Polyhedron.h"
+#include "../Graphics/Zone.h"
 #include <array>
 namespace Urho3D
 {

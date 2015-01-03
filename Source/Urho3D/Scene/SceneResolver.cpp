@@ -20,13 +20,13 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
-#include "Component.h"
-#include "SceneResolver.h"
-#include "Log.h"
-#include "Node.h"
+#include "../Precompiled.h"
+#include "../Scene/Component.h"
+#include "../Scene/SceneResolver.h"
+#include "../IO/Log.h"
+#include "../Scene/Node.h"
 
-#include "DebugNew.h"
+#include "../Container/DebugNew.h"
 #include <QtCore/QSet>
 
 namespace Urho3D

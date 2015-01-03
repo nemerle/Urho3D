@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
-#include "BoundingBox.h"
-#include "Frustum.h"
-#include "Plane.h"
-#include "Ray.h"
-#include "Sphere.h"
+#include "../Precompiled.h"
+#include "../Math/BoundingBox.h"
+#include "../Math/Frustum.h"
+#include "../Math/Plane.h"
+#include "../Math/Ray.h"
+#include "../Math/Sphere.h"
 
 namespace Urho3D
 {
@@ -209,7 +209,7 @@ float Ray::HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2) 
 
 float Ray::HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2, Vector3* outNormal) const
 {
-    // Based on Fast, Minimum Storage Ray/Triangle Intersection by Möller & Trumbore
+    // Based on Fast, Minimum Storage Ray/Triangle Intersection by Mï¿½ller & Trumbore
     // http://www.graphics.cornell.edu/pubs/1997/MT97.pdf
     // Calculate edge vectors
     Vector3 edge1(v1 - v0);

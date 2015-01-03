@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "Object.h"
-#include "XMLFile.h"
+#include "../Core/Object.h"
+#include "../Resource/XMLFile.h"
 #include <QtCore/QSet>
 
 namespace Urho3D

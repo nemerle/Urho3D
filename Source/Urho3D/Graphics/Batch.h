@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "Drawable.h"
-#include "MathDefs.h"
-#include "Matrix3x4.h"
-#include "Rect.h"
+#include "../Graphics/Drawable.h"
+#include "../Math/MathDefs.h"
+#include "../Math/Matrix3x4.h"
+#include "../Math/Rect.h"
 #include "HashMap.h"
 #include "Light.h"
 #include <functional>

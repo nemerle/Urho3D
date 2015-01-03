@@ -20,14 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
-
-#include "FileWatcher.h"
-
-#include "File.h"
-#include "FileSystem.h"
-#include "Log.h"
-#include "Timer.h"
+#include "../Precompiled.h"
+#include "../IO/File.h"
+#include "../IO/FileSystem.h"
+#include "../IO/FileWatcher.h"
+#include "../IO/Log.h"
+#include "../Core/Timer.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -39,7 +37,7 @@ extern "C" {
 }
 #elif defined(__APPLE__) && !defined(IOS)
 extern "C" {
-#include "MacFileWatcher.h"
+#include "../IO/MacFileWatcher.h"
 }
 #endif
 

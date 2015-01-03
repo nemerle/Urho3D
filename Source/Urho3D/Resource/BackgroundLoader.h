@@ -22,12 +22,11 @@
 
 #pragma once
 
-#include "Mutex.h"
-#include "Ptr.h"
-#include "RefCounted.h"
-#include "StringHash.h"
-#include "HashMap.h"
-#include "Thread.h"
+#include "../Core/Mutex.h"
+#include "../Container/Ptr.h"
+#include "../Container/RefCounted.h"
+#include "../Math/StringHash.h"
+#include "../Container/HashMap.h"
 #include "Pair.h"
 
 #include <QtCore/QSet>

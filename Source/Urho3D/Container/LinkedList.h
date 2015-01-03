@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "Urho3D.h"
+#include "../Urho3D.h"
 #include <deque>
 namespace Urho3D
 {
