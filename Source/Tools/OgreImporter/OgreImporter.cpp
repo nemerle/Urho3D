@@ -25,7 +25,6 @@
 #include <Urho3D/IO/FileSystem.h>
 #include <QtCore/QSet>
 #include <Urho3D/Core/ProcessUtils.h>
-#include <Urho3D/Container/Sort.h>
 #include <Urho3D/Graphics/Tangent.h>
 #include <Urho3D/Resource/XMLFile.h>
 

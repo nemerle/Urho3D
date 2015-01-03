@@ -47,7 +47,7 @@
 #include <Urho3D/Resource/XMLFile.h>
 #include <Urho3D/Graphics/Zone.h>
 
-#include <Urho3D/Container/Sort.h>
+
 #ifdef WIN32
 #include <windows.h>
 #endif

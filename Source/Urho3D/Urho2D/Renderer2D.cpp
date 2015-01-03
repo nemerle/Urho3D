@@ -40,7 +40,7 @@
 
 #include "../Container/DebugNew.h"
 
-#include <OctreeQuery.h>
+#include "../Graphics/OctreeQuery.h"
 
 namespace Urho3D
 {
