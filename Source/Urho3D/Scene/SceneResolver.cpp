@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include "../Precompiled.h"
+#include "Precompiled.h"
 #include "../Scene/Component.h"
 #include "../Scene/SceneResolver.h"
 #include "../IO/Log.h"
