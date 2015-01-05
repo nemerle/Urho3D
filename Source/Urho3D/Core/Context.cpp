@@ -24,7 +24,7 @@
 #include "../Core/Context.h"
 #include "../Core/Thread.h"
 
-#include "../Container/DebugNew.h"
+#include "../DebugNew.h"
 
 #include "../Container/HashMap.h"
 

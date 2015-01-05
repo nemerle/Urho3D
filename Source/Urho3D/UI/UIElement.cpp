@@ -31,7 +31,7 @@
 #include "../UI/UIElement.h"
 #include "../UI/UIEvents.h"
 
-#include "../Container/DebugNew.h"
+#include "../DebugNew.h"
 #include <QtCore/QSet>
 
 namespace Urho3D

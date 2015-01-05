@@ -38,7 +38,7 @@
 #include "../Graphics/VertexBuffer.h"
 #include "../Core/WorkQueue.h"
 
-#include "../Container/DebugNew.h"
+#include "../DebugNew.h"
 
 #include "../Graphics/OctreeQuery.h"
 

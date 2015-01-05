@@ -36,7 +36,7 @@
 
 #include "SceneAndUILoad.h"
 
-#include "DebugNew.h"
+#include <Urho3D/DebugNew.h>
 
 DEFINE_APPLICATION_MAIN(SceneAndUILoad)
 

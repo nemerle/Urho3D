@@ -26,7 +26,7 @@
 #include "../IO/Log.h"
 #include "../Scene/Node.h"
 
-#include "../Container/DebugNew.h"
+#include "../DebugNew.h"
 #include <QtCore/QSet>
 
 namespace Urho3D
