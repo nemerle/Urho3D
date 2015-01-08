@@ -1748,6 +1748,9 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
     {
         Component* component = *i;
+        if (component->IsTemporary())
+            continue;
+
         Component* cloneComponent = cloneNode->CloneComponent(component,
                                                               (mode == REPLICATED && component->GetID() < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, 0);
         if (cloneComponent)
@@ -1758,6 +1761,9 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
     for (Vector<SharedPtr<Node> >::const_iterator i = children_.begin(); i != children_.end(); ++i)
     {
         Node* node = *i;
+        if (node->IsTemporary())
+            continue;
+
         node->CloneRecursive(cloneNode, resolver, mode);
     }
 
