@@ -185,16 +185,29 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
         }
         else
         {
-            XMLElement childElem = objectElem.GetChild();
-            if (childElem.GetName() == "polygon")
+            Vector<String> points;
+
+            if (objectElem.HasChild("polygon"))
+            {
                 object->objectType_ = OT_POLYGON;
-            else if (childElem.GetName() == "polyline")
+
+                XMLElement polygonElem = objectElem.GetChild("polygon");
+                points = polygonElem.GetAttribute("points").Split(' ');
+            }
+            else if (objectElem.HasChild("polyline"))
+            {
                 object->objectType_ = OT_POLYLINE;
+
+                XMLElement polylineElem = objectElem.GetChild("polyline");
+                points = polylineElem.GetAttribute("points").Split(' ');
+            }
             else
                 return false;
 
-            Vector<String> points = childElem.GetAttribute("points").split(' ');
-            object->points_.resize(points.size());
+            if (points.size() <= 1)
+                continue;
+
+            object->points_.resize(points.Size());
 
             for (unsigned i = 0; i < points.size(); ++i)
             {
