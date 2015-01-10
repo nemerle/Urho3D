@@ -182,7 +182,7 @@ void Batch::CalculateSortKey()
         (((unsigned long long)materialID) << 16) | geometryID;
 }
 
-void Batch::Prepare(View* view, bool setModelTransform) const
+void Batch::Prepare(View* view, bool setModelTransform, bool allowDepthWrite) const
 {
     if (!vertexShader_ || !pixelShader_)
         return;
@@ -216,7 +216,7 @@ void Batch::Prepare(View* view, bool setModelTransform) const
             graphics->SetDepthBias(depthBias.constantBias_, depthBias.slopeScaledBias_);
         }
         graphics->SetDepthTest(pass_->GetDepthTestMode());
-        graphics->SetDepthWrite(pass_->GetDepthWrite());
+        graphics->SetDepthWrite(pass_->GetDepthWrite() && allowDepthWrite);
     }
 
     // Set shaders first. The available shader parameters and their register/uniform positions depend on the currently set shaders
@@ -605,11 +605,11 @@ void Batch::Prepare(View* view, bool setModelTransform) const
         graphics->SetTexture(TU_ZONE, zone_->GetZoneTexture());
 }
 
-void Batch::Draw(View* view) const
+void Batch::Draw(View* view, bool allowDepthWrite) const
 {
     if (!geometry_->IsEmpty())
     {
-        Prepare(view);
+        Prepare(view, true, allowDepthWrite);
         geometry_->Draw(view->GetGraphics());
     }
 }
@@ -630,7 +630,7 @@ void BatchGroup::SetTransforms(void* lockedData, unsigned& freeIndex)
     freeIndex += instances_.size();
 }
 
-void BatchGroup::Draw(View* view) const
+void BatchGroup::Draw(View* view, bool allowDepthWrite) const
 {
     Graphics* graphics = view->GetGraphics();
     Renderer* renderer = view->GetRenderer();
@@ -641,7 +641,7 @@ void BatchGroup::Draw(View* view) const
         VertexBuffer* instanceBuffer = renderer->GetInstancingBuffer();
         if (!instanceBuffer || geometryType_ != GEOM_INSTANCED)
         {
-            Batch::Prepare(view, false);
+            Batch::Prepare(view, false, allowDepthWrite);
 
             graphics->SetIndexBuffer(geometry_->GetIndexBuffer());
             graphics->SetVertexBuffers(geometry_->GetVertexBuffers(), geometry_->GetVertexElementMasks());
@@ -657,7 +657,7 @@ void BatchGroup::Draw(View* view) const
         }
         else
         {
-            Batch::Prepare(view, false);
+            Batch::Prepare(view, false, allowDepthWrite);
 
             // Get the geometry vertex buffers, then add the instancing stream buffer
             // Hack: use a const_cast to avoid dynamic allocation of new temp vectors
@@ -842,7 +842,7 @@ void BatchQueue::SetTransforms(void* lockedData, unsigned& freeIndex)
         elem.SetTransforms(lockedData, freeIndex);
 }
 
-void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimization) const
+void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimization, bool allowDepthWrite) const
 {
     Graphics* graphics = view->GetGraphics();
     Renderer* renderer = view->GetRenderer();
@@ -864,7 +864,7 @@ void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimizatio
         if (markToStencil)
             graphics->SetStencilTest(true, CMP_ALWAYS, OP_REF, OP_KEEP, OP_KEEP, group->lightMask_);
 
-        group->Draw(view);
+        group->Draw(view, allowDepthWrite);
     }
     // Non-instanced
     for (auto batch : sortedBatches_)
@@ -881,7 +881,7 @@ void BatchQueue::Draw(View* view, bool markToStencil, bool usingLightOptimizatio
                 graphics->SetScissorTest(false);
         }
 
-        batch->Draw(view);
+        batch->Draw(view, allowDepthWrite);
     }
 }
 

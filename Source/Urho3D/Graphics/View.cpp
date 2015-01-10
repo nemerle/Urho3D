@@ -320,7 +320,21 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
 
     // Make sure that all necessary batch queues exist
     scenePasses_.clear();
-    for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
+
+    usingCustomDepth_ = false;
+    for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+    {
+        const RenderPathCommand& command = renderPath_->commands_[i];
+        if (!command.enabled_)
+            continue;
+        if (command.depthStencilName_.Length())
+        {
+            // Using a readable depth texture will disable automatic stencil use, as can't guarantee a stencil channel is available
+            usingCustomDepth_ = true;
+            break;
+        }
+    }
+
     {
         const RenderPathCommand& command = renderPath_->commands_[i];
         if (!command.enabled_)
@@ -333,7 +347,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
             ScenePassInfo info;
             info.pass_ = command.pass_;
             info.allowInstancing_ = command.sortMode_ != SORT_BACKTOFRONT;
-            info.markToStencil_ = command.markToStencil_;
+            info.markToStencil_ = !usingCustomDepth_ && command.markToStencil_;
             info.vertexLights_ = command.vertexLights_;
 
             // Check scenepass metadata for defining custom passes which interact with lighting
@@ -1532,11 +1546,11 @@ void View::ExecuteRenderPathCommands()
                     PROFILE(RenderScenePass);
 
                     SetRenderTargets(command);
-                    SetTextures(command);
+                    bool allowDepthWrite = SetTextures(command);
                     graphics_->SetDrawAntialiased(true);
                     graphics_->SetFillMode(camera_->GetFillMode());
                     graphics_->SetClipPlane(camera_->GetUseClipping(), camera_->GetClipPlane(), camera_->GetView(), camera_->GetProjection());
-                    batchQueues_[command.pass_]->Draw(this, command.markToStencil_, false);
+                    batchQueues_[command.pass_].Draw(this, command.markToStencil_, false, allowDepthWrite);
                 }
                 break;
 
@@ -1567,20 +1581,21 @@ void View::ExecuteRenderPathCommands()
                             SetRenderTargets(command);
                         }
 
-                        SetTextures(command);
+                        bool allowDepthWrite = SetTextures(command);
                         graphics_->SetDrawAntialiased(true);
                         graphics_->SetFillMode(camera_->GetFillMode());
                         graphics_->SetClipPlane(camera_->GetUseClipping(), camera_->GetClipPlane(), camera_->GetView(), camera_->GetProjection());
 
                         // Draw base (replace blend) batches first
-                        elem.litBaseBatches_.Draw(this);
+                        i->litBaseBatches_.Draw(this, false, false, allowDepthWrite);
 
                         // Then, if there are additive passes, optimize the light and draw them
                         if (!elem.litBatches_.IsEmpty())
                         {
                             renderer_->OptimizeLightByScissor(elem.light_, camera_);
-                            renderer_->OptimizeLightByStencil(elem.light_, camera_);
-                            elem.litBatches_.Draw(this, false, true);
+                            if (!usingCustomDepth_)
+                                renderer_->OptimizeLightByStencil(i->light_, camera_);
+                            i->litBatches_.Draw(this, false, true, allowDepthWrite);
                         }
                     }
 
@@ -1610,7 +1625,7 @@ void View::ExecuteRenderPathCommands()
                         for (unsigned j = 0; j < elem.volumeBatches_.size(); ++j)
                         {
                             SetupLightVolumeBatch(elem.volumeBatches_[j]);
-                            elem.volumeBatches_[j].Draw(this);
+                            i->volumeBatches_[j].Draw(this, false);
                         }
                     }
 
@@ -1701,9 +1716,11 @@ void View::SetRenderTargets(RenderPathCommand& command)
     graphics_->SetColorWrite(useColorWrite);
 }
 
-void View::SetTextures(RenderPathCommand& command)
+bool View::SetTextures(RenderPathCommand& command)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
+
+    bool allowDepthWrite = true;
 
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
     {
@@ -1722,6 +1739,9 @@ void View::SetTextures(RenderPathCommand& command)
         if (j != renderTargets_.end())
         {
             graphics_->SetTexture(i, MAP_VALUE(j));
+            // Check if the current depth stencil is being sampled
+            if (graphics_->GetDepthStencil() && j->second_ == graphics_->GetDepthStencil()->GetParentTexture())
+                allowDepthWrite = false;
             continue;
         }
 
@@ -1748,6 +1768,8 @@ void View::SetTextures(RenderPathCommand& command)
             command.textureNames_[i] = String::EMPTY;
         }
     }
+
+    return allowDepthWrite;
 }
 
 void View::RenderQuad(RenderPathCommand& command)
@@ -1907,13 +1929,15 @@ void View::AllocateScreenBuffers()
             needSubstitute = true;
         else if (!needSubstitute)
         {
-            // Check also if using MRT without deferred rendering and rendering to the viewport and another texture
-            for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
+            // Check also if using MRT without deferred rendering and rendering to the viewport and another texture,
+            // or using custom depth
             {
                 const RenderPathCommand& command = renderPath_->commands_[i];
                 if (!IsNecessary(command))
                     continue;
-                if (command.outputNames_.size() > 1)
+                if (command.depthStencilName_.Length())
+                    needSubstitute = true;
+                if (!needSubstitute && command.outputNames_.Size() > 1)
                 {
                     for (unsigned j = 0; j < command.outputNames_.size(); ++j)
                     {
@@ -2925,7 +2949,10 @@ void View::SetupLightVolumeBatch(Batch& batch)
     }
 
     graphics_->SetScissorTest(false);
-    graphics_->SetStencilTest(true, CMP_NOTEQUAL, OP_KEEP, OP_KEEP, OP_KEEP, 0, light->GetLightMask());
+    if (!usingCustomDepth_)
+        graphics_->SetStencilTest(true, CMP_NOTEQUAL, OP_KEEP, OP_KEEP, OP_KEEP, 0, light->GetLightMask());
+    else
+        graphics_->SetStencilTest(false);
 }
 
 void View::RenderShadowMap(const LightBatchQueue& queue)
@@ -2974,7 +3001,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
         if (!shadowQueue.shadowBatches_.IsEmpty())
         {
             graphics_->SetViewport(shadowQueue.shadowViewport_);
-            shadowQueue.shadowBatches_.Draw(this);
+            shadowQueue.shadowBatches_.Draw(this, false, false, true);
         }
     }
 
