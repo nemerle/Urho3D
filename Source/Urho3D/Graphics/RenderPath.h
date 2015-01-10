@@ -123,6 +123,8 @@ struct RenderPathCommand
     void SetNumOutputs(unsigned num);
     /// Set output rendertarget name.
     void SetOutputName(unsigned index, const String& name);
+    /// Set depth-stencil output name. When empty, will assign a depth-stencil buffer automatically.
+    void SetDepthStencilName(const String& name);
 
     /// Return texture resource name.
     const String& GetTextureName(TextureUnit unit) const;
@@ -132,6 +134,8 @@ struct RenderPathCommand
     unsigned GetNumOutputs() const { return outputNames_.size(); }
     /// Return output rendertarget name.
     const String& GetOutputName(unsigned index) const;
+    /// Return depth-stencil output name.
+    const String& GetDepthStencilName() const { return depthStencilName_; }
 
     RenderPathCommand& operator=(const RenderPathCommand& rhs) = default;
 
@@ -159,6 +163,8 @@ struct RenderPathCommand
     VariantMap shaderParameters_;
     /// Output rendertarget names.
     Vector<String> outputNames_;
+    /// Depth-stencil output name.
+    String depthStencilName_;
     /// Clear flags.
     unsigned clearFlags_;
     /// Clear color.
