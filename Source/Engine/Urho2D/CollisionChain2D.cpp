@@ -91,14 +91,14 @@ void CollisionChain2D::SetVertices(const PODVector<Vector2>& vertices)
 
 void CollisionChain2D::SetVerticesAttr(const PODVector<unsigned char>& value)
 {
-    if (value.Empty())
+    if (value.empty())
         return;
 
     PODVector<Vector2> vertices;
 
     MemoryBuffer buffer(value);
     while (!buffer.IsEof())
-        vertices.Push(buffer.ReadVector2());
+        vertices.push_back(buffer.ReadVector2());
 
     SetVertices(vertices);
 }
@@ -107,7 +107,7 @@ PODVector<unsigned char> CollisionChain2D::GetVerticesAttr() const
 {
     VectorBuffer ret;
 
-    for (unsigned i = 0; i < vertices_.Size(); ++i)
+    for (unsigned i = 0; i < vertices_.size(); ++i)
         ret.WriteVector2(vertices_[i]);
 
     return ret.GetBuffer();
