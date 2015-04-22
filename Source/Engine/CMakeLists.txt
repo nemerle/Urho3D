@@ -110,7 +110,7 @@ else ()
     set (OUTPUT_PATH ${PROJECT_ROOT_DIR}/${PLATFORM_PREFIX}Lib)     # ${PLATFORM_PREFIX} is empty for native build
 endif ()
 set_output_directories (${OUTPUT_PATH} ARCHIVE LIBRARY)
- 
+
 # Setup target
 setup_library (${URHO3D_LIB_TYPE})
 if (NOT ANDROID)

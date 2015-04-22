@@ -22,6 +22,8 @@
 
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(ThirdParty)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/Engine)
+
 # Check existence of stdint.h for LibCpuId
 include (CheckIncludeFiles)
 CHECK_INCLUDE_FILES (stdint.h HAVE_STDINT_H)
