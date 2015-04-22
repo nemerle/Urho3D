@@ -25,7 +25,7 @@
 #include "../Container/Ptr.h"
 #include "../Container/RefCounted.h"
 #include "../Math/Vector2.h"
-#include "Vector.h"
+#include "../Container/Vector.h"
 namespace Urho3D
 {
 

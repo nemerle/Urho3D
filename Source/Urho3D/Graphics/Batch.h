@@ -26,7 +26,7 @@
 #include "../Math/MathDefs.h"
 #include "../Math/Matrix3x4.h"
 #include "../Math/Rect.h"
-#include "HashMap.h"
+#include "../Container/HashMap.h"
 #include "Light.h"
 #include <functional>
 #include <cstdio>

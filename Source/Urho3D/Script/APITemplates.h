@@ -33,7 +33,7 @@
 #include "../Resource/Resource.h"
 #include "../Script/Script.h"
 #include "../Script/ScriptInstance.h"
-#include "../Container/Sort.h"
+
 #include "../Audio/SoundSource.h"
 #include "../Graphics/StaticModel.h"
 #include "../Graphics/Texture.h"

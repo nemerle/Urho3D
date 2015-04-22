@@ -25,8 +25,8 @@
 #include "../UI/BorderImage.h"
 #include "../Resource/Image.h"
 #include "../Graphics/Texture.h"
+#include "../Container/HashMap.h"
 
-#include "HashMap.h"
 #include <SDL/SDL_mouse.h>
 
 namespace Urho3D

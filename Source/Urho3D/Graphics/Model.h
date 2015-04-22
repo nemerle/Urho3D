@@ -28,8 +28,7 @@
 #include "../Graphics/Skeleton.h"
 #include "../Resource/Resource.h"
 #include "../Container/Ptr.h"
-
-#include <HashMap.h>
+#include "../Container/HashMap.h"
 
 namespace Urho3D
 {

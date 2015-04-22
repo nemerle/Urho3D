@@ -24,10 +24,10 @@
 
 #include "../Core/Attribute.h"
 #include "../Core/Object.h"
+#include "../Container/HashMap.h"
 
 #include <QtCore/QSet>
 
-#include <HashMap.h>
 
 namespace Urho3D
 {

@@ -25,7 +25,8 @@
 #include "../Core/Attribute.h"
 #include "../Container/Ptr.h"
 #include "../Math/StringHash.h"
-#include "HashMap.h"
+#include "../Container/HashMap.h"
+
 
 #include <QtCore/QSet>
 #include <cstring>

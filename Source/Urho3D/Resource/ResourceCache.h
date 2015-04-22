@@ -29,7 +29,7 @@
 
 #include <QtCore/QSet>
 
-#include <HashMap.h>
+#include "../Container/HashMap.h"
 
 namespace Urho3D
 {

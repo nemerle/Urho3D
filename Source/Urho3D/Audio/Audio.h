@@ -26,7 +26,7 @@
 #include "../Audio/AudioDefs.h"
 #include "../Core/Mutex.h"
 #include "../Core/Object.h"
-#include "HashMap.h"
+#include "../Container/HashMap.h"
 namespace Urho3D
 {
 

@@ -27,7 +27,8 @@
 #include "../Container/RefCounted.h"
 #include "../Math/StringHash.h"
 #include "../Container/HashMap.h"
-#include "Pair.h"
+#include "../Container/Pair.h"
+#include "../Core/Thread.h"
 
 #include <QtCore/QSet>
 

@@ -26,7 +26,7 @@
 #include "../Scene/Component.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Container/HashMap.h"
-#include "Vector.h"
+#include "../Container/Vector.h"
 
 namespace Urho3D
 {

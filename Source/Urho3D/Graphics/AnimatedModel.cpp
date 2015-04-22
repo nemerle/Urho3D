@@ -39,7 +39,7 @@
 #include "../Resource/ResourceCache.h"
 #include "../Resource/ResourceEvents.h"
 #include "../Scene/Scene.h"
-#include "../Container/Sort.h"
+
 #include "../Graphics/VertexBuffer.h"
 
 #include "../Container/DebugNew.h"

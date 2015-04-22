@@ -27,7 +27,7 @@
 #include "../Graphics/Drawable.h"
 #include "../Core/Mutex.h"
 #include "../Graphics/Viewport.h"
-#include "Pair.h"
+#include "../Container/Pair.h"
 #include <QtCore/QSet>
 namespace Urho3D
 {

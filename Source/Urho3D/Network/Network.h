@@ -25,7 +25,7 @@
 #include "../Network/Connection.h"
 #include "../Core/Object.h"
 #include "../IO/VectorBuffer.h"
-#include "HashMap.h"
+#include "../Container/HashMap.h"
 
 #include <kNet/IMessageHandler.h>
 #include <kNet/INetworkServerListener.h>

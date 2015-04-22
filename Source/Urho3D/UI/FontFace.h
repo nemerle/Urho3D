@@ -26,7 +26,8 @@
 #include "../Container/ArrayPtr.h"
 #include "../Container/List.h"
 
-#include "HashMap.h"
+#include "../Container/HashMap.h"
+
 
 namespace Urho3D
 {

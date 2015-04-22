@@ -24,7 +24,7 @@
 
 #include "../Scene/Serializable.h"
 #include "../Scene/ValueAnimationInfo.h"
-#include "HashMap.h"
+#include "../Container/HashMap.h"
 
 namespace Urho3D
 {
