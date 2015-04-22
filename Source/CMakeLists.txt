@@ -95,7 +95,7 @@ if (NOT IOS AND NOT ANDROID AND NOT RPI)
 endif ()
 
 # Urho3D game engine library
-add_subdirectory (Engine)
+add_subdirectory (Urho3D)
 
 # Urho3D tools
 add_subdirectory (Tools)
