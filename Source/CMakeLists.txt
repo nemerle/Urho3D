@@ -20,12 +20,14 @@
 # THE SOFTWARE.
 #
 
+INCLUDE_DIRECTORIES(ThirdParty)
 # Check existence of stdint.h for LibCpuId
 include (CheckIncludeFiles)
 CHECK_INCLUDE_FILES (stdint.h HAVE_STDINT_H)
 if (HAVE_STDINT_H)
     add_definitions (-DHAVE_STDINT_H)
 endif ()
+
 
 # Setup RPATH settings
 if (NOT WIN32 AND NOT ANDROID)
