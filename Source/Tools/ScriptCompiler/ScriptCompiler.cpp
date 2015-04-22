@@ -66,7 +66,7 @@ int main(int argc, char** argv)
         else
         {
             dumpApiMode = true;
-            if (arguments.Size() > 2)
+            if (arguments.size() > 2)
             {
                 sourceTree = arguments[1];
                 outputFile = arguments[2];
