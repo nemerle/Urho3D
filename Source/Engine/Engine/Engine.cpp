@@ -200,10 +200,12 @@ bool Engine::Initialize(const VariantMap& parameters)
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
     String defaultPrefixPath(AddTrailingSlash(getenv("URHO3D_PREFIX_PATH")));
-    if (defaultPrefixPath.Empty())
+    if (defaultPrefixPath.isEmpty())
         defaultPrefixPath = fileSystem->GetProgramDir();
     String resourcePrefixPath = GetParameter(parameters, "ResourcePrefixPath", defaultPrefixPath).GetString();
-    Vector<String> autoLoadPaths = GetParameter(parameters, "AutoloadPaths", "Autoload").GetString().Split(';');
+    Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
+    Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
+    Vector<String> autoLoadPaths = GetParameter(parameters, "AutoloadPaths", "Autoload").GetString().split(';');
 
     for (unsigned i = 0; i < resourcePaths.size(); ++i)
     {
@@ -268,7 +270,7 @@ bool Engine::Initialize(const VariantMap& parameters)
             for (unsigned y = 0; y < subdirs.size(); ++y)
             {
                 String dir = subdirs[y];
-                if (dir.StartsWith("."))
+                if (dir.startsWith("."))
                     continue;
 
                 String autoResourceDir = autoLoadPath + "/" + dir;
@@ -282,10 +284,10 @@ bool Engine::Initialize(const VariantMap& parameters)
             // Add all the found package files (non-recursive)
             Vector<String> paks;
             fileSystem->ScanDir(paks, autoLoadPath, "*.pak", SCAN_FILES, false);
-            for (unsigned y = 0; y < paks.Size(); ++y)
+            for (unsigned y = 0; y < paks.size(); ++y)
             {
                 String pak = paks[y];
-                if (pak.StartsWith("."))
+                if (pak.startsWith("."))
                     continue;
 
                 String autoPackageName = autoLoadPath + "/" + pak;
@@ -787,16 +789,17 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ret["SoundMixRate"] = ToInt(value);
                 ++i;
             }
-            else if (argument == "pp" && !value.Empty())
+            else if (argument == "pp" && !value.isEmpty())
             {
                 ret["ResourcePrefixPath"] = value;
                 ++i;
             }
+            else if (argument == "p" && !value.isEmpty())
             {
                 ret["ResourcePaths"] = value;
                 ++i;
             }
-            else if (argument == "pf" && !value.Empty())
+            else if (argument == "pf" && !value.isEmpty())
             {
                 ret["ResourcePackages"] = value;
                 ++i;
