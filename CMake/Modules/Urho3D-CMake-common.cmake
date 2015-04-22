@@ -366,7 +366,8 @@ endif ()
 include (GenerateExportHeader)
 
 # Determine the project root directory
-get_filename_component (PROJECT_ROOT_DIR ${PROJECT_SOURCE_DIR} PATH)
+set(PROJECT_ROOT_DIR ${PROJECT_SOURCE_DIR})
+#get_filename_component (PROJECT_ROOT_DIR ${PROJECT_SOURCE_DIR} PATH)
 
 # Macro for setting common output directories
 macro (set_output_directories OUTPUT_PATH)
