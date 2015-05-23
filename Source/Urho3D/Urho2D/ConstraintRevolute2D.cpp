@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Urho2D/ConstraintRevolute2D.h"
 #include "../Core/Context.h"
 #include "../Urho2D/PhysicsUtils2D.h"
@@ -45,6 +44,7 @@ void ConstraintRevolute2D::RegisterObject(Context* context)
 {
     context->RegisterFactory<ConstraintRevolute2D>();
     
+    ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Anchor", GetAnchor, SetAnchor, Vector2, Vector2::ZERO, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Enable Limit", GetEnableLimit, SetEnableLimit, bool, false, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Lower Angle", GetLowerAngle, SetLowerAngle, float, 0.0f, AM_DEFAULT);

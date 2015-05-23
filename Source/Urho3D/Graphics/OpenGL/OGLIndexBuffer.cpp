@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../../Core/Context.h"
 #include "../../Graphics/Graphics.h"
 #include "../../Graphics/GraphicsImpl.h"
@@ -144,8 +143,7 @@ bool IndexBuffer::SetData(const void* data)
     {
         if (!graphics_->IsDeviceLost())
         {
-            graphics_->SetIndexBuffer(nullptr);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object_);
+            graphics_->SetIndexBuffer(this);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * indexSize_, data, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
         }
         else
@@ -192,8 +190,7 @@ bool IndexBuffer::SetDataRange(const void* data, unsigned start, unsigned count,
     {
         if (!graphics_->IsDeviceLost())
         {
-            graphics_->SetIndexBuffer(nullptr);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object_);
+            graphics_->SetIndexBuffer(this);
             if (!discard || start != 0)
                 glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, start * indexSize_, count * indexSize_, data);
             else
@@ -334,7 +331,6 @@ bool IndexBuffer::Create()
             return true;
         }
         
-        graphics_->SetIndexBuffer(nullptr);
         
         if (!object_)
             glGenBuffers(1, &object_);
@@ -344,7 +340,7 @@ bool IndexBuffer::Create()
             return false;
         }
         
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object_);
+        graphics_->SetIndexBuffer(this);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * indexSize_, nullptr, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
     

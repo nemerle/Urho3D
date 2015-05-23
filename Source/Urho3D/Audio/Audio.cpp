@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Audio/Audio.h"
 #include "../Core/Context.h"
 #include "../Core/CoreEvents.h"
@@ -79,7 +78,12 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
     SDL_AudioSpec obtained;
 
     desired.freq = mixRate;
-    desired.format = AUDIO_S16SYS;
+// The concept behind the emspcripten audio port is to treat it as 16 bit until the final acumulation form the clip buffer
+#ifdef EMSCRIPTEN
+    desired.format = AUDIO_F32LSB;
+#else
+    desired.format = AUDIO_S16;
+#endif
     desired.channels = stereo ? 2 : 1;
     desired.callback = SDLAudioCallback;
     desired.userdata = this;
@@ -97,6 +101,15 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
         return false;
     }
 
+#ifdef EMSCRIPTEN
+    if (obtained.format != AUDIO_F32LSB && obtained.format != AUDIO_F32MSB && obtained.format != AUDIO_F32SYS)
+    {
+        LOGERROR("Could not initialize audio output, 32-bit float buffer format not supported");
+        SDL_CloseAudioDevice(deviceID_);
+        deviceID_ = 0;
+        return false;
+    }
+#else
     if (obtained.format != AUDIO_S16SYS && obtained.format != AUDIO_S16LSB && obtained.format != AUDIO_S16MSB)
     {
         LOGERROR("Could not initialize audio output, 16-bit buffer format not supported");
@@ -104,12 +117,13 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
         deviceID_ = 0;
         return false;
     }
+#endif
 
     stereo_ = obtained.channels == 2;
     sampleSize_ = stereo_ ? sizeof(int) : sizeof(short);
     // Guarantee a fragment size that is low enough so that Vorbis decoding buffers do not wrap
     fragmentSize_ = Min((int)NextPowerOfTwo(mixRate >> 6), (int)obtained.samples);
-    mixRate_ = mixRate;
+    mixRate_ = obtained.freq;
     interpolation_ = interpolation;
     clipBuffer_ = new int[stereo ? fragmentSize_ << 1 : fragmentSize_];
 
@@ -230,7 +244,7 @@ void SDLAudioCallback(void *userdata, Uint8* stream, int len)
 
     {
         MutexLock Lock(audio->GetMutex());
-        audio->MixOutput(stream, len / audio->GetSampleSize());
+        audio->MixOutput(stream, len / audio->GetSampleSize() / Audio::SAMPLE_SIZE_MUL);
     }
 }
 
@@ -238,7 +252,7 @@ void Audio::MixOutput(void *dest, unsigned samples)
 {
     if (!playing_ || !clipBuffer_)
     {
-        memset(dest, 0, samples * sampleSize_);
+        memset(dest, 0, samples * sampleSize_ * SAMPLE_SIZE_MUL);
         return;
     }
 
@@ -259,12 +273,18 @@ void Audio::MixOutput(void *dest, unsigned samples)
             elem->Mix(clipPtr, workSamples, mixRate_, stereo_, interpolation_);
 
         // Copy output from clip buffer to destination
+#ifdef EMSCRIPTEN
+        float* destPtr = (float*)dest;
+        while (clipSamples--)
+            *destPtr++ = (float)Clamp(*clipPtr++, -32768, 32767) / 32768.0f;
+#else
         short* destPtr = (short*)dest;
         while (clipSamples--)
             *destPtr++ = Clamp(*clipPtr++, -32768, 32767);
 
+#endif
         samples -= workSamples;
-        ((unsigned char*&)dest) += sampleSize_ * workSamples;
+        ((unsigned char*&)dest) += sampleSize_ * SAMPLE_SIZE_MUL * workSamples;
     }
 }
 

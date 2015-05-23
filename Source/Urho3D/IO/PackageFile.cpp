@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../IO/File.h"
 #include "../IO/Log.h"
 #include "../IO/PackageFile.h"
@@ -52,7 +51,7 @@ PackageFile::~PackageFile()
 bool PackageFile::Open(const String& fileName, unsigned startOffset)
 {
     #ifdef ANDROID
-    if (fileName.StartsWith("/apk/"))
+    if (fileName.startsWith("/apk/"))
     {
         LOGERROR("Package files within the apk are not supported on Android");
         return false;

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,10 +44,6 @@ EVENT(E_WINDOWPOS, WindowPos)
     PARAM(P_Y, Y);                          // int
 }
 
-/// Graphics features checked.
-EVENT(E_GRAPHICSFEATURES, GraphicsFeatures)
-{
-}
 
 /// Request for queuing autoupdated rendersurfaces.
 EVENT(E_RENDERSURFACEUPDATE, RenderSurfaceUpdate)
@@ -67,6 +63,7 @@ EVENT(E_ENDRENDERING, EndRendering)
 /// Update of a view started.
 EVENT(E_BEGINVIEWUPDATE, BeginViewUpdate)
 {
+    PARAM(P_VIEW, View);                    // View pointer
     PARAM(P_TEXTURE, Texture);              // Texture pointer
     PARAM(P_SURFACE, Surface);              // RenderSurface pointer
     PARAM(P_SCENE, Scene);                  // Scene pointer
@@ -76,6 +73,7 @@ EVENT(E_BEGINVIEWUPDATE, BeginViewUpdate)
 /// Update of a view ended.
 EVENT(E_ENDVIEWUPDATE, EndViewUpdate)
 {
+    PARAM(P_VIEW, View);                    // View pointer
     PARAM(P_TEXTURE, Texture);              // Texture pointer
     PARAM(P_SURFACE, Surface);              // RenderSurface pointer
     PARAM(P_SCENE, Scene);                  // Scene pointer
@@ -85,6 +83,7 @@ EVENT(E_ENDVIEWUPDATE, EndViewUpdate)
 /// Render of a view started.
 EVENT(E_BEGINVIEWRENDER, BeginViewRender)
 {
+    PARAM(P_VIEW, View);                    // View pointer
     PARAM(P_TEXTURE, Texture);              // Texture pointer
     PARAM(P_SURFACE, Surface);              // RenderSurface pointer
     PARAM(P_SCENE, Scene);                  // Scene pointer
@@ -94,6 +93,7 @@ EVENT(E_BEGINVIEWRENDER, BeginViewRender)
 /// Render of a view ended.
 EVENT(E_ENDVIEWRENDER, EndViewRender)
 {
+    PARAM(P_VIEW, View);                    // View pointer
     PARAM(P_TEXTURE, Texture);              // Texture pointer
     PARAM(P_SURFACE, Surface);              // RenderSurface pointer
     PARAM(P_SCENE, Scene);                  // Scene pointer

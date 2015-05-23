@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,31 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
-#include "../Network/Controls.h"
+#pragma once
 
-#include "../DebugNew.h"
-
-namespace Urho3D
-{
-
-Controls::Controls() :
-    buttons_(0),
-    yaw_(0.f),
-    pitch_(0.f)
-{
-}
-
-Controls::~Controls()
-{
-}
-
-void Controls::Reset()
-{
-    buttons_ = 0;
-    yaw_ = 0.0f;
-    pitch_ = 0.0f;
-    extraData_.clear();
-}
-
-}
+#if defined(URHO3D_OPENGL)
+#include "OpenGL/OGLConstantBuffer.h"
+#elif defined(URHO3D_D3D11)
+#include "Direct3D11/D3D11ConstantBuffer.h"
+#endif

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,6 @@
 //
 
 #pragma once
-
-#include "../Urho3D.h"
 
 namespace Urho3D
 {
@@ -52,7 +50,7 @@ struct RefCount
 };
 
 /// Base class for intrusively reference-counted objects. These are noncopyable and non-assignable.
-class URHO3D_API RefCounted
+class RefCounted
 {
 public:
     /// Construct. Allocate the reference count structure and set an initial self weak reference.

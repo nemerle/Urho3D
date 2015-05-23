@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2014 the Urho3D project.
+# Copyright (c) 2008-2015 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,41 +40,49 @@ if (URHO3D_LUA)
         # When cross-compiling, build the host tool as external project
         include (ExternalProject)
         if (IOS)
-            # For iOS target, its host is MacOSX; Also workaround a known CMake/Xcode generator bug which prevents it from installing binaries correctly
-            set (OSX_HOST -DCMAKE_OSX_SYSROOT=macosx BUILD_COMMAND bash -c "sed -i '' 's/EFFECTIVE_PLATFORM_NAME//g' CMakeScripts/install_postBuildPhase.make*")
+            # For iOS target, ensure the host environment is cleared first; Also workaround a known CMake/Xcode generator bug which prevents it from installing binaries correctly
+            set (IOS_FIX CMAKE_COMMAND /usr/bin/env -i PATH=$ENV{PATH} ${CMAKE_COMMAND} BUILD_COMMAND bash -c "sed -i '' 's/EFFECTIVE_PLATFORM_NAME//g' CMakeScripts/install_postBuildPhase.make*")
         endif ()
-        ExternalProject_Add(tolua++
+        ExternalProject_Add (tolua++
             SOURCE_DIR ${CMAKE_SOURCE_DIR}/Source/ThirdParty/toluapp/src/bin
-            CMAKE_ARGS -DJIT=${JIT} -DDEST_RUNTIME_DIR=${CMAKE_BINARY_DIR}/Bin/tool -DBAKED_CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR} ${OSX_HOST}
-        )
+            CMAKE_ARGS -DURHO3D_LUAJIT=${URHO3D_LUAJIT} -DDEST_RUNTIME_DIR=${CMAKE_BINARY_DIR}/bin/tool -DBAKED_CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR} ${IOS_FIX})
     else ()
         # Otherwise, build it internally as per normal
         add_subdirectory (../ThirdParty/toluapp/src/bin ../ThirdParty/toluapp/src/bin)
     endif ()
 
     # Use the host tool to generate source files for tolua++ API binding
+    file (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/LuaScript/generated)
     file (GLOB API_PKG_FILES LuaScript/pkgs/*.pkg)
     foreach (DIR Navigation Network Physics Urho2D)
         string (TOUPPER URHO3D_${DIR} OPT)
         if (NOT ${OPT})
-            list (REMOVE_ITEM API_PKG_FILES ${CMAKE_CURRENT_SOURCE_DIR}/pkgs/${DIR}LuaAPI.pkg)
+            list (REMOVE_ITEM API_PKG_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LuaScript/pkgs/${DIR}LuaAPI.pkg)
         endif ()
     endforeach ()
     foreach (API_PKG_FILE ${API_PKG_FILES})
         get_filename_component (NAME ${API_PKG_FILE} NAME)
         string (REGEX REPLACE LuaAPI\\.pkg$ "" DIR ${NAME})
-        set (GEN_CPP_FILE generated/${DIR}LuaAPI.cpp)
+        set (GEN_CPP_FILE LuaScript/generated/${DIR}LuaAPI.cpp)
         list (APPEND GEN_CPP_FILES ${GEN_CPP_FILE})
         file (GLOB PKG_FILES LuaScript/pkgs/${DIR}/*.pkg)
         add_custom_command (OUTPUT ${GEN_CPP_FILE}
-            COMMAND ${CMAKE_BINARY_DIR}/Bin/tool/tolua++ -L ToCppHook.lua -o ${CMAKE_CURRENT_BINARY_DIR}/${GEN_CPP_FILE} ${NAME}
+            COMMAND ${CMAKE_BINARY_DIR}/bin/tool/tolua++ -E ${CMAKE_PROJECT_NAME} -L ToCppHook.lua -o ${CMAKE_CURRENT_BINARY_DIR}/${GEN_CPP_FILE} ${NAME}
             DEPENDS tolua++ ${API_PKG_FILE} ${PKG_FILES} LuaScript/pkgs/ToCppHook.lua
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/LuaScript/pkgs
-            COMMENT "Generating tolua++ DIR binding on the fly for ${DIR}")
+            COMMENT "Generating tolua++ API binding on the fly for ${DIR}")
     endforeach ()
 else ()
     list (APPEND EXCLUDED_SOURCE_DIRS LuaScript)
 endif ()
+
+# Generate platform specific export header file
+if (MSVC)
+    set (PRE_EXPORT_HEADER "\n#pragma warning(disable: 4251)\n#pragma warning(disable: 4275)\n")
+endif ()
+generate_export_header (${TARGET_NAME} ${URHO3D_LIB_TYPE} EXPORT_MACRO_NAME URHO3D_API EXPORT_FILE_NAME Urho3D.h.new)
+execute_process (COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h.new ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h)
+file (REMOVE ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h.new)
 
 # Define generated object files
 # This is a hack as it relies on internal working of CMake
@@ -103,6 +111,7 @@ if (MSVC AND URHO3D_LIB_TYPE STREQUAL SHARED)   # MSVC linker does not have forc
             unset (OBJ_FILES)
         endif ()
     endforeach ()
+    set_source_files_properties (${ALL_OBJ_FILES} PROPERTIES GENERATED TRUE)
 endif ()
 
 # Define source files
@@ -117,31 +126,37 @@ foreach (DIR Navigation Network Physics Urho2D)
 endforeach ()
 if (URHO3D_OPENGL)
     # Exclude the opposite source directory
-    list (APPEND EXCLUDED_SOURCE_DIRS Graphics/Direct3D9)
+    list (APPEND EXCLUDED_SOURCE_DIRS Graphics/Direct3D9 Graphics/Direct3D11)
 else ()
     list (APPEND EXCLUDED_SOURCE_DIRS Graphics/OpenGL)
+    if (URHO3D_D3D11)
+        list (APPEND EXCLUDED_SOURCE_DIRS Graphics/Direct3D9)
+    else ()
+        list (APPEND EXCLUDED_SOURCE_DIRS Graphics/Direct3D11)
+    endif ()
 endif ()
 if (APPLE AND NOT IOS)
     set (GLOB_OBJC_PATTERN *.m)     # Should only pick up MacFileWatcher.m for MacOSX platform at the moment
 endif ()
 string (REPLACE ";" "/[^;]+;" EXCLUDE_PATTERNS "${EXCLUDED_SOURCE_DIRS};")
-define_source_files (EXCLUDE_PATTERNS ${EXCLUDE_PATTERNS} GLOB_CPP_PATTERNS *.cpp ${GLOB_OBJC_PATTERN} EXTRA_H_FILES librevision.h RECURSE GROUP PCH)
+define_source_files (EXCLUDE_PATTERNS ${EXCLUDE_PATTERNS} GLOB_CPP_PATTERNS *.cpp ${GLOB_OBJC_PATTERN} EXTRA_H_FILES librevision.h Urho3D.h RECURSE GROUP PCH Precompiled.h)
 list (APPEND SOURCE_FILES ${GEN_CPP_FILES} ${ALL_OBJ_FILES})
-set_source_files_properties (${ALL_OBJ_FILES} PROPERTIES GENERATED TRUE)
 
 # Define dependency libs
 # Add include directories to find the precompiled header, export header, and installed headers from thirdparty libs
-# Hack: the ${CMAKE_CURRENT_SOURCE_DIR}/generated is added so that "../Urho3D.h" include path could be resolved back to CMAKE_CURRENT_BINARY_DIR where this generated header is located
-#       the "../Urho3D.h" relative path is preferred over "Urho3D.h" because we want to avoid adding "include/Urho3D" into the search path when *using* the library
-file (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated)
-set (INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/generated ${CMAKE_BINARY_DIR}/${DEST_INCLUDE_DIR}/ThirdParty)
+set (INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR}/${DEST_INCLUDE_DIR}/ThirdParty)
 if (URHO3D_PHYSICS)
     # Bullet library depends on its own include dir to be added in the header search path
     # This is more practical than patching its header files in many places to make them work with relative path
     list (APPEND INCLUDE_DIRS ${CMAKE_BINARY_DIR}/${DEST_INCLUDE_DIR}/ThirdParty/Bullet)
 endif ()
+if (URHO3D_NAVIGATION)
+    # DetourTileCache and DetourCrowd libraries depend on Detour's include dir to be added in the header search path
+    list (APPEND INCLUDE_DIRS ${CMAKE_BINARY_DIR}/${DEST_INCLUDE_DIR}/ThirdParty/Detour)
+endif ()
 if (URHO3D_LUA)
-    # ditto for Lua/LuaJIT
+    # Lua/LuaJIT library depends on its own include dir to be added in the header search path
+    # This is more practical than patching its header files in many places to make them work with relative path
     list (APPEND INCLUDE_DIRS ${CMAKE_BINARY_DIR}/${DEST_INCLUDE_DIR}/ThirdParty/Lua${JIT})
 endif ()
 
@@ -152,10 +167,12 @@ else ()
     set (OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 endif ()
 set_output_directories (${OUTPUT_PATH} ARCHIVE LIBRARY)
- 
+
 # Setup target
 setup_library (${URHO3D_LIB_TYPE})
-if (NOT ANDROID)
+qt5_use_modules(${TARGET_NAME} Core)
+
+if (NOT ANDROID AND NOT EMSCRIPTEN)
     file (READ .soversion SOVERSION)
     string (STRIP ${SOVERSION} SOVERSION)
     string (REGEX MATCH "([^.]+)\\.([^.]+)\\.(.+)" MATCHED ${SOVERSION})
@@ -166,9 +183,6 @@ if (NOT ANDROID)
     endif ()
 endif ()
 install (TARGETS ${TARGET_NAME} RUNTIME DESTINATION ${DEST_RUNTIME_DIR} LIBRARY DESTINATION ${DEST_LIBRARY_DIR} ARCHIVE DESTINATION ${DEST_LIBRARY_DIR})
-if (NOT GIT_EXIT_CODE EQUAL 0)
-    add_dependencies (${TARGET_NAME} ${STATIC_LIBRARY_TARGETS})
-endif ()
 
 # Setup dependency frameworks and libraries
 if (APPLE)
@@ -210,14 +224,45 @@ if (NOT XCODE AND NOT MSVC)
     if (NOT APPLE)
         set_property (TARGET ${TARGET_NAME} APPEND PROPERTY LINK_LIBRARIES -Wl,--no-whole-archive)
     endif ()
-    if (NOT URHO3D_LIB_TYPE STREQUAL SHARED)    # GCC ar does not take archives directly as input like Apple libtool, however, it can be scripted to do so
+    if (NOT URHO3D_LIB_TYPE STREQUAL SHARED)
         if (APPLE)
+            # Apple libtool takes archives directly as input
             add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
                 COMMAND mv $<TARGET_FILE:${TARGET_NAME}>{,.engine}
                 COMMAND libtool -static $<TARGET_FILE:${TARGET_NAME}>.engine ${ARCHIVES} -o $<TARGET_FILE:${TARGET_NAME}>
                 COMMAND rm $<TARGET_FILE:${TARGET_NAME}>.engine
                 COMMENT "Merging all archives into a single static library using libtool")
+        elseif (EMSCRIPTEN)
+            # Emscripten emar (llvm-ar) neither takes archives directly as input nor supports MRI-style script, so do it the hard way by first extracting the object (bitcode) files and appending them to final archive
+            if (CMAKE_HOST_WIN32)
+                add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E remove_directory archives
+                    COMMAND ${CMAKE_COMMAND} -E echo "Merging all archives into a single static library using emar.bat")
+                foreach (ARCHIVE ${ARCHIVES})
+                    # Merge per library because Window cmd shell does not handle long argument list
+                    add_custom_command (TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory archives)
+                    add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
+                        COMMAND ${CMAKE_AR} x ${ARCHIVE}
+                        COMMAND ${CMAKE_COMMAND} -E echo_append "\\\"${CMAKE_AR}\\\"" q $<TARGET_FILE:${TARGET_NAME}>" " >merge.bat
+                        COMMAND for /F %%i in ('dir /B') do ${CMAKE_COMMAND} -E echo_append %%i" " >>merge.bat
+                        COMMAND merge.bat WORKING_DIRECTORY archives)
+                    add_custom_command (TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E remove_directory archives)
+                endforeach ()
+                add_custom_command (TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_RANLIB} $<TARGET_FILE:${TARGET_NAME}>)
+            else ()
+                add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E remove_directory archives
+                    COMMAND ${CMAKE_COMMAND} -E make_directory archives COMMENT "Merging all archives into a single static library using emar")
+                foreach (ARCHIVE ${ARCHIVES})
+                    add_custom_command (TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_AR} x ${ARCHIVE} WORKING_DIRECTORY archives)
+                endforeach ()
+                add_custom_command (TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_AR} q $<TARGET_FILE:${TARGET_NAME}> `ls -1` WORKING_DIRECTORY archives)
+                add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
+                    COMMAND ${CMAKE_RANLIB} $<TARGET_FILE:${TARGET_NAME}>
+                    COMMAND ${CMAKE_COMMAND} -E remove_directory archives)
+            endif ()
         else ()
+            # GCC ar does not take archives directly as input like Apple libtool, however, it can be scripted to do so
             add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:${TARGET_NAME}> $<TARGET_FILE:${TARGET_NAME}>.engine
                 COMMAND echo CREATE $<TARGET_FILE:${TARGET_NAME}> >script.ar
@@ -247,16 +292,12 @@ if (CMAKE_VERSION VERSION_LESS 2.8.12)
     endif ()
 endif ()
 # end todo
-
-# Generate platform specific export header file automatically
-if (${CMAKE_CURRENT_SOURCE_DIR}/Urho3D.h.in IS_NEWER_THAN ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h)
-    set_target_properties (${TARGET_NAME} PROPERTIES DEFINE_SYMBOL URHO3D_EXPORTS)
-    generate_export_header (${TARGET_NAME} EXPORT_MACRO_NAME URHO3D_API EXPORT_FILE_NAME Urho3D.h)
-    file (READ ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h EXPORT_DEFINE)
-    if (MSVC)
-        string (REPLACE "#define URHO3D_API_H" "#define URHO3D_API_H\n\n#pragma warning(disable: 4251)\n#pragma warning(disable: 4275)" EXPORT_DEFINE ${EXPORT_DEFINE})
+# Use PIC on platforms that support it (shared library type has this property set to true by default, so we only have to deal with those static ones that the shared library links against)
+if (URHO3D_LIB_TYPE STREQUAL SHARED)
+    set_target_properties (${STATIC_LIBRARY_TARGETS} PROPERTIES POSITION_INDEPENDENT_CODE true)
+    if (NOT MSVC AND NOT (CMAKE_CROSSCOMPILING AND MINGW) AND CMAKE_VERSION VERSION_LESS 2.8.9)  # todo: Remove this when CMake minimum version is 2.8.9
+        set_property (TARGET ${STATIC_LIBRARY_TARGETS} APPEND PROPERTY COMPILE_FLAGS -fPIC)
     endif ()
-    configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Urho3D.h.in ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h)
 endif ()
 
 # Install headers for using the Urho3D library
@@ -270,7 +311,7 @@ if (ABSOLUTE_PATH_LIBS)
     string (REPLACE ";" "\" \"" URHO3D_ABS_PATH_LIBS "\"${ABSOLUTE_PATH_LIBS}\"")   # Note: need to always "stringify" a variable in list context for replace to work correctly, besides the list could be empty
     string (REPLACE "${SYSROOT}" "\${pc_sysrootdir}" URHO3D_ABS_PATH_LIBS "${URHO3D_ABS_PATH_LIBS}")
 endif ()
-set (LIB_NAME Urho3D)
+set (LIB_NAME ${TARGET_NAME})
 if (MINGW)
     if (CMAKE_BUILD_TYPE STREQUAL Debug)
         set (LIB_NAME ${LIB_NAME}_d)
@@ -296,22 +337,22 @@ if (GLOBAL_INCLUDE_DIRS)
     string (REPLACE "${SYSROOT}" "" GLOBAL_INCLUDE_DIRS ${GLOBAL_INCLUDE_DIRS})
 endif ()
 set (ENGINE_INCLUDE_DIRS "${DASH}I\"\${includedir}\" ${DASH}I\"\${includedir}/${PATH_SUFFIX}/ThirdParty\"")
+if (URHO3D_PHYSICS)
+    # Bullet library depends on its own include dir to be added in the header search path
+    # This is more practical than patching its header files in many places to make them work with relative path
+    set (ENGINE_INCLUDE_DIRS "${ENGINE_INCLUDE_DIRS} ${DASH}I\"\${includedir}/${PATH_SUFFIX}/ThirdParty/Bullet\"")
+endif ()
+if (URHO3D_LUA)
+    # ditto for Lua/LuaJIT
+    set (ENGINE_INCLUDE_DIRS "${ENGINE_INCLUDE_DIRS} ${DASH}I\"\${includedir}/${PATH_SUFFIX}/ThirdParty/Lua${JIT}\"")
+endif ()
+# todo: Reevaluate the command below when the CMake minimum required version is set to 2.8.12 (and remove only when the deprected add_compiler_export_flags() is not used anymore)
+string (REGEX REPLACE " -fvisibility[^ ]+" "" CLEANED_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})   # Remove visibility compiler options that are only used for building the library
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Urho3D.pc.in ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.pc @ONLY)
 if (ANDROID)
     set (RENAME RENAME Urho3D-${ANDROID_NDK_ABI_NAME}.pc)
 endif ()
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.pc DESTINATION ${DEST_PKGCONFIG_DIR} ${RENAME})
-
-# Setup the compiler flags for building shared library (do this here so that it does not interfere with the pkg-config file generation above)
-if (URHO3D_LIB_TYPE STREQUAL SHARED)
-    # Hide the symbols that are not explicitly marked for export
-    add_compiler_export_flags ()
-    # Use PIC on platforms that support it (shared library type has this property set to true by default, so we only have to deal with those static ones that the shared library links against)
-    set_target_properties (${STATIC_LIBRARY_TARGETS} PROPERTIES POSITION_INDEPENDENT_CODE true)
-    if (NOT MSVC AND NOT (CMAKE_CROSSCOMPILING AND MINGW) AND CMAKE_VERSION VERSION_LESS 2.8.9)  # todo: Remove this when CMake minimum version is 2.8.9
-        set_property (TARGET ${STATIC_LIBRARY_TARGETS} APPEND PROPERTY COMPILE_FLAGS -fPIC)
-    endif ()
-endif ()
 
 # Define post build steps
 if (ANDROID_NDK_GDB)

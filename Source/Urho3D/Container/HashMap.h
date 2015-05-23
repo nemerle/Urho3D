@@ -22,6 +22,7 @@ using HashMap = ::QHash<T,U> ;
 #define MAP_VALUE(i) (i->second)
 #define MAP_KEY(i) (i->first)
 #define ELEMENT_VALUE(e) e.second
+#define ELEMENT_KEY(e) e.first
 
 template <typename T,typename U>
 class HashMap : public std::unordered_map<T,U> {

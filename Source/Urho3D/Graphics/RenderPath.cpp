@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ static const char* commandTypeNames[] =
     "quad",
     "forwardlights",
     "lightvolumes",
+    "renderui",
     nullptr
 };
 
@@ -59,6 +60,8 @@ void RenderTargetInfo::Load(const XMLElement& element)
     tag_ = element.GetAttribute("tag");
     if (element.HasAttribute("enabled"))
         enabled_ = element.GetBool("enabled");
+    if (element.HasAttribute("cubemap"))
+        cubemap_ = element.GetBool("cubemap");
 
     String formatName = element.GetAttribute("format");
     format_ = Graphics::GetFormat(formatName);
@@ -169,9 +172,12 @@ void RenderPathCommand::Load(const XMLElement& element)
     }
 
     // By default use 1 output, which is the viewport
-    outputNames_.push_back("viewport");
+    outputs_.resize(1);
+    outputs_[0] = MakePair(String("viewport"), FACE_POSITIVE_X);
     if (element.HasAttribute("output"))
-        outputNames_[0] = element.GetAttribute("output");
+        outputs_[0].first_ = element.GetAttribute("output");
+    if (element.HasAttribute("face"))
+        outputs_[0].second_ = (CubeMapFace)element.GetInt("face");
     if (element.HasAttribute("depthstencil"))
         depthStencilName_ = element.GetAttribute("depthstencil");
     // Check for defining multiple outputs
@@ -181,9 +187,10 @@ void RenderPathCommand::Load(const XMLElement& element)
         unsigned index = outputElem.GetInt("index");
         if (index < MAX_RENDERTARGETS)
         {
-            if (index >= outputNames_.size())
-                outputNames_.resize(index + 1);
-            outputNames_[index] = outputElem.GetAttribute("name");
+            if (index >= outputs_.size())
+                outputs_.resize(index + 1);
+            outputs_[index].first_ = outputElem.GetAttribute("name");
+            outputs_[index].second_ = outputElem.HasAttribute("face") ? (CubeMapFace)outputElem.GetInt("face") : FACE_POSITIVE_X;
         }
         outputElem = outputElem.GetNext("output");
     }
@@ -223,17 +230,32 @@ void RenderPathCommand::RemoveShaderParameter(const String& name)
 void RenderPathCommand::SetNumOutputs(unsigned num)
 {
     num = Clamp((int)num, 1, MAX_RENDERTARGETS);
-    outputNames_.resize(num);
+    outputs_.resize(num);
+}
+
+void RenderPathCommand::SetOutput(unsigned index, const String& name, CubeMapFace face)
+{
+    if (index < outputs_.size())
+        outputs_[index] = MakePair(name, face);
+    else if (index == outputs_.size() && index < MAX_RENDERTARGETS)
+        outputs_.push_back(MakePair(name, face));
 }
 
 void RenderPathCommand::SetOutputName(unsigned index, const String& name)
 {
-    if (index < outputNames_.size())
-        outputNames_[index] = name;
-    else if (index == outputNames_.size() && index < MAX_RENDERTARGETS)
-        outputNames_.push_back(name);
+    if (index < outputs_.size())
+        outputs_[index].first_ = name;
+    else if (index == outputs_.size() && index < MAX_RENDERTARGETS)
+        outputs_.push_back(MakePair(name, FACE_POSITIVE_X));
 }
 
+void RenderPathCommand::SetOutputFace(unsigned index, CubeMapFace face)
+{
+    if (index < outputs_.size())
+        outputs_[index].second_ = face;
+    else if (index == outputs_.size() && index < MAX_RENDERTARGETS)
+        outputs_.push_back(MakePair(String::EMPTY, face));
+}
 void RenderPathCommand::SetDepthStencilName(const String& name)
 {
     depthStencilName_ = name;
@@ -252,7 +274,12 @@ const Variant& RenderPathCommand::GetShaderParameter(const String& name) const
 
 const String& RenderPathCommand::GetOutputName(unsigned index) const
 {
-    return index < outputNames_.size() ? outputNames_[index] : String::EMPTY;
+    return index < outputs_.size() ? outputs_[index].first_ : String::EMPTY;
+}
+
+CubeMapFace RenderPathCommand::GetOutputFace(unsigned index) const
+{
+    return index < outputs_.size() ? outputs_[index].second_ : FACE_POSITIVE_X;
 }
 
 RenderPath::RenderPath()

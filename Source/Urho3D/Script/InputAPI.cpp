@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Script/APITemplates.h"
+#include "../Input/Controls.h"
 #include "../Input/Input.h"
 
 namespace Urho3D
@@ -30,6 +30,37 @@ namespace Urho3D
 void FakeAddRef(void* ptr);
 void FakeReleaseRef(void* ptr);
 
+static void ConstructControls(Controls* ptr)
+{
+    new(ptr)Controls();
+}
+
+static void ConstructControlsCopy(const Controls& controls, Controls* ptr)
+{
+    new(ptr)Controls(controls);
+}
+
+static void DestructControls(Controls* ptr)
+{
+    ptr->~Controls();
+}
+
+static void RegisterControls(asIScriptEngine* engine)
+{
+    engine->RegisterObjectType("Controls", sizeof(Controls), asOBJ_VALUE | asOBJ_APP_CLASS_CDK);
+    engine->RegisterObjectBehaviour("Controls", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructControls), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour("Controls", asBEHAVE_CONSTRUCT, "void f(const Controls&in)", asFUNCTION(ConstructControlsCopy), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour("Controls", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructControls), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Controls", "Controls& opAssign(const Controls&in)", asMETHOD(Controls, operator =), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Controls", "void Reset()", asMETHOD(Controls, Reset), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Controls", "void Set(uint, bool)", asMETHOD(Controls, Set), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Controls", "bool IsDown(uint) const", asMETHOD(Controls, IsDown), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Controls", "bool IsPressed(uint, const Controls&in) const", asMETHOD(Controls, IsPressed), asCALL_THISCALL);
+    engine->RegisterObjectProperty("Controls", "uint buttons", offsetof(Controls, buttons_));
+    engine->RegisterObjectProperty("Controls", "float yaw", offsetof(Controls, yaw_));
+    engine->RegisterObjectProperty("Controls", "float pitch", offsetof(Controls, pitch_));
+    engine->RegisterObjectProperty("Controls", "VariantMap extraData", offsetof(Controls, extraData_));
+}
 static void RegisterInputConstants(asIScriptEngine* engine)
 {
     engine->RegisterGlobalProperty("const int MOUSEB_LEFT", (void*)&MOUSEB_LEFT);
@@ -554,6 +585,7 @@ static void RegisterInput(asIScriptEngine* engine)
 
 void RegisterInputAPI(asIScriptEngine* engine)
 {
+    RegisterControls(engine);
     RegisterInputConstants(engine);
     RegisterInput(engine);
 }

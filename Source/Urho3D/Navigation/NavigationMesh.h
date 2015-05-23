@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../Container/ArrayPtr.h"
+#include "../Container/Pair.h"
 #include "../Math/BoundingBox.h"
 #include "../Scene/Component.h"
 #include "../Math/Matrix3x4.h"
@@ -31,14 +32,27 @@
 class dtNavMesh;
 class dtNavMeshQuery;
 class dtQueryFilter;
+struct dtNavMeshCreateParams;
+class rcContext;
+struct rcHeightfield;
+struct rcCompactHeightfield;
+struct rcContourSet;
+struct rcPolyMesh;
+struct rcPolyMeshDetail;
+struct rcHeightFieldLayerSet;
 
 namespace Urho3D
 {
 
+enum NavmeshPartitionType
+{
+    NAVMESH_PARTITION_WATERSHED = 0,
+    NAVMESH_PARTITION_MONOTONE
+};
 class Geometry;
 
 struct FindPathData;
-struct NavigationBuildData;
+struct NavBuildData;
 
 /// Description of a navigation mesh geometry component, with transform and bounds information.
 struct NavigationGeometryInfo
@@ -57,6 +71,7 @@ struct NavigationGeometryInfo
 class URHO3D_API NavigationMesh : public Component
 {
     OBJECT(NavigationMesh);
+    friend class DetourCrowdManager;
 
 public:
     /// Construct.
@@ -97,16 +112,18 @@ public:
     void SetDetailSampleMaxError(float error);
     /// Set padding of the navigation mesh bounding box. Having enough padding allows to add geometry on the extremities of the navigation mesh when doing partial rebuilds.
     void SetPadding(const Vector3& padding);
+    /// Set the cost of an area.
+    void SetAreaCost(unsigned areaID, float cost);
     /// Rebuild the navigation mesh. Return true if successful.
-    bool Build();
+    virtual bool Build();
     /// Rebuild part of the navigation mesh contained by the world-space bounding box. Return true if successful.
-    bool Build(const BoundingBox& boundingBox);
+    virtual bool Build(const BoundingBox& boundingBox);
     /// Find the nearest point on the navigation mesh to a given point. Extens specifies how far out from the specified point to check along each axis.
     Vector3 FindNearestPoint(const Vector3& point, const Vector3& extents=Vector3::ONE);
-    /// Try to move along the surface from one point to another
+    /// Try to move along the surface from one point to another.
     Vector3 MoveAlongSurface(const Vector3& start, const Vector3& end, const Vector3& extents=Vector3::ONE, int maxVisited=3);
     /// Find a path between world space points. Return non-empty list of points if successful. Extents specifies how far off the navigation mesh the points can be.
-    void FindPath(PODVector<Vector3>& dest, const Vector3& start, const Vector3& end, const Vector3& extents = Vector3::ONE);
+    void FindPath( std::deque<Vector3> &dest, const Vector3& start, const Vector3& end, const Vector3& extents = Vector3::ONE);
     /// Return a random point on the navigation mesh.
     Vector3 GetRandomPoint();
     /// Return a random point on the navigation mesh within a circle. The circle radius is only a guideline and in practice the returned point may be further away.
@@ -118,6 +135,10 @@ public:
     /// Add debug geometry to the debug renderer.
     void DrawDebugGeometry(bool depthTest);
 
+    /// Return the given name of this navigation mesh.
+    String GetMeshName() const { return meshName_; }
+    /// Set the name of this navigation mesh.
+    void SetMeshName(const String& newName);
     /// Return tile size.
     int GetTileSize() const { return tileSize_; }
     /// Return cell size.
@@ -146,6 +167,8 @@ public:
     float GetDetailSampleMaxError() const { return detailSampleMaxError_; }
     /// Return navigation mesh bounding box padding.
     const Vector3& GetPadding() const { return padding_; }
+    /// Get the current cost of an area
+    float GetAreaCost(unsigned areaID) const;
     /// Return whether has been initialized with valid navigation data.
     bool IsInitialized() const { return navMesh_ != 0; }
     /// Return local space bounding box of the navigation mesh.
@@ -155,27 +178,43 @@ public:
     /// Return number of tiles.
     IntVector2 GetNumTiles() const { return IntVector2(numTilesX_, numTilesZ_); }
 
+    /// Set the partition type used for polygon generation.
+    void SetPartitionType(NavmeshPartitionType aType);
+    /// Return Partition Type.
+    NavmeshPartitionType GetPartitionType() const { return partitionType_; }
     /// Set navigation data attribute.
-    void SetNavigationDataAttr(const PODVector<unsigned char>& value);
+    virtual void SetNavigationDataAttr(const PODVector<unsigned char>& value);
     /// Return navigation data attribute.
-    PODVector<unsigned char> GetNavigationDataAttr() const;
+    virtual PODVector<unsigned char> GetNavigationDataAttr() const;
 
-private:
+    /// Draw debug geometry for OffMeshConnection components.
+    void SetDrawOffMeshConnections(bool enable) { drawOffMeshConnections_ = enable; }
+    /// Return whether to draw OffMeshConnection components.
+    bool GetDrawOffMeshConnections() const { return drawOffMeshConnections_; }
+
+    /// Draw debug geometry for NavArea components.
+    void SetDrawNavAreas(bool enable) { drawNavAreas_ = enable; }
+    /// Return whether to draw NavArea components.
+    bool GetDrawNavAreas() const { return drawNavAreas_; }
+
+protected:
     /// Collect geometry from under Navigable components.
     void CollectGeometries(Vector<NavigationGeometryInfo>& geometryList);
     /// Visit nodes and collect navigable geometry.
     void CollectGeometries(Vector<NavigationGeometryInfo>& geometryList, Node* node, QSet<Node *> &processedNodes, bool recursive);
     /// Get geometry data within a bounding box.
-    void GetTileGeometry(NavigationBuildData& build, Vector<NavigationGeometryInfo>& geometryList, BoundingBox& box);
+    void GetTileGeometry(NavBuildData* build, Vector<NavigationGeometryInfo>& geometryList, BoundingBox& box);
     /// Add a triangle mesh to the geometry data.
-    void AddTriMeshGeometry(NavigationBuildData& build, Geometry* geometry, const Matrix3x4& transform);
+    void AddTriMeshGeometry(NavBuildData* build, Geometry* geometry, const Matrix3x4& transform);
     /// Build one tile of the navigation mesh. Return true if successful.
-    bool BuildTile(Vector<NavigationGeometryInfo>& geometryList, int x, int z);
+    virtual bool BuildTile(Vector<NavigationGeometryInfo>& geometryList, int x, int z);
     /// Ensure that the navigation mesh query is initialized. Return true if successful.
     bool InitializeQuery();
     /// Release the navigation mesh and the query.
-    void ReleaseNavigationMesh();
+    virtual void ReleaseNavigationMesh();
 
+    /// Identifying name for this navigation mesh.
+    String meshName_;
     /// Detour navigation mesh.
     dtNavMesh* navMesh_;
     /// Detour navigation mesh query.
@@ -218,6 +257,17 @@ private:
     int numTilesZ_;
     /// Whole navigation mesh bounding box.
     BoundingBox boundingBox_;
+    /// Type of the heightfield partitioning.
+    NavmeshPartitionType partitionType_;
+    /// Keep internal build resources for debug draw modes.
+    bool keepInterResults_;
+    /// Internal build resources for creating the navmesh.
+    HashMap<Pair<int, int>, NavBuildData*> builds_;
+
+    /// Debug draw OffMeshConnection components.
+    bool drawOffMeshConnections_;
+    /// Debug draw NavArea components.
+    bool drawNavAreas_;
 };
 
 /// Register Navigation library objects.

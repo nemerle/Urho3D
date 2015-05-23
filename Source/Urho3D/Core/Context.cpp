@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../Core/Thread.h"
 
@@ -170,7 +169,6 @@ void Context::CopyBaseAttributes(StringHash baseType, StringHash derivedType)
         return;
 
     Vector<AttributeInfo> &target(attributes_[derivedType]);
-    baseAttributes = GetAttributes(baseType);
 
     for (const AttributeInfo& attr : *baseAttributes)
     {

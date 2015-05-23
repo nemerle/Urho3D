@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/Camera.h"
 #include "../Core/CoreEvents.h"
 #include "../Graphics/DebugRenderer.h"
@@ -261,7 +260,6 @@ Renderer::Renderer(Context* context) :
     shadowQuality_(SHADOWQUALITY_HIGH_16BIT),
     maxShadowMaps_(1),
     minInstances_(2),
-    maxInstanceTriangles_(500),
     maxSortedInstances_(1000),
     maxOccluderTriangles_(5000),
     occlusionBufferSize_(256),
@@ -281,7 +279,6 @@ Renderer::Renderer(Context* context) :
     resetViews_(false)
 {
     SubscribeToEvent(E_SCREENMODE, HANDLER(Renderer, HandleScreenMode));
-    SubscribeToEvent(E_GRAPHICSFEATURES, HANDLER(Renderer, HandleGraphicsFeatures));
 
     // Try to initialize right now, but skip if screen mode is not yet set
     Initialize();
@@ -439,10 +436,6 @@ void Renderer::SetMinInstances(int instances)
     minInstances_ = Max(instances, 2);
 }
 
-void Renderer::SetMaxInstanceTriangles(int triangles)
-{
-    maxInstanceTriangles_ = Max(triangles, 0);
-}
 
 void Renderer::SetMaxSortedInstances(int instances)
 {
@@ -530,7 +523,7 @@ unsigned Renderer::GetNumShadowMaps(bool allViews) const
 
         const Vector<LightBatchQueue>& lightQueues = views_[i]->GetLightQueues();
 
-        for (const auto & lightQueue : lightQueues)
+        for (const LightBatchQueue & lightQueue : lightQueues)
         {
             if (lightQueue.shadowMap_)
                 ++numShadowMaps;
@@ -632,20 +625,11 @@ void Renderer::Update(float timeStep)
                 debug->SetView(viewport->GetCamera());
         }
 
-        // Update view. This may queue further views
-        using namespace BeginViewUpdate;
-
-        VariantMap& eventData = GetEventDataMap();
-        eventData[P_SURFACE] = renderTarget.Get();
-        eventData[P_TEXTURE] = (renderTarget ? renderTarget->GetParentTexture() : nullptr);
-        eventData[P_SCENE] = scene;
-        eventData[P_CAMERA] = viewport->GetCamera();
-        SendEvent(E_BEGINVIEWUPDATE, eventData);
+        // Update view. This may queue further views. View will send update begin/end events once its state is set
 
         ResetShadowMapAllocations(); // Each view can reuse the same shadow maps
         view->Update(frame_);
 
-        SendEvent(E_ENDVIEWUPDATE, eventData);
     }
 
     // Reset update flag from queued render surfaces. At this point no new views can be added on this frame
@@ -673,7 +657,6 @@ void Renderer::Render()
 
     graphics_->SetDefaultTextureFilterMode(textureFilterMode_);
     graphics_->SetTextureAnisotropy(textureAnisotropy_);
-    graphics_->ClearParameterSources();
 
     // If no views, just clear the screen
     if (views_.empty())
@@ -702,6 +685,7 @@ void Renderer::Render()
             RenderSurface* renderTarget = views_[i]->GetRenderTarget();
 
             VariantMap& eventData = GetEventDataMap();
+            eventData[P_VIEW] = views_[i];
             eventData[P_SURFACE] = renderTarget;
             eventData[P_TEXTURE] = (renderTarget ? renderTarget->GetParentTexture() : nullptr);
             eventData[P_SCENE] = views_[i]->GetScene();
@@ -729,8 +713,8 @@ void Renderer::DrawDebugGeometry(bool depthTest)
     PROFILE(RendererDrawDebug);
 
     /// \todo Because debug geometry is per-scene, if two cameras show views of the same area, occlusion is not shown correctly
-    QSet<Drawable*> processedGeometries;
-    QSet<Light*> processedLights;
+    HashSet<Drawable*> processedGeometries;
+    HashSet<Light*> processedLights;
 
     for (unsigned i = 0; i < views_.size(); ++i)
     {
@@ -904,13 +888,12 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
         }
         else
         {
-            #ifdef URHO3D_OPENGL
             #ifndef GL_ES_VERSION_2_0
-            // OpenGL (desktop): shadow compare mode needs to be specifically enabled for the shadow map
+            // OpenGL (desktop) and D3D11: shadow compare mode needs to be specifically enabled for the shadow map
             newShadowMap->SetFilterMode(FILTER_BILINEAR);
             newShadowMap->SetShadowCompare(true);
             #endif
-            #else
+            #ifndef URHO3D_OPENGL
             // Direct3D9: when shadow compare must be done manually, use nearest filtering so that the filtering of point lights
             // and other shadowed lights matches
             newShadowMap->SetFilterMode(graphics_->GetHardwareShadowSupport() ? FILTER_BILINEAR : FILTER_NEAREST);
@@ -943,7 +926,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     return newShadowMap;
 }
 
-Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, bool filtered, bool srgb, unsigned persistentKey)
+Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, bool cubemap, bool filtered, bool srgb, unsigned persistentKey)
 {
     bool depthStencil = (format == Graphics::GetDepthStencilFormat()) || (format == Graphics::GetReadableDepthFormat());
     if (depthStencil)
@@ -952,11 +935,15 @@ Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, boo
         srgb = false;
     }
 
+    if (cubemap)
+        height = width;
     long long searchKey = ((long long)format << 32) | (width << 16) | height;
     if (filtered)
         searchKey |= 0x8000000000000000LL;
     if (srgb)
         searchKey |= 0x4000000000000000LL;
+    if (cubemap)
+        searchKey |= 0x2000000000000000LL;
 
     // Add persistent key if defined
     if (persistentKey)
@@ -973,12 +960,12 @@ Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, boo
 
     if (allocations >= screenBuffers_[searchKey].size())
     {
-        SharedPtr<Texture2D> newBuffer(new Texture2D(context_));
-        newBuffer->SetSRGB(srgb);
-        newBuffer->SetSize(width, height, format, depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET);
-        newBuffer->SetFilterMode(filtered ? FILTER_BILINEAR : FILTER_NEAREST);
-        newBuffer->ResetUseTimer();
-        screenBuffers_[searchKey].push_back(newBuffer);
+        SharedPtr<Texture> newBuffer;
+
+        if (!cubemap)
+        {
+            SharedPtr<Texture2D> newTex2D(new Texture2D(context_));
+            newTex2D->SetSize(width, height, format, depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET);
         #ifdef URHO3D_OPENGL
         // OpenGL hack: clear persistent floating point screen buffers to ensure the initial contents aren't illegal (NaN)?
         // Otherwise eg. the AutoExposure post process will not work correctly
@@ -986,19 +973,33 @@ Texture2D* Renderer::GetScreenBuffer(int width, int height, unsigned format, boo
         {
             // Note: this loses current rendertarget assignment
             graphics_->ResetRenderTargets();
-            graphics_->SetRenderTarget(0, newBuffer);
+            graphics_->SetRenderTarget(0, newTex2D);
             graphics_->SetDepthStencil((RenderSurface*)nullptr);
             graphics_->SetViewport(IntRect(0, 0, width, height));
             graphics_->Clear(CLEAR_COLOR);
         }
         #endif
+            newBuffer = StaticCast<Texture>(newTex2D);
+        }
+        else
+        {
+            SharedPtr<TextureCube> newTexCube(new TextureCube(context_));
+            newTexCube->SetSize(width, format, TEXTURE_RENDERTARGET);
+
+            newBuffer = StaticCast<Texture>(newTexCube);
+        }
+
+        newBuffer->SetSRGB(srgb);
+        newBuffer->SetFilterMode(filtered ? FILTER_BILINEAR : FILTER_NEAREST);
+        newBuffer->ResetUseTimer();
+        screenBuffers_[searchKey].push_back(newBuffer);
 
         LOGDEBUG("Allocated new screen buffer size " + String(width) + "x" + String(height) + " format " + String(format));
         return newBuffer;
     }
     else
     {
-        Texture2D* buffer = screenBuffers_[searchKey][allocations];
+        Texture* buffer = screenBuffers_[searchKey][allocations];
         buffer->ResetUseTimer();
         return buffer;
     }
@@ -1011,7 +1012,10 @@ RenderSurface* Renderer::GetDepthStencil(int width, int height)
     if (width == graphics_->GetWidth() && height == graphics_->GetHeight() && graphics_->GetMultiSample() <= 1)
         return nullptr;
     else
-        return GetScreenBuffer(width, height, Graphics::GetDepthStencilFormat(), false, false)->GetRenderSurface();
+    {
+        return static_cast<Texture2D*>(GetScreenBuffer(width, height, Graphics::GetDepthStencilFormat(), false, false, false))->
+            GetRenderSurface();
+    }
 }
 
 OcclusionBuffer* Renderer::GetOcclusionBuffer(Camera* camera)
@@ -1064,7 +1068,7 @@ void Renderer::SetBatchShaders(Batch& batch, const Technique* tech, bool allowSh
     {
         // First release all previous shaders, then load
         pass->ReleaseShaders();
-        LoadPassShaders(tech, pass->GetType());
+        LoadPassShaders(pass);
     }
 
     // Make sure shaders are loaded now
@@ -1072,10 +1076,8 @@ void Renderer::SetBatchShaders(Batch& batch, const Technique* tech, bool allowSh
     {
         bool heightFog = batch.zone_ && batch.zone_->GetHeightFog();
 
-        // If instancing is not supported, but was requested, or the object is too large to be instanced,
-        // choose static geometry vertex shader instead
-        if (batch.geometryType_ == GEOM_INSTANCED && (!GetDynamicInstancing() || batch.geometry_->GetIndexCount() >
-            (unsigned)maxInstanceTriangles_ * 3))
+        // If instancing is not supported, but was requested, choose static geometry vertex shader instead
+        if (batch.geometryType_ == GEOM_INSTANCED && !GetDynamicInstancing())
             batch.geometryType_ = GEOM_STATIC;
 
         if (batch.geometryType_ == GEOM_STATIC_NOINSTANCING)
@@ -1166,7 +1168,7 @@ void Renderer::SetBatchShaders(Batch& batch, const Technique* tech, bool allowSh
     }
 }
 
-void Renderer::SetLightVolumeBatchShaders(Batch& batch, const String& vsName, const String& psName)
+void Renderer::SetLightVolumeBatchShaders(Batch& batch, const String& vsName, const String& psName, const String& vsDefines, const String& psDefines)
 {
     assert(deferredLightPSVariations_.size());
 
@@ -1204,7 +1206,13 @@ void Renderer::SetLightVolumeBatchShaders(Batch& batch, const String& vsName, co
         psi += DLPS_ORTHO;
     }
 
+    if (vsDefines.length())
+        batch.vertexShader_ = graphics_->GetShader(VS, vsName, deferredLightVSVariations[vsi] + vsDefines);
+    else
     batch.vertexShader_ = graphics_->GetShader(VS, vsName, deferredLightVSVariations[vsi]);
+    if (psDefines.length())
+        batch.pixelShader_ = graphics_->GetShader(PS, psName, deferredLightPSVariations_[psi] + psDefines);
+    else
     batch.pixelShader_ = graphics_->GetShader(PS, psName, deferredLightPSVariations_[psi]);
 }
 
@@ -1268,7 +1276,6 @@ void Renderer::OptimizeLightByScissor(Light* light, Camera* camera)
 
 void Renderer::OptimizeLightByStencil(Light* light, Camera* camera)
 {
-    #ifndef GL_ES_VERSION_2_0
     if (light)
     {
         LightType type = light->GetLightType();
@@ -1334,7 +1341,6 @@ void Renderer::OptimizeLightByStencil(Light* light, Camera* camera)
     }
     else
         graphics_->SetStencilTest(false);
-    #endif
 }
 
 const Rect& Renderer::GetLightScissor(Light* light, Camera* camera)
@@ -1381,10 +1387,10 @@ void Renderer::RemoveUnusedBuffers()
 
     for (auto i = screenBuffers_.begin(); i != screenBuffers_.end();)
     {
-        Vector<SharedPtr<Texture2D> >& buffers = MAP_VALUE(i);
+        Vector<SharedPtr<Texture> >& buffers = MAP_VALUE(i);
         for (unsigned j = buffers.size() - 1; j < buffers.size(); --j)
         {
-            Texture2D* buffer = buffers[j];
+            Texture* buffer = buffers[j];
             if (buffer->GetUseTimer() > MAX_BUFFER_AGE)
             {
                 LOGDEBUG("Removed unused screen buffer size " + String(buffer->GetWidth()) + "x" + String(buffer->GetHeight()) + " format " + String(buffer->GetFormat()));
@@ -1475,11 +1481,8 @@ void Renderer::LoadShaders()
     shadersDirty_ = false;
 }
 
-void Renderer::LoadPassShaders(const Technique* tech, StringHash type)
+void Renderer::LoadPassShaders(Pass* pass)
 {
-    Pass* pass = tech->GetPass(type);
-    if (!pass)
-        return;
 
     PROFILE(LoadPassShaders);
 
@@ -1704,11 +1707,8 @@ void Renderer::CreateInstancingBuffer()
         return;
     }
 
-    // If must lock the buffer for each batch group, set a smaller size
-    unsigned defaultSize = graphics_->GetStreamOffsetSupport() ? INSTANCING_BUFFER_DEFAULT_SIZE : INSTANCING_BUFFER_DEFAULT_SIZE / 4;
-
     instancingBuffer_ = new VertexBuffer(context_);
-    if (!instancingBuffer_->SetSize(defaultSize, INSTANCING_BUFFER_MASK, true))
+    if (!instancingBuffer_->SetSize(INSTANCING_BUFFER_DEFAULT_SIZE, INSTANCING_BUFFER_MASK, true))
     {
         instancingBuffer_.Reset();
         dynamicInstancing_ = false;
@@ -1735,13 +1735,6 @@ void Renderer::HandleScreenMode(StringHash eventType, VariantMap& eventData)
         Initialize();
     else
         resetViews_ = true;
-}
-
-void Renderer::HandleGraphicsFeatures(StringHash eventType, VariantMap& eventData)
-{
-    // Reinitialize if already initialized
-    if (initialized_)
-        Initialize();
 }
 
 void Renderer::HandleRenderUpdate(StringHash eventType, VariantMap& eventData)

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -95,7 +95,7 @@ public:
     /// Return raw vertex and index data for CPU operations, or null pointers if not available.
     void GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsigned& vertexSize, SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, unsigned& elementMask) const;
     /// Return ray hit distance or infinity if no hit. Requires raw data to be set. Optionally return hit normal.
-    float GetHitDistance(const Ray& ray, Vector3* outNormal = 0) const;
+    float GetHitDistance(const Ray& ray, Vector3* outNormal = nullptr) const;
     /// Return whether or not the ray is inside geometry.
     bool IsInside(const Ray& ray) const;
     /// Return whether has empty draw range.

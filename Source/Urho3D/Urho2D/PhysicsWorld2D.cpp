@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../Graphics/DebugRenderer.h"
 #include "../Graphics/Graphics.h"
@@ -224,7 +223,7 @@ void PhysicsWorld2D::DrawTransform(const b2Transform& xf)
 
 void PhysicsWorld2D::Update(float timeStep)
 {
-    using namespace Physics2DPreStep2D;
+    using namespace PhysicsPreStep2D;
 
     VariantMap& eventData = GetEventDataMap();
     eventData[P_WORLD] = this;
@@ -369,7 +368,7 @@ public:
     }
 
     // Called for each fixture found in the query.
-    virtual float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float32 fraction) override
+    virtual float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float32 fraction)
     {
         // Ignore sensor
         if (fixture->IsSensor())
@@ -419,7 +418,7 @@ public:
     }
 
     // Called for each fixture found in the query.
-    virtual float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float32 fraction) override
+    virtual float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float32 fraction)
     {
         // Ignore sensor
         if (fixture->IsSensor())
@@ -466,8 +465,8 @@ class PointQueryCallback : public b2QueryCallback
 {
 public:
     // Construct.
-    PointQueryCallback(b2Vec2  point, unsigned collisionMask) :
-        point_(std::move(point)),
+    PointQueryCallback(const b2Vec2& point, unsigned collisionMask) :
+        point_(point),
         collisionMask_(collisionMask),
         rigidBody_(nullptr)
     {

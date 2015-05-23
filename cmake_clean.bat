@@ -1,5 +1,5 @@
 ::
-:: Copyright (c) 2008-2014 the Urho3D project.
+:: Copyright (c) 2008-2015 the Urho3D project.
 ::
 :: Permission is hereby granted, free of charge, to any person obtaining a copy
 :: of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,6 @@ cmake -E touch "%BUILD%\CMakeCache.txt"
 
 goto :eof
 :error
-echo An error has occured, build tree has to be provided as the first argument OR call this script in a build tree itself
+echo Usage: %~nx0 \path\to\build-tree
 exit /B 1
 :eof

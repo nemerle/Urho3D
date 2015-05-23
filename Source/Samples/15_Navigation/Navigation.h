@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "Sample.h"
+#include <deque>
 
 namespace Urho3D
 {
@@ -50,11 +51,11 @@ public:
     Navigation(Context* context);
 
     /// Setup after engine initialization and before running the main loop.
-    virtual void Start();
+    virtual void Start() override;
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const { return
+    virtual String GetScreenJoystickPatchString() const override { return
         "<patch>"
         "    <add sel=\"/element\">"
         "        <element type=\"Button\">"
@@ -152,7 +153,7 @@ private:
     void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
 
     /// Last calculated path.
-    PODVector<Vector3> currentPath_;
+    std::deque<Vector3> currentPath_;
     /// Path end position.
     Vector3 endPos_;
     /// Jack scene node.

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../../IO/File.h"
 #include "../../IO/FileSystem.h"
 #include "../../Graphics/Graphics.h"
@@ -67,13 +66,9 @@ bool ShaderVariation::Create()
     }
 
     // Check for up-to-date bytecode on disk
-    bool useSM3 = graphics_->GetSM3Support();
     String path, name, extension;
     SplitPath(owner_->GetName(), path, name, extension);
-    if (useSM3)
-        extension = type_ == VS ? ".vs3" : ".ps3";
-    else
-        extension = type_ == VS ? ".vs2" : ".ps2";
+    extension = type_ == VS ? ".vs3" : ".ps3";
     
     String binaryShaderName = path + "Cache/" + name + "_" + StringHash(defines_).ToString() + extension;
     PODVector<unsigned> byteCode;
@@ -115,6 +110,8 @@ void ShaderVariation::Release()
         if (!graphics_)
             return;
         
+        graphics_->CleanupShaderPrograms(this);
+
         if (type_ == VS)
         {
             if (graphics_->GetVertexShader() == this)
@@ -129,7 +126,7 @@ void ShaderVariation::Release()
             
             ((IDirect3DPixelShader9*)object_)->Release();
         }
-        
+
         object_ = 0;
     }
     
@@ -186,12 +183,9 @@ bool ShaderVariation::LoadByteCode(PODVector<unsigned>& byteCode, const String& 
         String name = file->ReadString();
         unsigned reg = file->ReadUByte();
         unsigned regCount = file->ReadUByte();
-        
+
         ShaderParameter parameter(type_, name, reg, regCount);
-        HashMap<StringHash, ShaderParameter>::Iterator j = parameters_.Insert(MakePair(StringHash(name), parameter));
-        
-        // Register the parameter globally
-        graphics_->RegisterShaderParameter(j->first_, j->second_);
+        parameters_[StringHash(name)] = parameter;
     }
     
     unsigned numTextureUnits = file->ReadUInt();
@@ -233,32 +227,22 @@ bool ShaderVariation::Compile(PODVector<unsigned>& byteCode)
     const char* entryPoint = 0;
     const char* profile = 0;
     unsigned flags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
-    bool useSM3 = graphics_->GetSM3Support();
     
     if (type_ == VS)
     {
         entryPoint = "VS";
         defines.Push("COMPILEVS");
-        if (!useSM3)
-            profile = "vs_2_0";
-        else
-            profile = "vs_3_0";
+        profile = "vs_3_0";
     }
     else
     {
         entryPoint = "PS";
         defines.Push("COMPILEPS");
-        if (!useSM3)
-            profile = "ps_2_0";
-        else
-        {
-            profile = "ps_3_0";
-            flags |= D3DCOMPILE_PREFER_FLOW_CONTROL;
-        }
+        profile = "ps_3_0";
+        flags |= D3DCOMPILE_PREFER_FLOW_CONTROL;
     }
-    
-    if (useSM3)
-        defines.Push("SM3");
+
+    defines.Push("MAXBONES=" + String(Graphics::GetMaxBones()));
     
     // Collect defines into macros
     Vector<String> defineValues;
@@ -352,17 +336,11 @@ void ShaderVariation::ParseParameters(unsigned char* bufData, unsigned bufSize)
         else
         {
             ShaderParameter newParam(type_, name, reg, regCount);
-            HashMap<StringHash, ShaderParameter>::Iterator i = parameters_.Insert(MakePair(StringHash(name), newParam));
-            
-            // Register the parameter globally
-            graphics_->RegisterShaderParameter(i->first_, i->second_);
+            parameters_[StringHash(name)] = newParam;
         }
     }
     
     MOJOSHADER_freeParseData(parseData);
-    
-    // Optimize shader parameter lookup by rehashing to next power of two
-    parameters_.Rehash(NextPowerOfTwo(parameters_.Size()));
 }
 
 void ShaderVariation::CopyStrippedCode(PODVector<unsigned>& byteCode, unsigned char* bufData, unsigned bufSize)
@@ -407,7 +385,7 @@ void ShaderVariation::SaveByteCode(const PODVector<unsigned>& byteCode, const St
     
     file->WriteFileID("USHD");
     file->WriteShort((unsigned short)type_);
-    file->WriteShort(graphics_->GetSM3Support() ? 3 : 2);
+    file->WriteShort(3);
 
     file->WriteUInt(parameters_.Size());
     for (HashMap<StringHash, ShaderParameter>::ConstIterator i = parameters_.Begin(); i != parameters_.End(); ++i)

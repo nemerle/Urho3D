@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Container/Allocator.h"
 
-#include "stdio.h"
+#include <stdio.h>
+#include <stdint.h>
 
 #include "../DebugNew.h"
 
@@ -35,7 +35,7 @@ AllocatorBlock* AllocatorReserveBlock(AllocatorBlock* allocator, unsigned nodeSi
     if (!capacity)
         capacity = 1;
     
-    unsigned char* blockPtr = new unsigned char[sizeof(AllocatorBlock) + capacity * (sizeof(AllocatorNode) + nodeSize)];
+    uint8_t * blockPtr = new uint8_t[sizeof(AllocatorBlock) + capacity * (sizeof(AllocatorNode) + nodeSize)];
     AllocatorBlock* newBlock = reinterpret_cast<AllocatorBlock*>(blockPtr);
     newBlock->nodeSize_ = nodeSize;
     newBlock->capacity_ = capacity;

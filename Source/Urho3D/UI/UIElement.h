@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -125,15 +125,15 @@ public:
     static void RegisterObject(Context* context);
 
     /// Apply attribute changes that can not be applied immediately.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// Load from XML data. Return true if successful.
-    virtual bool LoadXML(const XMLElement& source, bool setInstanceDefault = false);
+    virtual bool LoadXML(const XMLElement& source, bool setInstanceDefault = false) override;
     /// Load from XML data with style. Return true if successful.
     virtual bool LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanceDefault = false);
     /// Create a child by loading from XML data with style. Return true if successful.
-    virtual bool LoadChildXML(const XMLElement& childElem, XMLFile* styleFile = 0, bool setInstanceDefault = false);
+    virtual bool LoadChildXML(const XMLElement& childElem, XMLFile* styleFile = nullptr, bool setInstanceDefault = false);
     /// Save as XML data. Return true if successful.
-    virtual bool SaveXML(XMLElement& dest) const;
+    virtual bool SaveXML(XMLElement& dest) const override;
 
     /// Perform UI element update.
     virtual void Update(float timeStep);
@@ -183,7 +183,7 @@ public:
     /// Load from an XML file. Return true if successful.
     bool LoadXML(Deserializer& source);
     /// Save to an XML file. Return true if successful.
-    bool SaveXML(Serializer& dest) const;
+    bool SaveXML(Serializer& dest, const String& indentation = "\t") const;
     /// Filter attributes in serialization process.
     bool FilterAttributes(XMLElement& dest) const;
 
@@ -272,11 +272,11 @@ public:
     /// Set drag and drop flags.
     void SetDragDropMode(unsigned mode);
     /// Set style from an XML file. Find the style element by name. If the style file is not explicitly provided, use the default style from parental chain. Return true if the style is applied successfully.
-    bool SetStyle(const String& styleName, XMLFile* file = 0);
+    bool SetStyle(const String& styleName, XMLFile* file = nullptr);
     /// Set style from an XML element. Return true if the style is applied successfully.
     bool SetStyle(const XMLElement& element);
     /// Set style from an XML file. Find the style element automatically. If the style file is not explicitly provided, use the default style from parental chain. Return true if the style is applied successfully.
-    bool SetStyleAuto(XMLFile* file = 0);
+    bool SetStyleAuto(XMLFile* file = nullptr);
     /// Set default style file for later use by children elements.
     void SetDefaultStyle(XMLFile* style);
     /// Set layout.
@@ -488,11 +488,11 @@ public:
 
 protected:
     /// Handle attribute animation added.
-    virtual void OnAttributeAnimationAdded();
+    virtual void OnAttributeAnimationAdded() override;
     /// Handle attribute animation removed.
-    virtual void OnAttributeAnimationRemoved();
+    virtual void OnAttributeAnimationRemoved() override;
     /// Set object attribute animation internal.
-    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed);
+    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) override;
     /// Mark screen position as needing an update.
     void MarkDirty();
     /// Remove child XML element by matching attribute name.

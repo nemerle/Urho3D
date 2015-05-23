@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ struct JoystickState
 {
     /// Construct with defaults.
     JoystickState() :
-        joystick_(0), controller_(0), screenJoystick_(0)
+        joystick_(nullptr), controller_(nullptr), screenJoystick_(nullptr)
     {
     }
 
@@ -83,7 +83,7 @@ struct JoystickState
     void Reset();
 
     /// Return whether is a game controller. Game controllers will use standardized axis and button mappings.
-    bool IsController() const { return controller_ != 0; }
+    bool IsController() const { return controller_ != nullptr; }
     /// Return number of buttons.
     unsigned GetNumButtons() const { return buttons_.size(); }
     /// Return number of axes.
@@ -119,9 +119,15 @@ struct JoystickState
     PODVector<int> hats_;
 };
 
+#ifdef EMSCRIPTEN
+class EmscriptenInput;
+#endif
 /// %Input subsystem. Converts operating system window messages to input state and events.
 class URHO3D_API Input : public Object
 {
+    #ifdef EMSCRIPTEN
+    friend class EmscriptenInput;
+    #endif
     OBJECT(Input);
 
 public:
@@ -137,7 +143,7 @@ public:
     /// Set whether the operating system mouse cursor is visible. When not visible (default), is kept centered to prevent leaving the window. Mouse visiblility event can be suppressed-- this also recalls any unsuppressed SetMouseVisible which can be returned by ResetMouseVisible().
     void SetMouseVisible(bool enable, bool suppressEvent = false);
     /// Reset last mouse visibilty that was not suppressed in SetMouseVisible.
-    void ResetMouseVisible() { SetMouseVisible(lastMouseVisible_, true); }
+    void ResetMouseVisible();
     /// Set whether the mouse is currently being grabbed by an operation.
     void SetMouseGrabbed(bool grab);
     /// Set the mouse mode.
@@ -163,7 +169,7 @@ public:
      *
      *  This method should only be called in main thread.
      */
-    SDL_JoystickID AddScreenJoystick(XMLFile* layoutFile = 0, XMLFile* styleFile = 0);
+    SDL_JoystickID AddScreenJoystick(XMLFile* layoutFile = nullptr, XMLFile* styleFile = nullptr);
     /// Remove screen joystick by instance ID.
     /** Return true if successful.
      *
@@ -287,6 +293,10 @@ private:
     void SetMouseButton(int button, bool newState);
     /// Handle a key change.
     void SetKey(int key, int scancode, unsigned raw, bool newState);
+    #ifdef EMSCRIPTEN
+    void SetMouseVisibleEmscripten(bool enable);
+    void SetMouseModeEmscripten(MouseMode mode);
+    #endif
     /// Handle mousewheel change.
     void SetMouseWheel(int delta);
     /// Internal function to set the mouse cursor position.
@@ -354,8 +364,20 @@ private:
     bool focusedThisFrame_;
     /// Next mouse move suppress flag.
     bool suppressNextMouseMove_;
+    /// Handling a window resize event flag.
+    bool inResize_;
+    /// Flag for automatic focus (without click inside window) after screen mode change, needed on Linux.
+    bool screenModeChanged_;
     /// Initialized flag.
     bool initialized_;
+#ifdef EMSCRIPTEN
+    /// Emscripten Input glue instance.
+    EmscriptenInput* emscriptenInput_;
+    /// Flag used to detect mouse jump when exiting pointer lock.
+    bool emscriptenExitingPointerLock_;
+    /// Flag used to detect mouse jump on initial mouse click when entering pointer lock.
+    bool emscriptenEnteredPointerLock_;
+#endif
 };
 
 }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Physics/CollisionShape.h"
 #include "../Physics/Constraint.h"
 #include "../Core/Context.h"
@@ -799,8 +798,8 @@ void RigidBody::UpdateMass()
     // Reapply constraint positions for new center of mass shift
     if (node_)
     {
-        for (auto & elem : constraints_)
-            (elem)->ApplyFrames();
+        for (Constraint* elem : constraints_)
+            elem->ApplyFrames();
     }
 }
 
@@ -840,7 +839,7 @@ void RigidBody::SetNetAngularVelocityAttr(const PODVector<unsigned char>& value)
 const PODVector<unsigned char>& RigidBody::GetNetAngularVelocityAttr() const
 {
     float maxVelocity = physicsWorld_ ? physicsWorld_->GetMaxNetworkAngularVelocity() : DEFAULT_MAX_NETWORK_ANGULAR_VELOCITY;
-    attrBuffer_.Clear();
+    attrBuffer_.clear();
     attrBuffer_.WritePackedVector3(GetAngularVelocity(), maxVelocity);
     return attrBuffer_.GetBuffer();
 }
@@ -864,8 +863,8 @@ void RigidBody::ReleaseBody()
         // Release all constraints which refer to this body
         // Make a copy for iteration
         PODVector<Constraint*> constraints = constraints_;
-        for (auto & constraint : constraints)
-            (constraint)->ReleaseConstraint();
+        for (Constraint* constraint : constraints)
+            constraint->ReleaseConstraint();
 
         RemoveBodyFromWorld();
 
@@ -962,15 +961,15 @@ void RigidBody::AddBodyToWorld()
         // Do not update mass yet, but do it once all shapes have been added
         PODVector<CollisionShape*> shapes;
         node_->GetComponents<CollisionShape>(shapes);
-        for (auto & shape : shapes)
-            (shape)->NotifyRigidBody(false);
+        for (CollisionShape * shape : shapes)
+            shape->NotifyRigidBody(false);
 
         // Check if this node contains Constraint components that were waiting for the rigid body to be created, and signal them
         // to create themselves now
         PODVector<Constraint*> constraints;
         node_->GetComponents<Constraint>(constraints);
-        for (auto & constraint : constraints)
-            (constraint)->CreateConstraint();
+        for (Constraint * constraint : constraints)
+            constraint->CreateConstraint();
     }
 
     UpdateMass();

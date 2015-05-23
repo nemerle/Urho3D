@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2008-2014 the Urho3D project.
+# Copyright (c) 2008-2015 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@
 #
 
 # Clean the CMake cache and CMake generated files in the build tree
-if [ $1 ] && [ -f $1/CMakeCache.txt ]; then BUILD=$1; elif [ -f $(pwd)/CMakeCache.txt ]; then BUILD=$(pwd); else echo An error has occured, build tree has to be provided as the first argument OR call this script in a build tree itself; exit 1; fi
-rm -rf $BUILD/{CMakeCache.txt,CMakeFiles}
-touch $BUILD/CMakeCache.txt
+if [ "$1" ] && [ -f "$1"/CMakeCache.txt ]; then BUILD=$1; elif [ -f $(pwd)/CMakeCache.txt ]; then BUILD=$(pwd); else echo Usage: ${0##*/} /path/to/build-tree; exit 1; fi
+rm -rf "$BUILD"/{CMakeCache.txt,CMakeFiles}
+touch "$BUILD"/CMakeCache.txt
 
 # vi: set ts=4 sw=4 expandtab:

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/Batch.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Context.h"
@@ -182,7 +181,7 @@ void StaticModelGroup::UpdateBatches(const FrameInfo& frame)
         batches_[0].numWorldTransforms_ = numWorldTransforms_;
     }
 
-    float scale = worldBoundingBox.Size().DotProduct(DOT_SCALE);
+    float scale = worldBoundingBox.size().DotProduct(DOT_SCALE);
     float newLodDistance = frame.camera_->GetLodDistance(distance_, scale, lodBias_);
 
     if (newLodDistance != lodDistance_)

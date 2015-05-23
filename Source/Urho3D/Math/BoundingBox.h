@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -249,7 +249,7 @@ public:
     /// Return center.
     Vector3 Center() const { return (max_ + min_) * 0.5f; }
     /// Return size.
-    Vector3 Size() const { return max_ - min_; }
+    Vector3 size() const { return max_ - min_; }
     /// Return half-size.
     Vector3 HalfSize() const { return (max_ - min_) * 0.5f; }
     

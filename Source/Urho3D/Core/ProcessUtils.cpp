@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 
 #if defined(IOS)
 #include <mach/mach_host.h>
-#elif !defined(ANDROID) && !defined(RPI)
+#elif !defined(ANDROID) && !defined(RPI) && !defined(EMSCRIPTEN)
 #include <LibCpuId/libcpuid.h>
 #endif
 
@@ -47,7 +47,7 @@
 
 #if defined(_MSC_VER)
 #include <float.h>
-#elif !defined(ANDROID) && !defined(IOS) && !defined(RPI)
+#elif !defined(ANDROID) && !defined(IOS) && !defined(RPI) && !defined(EMSCRIPTEN)
 // From http://stereopsis.com/FPU.html
 
 #define FPU_CW_PREC_MASK        0x0300
@@ -91,7 +91,7 @@ static void GetCPUData(host_basic_info_data_t* data)
     infoCount = HOST_BASIC_INFO_COUNT;
     host_info(mach_host_self(), HOST_BASIC_INFO, (host_info_t)data, &infoCount);
 }
-#elif !defined(ANDROID) && !defined(RPI)
+#elif !defined(ANDROID) && !defined(RPI) && !defined(EMSCRIPTEN)
 static void GetCPUData(struct cpu_id_t* data)
 {
     if (cpu_identify(nullptr, data) < 0)
@@ -104,7 +104,7 @@ static void GetCPUData(struct cpu_id_t* data)
 
 void InitFPU()
 {
-    #if !defined(URHO3D_LUAJIT) && !defined(ANDROID) && !defined(IOS) && !defined(RPI) && !defined(__x86_64__) && !defined(_M_AMD64)
+    #if !defined(URHO3D_LUAJIT) && !defined(ANDROID) && !defined(IOS) && !defined(RPI) && !defined(__x86_64__) && !defined(_M_AMD64) && !defined(EMSCRIPTEN)
     // Make sure FPU is in round-to-nearest, single precision mode
     // This ensures Direct3D and OpenGL behave similarly, and all threads behave similarly
     #ifdef _MSC_VER
@@ -163,12 +163,20 @@ void PrintUnicode(const String& str, bool error)
 {
     #if !defined(ANDROID) && !defined(IOS)
     #ifdef WIN32
+    // If the output stream has been redirected, use fprintf instead of WriteConsoleW,
+    // though it means that proper Unicode output will not work
+    FILE* out = error ? stderr : stdout;
+    if (!_isatty(_fileno(out)))
+        fprintf(out, "%s", str.CString());
+    else
+    {
     HANDLE stream = GetStdHandle(error ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
     if (stream == INVALID_HANDLE_VALUE)
         return;
     WString strW(str);
     DWORD charsWritten;
     WriteConsoleW(stream, strW.CString(), strW.Length(), &charsWritten, 0);
+    }
     #else
     fprintf(error ? stderr : stdout, "%s", str.CString());
     #endif
@@ -307,7 +315,7 @@ String GetConsoleInput()
                 {
                     PrintUnicode("\n");
                     ret = currentLine;
-                    currentLine.Clear();
+                    currentLine.clear();
                     return ret;
                 }
                 else
@@ -349,6 +357,8 @@ String GetPlatform()
     return "Mac OS X";
     #elif defined(RPI)
     return "Raspberry Pi";
+    #elif defined(EMSCRIPTEN)
+    return "HTML5";
     #elif defined(__linux__)
     return "Linux";
     #else
@@ -356,8 +366,8 @@ String GetPlatform()
     #endif
 }
 
-#ifdef ANDROID
-static unsigned GetAndroidCPUCount()
+#if defined(ANDROID) || defined(RPI)
+static unsigned GetArmCPUCount()
 {
     FILE* fp;
     int res, i = -1, j = -1;
@@ -391,9 +401,9 @@ unsigned GetNumPhysicalCPUs()
     #else
     return data.physical_cpu;
     #endif
-    #elif defined(ANDROID)
-    return GetAndroidCPUCount();
-    #elif !defined(ANDROID) && !defined(RPI)
+    #elif defined(ANDROID) || defined(RPI)
+    return GetArmCPUCount();
+    #elif !defined(EMSCRIPTEN)
     struct cpu_id_t data;
     GetCPUData(&data);
     return data.num_cores;
@@ -413,9 +423,9 @@ unsigned GetNumLogicalCPUs()
     #else
     return data.logical_cpu;
     #endif
-    #elif defined(ANDROID)
-    return GetAndroidCPUCount();
-    #elif !defined(ANDROID) && !defined(RPI)
+    #elif defined(ANDROID) || defined (RPI)
+    return GetArmCPUCount();
+    #elif !defined(EMSCRIPTEN)
     struct cpu_id_t data;
     GetCPUData(&data);
     return data.num_logical_cpus;

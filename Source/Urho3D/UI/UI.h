@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -63,14 +63,14 @@ public:
     void Update(float timeStep);
     /// Update the UI for rendering. Called by HandleRenderUpdate().
     void RenderUpdate();
-    /// Render the UI.
-    void Render();
+    /// Render the UI. If resetRenderTargets is true, is assumed to be the default UI render to backbuffer called by Engine, and will be performed only once. Additional UI renders to a different rendertarget may be triggered from the renderpath.
+    void Render(bool resetRenderTargets = true);
     /// Debug draw a UI element.
     void DebugDraw(UIElement* element);
     /// Load a UI layout from an XML file. Optionally specify another XML file for element style. Return the root element.
-    SharedPtr<UIElement> LoadLayout(Deserializer& source, XMLFile* styleFile = 0);
+    SharedPtr<UIElement> LoadLayout(Deserializer& source, XMLFile* styleFile = nullptr);
     /// Load a UI layout from an XML file. Optionally specify another XML file for element style. Return the root element.
-    SharedPtr<UIElement> LoadLayout(XMLFile* file, XMLFile* styleFile = 0);
+    SharedPtr<UIElement> LoadLayout(XMLFile* file, XMLFile* styleFile = nullptr);
     /// Save a UI layout to an XML file. Return true if successful.
     bool SaveLayout(Serializer& dest, UIElement* element);
     /// Set clipboard text.
@@ -170,7 +170,7 @@ private:
     /// Upload UI geometry into a vertex buffer.
     void SetVertexData(VertexBuffer* dest, const PODVector<float>& vertexData);
     /// Render UI batches. Geometry must have been uploaded first.
-    void Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigned batchStart, unsigned batchEnd);
+    void Render(bool resetRenderTargets, VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigned batchStart, unsigned batchEnd);
     /// Generate batches from an UI element recursively. Skip the cursor element.
     void GetBatches(UIElement* element, IntRect currentScissor);
     /// Return UI element at screen position recursively.
@@ -286,6 +286,8 @@ private:
     bool useMutableGlyphs_;
     /// Flag for forcing FreeType autohinting.
     bool forceAutoHint_;
+    /// Flag for UI already being rendered this frame.
+    bool uiRendered_;
     /// Non-modal batch size (used internally for rendering).
     unsigned nonModalBatchSize_;
     /// Timer used to trigger double click.

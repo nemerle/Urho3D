@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,13 +20,13 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../IO/File.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 #include "../IO/MemoryBuffer.h"
 #include "../IO/PackageFile.h"
 #include "../Core/Profiler.h"
+#include "../Container/Str.h"
 
 #include <cstdio>
 #include <LZ4/lz4.h>
@@ -129,7 +129,7 @@ bool File::Open(const String& fileName, FileMode mode)
     }
 
     #ifdef ANDROID
-    if (fileName.StartsWith("/apk/"))
+    if (fileName.startsWith("/apk/"))
     {
         if (mode != FILE_READ)
         {

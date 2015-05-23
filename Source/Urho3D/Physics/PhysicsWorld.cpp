@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -148,14 +148,14 @@ PhysicsWorld::~PhysicsWorld()
     if (scene_)
     {
         // Force all remaining constraints, rigid bodies and collision shapes to release themselves
-        for (auto & elem : constraints_)
-            (elem)->ReleaseConstraint();
+        for (Constraint * elem : constraints_)
+            elem->ReleaseConstraint();
 
-        for (auto & elem : rigidBodies_)
-            (elem)->ReleaseBody();
+        for (RigidBody * elem : rigidBodies_)
+            elem->ReleaseBody();
 
-        for (auto & elem : collisionShapes_)
-            (elem)->ReleaseShape();
+        for (CollisionShape* elem : collisionShapes_)
+            elem->ReleaseShape();
     }
 
     delete world_;
@@ -783,7 +783,7 @@ void PhysicsWorld::SendCollisionEvents()
             physicsCollisionData_[PhysicsCollision::P_BODYB] = bodyB;
             physicsCollisionData_[PhysicsCollision::P_TRIGGER] = trigger;
 
-            contacts_.Clear();
+            contacts_.clear();
 
             for (int j = 0; j < contactManifold->getNumContacts(); ++j)
             {
@@ -827,7 +827,7 @@ void PhysicsWorld::SendCollisionEvents()
             if (!nodeWeakA || !nodeWeakB || !MAP_KEY(elem).first_ || !MAP_KEY(elem).second_)
                 continue;
 
-            contacts_.Clear();
+            contacts_.clear();
             for (int j = 0; j < contactManifold->getNumContacts(); ++j)
             {
                 btManifoldPoint& point = contactManifold->getContactPoint(j);

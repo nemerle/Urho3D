@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,7 @@ Animation2D* AnimationSet2D::GetAnimation(unsigned index) const
 {
     if (index < animations_.size())
         return animations_[index];
-    return 0;
+    return nullptr;
 }
 
 Animation2D* AnimationSet2D::GetAnimation(const String& name) const
@@ -91,7 +91,7 @@ Animation2D* AnimationSet2D::GetAnimation(const String& name) const
         if (animations_[i]->GetName() == name)
             return animations_[i];
     }
-    return 0;
+    return nullptr;
 }
 
 Sprite2D* AnimationSet2D::GetSprite(const StringHash& hash) const
@@ -99,7 +99,7 @@ Sprite2D* AnimationSet2D::GetSprite(const StringHash& hash) const
     HashMap<StringHash, SharedPtr<Sprite2D> >::const_iterator i = sprites_.find(hash);
     if (i != sprites_.end())
         return MAP_VALUE(i);
-    return 0;
+    return nullptr;
 }
 
 bool AnimationSet2D::BeginLoadSpriter(Deserializer &source)

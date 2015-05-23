@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ static const int MATRIX_CONVERSION_BUFFER_LENGTH = 256;
 class WString;
 
 /// %String class.
-class URHO3D_API String
+class String
 {
 public:
     typedef RandomAccessIterator<char> Iterator;
@@ -516,7 +516,7 @@ inline String operator + (const char* lhs, const String& rhs)
 }
 
 /// Wide character string. Only meant for converting from String and passing to the operating system where necessary.
-class URHO3D_API WString
+class WString
 {
 public:
     /// Construct empty.

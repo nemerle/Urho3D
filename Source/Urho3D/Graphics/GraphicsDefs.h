@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,12 @@ namespace Urho3D
 
 class Vector3;
 
+/// Graphics capability support level. HTML5 (Emscripten) also uses OpenGL ES, but is considered a desktop platform capability-wise
+#if defined(ANDROID) || defined(IOS) || defined(RPI)
+#define MOBILE_GRAPHICS
+#else
+#define DESKTOP_GRAPHICS
+#endif
 /// Primitive type.
 enum PrimitiveType
 {
@@ -210,17 +216,16 @@ enum ShaderType
     PS,
 };
 
-/// Shader parameter groups for determining need to update.
+/// Shader parameter groups for determining need to update. On APIs that support constant buffers, these correspond to different constant buffers.
 enum ShaderParameterGroup
 {
     SP_FRAME = 0,
     SP_CAMERA,
-    SP_VIEWPORT,
     SP_ZONE,
     SP_LIGHT,
-    SP_VERTEXLIGHTS,
     SP_MATERIAL,
-    SP_OBJECTTRANSFORM,
+    SP_OBJECT,
+    SP_CUSTOM,
     MAX_SHADER_PARAMETER_GROUPS
 };
 
@@ -234,18 +239,27 @@ enum TextureUnit
     TU_SPECULAR = 2,
     TU_EMISSIVE = 3,
     TU_ENVIRONMENT = 4,
-    MAX_MATERIAL_TEXTURE_UNITS = 5,
+#ifdef DESKTOP_GRAPHICS
+    TU_VOLUMEMAP = 5,
+    TU_CUSTOM1 = 6,
+    TU_CUSTOM2 = 7,
+    TU_LIGHTRAMP = 8,
+    TU_LIGHTSHAPE = 9,
+    TU_SHADOWMAP = 10,
+    TU_FACESELECT = 11,
+    TU_INDIRECTION = 12,
+    TU_DEPTHBUFFER = 13,
+    TU_LIGHTBUFFER = 14,
+    TU_ZONE = 15,
+    MAX_MATERIAL_TEXTURE_UNITS = 8,
+    MAX_TEXTURE_UNITS = 16
+#else
     TU_LIGHTRAMP = 5,
     TU_LIGHTSHAPE = 6,
     TU_SHADOWMAP = 7,
-    TU_FACESELECT = 8,
-    TU_INDIRECTION = 9,
-    TU_DEPTHBUFFER = 10,
-    TU_LIGHTBUFFER = 11,
-    TU_VOLUMEMAP = 12,
-    TU_ZONE = 13,
-    MAX_NAMED_TEXTURE_UNITS = 14,
-    MAX_TEXTURE_UNITS = 16
+    MAX_MATERIAL_TEXTURE_UNITS = 5,
+    MAX_TEXTURE_UNITS = 8
+#endif
 };
 
 /// Billboard camera facing modes.
@@ -259,68 +273,55 @@ enum FaceCameraMode
 };
 
 // Inbuilt shader parameters.
-extern StringHash VSP_AMBIENTSTARTCOLOR;
-extern StringHash VSP_AMBIENTENDCOLOR;
-extern StringHash VSP_BILLBOARDROT;
-extern StringHash VSP_CAMERAPOS;
-extern StringHash VSP_CAMERAROT;
-extern StringHash VSP_NEARCLIP;
-extern StringHash VSP_FARCLIP;
-extern StringHash VSP_DEPTHMODE;
-extern StringHash VSP_DELTATIME;
-extern StringHash VSP_ELAPSEDTIME;
-extern StringHash VSP_FRUSTUMSIZE;
-extern StringHash VSP_GBUFFEROFFSETS;
-extern StringHash VSP_LIGHTDIR;
-extern StringHash VSP_LIGHTPOS;
-extern StringHash VSP_MODEL;
-extern StringHash VSP_VIEWPROJ;
-extern StringHash VSP_UOFFSET;
-extern StringHash VSP_VOFFSET;
-extern StringHash VSP_ZONE;
-extern StringHash VSP_LIGHTMATRICES;
-extern StringHash VSP_SKINMATRICES;
-extern StringHash VSP_VERTEXLIGHTS;
-extern StringHash PSP_AMBIENTCOLOR;
-extern StringHash PSP_CAMERAPOS;
-extern StringHash PSP_DELTATIME;
-extern StringHash PSP_DEPTHRECONSTRUCT;
-extern StringHash PSP_ELAPSEDTIME;
-extern StringHash PSP_FOGCOLOR;
-extern StringHash PSP_FOGPARAMS;
-extern StringHash PSP_GBUFFERINVSIZE;
-extern StringHash PSP_LIGHTCOLOR;
-extern StringHash PSP_LIGHTDIR;
-extern StringHash PSP_LIGHTPOS;
-extern StringHash PSP_MATDIFFCOLOR;
-extern StringHash PSP_MATEMISSIVECOLOR;
-extern StringHash PSP_MATENVMAPCOLOR;
-extern StringHash PSP_MATSPECCOLOR;
-extern StringHash PSP_NEARCLIP;
-extern StringHash PSP_FARCLIP;
-extern StringHash PSP_SHADOWCUBEADJUST;
-extern StringHash PSP_SHADOWDEPTHFADE;
-extern StringHash PSP_SHADOWINTENSITY;
-extern StringHash PSP_SHADOWMAPINVSIZE;
-extern StringHash PSP_SHADOWSPLITS;
-extern StringHash PSP_LIGHTMATRICES;
-
-// Inbuilt pass types
-extern StringHash PASS_BASE;
-extern StringHash PASS_LITBASE;
-extern StringHash PASS_LIGHT;
-extern StringHash PASS_ALPHA;
-extern StringHash PASS_LITALPHA;
-extern StringHash PASS_SHADOW;
-extern StringHash PASS_DEFERRED;
-extern StringHash PASS_PREPASS;
-extern StringHash PASS_MATERIAL;
-extern StringHash PASS_POSTOPAQUE;
-extern StringHash PASS_REFRACT;
-extern StringHash PASS_POSTALPHA;
+extern const StringHash VSP_AMBIENTSTARTCOLOR;
+extern const StringHash VSP_AMBIENTENDCOLOR;
+extern const StringHash VSP_BILLBOARDROT;
+extern const StringHash VSP_CAMERAPOS;
+extern const StringHash VSP_CAMERAROT;
+extern const StringHash VSP_CLIPPLANE;
+extern const StringHash VSP_NEARCLIP;
+extern const StringHash VSP_FARCLIP;
+extern const StringHash VSP_DEPTHMODE;
+extern const StringHash VSP_DELTATIME;
+extern const StringHash VSP_ELAPSEDTIME;
+extern const StringHash VSP_FRUSTUMSIZE;
+extern const StringHash VSP_GBUFFEROFFSETS;
+extern const StringHash VSP_LIGHTDIR;
+extern const StringHash VSP_LIGHTPOS;
+extern const StringHash VSP_MODEL;
+extern const StringHash VSP_VIEWPROJ;
+extern const StringHash VSP_UOFFSET;
+extern const StringHash VSP_VOFFSET;
+extern const StringHash VSP_ZONE;
+extern const StringHash VSP_LIGHTMATRICES;
+extern const StringHash VSP_SKINMATRICES;
+extern const StringHash VSP_VERTEXLIGHTS;
+extern const StringHash PSP_AMBIENTCOLOR;
+extern const StringHash PSP_CAMERAPOS;
+extern const StringHash PSP_DELTATIME;
+extern const StringHash PSP_DEPTHRECONSTRUCT;
+extern const StringHash PSP_ELAPSEDTIME;
+extern const StringHash PSP_FOGCOLOR;
+extern const StringHash PSP_FOGPARAMS;
+extern const StringHash PSP_GBUFFERINVSIZE;
+extern const StringHash PSP_LIGHTCOLOR;
+extern const StringHash PSP_LIGHTDIR;
+extern const StringHash PSP_LIGHTPOS;
+extern const StringHash PSP_MATDIFFCOLOR;
+extern const StringHash PSP_MATEMISSIVECOLOR;
+extern const StringHash PSP_MATENVMAPCOLOR;
+extern const StringHash PSP_MATSPECCOLOR;
+extern const StringHash PSP_NEARCLIP;
+extern const StringHash PSP_FARCLIP;
+extern const StringHash PSP_SHADOWCUBEADJUST;
+extern const StringHash PSP_SHADOWDEPTHFADE;
+extern const StringHash PSP_SHADOWINTENSITY;
+extern const StringHash PSP_SHADOWMAPINVSIZE;
+extern const StringHash PSP_SHADOWSPLITS;
+extern const StringHash PSP_LIGHTMATRICES;
 
 // Scale calculation from bounding box diagonal.
-extern Vector3 DOT_SCALE;
+extern const Vector3 DOT_SCALE;
 
 static const int QUALITY_LOW = 0;
 static const int QUALITY_MEDIUM = 1;
@@ -355,7 +356,6 @@ static const unsigned NO_ELEMENT = 0xffffffff;
 
 static const int MAX_RENDERTARGETS = 4;
 static const int MAX_VERTEX_STREAMS = 4;
-static const int MAX_SKIN_MATRICES = 64;
 static const int MAX_CONSTANT_REGISTERS = 256;
 
 static const int BITS_PER_COMPONENT = 8;

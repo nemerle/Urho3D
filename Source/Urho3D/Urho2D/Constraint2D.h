@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +74,7 @@ protected:
     /// Handle node being assigned.
     virtual void OnNodeSet(Node* node);
     /// Return joint def.
-    virtual b2JointDef* GetJointDef() { return 0; };
+    virtual b2JointDef* GetJointDef() { return nullptr; };
     /// Recreate joint.
     void RecreateJoint();
     /// Initialize joint def.

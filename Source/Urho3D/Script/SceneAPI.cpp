@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Script/APITemplates.h"
 #include "../Scene/Animatable.h"
 #include "../Graphics/DebugRenderer.h"
@@ -95,14 +94,14 @@ static void RegisterAnimatable(asIScriptEngine* engine)
     RegisterAnimatable<Animatable>(engine, "Animatable");
 }
 
-static bool NodeSaveXML(File* file, Node* ptr)
+static bool NodeSaveXML(File* file, const String& indentation, Node* ptr)
 {
-    return file && ptr->SaveXML(*file);
+    return file && ptr->SaveXML(*file, indentation);
 }
 
-static bool NodeSaveXMLVectorBuffer(VectorBuffer& buffer, Node* ptr)
+static bool NodeSaveXMLVectorBuffer(VectorBuffer& buffer, const String& indentation, Node* ptr)
 {
-    return ptr->SaveXML(buffer);
+    return ptr->SaveXML(buffer, indentation);
 }
 
 static void RegisterNode(asIScriptEngine* engine)
@@ -126,8 +125,8 @@ static void RegisterNode(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Node", "void set_enabled(bool)", asMETHODPR(Node, SetEnabled, (bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("Node", "bool get_enabled() const", asMETHOD(Node, IsEnabled), asCALL_THISCALL);
     engine->RegisterObjectMethod("Node", "bool get_enabledSelf() const", asMETHOD(Node, IsEnabledSelf), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Node", "bool SaveXML(File@+)", asFUNCTION(NodeSaveXML), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Node", "bool SaveXML(VectorBuffer&)", asFUNCTION(NodeSaveXMLVectorBuffer), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Node", "bool SaveXML(File@+, const String&in indentation = \"\t\")", asFUNCTION(NodeSaveXML), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Node", "bool SaveXML(VectorBuffer&, const String&in indentation = \"\t\")", asFUNCTION(NodeSaveXMLVectorBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Node", "Node@+ Clone(CreateMode mode = REPLICATED)", asMETHOD(Node, Clone), asCALL_THISCALL);
     RegisterObjectConstructor<Node>(engine, "Node");
     RegisterNamedObjectConstructor<Node>(engine, "Node");
@@ -152,14 +151,14 @@ static bool SceneLoadXMLVectorBuffer(VectorBuffer& buffer, Scene* ptr)
     return ptr->LoadXML(buffer);
 }
 
-static bool SceneSaveXML(File* file, Scene* ptr)
+static bool SceneSaveXML(File* file, const String& indentation, Scene* ptr)
 {
-    return file && ptr->SaveXML(*file);
+    return file && ptr->SaveXML(*file, indentation);
 }
 
-static bool SceneSaveXMLVectorBuffer(VectorBuffer& buffer, Scene* ptr)
+static bool SceneSaveXMLVectorBuffer(VectorBuffer& buffer, const String& indentation, Scene* ptr)
 {
-    return ptr->SaveXML(buffer);
+    return ptr->SaveXML(buffer, indentation);
 }
 
 static Node* SceneInstantiate(File* file, const Vector3& position, const Quaternion& rotation, CreateMode mode, Scene* ptr)
@@ -275,8 +274,8 @@ static void RegisterScene(asIScriptEngine* engine)
     RegisterNamedObjectConstructor<Scene>(engine, "Scene");
     engine->RegisterObjectMethod("Scene", "bool LoadXML(File@+)", asFUNCTION(SceneLoadXML), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Scene", "bool LoadXML(VectorBuffer&)", asFUNCTION(SceneLoadXMLVectorBuffer), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Scene", "bool SaveXML(File@+)", asFUNCTION(SceneSaveXML), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Scene", "bool SaveXML(VectorBuffer&)", asFUNCTION(SceneSaveXMLVectorBuffer), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Scene", "bool SaveXML(File@+, const String&in indentation = \"\t\")", asFUNCTION(SceneSaveXML), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Scene", "bool SaveXML(VectorBuffer&, const String&in indentation = \"\t\")", asFUNCTION(SceneSaveXMLVectorBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Scene", "bool LoadAsync(File@+, LoadMode mode = LOAD_SCENE_AND_RESOURCES)", asMETHOD(Scene, LoadAsync), asCALL_THISCALL);
     engine->RegisterObjectMethod("Scene", "bool LoadAsyncXML(File@+, LoadMode mode = LOAD_SCENE_AND_RESOURCES)", asMETHOD(Scene, LoadAsyncXML), asCALL_THISCALL);
     engine->RegisterObjectMethod("Scene", "void StopAsyncLoading()", asMETHOD(Scene, StopAsyncLoading), asCALL_THISCALL);

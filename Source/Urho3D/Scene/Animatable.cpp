@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Scene/Animatable.h"
 #include "../Core/Context.h"
 #include "../IO/Log.h"
@@ -205,11 +204,11 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
                 return;
             }
 
-            for (const auto & attribute : *attributes)
+            for (const AttributeInfo & attribute : *attributes)
             {
-                if (name == (attribute).name_)
+                if (name == attribute.name_)
                 {
-                    attributeInfo = &(attribute);
+                    attributeInfo = &attribute;
                     break;
                 }
             }
@@ -394,7 +393,7 @@ void Animatable::HandleAttributeAnimationRemoved(StringHash eventType, VariantMa
     using namespace AttributeAnimationRemoved;
     const String& name = eventData[P_ATTRIBUTEANIMATIONNAME].GetString();
 
-    SetObjectAttributeAnimation(name, 0, WM_LOOP, 1.0f);
+    SetObjectAttributeAnimation(name, nullptr, WM_LOOP, 1.0f);
 }
 
 }

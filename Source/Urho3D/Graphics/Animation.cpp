@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -256,7 +256,7 @@ const AnimationTrack* Animation::GetTrack(const String& name) const
     for (const AnimationTrack & elem : tracks_)
     {
         if (elem.name_ == name)
-            return &(elem);
+            return &elem;
     }
 
     return nullptr;
@@ -267,7 +267,7 @@ const AnimationTrack* Animation::GetTrack(StringHash nameHash) const
     for (const AnimationTrack & elem : tracks_)
     {
         if (elem.nameHash_ == nameHash)
-            return &(elem);
+            return &elem;
     }
 
     return nullptr;

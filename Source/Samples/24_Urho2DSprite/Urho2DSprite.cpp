@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Urho2D/AnimatedSprite2D.h>
 #include <Urho3D/Urho2D/AnimationSet2D.h>
@@ -213,8 +215,10 @@ void Urho2DSprite::HandleUpdate(StringHash eventType, VariantMap& eventData)
     float halfWidth = (float)graphics->GetWidth() * 0.5f * PIXEL_SIZE;
     float halfHeight = (float)graphics->GetHeight() * 0.5f * PIXEL_SIZE;
 
-    for (SharedPtr<Node> &node :  spriteNodes_)
+    for (unsigned i = 0; i < spriteNodes_.size(); ++i)
     {
+        SharedPtr<Node> node = spriteNodes_[i];
+
         Vector3 position = node->GetPosition();
         Vector3 moveSpeed = node->GetVar(VAR_MOVESPEED).GetVector3();
         Vector3 newPosition = position + moveSpeed * timeStep;

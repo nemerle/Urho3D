@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/CoreEvents.h"
 #include "../IO/Log.h"
 #include "../Core/ProcessUtils.h"
@@ -147,6 +146,54 @@ void WorkQueue::AddWorkItem(SharedPtr<WorkItem> item)
     }
 }
 
+bool WorkQueue::RemoveWorkItem(SharedPtr<WorkItem> item)
+{
+    if (!item)
+        return false;
+
+    MutexLock lock(queueMutex_);
+
+    // Can only remove successfully if the item was not yet taken by threads for execution
+    imsWorkitem i = queue_.find(item.Get());
+    if (i != queue_.end())
+    {
+        auto j = workItems_.find(item);
+        if (j != workItems_.end())
+        {
+            queue_.erase(i);
+            ReturnToPool(item);
+            workItems_.erase(j);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+unsigned WorkQueue::RemoveWorkItems(const Vector<SharedPtr<WorkItem> >& items)
+{
+    MutexLock lock(queueMutex_);
+    unsigned removed = 0;
+
+    for (Vector<SharedPtr<WorkItem> >::const_iterator i = items.begin(); i != items.end(); ++i)
+    {
+        imsWorkitem j = queue_.find(i->Get());
+        if (j != queue_.end())
+        {
+            std::multiset<SharedPtr<WorkItem>,comparePrioritySharedPtr>::iterator k = workItems_.find(*i);
+            if (k != workItems_.end())
+            {
+                queue_.erase(j);
+                SharedPtr<WorkItem> itm(*k);
+                ReturnToPool(itm);
+                workItems_.erase(k);
+                ++removed;
+            }
+        }
+    }
+
+    return removed;
+}
 void WorkQueue::Pause()
 {
     if (!paused_)
@@ -322,6 +369,26 @@ void WorkQueue::PurgePool()
     lastSize_ = currentSize;
 }
 
+void WorkQueue::ReturnToPool(SharedPtr<WorkItem>& item)
+{
+    // Check if this was a pooled item and set it to usable
+    if (item->pooled_)
+    {
+        // Reset the values to their defaults. This should
+        // be safe to do here as the completed event has
+        // already been handled and this is part of the
+        // internal pool.
+        item->start_ = nullptr;
+        item->end_ = nullptr;
+        item->aux_ = nullptr;
+        item->workFunction_ = nullptr;
+        item->priority_ = M_MAX_UNSIGNED;
+        item->sendEvent_ = false;
+        item->completed_ = false;
+
+        poolItems_.push_back(item);
+    }
+}
 void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
     // If no worker threads, complete low-priority work here

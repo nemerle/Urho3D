@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,9 @@ typedef LinkedList<EventHandler *>::const_iterator cilEventHandler;
 #define OBJECT(typeName) \
     public: \
         typedef typeName ClassName; \
-        virtual Urho3D::StringHash GetType() const { return GetTypeStatic(); } \
-        virtual Urho3D::StringHash GetBaseType() const { return GetBaseTypeStatic(); } \
-        virtual const Urho3D::String& GetTypeName() const { return GetTypeNameStatic(); } \
+        virtual Urho3D::StringHash GetType() const override { return GetTypeStatic(); } \
+        virtual Urho3D::StringHash GetBaseType() const override { return GetBaseTypeStatic(); } \
+        virtual const Urho3D::String& GetTypeName() const override { return GetTypeNameStatic(); } \
         static Urho3D::StringHash GetTypeStatic() { static const Urho3D::StringHash typeStatic(#typeName); return typeStatic; } \
         static const Urho3D::String& GetTypeNameStatic() { static const Urho3D::String typeNameStatic(#typeName); return typeNameStatic; } \
 
@@ -176,7 +176,7 @@ public:
     }
 
     /// Create an object of the specific type.
-    virtual SharedPtr<Object>(CreateObject()) { return SharedPtr<Object>(new T(context_)); }
+    virtual SharedPtr<Object> CreateObject() override { return SharedPtr<Object>(new T(context_)); }
 };
 
 /// Internal helper class for invoking event handler functions.
@@ -186,8 +186,8 @@ public:
     /// Construct with specified receiver.
     EventHandler(Object* receiver) :
         receiver_(receiver),
-        sender_(0),
-        userData_(0)
+        sender_(nullptr),
+        userData_(nullptr)
     {
         assert(receiver_);
     }
@@ -195,7 +195,7 @@ public:
     /// Construct with specified receiver and userdata.
     EventHandler(Object* receiver, void* userData) :
         receiver_(receiver),
-        sender_(0),
+        sender_(nullptr),
         userData_(userData)
     {
         assert(receiver_);
@@ -259,18 +259,18 @@ public:
     }
 
     /// Invoke event handler function.
-    virtual void Invoke(VariantMap& eventData)
+    virtual void Invoke(VariantMap& eventData) override
     {
         T* receiver = static_cast<T*>(receiver_);
         (receiver->*function_)(eventType_, eventData);
     }
 
     /// Return a unique copy of the event handler.
-    virtual EventHandler* Clone() const
+    virtual EventHandler* Clone() const override
     {
         return new EventHandlerImpl(static_cast<T*>(receiver_), function_, userData_);
     }
-    
+
 private:
     /// Class-specific pointer to handler function.
     HandlerFunctionPtr function_;

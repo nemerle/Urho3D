@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 #pragma once
 
 #include "Sample.h"
-
+#include <deque>
 namespace Urho3D
 {
 
@@ -47,11 +47,11 @@ public:
     Chat(Context* context);
 
     /// Setup after engine initialization and before running the main loop.
-    virtual void Start();
+    virtual void Start() override;
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const { return
+    virtual String GetScreenJoystickPatchString() const override { return
         "<patch>"
         "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Button2']]\">"
         "        <attribute name=\"Is Visible\" value=\"false\" />"
@@ -88,7 +88,7 @@ private:
     /// Handle connection status change (just update the buttons that should be shown.)
     void HandleConnectionStatus(StringHash eventType, VariantMap& eventData);
     /// Strings printed so far.
-    Vector<String> chatHistory_;
+    std::deque<String> chatHistory_;
     /// Chat text element.
     SharedPtr<Text> chatHistoryText_;
     /// Button container element.

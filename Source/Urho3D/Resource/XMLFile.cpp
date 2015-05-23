@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Container/ArrayPtr.h"
 #include "../Core/Context.h"
 #include "../IO/Deserializer.h"
@@ -53,7 +52,7 @@ public:
     /// Write bytes to output.
     void write(const void* data, size_t size) override
     {
-        if (dest_.Write(data, size) != size)
+        if (dest_.Write(data, (unsigned)size) != size)
             success_ = false;
     }
 
@@ -106,7 +105,9 @@ bool XMLFile::BeginLoad(Deserializer& source)
     {
         // The existence of this attribute indicates this is an RFC 5261 patch file
         ResourceCache* cache = GetSubsystem<ResourceCache>();
-        XMLFile* inheritedXMLFile = cache->GetResource<XMLFile>(inherit);
+        // If being async loaded, GetResource() is not safe, so use GetTempResource() instead
+        XMLFile* inheritedXMLFile = GetAsyncLoadState() == ASYNC_DONE ? cache->GetResource<XMLFile>(inherit) :
+            cache->GetTempResource<XMLFile>(inherit);
         if (!inheritedXMLFile)
         {
             LOGERRORF("Could not find inherited XML file: %s", inherit.CString());
@@ -134,8 +135,13 @@ bool XMLFile::BeginLoad(Deserializer& source)
 
 bool XMLFile::Save(Serializer& dest) const
 {
+    return Save(dest, "\t");
+}
+
+bool XMLFile::Save(Serializer& dest, const String& indendation) const
+{
     XMLWriter writer(dest);
-    document_->save(writer);
+    document_->save(writer, indendation.CString());
     return writer.success_;
 }
 
@@ -167,11 +173,11 @@ XMLElement XMLFile::GetRoot(const String& name)
         return XMLElement(this, root.internal_object());
 }
 
-String XMLFile::ToString() const
+String XMLFile::ToString(const String& indendation) const
 {
     VectorBuffer dest;
     XMLWriter writer(dest);
-    document_->save(writer);
+    document_->save(writer, indendation.CString());
     return String((const char*)dest.GetData(), dest.GetSize());
 }
 

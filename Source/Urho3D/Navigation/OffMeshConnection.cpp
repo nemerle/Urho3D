@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,12 +34,16 @@ namespace Urho3D
 extern const char* NAVIGATION_CATEGORY;
 
 static const float DEFAULT_RADIUS = 1.0f;
+static const unsigned DEFAULT_MASK_FLAG = 1;
+static const unsigned DEFAULT_AREA = 1;
 
 OffMeshConnection::OffMeshConnection(Context* context) :
     Component(context),
     endPointID_(0),
     radius_(DEFAULT_RADIUS),
     bidirectional_(true),
+    mask_(DEFAULT_MASK_FLAG),
+    areaId_(DEFAULT_AREA),
     endPointDirty_(false)
 {
 }
@@ -56,6 +60,8 @@ void OffMeshConnection::RegisterObject(Context* context)
     ATTRIBUTE("Endpoint NodeID", int, endPointID_, 0, AM_DEFAULT | AM_NODEID);
     ATTRIBUTE("Radius", float, radius_, DEFAULT_RADIUS, AM_DEFAULT);
     ATTRIBUTE("Bidirectional", bool, bidirectional_, true, AM_DEFAULT);
+    ATTRIBUTE("Flags Mask", unsigned, mask_, DEFAULT_MASK_FLAG, AM_DEFAULT);
+    ATTRIBUTE("Area Type", unsigned, areaId_, DEFAULT_AREA, AM_DEFAULT);
 }
 
 void OffMeshConnection::OnSetAttribute(const AttributeInfo& attr, const Variant& src)
@@ -98,6 +104,18 @@ void OffMeshConnection::SetRadius(float radius)
 void OffMeshConnection::SetBidirectional(bool enabled)
 {
     bidirectional_ = enabled;
+    MarkNetworkUpdate();
+}
+
+void OffMeshConnection::SetMask(unsigned newMask)
+{
+    mask_ = newMask;
+    MarkNetworkUpdate();
+}
+
+void OffMeshConnection::SetAreaID(unsigned newAreaID)
+{
+    areaId_ = newAreaID;
     MarkNetworkUpdate();
 }
 

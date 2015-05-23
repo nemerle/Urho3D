@@ -1,5 +1,5 @@
 --
--- Copyright (c) 2008-2014 the Urho3D project.
+-- Copyright (c) 2008-2015 the Urho3D project.
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ function post_output_hook(package)
 #include "string.h"
 
 #include "tolua++.h"]], [[//
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,6 @@ function post_output_hook(package)
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include <toluapp/tolua++.h>
 #include "LuaScript/ToluaUtils.h"
 
@@ -97,6 +96,10 @@ function post_output_hook(package)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
 #endif]])
+    if not _extra_parameters["Urho3D"] then
+        replace([[#include "LuaScript/ToluaUtils.h"]], [[#include <Urho3D/Urho3D.h>
+#include <Urho3D/LuaScript/ToluaUtils.h>]])
+    end
 
     WRITE(result)
     WRITE([[

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Core/CoreEvents.h>
@@ -123,7 +125,7 @@ void HugeObjectCount::CreateScene()
         light->SetSpecularIntensity(1.5f);
 
         // Create StaticModelGroups in the scene
-        StaticModelGroup* lastGroup = 0;
+        StaticModelGroup* lastGroup = nullptr;
 
         for (int y = -125; y < 125; ++y)
         {
@@ -236,8 +238,8 @@ void HugeObjectCount::AnimateObjects(float timeStep)
     // Rotate about the Z axis (roll)
     Quaternion rotateQuat(ROTATE_SPEED * timeStep, Vector3::FORWARD);
 
-    for (SharedPtr<Node> & node : boxNodes_)
-        node->Rotate(rotateQuat);
+    for (unsigned i = 0; i < boxNodes_.size(); ++i)
+        boxNodes_[i]->Rotate(rotateQuat);
 }
 
 void HugeObjectCount::HandleUpdate(StringHash eventType, VariantMap& eventData)

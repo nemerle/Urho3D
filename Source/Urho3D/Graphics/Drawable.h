@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -95,8 +95,6 @@ struct SourceBatch
     unsigned numWorldTransforms_;
     /// %Geometry type.
     GeometryType geometryType_;
-    /// Override view transform flag.
-    bool overrideView_;
 };
 
 /// Base class for visible components.
@@ -117,7 +115,7 @@ public:
     static void RegisterObject(Context* context);
 
     /// Handle enabled/disabled state change.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
     /// Process octree raycast. May be called from a worker thread.
     virtual void ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResult>& results);
     /// Update before octree reinsertion. Is called from a worker thread.
@@ -135,7 +133,7 @@ public:
     /// Draw to occlusion buffer. Return true if did not run out of triangles.
     virtual bool DrawOcclusion(OcclusionBuffer* buffer);
     /// Visualize the component as debug geometry.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
 
     /// Set draw distance.
     void SetDrawDistance(float distance);
@@ -202,15 +200,15 @@ public:
     /// Set sorting value.
     void SetSortValue(float value);
     /// Set view-space depth bounds.
-    void SetMinMaxZ(float minZ, float maxZ);
-    /// Mark in view.
+    void SetMinMaxZ(float minZ, float maxZ) { minZ_ = minZ; maxZ_ = maxZ; }
+    /// Mark in view. Also clear the light list.
     void MarkInView(const FrameInfo& frame) { MarkInView(frame.frameNumber_,frame.camera_); }
-    /// Mark in view of a specific camera. Specify null camera to update just the frame number.
+    /// Mark in view of a specific camera. Specify null camera to update just the frame number (Used for shadow casters.).
     void MarkInView(unsigned frameNumber, Camera* camera);
     /// Sort and limit per-pixel lights to maximum allowed. Convert extra lights into vertex lights.
     void LimitLights();
     /// Sort and limit per-vertex lights to maximum allowed.
-    void LimitVertexLights();
+    void LimitVertexLights(bool removeConvertedLights);
     /// Set base pass flag for a batch.
     void SetBasePass(unsigned batchIndex) { basePassFlags_ |= (1 << batchIndex); }
     /// Return octree octant.
@@ -252,8 +250,11 @@ public:
     // Add a per-pixel light affecting the object this frame.
     void AddLight(Light* light)
     {
+        firstLight_ = firstLight_ ? firstLight_ : light;
+        // Need to store into the light list only if the per-pixel lights are being limited.
+        // Otherwise recording the first light is enough
+        if (maxLights_)
         lights_.push_back(light);
-        firstLight_ = firstLight_ ? firstLight_ : lights_[0];
     }
 
     // Add a per-vertex light affecting the object this frame.
@@ -264,9 +265,9 @@ public:
 
 protected:
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
     /// Handle node transform being dirtied.
-    virtual void OnMarkedDirty(Node* node);
+    virtual void OnMarkedDirty(Node* node) override;
     /// Recalculate the world-space bounding box.
     virtual void OnWorldBoundingBoxUpdate() = 0;
     /// Handle removal from octree.
@@ -296,6 +297,12 @@ protected:
     bool occludee_;
     /// Octree update queued flag.
     bool updateQueued_;
+    /// Zone inconclusive or dirtied flag.
+    bool zoneDirty_;
+    /// Octree octant.
+    Octant* octant_;
+    /// Current zone.
+    Zone* zone_;
     /// View mask.
     unsigned viewMask_;
     /// Light mask.
@@ -322,24 +329,18 @@ protected:
     float maxZ_;
     /// LOD bias.
     float lodBias_;
-    /// Base pass flags.
+    /// Base pass flags, bit per batch.
     unsigned basePassFlags_;
-    /// Maximum lights.
+    /// Maximum per-pixel lights.
     unsigned maxLights_;
-    /// Octree octant.
-    Octant* octant_;
+    /// Set of cameras from which is seen on the current frame.
+    SmallMembershipSet<Camera *,4> viewCameras_;
     /// First per-pixel light added this frame.
     Light* firstLight_;
     /// Per-pixel lights affecting this drawable.
     PODVectorN<Light *,4> lights_;
     /// Per-vertex lights affecting this drawable.
     PODVectorN<Light*,4> vertexLights_;
-    /// Current zone.
-    Zone* zone_;
-    /// Zone inconclusive or dirtied flag.
-    bool zoneDirty_;
-    /// Set of cameras from which is seen on the current frame.
-    SmallMembershipSet<Camera *,4> viewCameras_;
 };
 
 inline bool CompareDrawables(Drawable* lhs, Drawable* rhs)

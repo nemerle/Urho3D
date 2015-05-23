@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -104,14 +104,14 @@ public:
     const Vector<AttributeInfo>* GetAttributes(StringHash type) const
     {
         HashMap<StringHash, Vector<AttributeInfo> >::const_iterator i = attributes_.find(type);
-        return i != attributes_.end() ? &(MAP_VALUE(i)) : 0;
+        return i != attributes_.end() ? &(MAP_VALUE(i)) : nullptr;
     }
 
     /// Return network replication attribute descriptions for an object type, or null if none defined.
     const Vector<AttributeInfo>* GetNetworkAttributes(StringHash type) const
     {
         HashMap<StringHash, Vector<AttributeInfo> >::const_iterator i = networkAttributes_.find(type);
-        return i != networkAttributes_.end() ? &(MAP_VALUE(i)) : 0;
+        return i != networkAttributes_.end() ? &(MAP_VALUE(i)) : nullptr;
     }
 
     /// Return all registered attributes.
@@ -124,17 +124,17 @@ public:
         if (i != specificEventReceivers_.end())
         {
             HashMap<StringHash, HashSet<Object*> >::iterator j = MAP_VALUE(i).find(eventType);
-            return j != MAP_VALUE(i).end() ? &MAP_VALUE(j) : 0;
+            return j != MAP_VALUE(i).end() ? &MAP_VALUE(j) : nullptr;
         }
         else
-            return 0;
+            return nullptr;
     }
 
     /// Return event receivers for an event type, or null if they do not exist.
     HashSet<Object*>* GetEventReceivers(StringHash eventType)
     {
         HashMap<StringHash, HashSet<Object*> >::iterator i = eventReceivers_.find(eventType);
-        return i != eventReceivers_.end() ? &MAP_VALUE(i) : 0;
+        return i != eventReceivers_.end() ? &MAP_VALUE(i) : nullptr;
     }
 
 private:

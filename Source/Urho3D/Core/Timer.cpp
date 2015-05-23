@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -179,6 +179,18 @@ unsigned Timer::GetMSec(bool reset)
         startTime_ = currentTime;
 
     return elapsedTime;
+}
+unsigned Timer::GetMSecS() const
+{
+    #ifdef WIN32
+    unsigned currentTime = (unsigned)timeGetTime();
+    #else
+    struct timeval time;
+    gettimeofday(&time, nullptr);
+    unsigned currentTime = (unsigned)(time.tv_sec * 1000 + time.tv_usec / 1000);
+    #endif
+
+    return currentTime - startTime_;
 }
 
 void Timer::Reset()

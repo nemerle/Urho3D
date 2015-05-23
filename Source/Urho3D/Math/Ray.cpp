@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Math/BoundingBox.h"
 #include "../Math/Frustum.h"
 #include "../Math/Plane.h"
@@ -209,7 +208,7 @@ float Ray::HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2) 
 
 float Ray::HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2, Vector3* outNormal) const
 {
-    // Based on Fast, Minimum Storage Ray/Triangle Intersection by M�ller & Trumbore
+    // Based on Fast, Minimum Storage Ray/Triangle Intersection by Möller & Trumbore
     // http://www.graphics.cornell.edu/pubs/1997/MT97.pdf
     // Calculate edge vectors
     Vector3 edge1(v1 - v0);

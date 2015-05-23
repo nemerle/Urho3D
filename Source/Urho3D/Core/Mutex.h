@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,45 +22,43 @@
 
 #pragma once
 
-#include "../Urho3D.h"
-
 namespace Urho3D
 {
 
 /// Operating system mutual exclusion primitive.
-class URHO3D_API Mutex
+class Mutex
 {
 public:
     /// Construct.
     Mutex();
     /// Destruct.
     ~Mutex();
-    
+
     /// Acquire the mutex. Block if already acquired.
     void Acquire();
     /// Release the mutex.
     void Release();
-    
+
 private:
     /// Mutex handle.
     void* handle_;
 };
 
 /// Lock that automatically acquires and releases a mutex.
-class URHO3D_API MutexLock
+class MutexLock
 {
 public:
     /// Construct and acquire the mutex.
     MutexLock(Mutex& mutex);
     /// Destruct. Release the mutex.
     ~MutexLock();
-    
+
 private:
     /// Prevent copy construction.
     MutexLock(const MutexLock& rhs);
     /// Prevent assignment.
     MutexLock& operator = (const MutexLock& rhs);
-    
+
     /// Mutex reference.
     Mutex& mutex_;
 };

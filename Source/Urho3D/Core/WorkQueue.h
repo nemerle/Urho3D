@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -109,6 +109,10 @@ public:
     SharedPtr<WorkItem> GetFreeItem();
     /// Add a work item and resume worker threads.
     void AddWorkItem(SharedPtr<WorkItem> item);
+    /// Remove a work item before it has started executing. Return true if successfully removed.
+    bool RemoveWorkItem(SharedPtr<WorkItem> item);
+    /// Remove a number of work items before they have started executing. Return the number of items successfully removed.
+    unsigned RemoveWorkItems(const Vector<SharedPtr<WorkItem> >& items);
     /// Pause worker threads.
     void Pause();
     /// Resume worker threads.
@@ -136,6 +140,8 @@ private:
     void PurgeCompleted(unsigned priority);
     /// Purge the pool to reduce allocation where its unneeded.
     void PurgePool();
+    /// Return a work item to the pool.
+    void ReturnToPool(SharedPtr<WorkItem>& item);
     /// Handle frame start event. Purge completed work from the main thread queue, and perform work if no threads at all.
     void HandleBeginFrame(StringHash eventType, VariantMap& eventData);
 
@@ -165,5 +171,6 @@ private:
     /// Maximum milliseconds per frame to spend on low-priority work, when there are no worker threads.
     int maxNonThreadedWorkMs_;
 };
-
+typedef std::multiset<WorkItem*,comparePriority> msWorkitem;
+typedef msWorkitem::iterator imsWorkitem;
 }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../Math/Vector3.h"
+#include "../Container/Vector.h"
 
 namespace Urho3D
 {
@@ -41,34 +42,34 @@ public:
     Polyhedron()
     {
     }
-    
+
     /// Copy-construct from another polyhedron.
     Polyhedron(const Polyhedron& polyhedron) :
         faces_(polyhedron.faces_)
     {
     }
-    
+
     /// Construct from a list of faces.
     Polyhedron(const Vector<PODVector<Vector3> >& faces) :
         faces_(faces)
     {
     }
-    
+
     /// Construct from a bounding box.
     Polyhedron(const BoundingBox& box)
     {
         Define(box);
     }
-    
+
     /// Construct from a frustum.
     Polyhedron(const Frustum& frustum)
     {
         Define(frustum);
     }
-    
+
     /// Destruct.
     ~Polyhedron();
-    
+
     /// Define from a bounding box.
     void Define(const BoundingBox& box);
     /// Define from a frustum.
@@ -91,17 +92,17 @@ public:
     void Transform(const Matrix3& transform);
     /// Transform with a 3x4 matrix.
     void Transform(const Matrix3x4& transform);
-    
+
     /// Return transformed with a 3x3 matrix.
     Polyhedron Transformed(const Matrix3& transform) const;
     /// Return transformed with a 3x4 matrix.
     Polyhedron Transformed(const Matrix3x4& transform) const;
     /// Return whether is empty.
     bool Empty() const { return faces_.empty(); }
-    
+
     /// Polygon faces.
     Vector<PODVector<Vector3> > faces_;
-    
+
 private:
     /// Set a triangle face by index.
     void SetFace(unsigned index, const Vector3& v0, const Vector3& v1, const Vector3& v2);

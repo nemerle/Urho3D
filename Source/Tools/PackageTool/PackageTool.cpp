@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Container/ArrayPtr.h>
@@ -55,6 +57,7 @@ String basePath_;
 Vector<FileEntry> entries_;
 unsigned checksum_ = 0;
 bool compress_ = false;
+bool quiet_ = false;
 unsigned blockSize_ = COMPRESSED_BLOCK_SIZE;
 
 String ignoreExtensions_[] = {
@@ -73,11 +76,11 @@ int main(int argc, char** argv)
 {
     Vector<String> arguments;
 
-    #ifdef WIN32
+#ifdef WIN32
     arguments = ParseArguments(GetCommandLineW());
-    #else
+#else
     arguments = ParseArguments(argc, argv);
-    #endif
+#endif
 
     Run(arguments);
     return 0;
@@ -87,11 +90,12 @@ void Run(const Vector<String>& arguments)
 {
     if (arguments.size() < 2)
         ErrorExit(
-            "Usage: PackageTool <directory to process> <package name> [basepath] [options]\n"
-            "\n"
-            "Options:\n"
-            "-c      Enable package file LZ4 compression\n"
-        );
+                    "Usage: PackageTool <directory to process> <package name> [basepath] [options]\n"
+                    "\n"
+                    "Options:\n"
+                    "-c      Enable package file LZ4 compression\n"
+                    "-q      Enable quiet mode\n"
+                    );
 
     const String& dirName = arguments[0];
     const String& packageName = arguments[1];
@@ -110,15 +114,19 @@ void Run(const Vector<String>& arguments)
                     case 'c':
                         compress_ = true;
                         break;
+                    case 'q':
+                        quiet_ = true;
+                        break;
                     }
                 }
             }
         }
     }
 
-    PrintLine("Scanning directory " + dirName + " for files");
+    if (!quiet_)
+        PrintLine("Scanning directory " + dirName + " for files");
 
-   // Get the file list recursively
+    // Get the file list recursively
     Vector<String> fileNames;
     fileSystem_->ScanDir(fileNames, dirName, "*.*", SCAN_FILES, true);
     if (!fileNames.size())
@@ -163,7 +171,8 @@ void ProcessFile(const String& fileName, const String& rootDir)
 
 void WritePackageFile(const String& fileName, const String& rootDir)
 {
-    PrintLine("Writing package");
+    if (!quiet_)
+        PrintLine("Writing package");
 
     File dest(context_);
     if (!dest.Open(fileName, FILE_WRITE))
@@ -209,7 +218,8 @@ void WritePackageFile(const String& fileName, const String& rootDir)
 
         if (!compress_)
         {
-            PrintLine(entries_[i].name_ + " size " + String(dataSize));
+            if (!quiet_)
+                PrintLine(entries_[i].name_ + " size " + String(dataSize));
             dest.Write(&buffer[0], entries_[i].size_);
         }
         else
@@ -237,7 +247,8 @@ void WritePackageFile(const String& fileName, const String& rootDir)
                 pos += unpackedSize;
             }
 
-            PrintLine(entries_[i].name_ + " in " + String(dataSize) + " out " + String(totalPackedBytes));
+            if (!quiet_)
+                PrintLine(entries_[i].name_ + " in " + String(dataSize) + " out " + String(totalPackedBytes));
         }
     }
 
@@ -257,9 +268,12 @@ void WritePackageFile(const String& fileName, const String& rootDir)
         dest.WriteUInt(entries_[i].checksum_);
     }
 
-    PrintLine("Number of files " + String(entries_.size()));
-    PrintLine("File data size " + String(totalDataSize));
-    PrintLine("Package size " + String(dest.GetSize()));
+    if (!quiet_)
+    {
+        PrintLine("Number of files " + String(entries_.size()));
+        PrintLine("File data size " + String(totalDataSize));
+        PrintLine("Package size " + String(dest.GetSize()));
+    }
 }
 
 void WriteHeader(File& dest)

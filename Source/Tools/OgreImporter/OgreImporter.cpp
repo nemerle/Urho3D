@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,13 @@
 // THE SOFTWARE.
 //
 
+#include <Urho3D/Urho3D.h>
+
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/IO/File.h>
 #include <Urho3D/IO/FileSystem.h>
 #include <QtCore/QSet>
+#include <Urho3D/Core/StringUtils.h>
 #include <Urho3D/Core/ProcessUtils.h>
 #include <Urho3D/Graphics/Tangent.h>
 #include <Urho3D/Resource/XMLFile.h>
@@ -52,6 +55,7 @@ Vector<ModelBone> bones_;
 Vector<ModelMorph> morphs_;
 Vector<String> materialNames_;
 BoundingBox boundingBox_;
+unsigned maxBones_ = 64;
 unsigned numSubMeshes_ = 0;
 bool useOneBuffer_ = true;
 
@@ -91,6 +95,7 @@ void Run(const Vector<String>& arguments)
             "-r      Output only rotations from animations\n"
             "-s      Split each submesh into own vertex buffer\n"
             "-t      Generate tangents\n"
+            "-mb <x> Maximum number of bones per submesh, default 64\n"
         );
     }
 
@@ -129,6 +134,13 @@ void Run(const Vector<String>& arguments)
                         break;
                     }
                     break;
+                }
+                else if (argument == "mb" && i < arguments.size() - 1)
+                {
+                    maxBones_ = ToUInt(arguments[i + 1]);
+                    if (maxBones_ < 1)
+                        maxBones_ = 1;
+                    ++i;
                 }
             }
         }
@@ -497,7 +509,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 bool sorted = false;
 
                 // If amount of bones is larger than supported by HW skinning, must remap per submesh
-                if (bones_.size() > MAX_SKIN_MATRICES)
+                if (bones_.size() > maxBones_)
                 {
                     HashMap<unsigned, unsigned> usedBoneMap;
                     unsigned remapIndex = 0;
@@ -521,8 +533,8 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     }
 
                     // If still too many bones in one subgeometry, error
-                    if (usedBoneMap.size() > MAX_SKIN_MATRICES)
-                        ErrorExit("Too many bones in submesh " + String(subMeshIndex + 1));
+                    if (usedBoneMap.size() > maxBones_)
+                        ErrorExit("Too many bones (limit " + String(maxBones_) + ") in submesh " + String(subMeshIndex + 1));
 
                     // Write mapping of vertex buffer bone indices to original bone indices
                     subGeometryLodLevel.boneMapping_.resize(usedBoneMap.size());
@@ -798,12 +810,12 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     }
 
     // Check any of the buffers for vertices with missing blend weight assignments
-    for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
+    for (auto & elem : vertexBuffers_)
     {
-        if (vertexBuffers_[i].elementMask_ & MASK_BLENDWEIGHTS)
+        if (elem.elementMask_ & MASK_BLENDWEIGHTS)
         {
-            for (unsigned j = 0; j < vertexBuffers_[i].vertices_.size(); ++j)
-                if (!vertexBuffers_[i].vertices_[j].hasBlendWeights_)
+            for (unsigned j = 0; j < elem.vertices_.size(); ++j)
+                if (!elem.vertices_[j].hasBlendWeights_)
                     ErrorExit("Found a vertex with missing skinning information");
         }
     }
@@ -811,14 +823,14 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     // Tangent generation
     if (generateTangents)
     {
-        for (unsigned i = 0; i < subGeometries_.size(); ++i)
+        for (auto & elem : subGeometries_)
         {
-            for (unsigned j = 0; j < subGeometries_[i].size(); ++j)
+            for (unsigned j = 0; j < elem.size(); ++j)
             {
-                ModelVertexBuffer& vBuf = vertexBuffers_[subGeometries_[i][j].vertexBuffer_];
-                ModelIndexBuffer& iBuf = indexBuffers_[subGeometries_[i][j].indexBuffer_];
-                unsigned indexStart = subGeometries_[i][j].indexStart_;
-                unsigned indexCount = subGeometries_[i][j].indexCount_;
+                ModelVertexBuffer& vBuf = vertexBuffers_[elem[j].vertexBuffer_];
+                ModelIndexBuffer& iBuf = indexBuffers_[elem[j].indexBuffer_];
+                unsigned indexStart = elem[j].indexStart_;
+                unsigned indexCount = elem[j].indexCount_;
 
                 // If already has tangents, do not regenerate
                 if (vBuf.elementMask_ & MASK_TANGENT || vBuf.vertices_.empty() || iBuf.indices_.empty())
@@ -853,68 +865,68 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
 
         // Vertexbuffers
         dest.WriteUInt(vertexBuffers_.size());
-        for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
-            vertexBuffers_[i].WriteData(dest);
+        for (auto & elem : vertexBuffers_)
+            elem.WriteData(dest);
 
         // Indexbuffers
         dest.WriteUInt(indexBuffers_.size());
-        for (unsigned i = 0; i < indexBuffers_.size(); ++i)
-            indexBuffers_[i].WriteData(dest);
+        for (auto & elem : indexBuffers_)
+            elem.WriteData(dest);
 
         // Subgeometries
         dest.WriteUInt(subGeometries_.size());
-        for (unsigned i = 0; i < subGeometries_.size(); ++i)
+        for (auto & elem : subGeometries_)
         {
             // Write bone mapping info from the first LOD level. It does not change for further LODs
-            dest.WriteUInt(subGeometries_[i][0].boneMapping_.size());
-            for (unsigned k = 0; k < subGeometries_[i][0].boneMapping_.size(); ++k)
-                dest.WriteUInt(subGeometries_[i][0].boneMapping_[k]);
+            dest.WriteUInt(elem[0].boneMapping_.size());
+            for (unsigned k = 0; k < elem[0].boneMapping_.size(); ++k)
+                dest.WriteUInt(elem[0].boneMapping_[k]);
 
             // Lod levels for this subgeometry
-            dest.WriteUInt(subGeometries_[i].size());
-            for (unsigned j = 0; j < subGeometries_[i].size(); ++j)
+            dest.WriteUInt(elem.size());
+            for (unsigned j = 0; j < elem.size(); ++j)
             {
-                dest.WriteFloat(subGeometries_[i][j].distance_);
-                dest.WriteUInt((unsigned)subGeometries_[i][j].primitiveType_);
-                dest.WriteUInt(subGeometries_[i][j].vertexBuffer_);
-                dest.WriteUInt(subGeometries_[i][j].indexBuffer_);
-                dest.WriteUInt(subGeometries_[i][j].indexStart_);
-                dest.WriteUInt(subGeometries_[i][j].indexCount_);
+                dest.WriteFloat(elem[j].distance_);
+                dest.WriteUInt((unsigned)elem[j].primitiveType_);
+                dest.WriteUInt(elem[j].vertexBuffer_);
+                dest.WriteUInt(elem[j].indexBuffer_);
+                dest.WriteUInt(elem[j].indexStart_);
+                dest.WriteUInt(elem[j].indexCount_);
             }
         }
 
         // Morphs
         dest.WriteUInt(morphs_.size());
-        for (unsigned i = 0; i < morphs_.size(); ++i)
-            morphs_[i].WriteData(dest);
+        for (auto & elem : morphs_)
+            elem.WriteData(dest);
 
         // Skeleton
         dest.WriteUInt(bones_.size());
-        for (unsigned i = 0; i < bones_.size(); ++i)
+        for (auto & elem : bones_)
         {
-            dest.WriteString(bones_[i].name_);
-            dest.WriteUInt(bones_[i].parentIndex_);
-            dest.WriteVector3(bones_[i].bindPosition_);
-            dest.WriteQuaternion(bones_[i].bindRotation_);
-            dest.WriteVector3(bones_[i].bindScale_);
+            dest.WriteString(elem.name_);
+            dest.WriteUInt(elem.parentIndex_);
+            dest.WriteVector3(elem.bindPosition_);
+            dest.WriteQuaternion(elem.bindRotation_);
+            dest.WriteVector3(elem.bindScale_);
 
-            Matrix3x4 offsetMatrix(bones_[i].derivedPosition_, bones_[i].derivedRotation_, bones_[i].derivedScale_);
+            Matrix3x4 offsetMatrix(elem.derivedPosition_, elem.derivedRotation_, elem.derivedScale_);
             offsetMatrix = offsetMatrix.Inverse();
             dest.Write(offsetMatrix.Data(), sizeof(Matrix3x4));
 
-            dest.WriteUByte(bones_[i].collisionMask_);
-            if (bones_[i].collisionMask_ & 1)
-                dest.WriteFloat(bones_[i].radius_);
-            if (bones_[i].collisionMask_ & 2)
-                dest.WriteBoundingBox(bones_[i].boundingBox_);
+            dest.WriteUByte(elem.collisionMask_);
+            if (elem.collisionMask_ & 1)
+                dest.WriteFloat(elem.radius_);
+            if (elem.collisionMask_ & 2)
+                dest.WriteBoundingBox(elem.boundingBox_);
         }
 
         // Bounding box
         dest.WriteBoundingBox(boundingBox_);
 
         // Geometry centers
-        for (unsigned i = 0; i < subGeometryCenters_.size(); ++i)
-            dest.WriteVector3(subGeometryCenters_[i]);
+        for (auto & elem : subGeometryCenters_)
+            dest.WriteVector3(elem);
     }
 
     if (saveMaterialList)
@@ -923,10 +935,10 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
         File listFile(context_);
         if (listFile.Open(materialListName, FILE_WRITE))
         {
-            for (unsigned i = 0; i < materialNames_.size(); ++i)
+            for (auto & elem : materialNames_)
             {
                 // Assume the materials will be located inside the standard Materials subdirectory
-                listFile.WriteLine("Materials/" + ReplaceExtension(SanitateAssetName(materialNames_[i]), ".xml"));
+                listFile.WriteLine("Materials/" + ReplaceExtension(SanitateAssetName(elem), ".xml"));
             }
         }
         else
@@ -953,11 +965,11 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 {
                     String trackName = track.GetAttribute("bone");
                     ModelBone* bone = nullptr;
-                    for (unsigned i = 0; i < bones_.size(); ++i)
+                    for (auto & elem : bones_)
                     {
-                        if (bones_[i].name_ == trackName)
+                        if (elem.name_ == trackName)
                         {
-                            bone = &bones_[i];
+                            bone = &elem;
                             break;
                         }
                     }
@@ -1027,9 +1039,8 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 dest.WriteString(newAnimation.name_);
                 dest.WriteFloat(newAnimation.length_);
                 dest.WriteUInt(newAnimation.tracks_.size());
-                for (unsigned i = 0; i < newAnimation.tracks_.size(); ++i)
+                for (AnimationTrack& track : newAnimation.tracks_)
                 {
-                    AnimationTrack& track = newAnimation.tracks_[i];
                     dest.WriteString(track.name_);
                     dest.WriteUByte(track.channelMask_);
                     dest.WriteUInt(track.keyFrames_.size());

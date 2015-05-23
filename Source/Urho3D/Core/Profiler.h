@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ class URHO3D_API ProfilerBlock
 public:
     /// Construct with the specified parent block and name.
     ProfilerBlock(ProfilerBlock* parent, const char* name) :
-        name_(0),
+        name_(nullptr),
         time_(0),
         maxTime_(0),
         count_(0),
@@ -104,8 +104,8 @@ public:
         maxTime_ = 0;
         count_ = 0;
 
-        for (PODVector<ProfilerBlock*>::iterator i = children_.begin(); i != children_.end(); ++i)
-            (*i)->EndFrame();
+        for (ProfilerBlock* elem : children_)
+            elem->EndFrame();
     }
 
     /// Begin new profiling interval.
@@ -115,17 +115,17 @@ public:
         intervalMaxTime_ = 0;
         intervalCount_ = 0;
 
-        for (PODVector<ProfilerBlock*>::iterator i = children_.begin(); i != children_.end(); ++i)
-            (*i)->BeginInterval();
+        for (ProfilerBlock* elem : children_)
+            elem->BeginInterval();
     }
 
     /// Return child block with the specified name.
     ProfilerBlock* GetChild(const char* name)
     {
-        for (PODVector<ProfilerBlock*>::iterator i = children_.begin(); i != children_.end(); ++i)
+        for (ProfilerBlock* elem : children_)
         {
-            if (!String::Compare((*i)->name_, name, true))
-                return *i;
+            if (!String::Compare(elem->name_, name, true))
+                return elem;
         }
 
         ProfilerBlock* newBlock = new ProfilerBlock(this, name);

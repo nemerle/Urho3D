@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
@@ -192,14 +191,14 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
                 object->objectType_ = OT_POLYGON;
 
                 XMLElement polygonElem = objectElem.GetChild("polygon");
-                points = polygonElem.GetAttribute("points").Split(' ');
+                points = polygonElem.GetAttribute("points").split(' ');
             }
             else if (objectElem.HasChild("polyline"))
             {
                 object->objectType_ = OT_POLYLINE;
 
                 XMLElement polylineElem = objectElem.GetChild("polyline");
-                points = polylineElem.GetAttribute("points").Split(' ');
+                points = polylineElem.GetAttribute("points").split(' ');
             }
             else
                 return false;
@@ -207,7 +206,7 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
             if (points.size() <= 1)
                 continue;
 
-            object->points_.resize(points.Size());
+            object->points_.resize(points.size());
 
             for (unsigned i = 0; i < points.size(); ++i)
             {

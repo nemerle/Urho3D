@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2014 the Urho3D project.
+# Copyright (c) 2008-2015 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ endif ()
 
 
 # Setup RPATH settings
-if (URHO3D_LIB_TYPE STREQUAL SHARED AND NOT WIN32 AND NOT ANDROID AND NOT IOS)
+if (URHO3D_LIB_TYPE STREQUAL SHARED AND NOT WIN32 AND NOT ANDROID AND NOT IOS AND NOT EMSCRIPTEN)
     # Add RPATH entries when building
     set (CMAKE_SKIP_BUILD_RPATH FALSE)
     # But don't set them yet in the build tree
@@ -44,7 +44,7 @@ if (URHO3D_LIB_TYPE STREQUAL SHARED AND NOT WIN32 AND NOT ANDROID AND NOT IOS)
         set (ORIGIN $ORIGIN)
     endif ()
     # When installing/packaging set the first RPATH entry to the library location relative to the executable
-    set (CMAKE_INSTALL_RPATH ${ORIGIN}/../../../lib${LIB_SUFFIX}/${PATH_SUFFIX})    # The library location is based on SDK install destination
+    set (CMAKE_INSTALL_RPATH ${ORIGIN}/../lib${LIB_SUFFIX}/${PATH_SUFFIX})    # The library location is based on SDK install destination
     # The second entry to the install destination of the library, if the destination location is not in the system default search path
     list (FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX} isSystemDir)
     if (isSystemDir STREQUAL -1)
@@ -73,21 +73,23 @@ endif ()
 
 if (URHO3D_NAVIGATION)
     add_subdirectory (ThirdParty/Detour)
+    add_subdirectory (ThirdParty/DetourCrowd)
+    add_subdirectory (ThirdParty/DetourTileCache)
     add_subdirectory (ThirdParty/Recast)
-endif ()
-
-if (URHO3D_PHYSICS)
-    add_subdirectory (ThirdParty/Bullet)
 endif ()
 
 if (URHO3D_URHO2D)
     add_subdirectory (ThirdParty/Box2D)
 endif ()
 
-if (NOT IOS AND NOT ANDROID AND NOT RPI)
+if (URHO3D_PHYSICS)
+    add_subdirectory (ThirdParty/Bullet)
+endif ()
+
+if (NOT IOS AND NOT ANDROID AND NOT RPI AND NOT EMSCRIPTEN)
     if (URHO3D_OPENGL)
         add_subdirectory (ThirdParty/GLEW)
-    else ()
+    elseif (NOT URHO3D_D3D11)
         add_subdirectory (ThirdParty/MojoShader)
     endif ()
     add_subdirectory (ThirdParty/LibCpuId)
@@ -107,7 +109,6 @@ if (URHO3D_SAMPLES)
 endif ()
 
 # Urho3D extras
-# Do not build extras for iOS and Android
-if (NOT IOS AND NOT ANDROID AND URHO3D_EXTRAS)
+if (URHO3D_EXTRAS)
     add_subdirectory (Extras)
 endif ()

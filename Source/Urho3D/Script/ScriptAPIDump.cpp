@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../IO/File.h"
 #include "../IO/FileSystem.h"
@@ -58,6 +57,19 @@ struct PropertyInfo
     bool indexed_;
 };
 
+/// Header information for dumping events.
+struct HeaderFile
+{
+    /// Full path to header file.
+    String fileName;
+    /// Event section name.
+    String sectionName;
+};
+
+bool CompareHeaderFiles(const HeaderFile& lhs, const HeaderFile& rhs)
+{
+    return lhs.sectionName < rhs.sectionName;
+}
 void ExtractPropertyInfo(const String& functionName, const String& declaration, Vector<PropertyInfo>& propertyInfos)
 {
     String propertyName = functionName.Substring(4);
@@ -194,28 +206,37 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         Log::WriteRaw("namespace Urho3D\n{\n\n/**\n");
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
-        Vector<String> headerFiles;
+        Vector<String> headerFileNames;
         String path = AddTrailingSlash(sourceTree);
         if (!path.isEmpty())
             path.append("Source/Urho3D/");
 
-        fileSystem->ScanDir(headerFiles, path, "*.h", SCAN_FILES, true);
+        fileSystem->ScanDir(headerFileNames, path, "*.h", SCAN_FILES, true);
+        /// \hack Rename any Events2D to 2DEvents to work with the event category creation correctly (currently PhysicsEvents2D)
+        Vector<HeaderFile> headerFiles;
+        for (unsigned i = 0; i < headerFileNames.size(); ++i)
+        {
+            HeaderFile entry;
+            entry.fileName = headerFileNames[i];
+            entry.sectionName = GetFileNameAndExtension(entry.fileName).replaced("Events2D", "2DEvents");
+            if (entry.sectionName.endsWith("Events.h"))
+                headerFiles.push_back(entry);
+        }
         if (!headerFiles.empty())
         {
             Log::WriteRaw("\n\\page EventList Event list\n");
-            std::sort(headerFiles.begin(), headerFiles.end());
+            std::sort(headerFiles.begin(), headerFiles.end(),CompareHeaderFiles);
 
             for (unsigned i = 0; i < headerFiles.size(); ++i)
-            {
-                if (headerFiles[i].endsWith("Events.h"))
                 {
-                    SharedPtr<File> file(new File(context_, path + headerFiles[i], FILE_READ));
+                    SharedPtr<File> file(new File(context_, path + headerFiles[i].fileName, FILE_READ));
                     if (!file->IsOpen())
                         continue;
 
-                    unsigned start = headerFiles[i].indexOf('/') + 1;
-                    unsigned end = headerFiles[i].indexOf("Events.h");
-                    Log::WriteRaw("\n## %" + headerFiles[i].Substring(start, end - start) + " events\n");
+                const String& sectionName = headerFiles[i].sectionName;
+                    unsigned start = sectionName.indexOf('/') + 1;
+                    unsigned end = sectionName.indexOf("Events.h");
+                    Log::WriteRaw("\n## %" + sectionName.Substring(start, end - start) + " events\n");
 
                     while (!file->IsEof())
                     {
@@ -235,7 +256,6 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
                                 String paramType = parts[1].Substring(parts[1].indexOf("// ") + 3);
                                 if (!paramName.isEmpty() && !paramType.isEmpty())
                                     Log::WriteRaw("- %" + paramName + " : " + paramType + "\n");
-                            }
                         }
                     }
                 }
@@ -382,6 +402,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
                 asIScriptFunction* method = type->GetMethodByIndex(j);
                 String methodName(method->GetName());
                 String declaration(method->GetDeclaration());
+                // Recreate tab escape sequences
+                declaration.replace("\t", "\\t");
                 if (methodName.contains("get_") || methodName.contains("set_"))
                     ExtractPropertyInfo(methodName, declaration, propertyInfos);
                 else
@@ -492,6 +514,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         asIScriptFunction* function = scriptEngine_->GetGlobalFunctionByIndex(i);
         String functionName(function->GetName());
         String declaration(function->GetDeclaration());
+        // Recreate tab escape sequences
+        declaration.replace("\t", "\\t");
 
         if (functionName.contains("set_") || functionName.contains("get_"))
             ExtractPropertyInfo(functionName, declaration, globalPropertyInfos);

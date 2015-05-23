@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -57,9 +57,9 @@ struct URHO3D_API CursorShapeInfo
     CursorShapeInfo() :
         imageRect_(IntRect::ZERO),
         hotSpot_(IntVector2::ZERO),
-        systemCursor_(-1),
-        osCursor_(0),
-        systemDefined_(false)
+        osCursor_(nullptr),
+        systemDefined_(false),
+        systemCursor_(-1)
     {
     }
 
@@ -67,9 +67,9 @@ struct URHO3D_API CursorShapeInfo
     CursorShapeInfo(int systemCursor) :
         imageRect_(IntRect::ZERO),
         hotSpot_(IntVector2::ZERO),
-        systemCursor_(systemCursor),
-        osCursor_(0),
-        systemDefined_(false)
+        osCursor_(nullptr),
+        systemDefined_(false),
+        systemCursor_(systemCursor)
     {
     }
 
@@ -81,12 +81,12 @@ struct URHO3D_API CursorShapeInfo
     IntRect imageRect_;
     /// Hotspot coordinates.
     IntVector2 hotSpot_;
-    /// System cursor index.
-    int systemCursor_;
     /// OS cursor.
     SDL_Cursor* osCursor_;
     /// Whether the OS cursor is system defined.
     bool systemDefined_;
+    /// System cursor index.
+    int systemCursor_;
 };
 
 /// Mouse cursor %UI element.
@@ -103,7 +103,7 @@ public:
     static void RegisterObject(Context* context);
 
     /// Return UI rendering batches.
-    virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor);
+    virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) override;
 
     /// Define a shape.
     void DefineShape(const String& shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot);

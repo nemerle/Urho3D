@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,7 @@
 //
 
 #pragma once
-
-#include "../Urho3D.h"
+//#include "Urho3D.h"
 #include "../Container/Swap.h"
 
 namespace Urho3D
@@ -33,7 +32,7 @@ template <class T> struct RandomAccessIterator
 {
     /// Construct.
     RandomAccessIterator() :
-        ptr_(0)
+        ptr_(nullptr)
     {
     }
 
@@ -148,14 +147,14 @@ template <class T> struct RandomAccessConstIterator
 /** Note that to prevent extra memory use due to vtable pointer, %VectorBase intentionally does not declare a virtual destructor
     and therefore %VectorBase pointers should never be used.
   */
-class URHO3D_API VectorBase
+class VectorBase
 {
 public:
     /// Construct.
     VectorBase() :
         size_(0),
         capacity_(0),
-        buffer_(0)
+        buffer_(nullptr)
     {
     }
 

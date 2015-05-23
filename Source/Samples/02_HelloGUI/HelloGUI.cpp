@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/BorderImage.h>
@@ -78,16 +80,16 @@ void HelloGUI::Start()
 void HelloGUI::InitControls()
 {
     // Create a CheckBox
-    CheckBox* checkBox = new CheckBox(context_);
+    auto  checkBox = new CheckBox(context_);
     checkBox->SetName("CheckBox");
 
     // Create a Button
-    Button* button = new Button(context_);
+    auto  button = new Button(context_);
     button->SetName("Button");
     button->SetMinHeight(24);
 
     // Create a LineEdit
-    LineEdit* lineEdit = new LineEdit(context_);
+    auto  lineEdit = new LineEdit(context_);
     lineEdit->SetName("LineEdit");
     lineEdit->SetMinHeight(24);
 
@@ -115,18 +117,18 @@ void HelloGUI::InitWindow()
     window_->SetName("Window");
 
     // Create Window 'titlebar' container
-    UIElement* titleBar = new UIElement(context_);
+    auto  titleBar = new UIElement(context_);
     titleBar->SetMinSize(0, 24);
     titleBar->SetVerticalAlignment(VA_TOP);
     titleBar->SetLayoutMode(LM_HORIZONTAL);
 
     // Create the Window title Text
-    Text* windowTitle = new Text(context_);
+    auto  windowTitle = new Text(context_);
     windowTitle->SetName("WindowTitle");
     windowTitle->SetText("Hello GUI!");
 
     // Create the Window's close button
-    Button* buttonClose = new Button(context_);
+    auto  buttonClose = new Button(context_);
     buttonClose->SetName("CloseButton");
 
     // Add the controls to the title bar
@@ -154,7 +156,7 @@ void HelloGUI::CreateDraggableFish()
     Graphics* graphics = GetSubsystem<Graphics>();
 
     // Create a draggable Fish button
-    Button* draggableFish = new Button(context_);
+    auto  draggableFish = new Button(context_);
     draggableFish->SetTexture(cache->GetResource<Texture2D>("Textures/UrhoDecal.dds")); // Set texture
     draggableFish->SetBlendMode(BLEND_ADD);
     draggableFish->SetSize(128, 128);
@@ -163,13 +165,13 @@ void HelloGUI::CreateDraggableFish()
     uiRoot_->AddChild(draggableFish);
 
     // Add a tooltip to Fish button
-    ToolTip* toolTip = new ToolTip(context_);
+    auto  toolTip = new ToolTip(context_);
     draggableFish->AddChild(toolTip);
     toolTip->SetPosition(IntVector2(draggableFish->GetWidth() + 5, draggableFish->GetWidth() / 2)); // slightly offset from close button
-    BorderImage* textHolder = new BorderImage(context_);
+    auto  textHolder = new BorderImage(context_);
     toolTip->AddChild(textHolder);
     textHolder->SetStyle("ToolTipBorderImage");
-    Text* toolTipText = new Text(context_);
+    auto  toolTipText = new Text(context_);
     textHolder->AddChild(toolTipText);
     toolTipText->SetStyle("ToolTipText");
     toolTipText->SetText("Please drag me!");

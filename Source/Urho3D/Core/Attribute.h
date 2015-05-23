@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -66,9 +66,9 @@ struct AttributeInfo
     AttributeInfo() :
         type_(VAR_NONE),
         offset_(0),
-        enumNames_(0),
+        enumNames_(nullptr),
         mode_(AM_DEFAULT),
-        ptr_(0)
+        ptr_(nullptr)
     {
     }
 
@@ -77,10 +77,10 @@ struct AttributeInfo
         type_(type),
         name_(name),
         offset_((unsigned)offset),
-        enumNames_(0),
+        enumNames_(nullptr),
         defaultValue_(defaultValue),
         mode_(mode),
-        ptr_(0)
+        ptr_(nullptr)
     {
     }
 
@@ -92,7 +92,7 @@ struct AttributeInfo
         enumNames_(enumNames),
         defaultValue_(defaultValue),
         mode_(mode),
-        ptr_(0)
+        ptr_(nullptr)
     {
     }
 
@@ -101,11 +101,11 @@ struct AttributeInfo
         type_(type),
         name_(name),
         offset_(0),
-        enumNames_(0),
+        enumNames_(nullptr),
         accessor_(accessor),
         defaultValue_(defaultValue),
         mode_(mode),
-        ptr_(0)
+        ptr_(nullptr)
     {
     }
 
@@ -118,7 +118,7 @@ struct AttributeInfo
         accessor_(accessor),
         defaultValue_(defaultValue),
         mode_(mode),
-        ptr_(0)
+        ptr_(nullptr)
     {
     }
     AttributeInfo(const AttributeInfo &other) :
@@ -148,7 +148,12 @@ struct AttributeInfo
         other.ptr_ = nullptr;
     }
     /// Unifying assignment operator
-    AttributeInfo &operator=(AttributeInfo op) {
+    AttributeInfo &operator=(const AttributeInfo &op) {
+        AttributeInfo cp(op);
+        swap(cp);
+        return *this;
+    }
+    AttributeInfo &operator=(AttributeInfo &&op) {
         swap(op);
         return *this;
     }

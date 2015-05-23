@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../Core/CoreEvents.h"
 #include "../Graphics/DebugRenderer.h"
@@ -187,7 +186,7 @@ void Octant::InsertDrawable(Drawable* drawable)
 
 bool Octant::CheckDrawableFit(const BoundingBox& box) const
 {
-    Vector3 boxSize = box.Size();
+    Vector3 boxSize = box.size();
 
     // If max split level, size always OK, otherwise check that box is at least half size of octant
     if (level_ >= root_->GetNumLevels() || boxSize.x_ >= halfSize_.x_ || boxSize.y_ >= halfSize_.y_ ||
@@ -242,7 +241,7 @@ void Octant::Initialize(const BoundingBox& box)
 {
     worldBoundingBox_ = box;
     center_ = box.Center();
-    halfSize_ = 0.5f * box.Size();
+    halfSize_ = 0.5f * box.size();
     cullingBox_ = BoundingBox(worldBoundingBox_.min_ - halfSize_, worldBoundingBox_.max_ + halfSize_);
 }
 
@@ -575,7 +574,7 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
     GetDrawablesOnlyInternal(query, rayQueryDrawables_);
 
     // Sort by increasing hit distance to AABB
-    for (auto drawable : rayQueryDrawables_)
+    for (Drawable* drawable : rayQueryDrawables_)
     {
 
         drawable->SetSortValue(query.ray_.HitDistance(drawable->GetWorldBoundingBox()));
@@ -585,7 +584,7 @@ void Octree::RaycastSingle(RayOctreeQuery& query) const
 
     // Then do the actual test according to the query, and early-out as possible
     float closestHit = M_INFINITY;
-    for (auto drawable : rayQueryDrawables_)
+    for (Drawable* drawable : rayQueryDrawables_)
     {
 
         if (drawable->GetSortValue() < Min(closestHit, query.maxDistance_))

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ public:
 
 protected:
     /// Apply new animation value to the target object. Called by Update().
-    virtual void ApplyValue(const Variant& newValue);
+    virtual void ApplyValue(const Variant& newValue) override;
 
 private:
     /// Attribute information.
@@ -71,9 +71,9 @@ public:
     static void RegisterObject(Context* context);
 
     /// Load from XML data. When setInstanceDefault is set to true, after setting the attribute value, store the value as instance's default value. Return true if successful.
-    virtual bool LoadXML(const XMLElement& source, bool setInstanceDefault = false);
+    virtual bool LoadXML(const XMLElement& source, bool setInstanceDefault = false) override;
     /// Save as XML data. Return true if successful.
-    virtual bool SaveXML(XMLElement& dest) const;
+    virtual bool SaveXML(XMLElement& dest) const override;
 
     /// Set animation enabled.
     void SetAnimationEnabled(bool enable) { animationEnabled_ = enable; }

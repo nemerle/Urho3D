@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2014 the Urho3D project.
+# Copyright (c) 2008-2015 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -112,14 +112,14 @@ if (MSVC)
         set (MSVC_HASFFI 1)
     endif ()
     set (TARGET_TESTARCH "LJ_HASFFI ${MSVC_HASFFI}\n")
-    
+
     if (LUAJIT_DISABLE_JIT)
         set (MSVC_HASJIT 0)
     else ()
         set (MSVC_HASJIT 1)
     endif ()
     set (TARGET_TESTARCH "${TARGET_TESTARCH} LJ_HASJIT ${MSVC_HASJIT}\n")
-    
+
     if (URHO3D_64BIT)
         set (MSVC_ARCH_BITS 64)
         set (MSVC_TARGET_ARCH X64)
@@ -130,13 +130,13 @@ if (MSVC)
     set (TARGET_TESTARCH "${TARGET_TESTARCH} LJ_ARCH_BITS ${MSVC_ARCH_BITS}\n")
     set (TARGET_TESTARCH "${TARGET_TESTARCH} LJ_TARGET_${MSVC_TARGET_ARCH} 1\n")
 
-	# More assumptions
+    # More assumptions
     set (TARGET_TESTARCH "${TARGET_TESTARCH} LJ_ARCH_HASFPU 1\n")
     set (TARGET_TESTARCH "${TARGET_TESTARCH} LJ_ABI_SOFTFP 0\n")
 else ()
     get_directory_property (TARGET_TCFLAGS COMPILE_DEFINITIONS)
     string (REPLACE ";" ";-D" TARGET_TCFLAGS ";${TARGET_TCFLAGS}")
-    execute_process (COMMAND egrep -V RESULT_VARIABLE EGREP_EXIT_CODE OUTPUT_QUIET ERROR_QUIET)    
+    execute_process (COMMAND egrep -V RESULT_VARIABLE EGREP_EXIT_CODE OUTPUT_QUIET ERROR_QUIET)
     if (EGREP_EXIT_CODE EQUAL 0)
         execute_process (COMMAND ${CMAKE_C_COMPILER} ${TARGET_TCFLAGS} -E ${CMAKE_CURRENT_SOURCE_DIR}/src/lj_arch.h -dM
             COMMAND egrep "LJ_|MIPSEL|__SSE2__" OUTPUT_VARIABLE TARGET_TESTARCH ERROR_QUIET)
@@ -152,7 +152,7 @@ macro (find_string find_regex output_var)
         string (REGEX MATCH ${find_regex} matched ${TARGET_TESTARCH})
         if (matched)
             string (REGEX MATCH "\\(.*\\)" captured ${find_regex})
-            if (captured) 
+            if (captured)
                 string (REGEX REPLACE ${find_regex} \\1 matched ${matched})
             endif ()
 
@@ -320,16 +320,15 @@ if (CMAKE_CROSSCOMPILING OR IOS)
     endforeach ()
     # When cross-compiling, build the host tool as external project
     include (ExternalProject)
-    ExternalProject_Add(buildvm
+    ExternalProject_Add (buildvm
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/host
-        CMAKE_ARGS -DURHO3D_64BIT=${URHO3D_64BIT} -DDEST_RUNTIME_DIR=${CMAKE_BINARY_DIR}/Bin/tool -DBAKED_CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR} -DHOST_XCFLAGS=${HOST_XCFLAGS} -DTARGET_ARCH=${TARGET_ARCH} -DDASM_FLAGS=${DASM_FLAGS} -DDASM_ARCH=${DASM_ARCH}
-    )
+        CMAKE_ARGS -DURHO3D_64BIT=${URHO3D_64BIT} -DDEST_RUNTIME_DIR=${CMAKE_BINARY_DIR}/bin/tool -DBAKED_CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR} -DHOST_XCFLAGS=${HOST_XCFLAGS} -DTARGET_ARCH=${TARGET_ARCH} -DDASM_FLAGS=${DASM_FLAGS} -DDASM_ARCH=${DASM_ARCH})
 else ()
     # Otherwise, build it internally as per normal
     add_subdirectory (src/host)
 endif ()
 
-# Add definitions specific for target C Compiler 
+# Add definitions specific for target C Compiler
 if (NOT MSVC)
     # Large file support
     add_definitions (-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
@@ -345,7 +344,7 @@ macro (generate_source name mode)
     set (GEN_SRC ${CMAKE_CURRENT_BINARY_DIR}/generated/${name})
     set (GEN_SRCS ${GEN_SRCS} ${GEN_SRC})
     add_custom_command (OUTPUT ${GEN_SRC}
-        COMMAND ${CMAKE_BINARY_DIR}/Bin/tool/buildvm -m ${mode} -o ${GEN_SRC} ${ARGN}
+        COMMAND ${CMAKE_BINARY_DIR}/bin/tool/buildvm -m ${mode} -o ${GEN_SRC} ${ARGN}
         DEPENDS buildvm ${ARGN}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generating buildvm output: ${name}")
@@ -400,11 +399,11 @@ set (INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/generated)
 # Setup target
 setup_library ()
 
-# Install headers for building the Urho3D library
-install_header_files (DIRECTORY src/ DESTINATION ${DEST_INCLUDE_DIR}/ThirdParty/LuaJIT FILES_MATCHING PATTERN *.h BUILD_TREE_ONLY)  # Note: the trailing slash is significant
+# Install headers for building and using the Urho3D library (no direct dependencies but library user may need them)
+install_header_files (DIRECTORY src/ DESTINATION ${DEST_INCLUDE_DIR}/ThirdParty/LuaJIT FILES_MATCHING PATTERN *.h *.hpp)  # Note: the trailing slash is significant
 
 # Setup additional Lua standalone target (this target can be transfered and executed on an embedded device, such as Raspberry Pi and Android)
-if (NOT IOS)
+if (NOT IOS AND NOT EMSCRIPTEN)     # LuaJIT library on Emscripten is not possible anyway but just in case it could be in the future, exclude it to build standalone target
     # Define target name for LuaJIT interpreter cum compiler
     set (TARGET_NAME luajit_interpreter)   # Note: intended target name is 'luajit' which clashes with 'LuaJIT' library target above for case-insensitive platform
 
@@ -422,14 +421,14 @@ if (NOT IOS)
     adjust_target_name ()   # Adjust to intended target output name
 
     # Define post build steps
-    set (LUAJIT_DEP_DIR ${CMAKE_BINARY_DIR}/Bin/jit)
+    set (LUAJIT_DEP_DIR ${CMAKE_BINARY_DIR}/bin/jit)
     add_custom_command (TARGET ${TARGET_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/src/jit ${LUAJIT_DEP_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/generated/vmdef.lua ${LUAJIT_DEP_DIR}
         COMMENT "Copying dependency files for luajit standalone executable")
 
     # Install dependency files required by luajit
-    install (DIRECTORY ${LUAJIT_DEP_DIR} DESTINATION ${DEST_RUNTIME_DIR} ${DEST_PERMISSIONS})
+    install (DIRECTORY ${LUAJIT_DEP_DIR} DESTINATION ${DEST_RUNTIME_DIR})
 endif ()
 
 # Add directory containing the dependency files into the LuaJIT module search path

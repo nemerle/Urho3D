@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -159,8 +159,8 @@ struct URHO3D_API OctreeQueryResult
 {
     /// Construct with defaults.
     OctreeQueryResult() :
-        drawable_(0),
-        node_(0)
+        drawable_(nullptr),
+        node_(nullptr)
     {
     }
 
@@ -186,8 +186,8 @@ struct URHO3D_API RayQueryResult
 {
     /// Construct with defaults.
     RayQueryResult() :
-        drawable_(0),
-        node_(0)
+        drawable_(nullptr),
+        node_(nullptr)
     {
     }
 

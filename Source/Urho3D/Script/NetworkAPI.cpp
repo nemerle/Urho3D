@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #ifdef URHO3D_NETWORK
 #include "../Script/APITemplates.h"
-#include "../Network/Controls.h"
 #include "../Network/HttpRequest.h"
 #include "../Network/Network.h"
 #include "../Network/NetworkPriority.h"
@@ -32,37 +30,6 @@
 namespace Urho3D
 {
 
-static void ConstructControls(Controls* ptr)
-{
-    new(ptr) Controls();
-}
-
-static void ConstructControlsCopy(const Controls& controls, Controls* ptr)
-{
-    new(ptr) Controls(controls);
-}
-
-static void DestructControls(Controls* ptr)
-{
-    ptr->~Controls();
-}
-
-static void RegisterControls(asIScriptEngine* engine)
-{
-    engine->RegisterObjectType("Controls", sizeof(Controls), asOBJ_VALUE | asOBJ_APP_CLASS_CDK);
-    engine->RegisterObjectBehaviour("Controls", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructControls), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectBehaviour("Controls", asBEHAVE_CONSTRUCT, "void f(const Controls&in)", asFUNCTION(ConstructControlsCopy), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectBehaviour("Controls", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructControls), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Controls", "Controls& opAssign(const Controls&in)", asMETHOD(Controls, operator =), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Controls", "void Reset()", asMETHOD(Controls, Reset), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Controls", "void Set(uint, bool)", asMETHOD(Controls, Set), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Controls", "bool IsDown(uint) const", asMETHOD(Controls, IsDown), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Controls", "bool IsPressed(uint, const Controls&in) const", asMETHOD(Controls, IsPressed), asCALL_THISCALL);
-    engine->RegisterObjectProperty("Controls", "uint buttons", offsetof(Controls, buttons_));
-    engine->RegisterObjectProperty("Controls", "float yaw", offsetof(Controls, yaw_));
-    engine->RegisterObjectProperty("Controls", "float pitch", offsetof(Controls, pitch_));
-    engine->RegisterObjectProperty("Controls", "VariantMap extraData", offsetof(Controls, extraData_));
-}
 
 static void RegisterNetworkPriority(asIScriptEngine* engine)
 {
@@ -114,6 +81,7 @@ static void RegisterConnection(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Connection", "const Quaternion& get_rotation() const", asMETHOD(Connection, GetRotation), asCALL_THISCALL);
     engine->RegisterObjectMethod("Connection", "void SendPackageToClient(PackageFile@+)", asMETHOD(Connection, SendPackageToClient), asCALL_THISCALL);
     engine->RegisterObjectProperty("Connection", "Controls controls", offsetof(Connection, controls_));
+    engine->RegisterObjectProperty("Connection", "uint8 timeStamp", offsetof(Connection, timeStamp_));
     engine->RegisterObjectProperty("Connection", "VariantMap identity", offsetof(Connection, identity_));
     
     // Register SetOwner/GetOwner now
@@ -209,6 +177,10 @@ void RegisterNetwork(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Network", "void SendPackageToClients(Scene@+, PackageFile@+)", asMETHOD(Network, SendPackageToClients), asCALL_THISCALL);
     engine->RegisterObjectMethod("Network", "void set_updateFps(int)", asMETHOD(Network, SetUpdateFps), asCALL_THISCALL);
     engine->RegisterObjectMethod("Network", "int get_updateFps() const", asMETHOD(Network, GetUpdateFps), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Network", "void set_simulatedLatency(int)", asMETHOD(Network, SetSimulatedLatency), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Network", "int get_simulatedLatency() const", asMETHOD(Network, GetSimulatedLatency), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Network", "void set_simulatedPacketLoss(float)", asMETHOD(Network, SetSimulatedPacketLoss), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Network", "float get_simulatedPacketLoss() const", asMETHOD(Network, GetSimulatedPacketLoss), asCALL_THISCALL);
     engine->RegisterObjectMethod("Network", "void set_packageCacheDir(const String&in)", asMETHOD(Network, SetPackageCacheDir), asCALL_THISCALL);
     engine->RegisterObjectMethod("Network", "const String& get_packageCacheDir() const", asMETHOD(Network, GetPackageCacheDir), asCALL_THISCALL);
     engine->RegisterObjectMethod("Network", "bool get_serverRunning() const", asMETHOD(Network, IsServerRunning), asCALL_THISCALL);
@@ -219,7 +191,6 @@ void RegisterNetwork(asIScriptEngine* engine)
 
 void RegisterNetworkAPI(asIScriptEngine* engine)
 {
-    RegisterControls(engine);
     RegisterNetworkPriority(engine);
     RegisterConnection(engine);
     RegisterHttpRequest(engine);

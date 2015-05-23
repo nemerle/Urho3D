@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -56,13 +56,13 @@ public:
     ~Network();
 
     /// Handle a kNet message from either a client or the server.
-    virtual void HandleMessage(kNet::MessageConnection *source, kNet::packet_id_t packetId, kNet::message_id_t msgId, const char *data, size_t numBytes);
+    virtual void HandleMessage(kNet::MessageConnection *source, kNet::packet_id_t packetId, kNet::message_id_t msgId, const char *data, size_t numBytes) override;
     /// Compute the content ID for a message.
-    virtual u32 ComputeContentID(kNet::message_id_t msgId, const char *data, size_t numBytes);
+    virtual u32 ComputeContentID(kNet::message_id_t msgId, const char *data, size_t numBytes) override;
     /// Handle a new client connection.
-    virtual void NewConnectionEstablished(kNet::MessageConnection* connection);
+    virtual void NewConnectionEstablished(kNet::MessageConnection* connection) override;
     /// Handle a client disconnection.
-    virtual void ClientDisconnected(kNet::MessageConnection* connection);
+    virtual void ClientDisconnected(kNet::MessageConnection* connection) override;
 
     /// Connect to a server using UDP protocol. Return true if connection process successfully started.
     bool Connect(const String& address, unsigned short port, Scene* scene, const VariantMap& identity = Variant::emptyVariantMap);
@@ -84,6 +84,10 @@ public:
     void BroadcastRemoteEvent(Node* node, StringHash eventType, bool inOrder, const VariantMap& eventData = Variant::emptyVariantMap);
     /// Set network update FPS.
     void SetUpdateFps(int fps);
+    /// Set simulated latency in milliseconds. This adds a fixed delay before sending each packet.
+    void SetSimulatedLatency(int ms);
+    /// Set simulated packet loss probability between 0.0 - 1.0.
+    void SetSimulatedPacketLoss(float probability);
     /// Register a remote event as allowed to be received. There is also a fixed blacklist of events that can not be allowed in any case, such as ConsoleCommand.
     void RegisterRemoteEvent(StringHash eventType);
     /// Unregister a remote event as allowed to received.
@@ -99,6 +103,10 @@ public:
 
     /// Return network update FPS.
     int GetUpdateFps() const { return updateFps_; }
+    /// Return simulated latency in milliseconds.
+    int GetSimulatedLatency() const { return simulatedLatency_; }
+    /// Return simulated packet loss probability.
+    float GetSimulatedPacketLoss() const { return simulatedPacketLoss_; }
     /// Return a client or server connection by kNet MessageConnection, or null if none exist.
     Connection* GetConnection(kNet::MessageConnection* connection) const;
     /// Return the connection to the server. Null if not connected.
@@ -126,6 +134,8 @@ private:
     void OnServerConnected();
     /// Handle server disconnection.
     void OnServerDisconnected();
+    /// Reconfigure network simulator parameters on all existing connections.
+    void ConfigureNetworkSimulator();
 
     /// kNet instance.
     kNet::Network* network_;
@@ -141,6 +151,10 @@ private:
     QSet<Scene*> networkScenes_;
     /// Update FPS.
     int updateFps_;
+    /// Simulated latency (send delay) in milliseconds.
+    int simulatedLatency_;
+    /// Simulated packet loss probability between 0.0 - 1.0.
+    float simulatedPacketLoss_;
     /// Update time interval.
     float updateInterval_;
     /// Update time accumulator.

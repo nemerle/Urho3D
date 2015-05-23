@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Audio/Audio.h>
 #include <Urho3D/UI/Button.h>
@@ -154,7 +156,7 @@ Button* Chat::CreateButton(const String& text, int width)
 
 void Chat::ShowChatText(const String& row)
 {
-    chatHistory_.erase(chatHistory_.begin());
+    chatHistory_.pop_front();
     chatHistory_.push_back(row);
 
     // Concatenate all the rows in history
@@ -172,7 +174,7 @@ void Chat::UpdateButtons()
     bool serverRunning = network->IsServerRunning();
 
     // Show and hide buttons so that eg. Connect and Disconnect are never shown at the same time
-    sendButton_->SetVisible(serverConnection != 0);
+    sendButton_->SetVisible(serverConnection != nullptr);
     connectButton_->SetVisible(!serverConnection && !serverRunning);
     disconnectButton_->SetVisible(serverConnection || serverRunning);
     startServerButton_->SetVisible(!serverConnection && !serverRunning);
@@ -218,7 +220,7 @@ void Chat::HandleConnect(StringHash eventType, VariantMap& eventData)
     // Connect to server, do not specify a client scene as we are not using scene replication, just messages.
     // At connect time we could also send identity parameters (such as username) in a VariantMap, but in this
     // case we skip it for simplicity
-    network->Connect(address, CHAT_SERVER_PORT, 0);
+    network->Connect(address, CHAT_SERVER_PORT, nullptr);
 
     UpdateButtons();
 }

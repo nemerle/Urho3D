@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../Graphics/Graphics.h"
 #include "../IO/Log.h"
@@ -70,24 +69,22 @@ static const char* lightingModeNames[] =
     nullptr
 };
 
-static bool desktopSupportChecked = false;
-static bool desktopSupportResult = false;
-
-Pass::Pass(StringHash type) :
-    type_(type),
+Pass::Pass(const String& name) :
     blendMode_(BLEND_REPLACE),
     depthTestMode_(CMP_LESSEQUAL),
     lightingMode_(LIGHTING_UNLIT),
     shadersLoadedFrameNumber_(0),
     depthWrite_(true),
     alphaMask_(false),
-    isSM3_(false),
     isDesktop_(false)
 {
+    name_ = name.toLower();
+    index_ = Technique::GetPassIndex(name_);
     // Guess default lighting mode from pass name
-    if (type == PASS_BASE || type == PASS_ALPHA || type == PASS_MATERIAL || type == PASS_DEFERRED)
+    if (index_ == Technique::basePassIndex || index_ == Technique::alphaPassIndex || index_ == Technique::materialPassIndex ||
+            index_ == Technique::deferredPassIndex)
         lightingMode_ = LIGHTING_PERVERTEX;
-    else if (type == PASS_LIGHT || type == PASS_LITBASE || type == PASS_LITALPHA)
+    else if (index_ == Technique::lightPassIndex || index_ == Technique::litBasePassIndex || index_ == Technique::litAlphaPassIndex)
         lightingMode_ = LIGHTING_PERPIXEL;
 }
 
@@ -118,11 +115,6 @@ void Pass::SetDepthWrite(bool enable)
 void Pass::SetAlphaMask(bool enable)
 {
     alphaMask_ = enable;
-}
-
-void Pass::SetIsSM3(bool enable)
-{
-    isSM3_ = enable;
 }
 
 void Pass::SetIsDesktop(bool enable)
@@ -164,24 +156,25 @@ void Pass::MarkShadersLoaded(unsigned frameNumber)
 {
     shadersLoadedFrameNumber_ = frameNumber;
 }
+unsigned Technique::basePassIndex = 0;
+unsigned Technique::alphaPassIndex = 0;
+unsigned Technique::materialPassIndex = 0;
+unsigned Technique::deferredPassIndex = 0;
+unsigned Technique::lightPassIndex = 0;
+unsigned Technique::litBasePassIndex = 0;
+unsigned Technique::litAlphaPassIndex = 0;
+unsigned Technique::shadowPassIndex = 0;
+HashMap<String, unsigned> Technique::passIndices;
 
 Technique::Technique(Context* context) :
     Resource(context),
-    isSM3_(false),
-    isDesktop_(false),
-    numPasses_(0)
+    isDesktop_(false)
 {
-    Graphics* graphics = GetSubsystem<Graphics>();
-    sm3Support_ = graphics ? graphics->GetSM3Support() : true;
-
-    if (!desktopSupportChecked)
-    {
-        String platformString = GetPlatform();
-        desktopSupportResult = (platformString == "Windows" || platformString == "Mac OS X" || platformString == "Linux");
-        desktopSupportChecked = true;
-    }
-
-    desktopSupport_ = desktopSupportResult;
+#ifdef DESKTOP_GRAPHICS
+    desktopSupport_ = true;
+#else
+    desktopSupport_ = false;
+#endif
 }
 
 Technique::~Technique()
@@ -195,9 +188,8 @@ void Technique::RegisterObject(Context* context)
 
 bool Technique::BeginLoad(Deserializer& source)
 {
-    passes_.Clear();
+    passes_.clear();
 
-    numPasses_ = 0;
     SetMemoryUse(sizeof(Technique));
 
     SharedPtr<XMLFile> xml(new XMLFile(context_));
@@ -205,8 +197,6 @@ bool Technique::BeginLoad(Deserializer& source)
         return false;
 
     XMLElement rootElem = xml->GetRoot();
-    if (rootElem.HasAttribute("sm3"))
-        isSM3_ = rootElem.GetBool("sm3");
     if (rootElem.HasAttribute("desktop"))
         isDesktop_ = rootElem.GetBool("desktop");
 
@@ -228,12 +218,8 @@ bool Technique::BeginLoad(Deserializer& source)
     {
         if (passElem.HasAttribute("name"))
         {
-            StringHash nameHash(passElem.GetAttribute("name"));
+            Pass* newPass = CreatePass(passElem.GetAttribute("name"));
 
-            Pass* newPass = CreatePass(nameHash);
-
-            if (passElem.HasAttribute("sm3"))
-                newPass->SetIsSM3(passElem.GetBool("sm3"));
             if (passElem.HasAttribute("desktop"))
                 newPass->SetIsDesktop(passElem.GetBool("desktop"));
 
@@ -263,7 +249,7 @@ bool Technique::BeginLoad(Deserializer& source)
             {
                 String lighting = passElem.GetAttributeLower("lighting");
                 newPass->SetLightingMode((PassLightingMode)GetStringListIndex(lighting.CString(), lightingModeNames,
-                    LIGHTING_UNLIT));
+                                                                              LIGHTING_UNLIT));
             }
 
             if (passElem.HasAttribute("blend"))
@@ -298,11 +284,6 @@ bool Technique::BeginLoad(Deserializer& source)
     return true;
 }
 
-void Technique::SetIsSM3(bool enable)
-{
-    isSM3_ = enable;
-}
-
 void Technique::SetIsDesktop(bool enable)
 {
     isDesktop_ = enable;
@@ -310,55 +291,117 @@ void Technique::SetIsDesktop(bool enable)
 
 void Technique::ReleaseShaders()
 {
-    PODVector<SharedPtr<Pass>*> allPasses = passes_.Values();
-
-    for (unsigned i = 0; i < allPasses.size(); ++i)
-        allPasses[i]->Get()->ReleaseShaders();
+    for (SharedPtr<Pass> & pass : passes_) {
+        if(pass)
+            pass->ReleaseShaders();
+    }
 }
 
-Pass* Technique::CreatePass(StringHash type)
+Pass* Technique::CreatePass(const String& name)
 {
-    Pass* oldPass = GetPass(type);
+    Pass* oldPass = GetPass(name);
     if (oldPass)
         return oldPass;
 
-    SharedPtr<Pass> newPass(new Pass(type));
-    passes_.Insert(type.Value(), newPass);
+    SharedPtr<Pass> newPass(new Pass(name));
+    passes_.push_back(newPass);
 
     // Calculate memory use now
-    SetMemoryUse(sizeof(Technique) + ++numPasses_ * sizeof(Pass));
-
+    SetMemoryUse(sizeof(Technique) + GetNumPasses() * sizeof(Pass));
     return newPass;
 }
 
-void Technique::RemovePass(StringHash type)
+void Technique::RemovePass(const String& name)
 {
-    if (passes_.Erase(type.Value()))
-        SetMemoryUse(sizeof(Technique) + --numPasses_ * sizeof(Pass));
+    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    if (i == passIndices.end())
+        return;
+    else if (MAP_VALUE(i) < passes_.size() && passes_[MAP_VALUE(i)].Get())
+    {
+        passes_[MAP_VALUE(i)].Reset();
+        SetMemoryUse(sizeof(Technique) + GetNumPasses() * sizeof(Pass));
+    }
 }
 
-Vector<StringHash> Technique::GetPassTypes() const
+bool Technique::HasPass(const String& name) const
 {
-    // Convert PODVector<unsigned> to Vector<StringHash>
-    PODVector<unsigned> vectorIn = passes_.Keys();
-    Vector<StringHash> vectorOut;
-    vectorOut.reserve(vectorIn.size());
-    for (unsigned i = 0; i < vectorIn.size(); ++i)
-        vectorOut.push_back(StringHash(vectorIn[i]));
+    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    return i != passIndices.end() ? HasPass(MAP_VALUE(i)) : false;
+}
 
-    return vectorOut;
+Pass* Technique::GetPass(const String& name) const
+{
+    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    return i != passIndices.end() ? GetPass(MAP_VALUE(i)) : nullptr;
+}
+
+Pass* Technique::GetSupportedPass(const String& name) const
+{
+    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    return i != passIndices.end() ? GetSupportedPass(MAP_VALUE(i)) : nullptr;
+}
+
+unsigned Technique::GetNumPasses() const
+{
+    unsigned ret = 0;
+
+    for (Vector<SharedPtr<Pass> >::const_iterator i = passes_.begin(); i != passes_.end(); ++i)
+    {
+        if (i->Get())
+            ++ret;
+    }
+
+    return ret;
+}
+
+Vector<String> Technique::GetPassNames() const
+{
+    Vector<String> ret;
+    ret.reserve(passes_.size());
+    for (const SharedPtr<Pass> &pass : passes_)
+    {
+        if (pass)
+            ret.push_back(pass->GetName());
+    }
+
+    return ret;
 }
 
 PODVector<Pass*> Technique::GetPasses() const
 {
-    // Convert PODVector<SharedPtr<Pass>*> to PODVector<Pass*>
-    PODVector<SharedPtr<Pass>*> vectorIn = passes_.Values();
-    PODVector<Pass*> vectorOut;
-    vectorOut.reserve(vectorIn.size());
-    for (unsigned i = 0; i < vectorIn.size(); ++i)
-        vectorOut.push_back(vectorIn[i]->Get());
-
-    return vectorOut;
+    PODVector<Pass*> ret;
+    ret.reserve(passes_.size());
+    for (const SharedPtr<Pass> &pass : passes_)
+    {
+        if (pass)
+            ret.push_back(pass);
+    }
+    return ret;
 }
+unsigned Technique::GetPassIndex(const String& passName)
+{
+    // Initialize built-in pass indices on first call
+    if (passIndices.empty())
+    {
+        basePassIndex = passIndices["base"] = 0;
+        alphaPassIndex = passIndices["alpha"] = 1;
+        materialPassIndex = passIndices["material"] = 2;
+        deferredPassIndex = passIndices["deferred"] = 3;
+        lightPassIndex = passIndices["light"] = 4;
+        litBasePassIndex = passIndices["litbase"] = 5;
+        litAlphaPassIndex = passIndices["litalpha"] = 6;
+        shadowPassIndex = passIndices["shadow"] = 7;
+    }
 
+    String nameLower = passName.toLower();
+    HashMap<String, unsigned>::iterator i = passIndices.find(nameLower);
+    if (i != passIndices.end())
+        return MAP_VALUE(i);
+    else
+    {
+        unsigned newPassIndex = passIndices.size();
+        passIndices[nameLower] = newPassIndex;
+        return newPassIndex;
+    }
+}
 }

@@ -26,7 +26,6 @@ subject to the following restrictions:
 #ifdef __SPU__
 #include <spu_printf.h>
 #define printf spu_printf
-//#define DEBUG_SPU_COLLISION_DETECTION 1
 #endif //__SPU__
 #endif
 
@@ -102,17 +101,11 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput& inpu
 
 	gNumGjkChecks++;
 
-#ifdef DEBUG_SPU_COLLISION_DETECTION
-	spu_printf("inside gjk\n");
-#endif
 	//for CCD we don't use margins
 	if (m_ignoreMargin)
 	{
 		marginA = btScalar(0.);
 		marginB = btScalar(0.);
-#ifdef DEBUG_SPU_COLLISION_DETECTION
-		spu_printf("ignoring margin\n");
-#endif
 	}
 
 	m_curIter = 0;
@@ -143,37 +136,13 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput& inpu
 			btVector3 seperatingAxisInA = (-m_cachedSeparatingAxis)* input.m_transformA.getBasis();
 			btVector3 seperatingAxisInB = m_cachedSeparatingAxis* input.m_transformB.getBasis();
 
-#if 1
 
 			btVector3 pInA = m_minkowskiA->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInA);
 			btVector3 qInB = m_minkowskiB->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInB);
-
-//			btVector3 pInA  = localGetSupportingVertexWithoutMargin(m_shapeTypeA, m_minkowskiA, seperatingAxisInA,input.m_convexVertexData[0]);//, &featureIndexA);
-//			btVector3 qInB  = localGetSupportingVertexWithoutMargin(m_shapeTypeB, m_minkowskiB, seperatingAxisInB,input.m_convexVertexData[1]);//, &featureIndexB);
-
-#else
-#ifdef __SPU__
-			btVector3 pInA = m_minkowskiA->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInA);
-			btVector3 qInB = m_minkowskiB->localGetSupportVertexWithoutMarginNonVirtual(seperatingAxisInB);
-#else
-			btVector3 pInA = m_minkowskiA->localGetSupportingVertexWithoutMargin(seperatingAxisInA);
-			btVector3 qInB = m_minkowskiB->localGetSupportingVertexWithoutMargin(seperatingAxisInB);
-#ifdef TEST_NON_VIRTUAL
-			btVector3 pInAv = m_minkowskiA->localGetSupportingVertexWithoutMargin(seperatingAxisInA);
-			btVector3 qInBv = m_minkowskiB->localGetSupportingVertexWithoutMargin(seperatingAxisInB);
-			btAssert((pInAv-pInA).length() < 0.0001);
-			btAssert((qInBv-qInB).length() < 0.0001);
-#endif //
-#endif //__SPU__
-#endif
-
 
 			btVector3  pWorld = localTransA(pInA);	
 			btVector3  qWorld = localTransB(qInB);
 
-#ifdef DEBUG_SPU_COLLISION_DETECTION
-		spu_printf("got local supporting vertices\n");
-#endif
 
 			if (check2d)
 			{
@@ -217,14 +186,8 @@ void btGjkPairDetector::getClosestPointsNonVirtual(const ClosestPointInput& inpu
 				break;
 			}
 
-#ifdef DEBUG_SPU_COLLISION_DETECTION
-		spu_printf("addVertex 1\n");
-#endif
 			//add current vertex to simplex
 			m_simplexSolver->addVertex(w, pWorld, qWorld);
-#ifdef DEBUG_SPU_COLLISION_DETECTION
-		spu_printf("addVertex 2\n");
-#endif
 			btVector3 newCachedSeparatingAxis;
 
 			//calculate the closest point to the origin (update vector v)

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Scene/Component.h"
 #include "../Core/Context.h"
 #include "../Core/CoreEvents.h"
@@ -190,8 +189,8 @@ void Scene::AddReplicationState(NodeReplicationState* state)
     Node::AddReplicationState(state);
 
     // This is the first update for a new connection. Mark all replicated nodes dirty
-    for (unsigned id : replicatedNodes_.keys())
-        state->sceneState_->dirtyNodes_.insert(id);
+    for (HashMap<unsigned, Node*>::const_iterator i = replicatedNodes_.begin(); i != replicatedNodes_.end(); ++i)
+        state->sceneState_->dirtyNodes_.insert(MAP_KEY(i));
 }
 
 bool Scene::LoadXML(Deserializer& source)
@@ -217,7 +216,7 @@ bool Scene::LoadXML(Deserializer& source)
         return false;
 }
 
-bool Scene::SaveXML(Serializer& dest) const
+bool Scene::SaveXML(Serializer& dest, const String& indentation) const
 {
     PROFILE(SaveSceneXML);
 
@@ -230,7 +229,7 @@ bool Scene::SaveXML(Serializer& dest) const
     if (ptr)
         LOGINFO("Saving scene to " + ptr->GetName());
 
-    if (xml->Save(dest))
+    if (xml->Save(dest, indentation))
     {
         FinishSaving(&dest);
         return true;
@@ -805,7 +804,7 @@ void Scene::NodeRemoved(Node* node)
     node->SetScene(nullptr);
     // Remove components and child nodes as well
     const Vector<SharedPtr<Component> >& components = node->GetComponents();
-    for (const SharedPtr<Component> i : components)
+    for (const SharedPtr<Component> &i : components)
         ComponentRemoved(i.Get());
     const Vector<SharedPtr<Node> >& children = node->GetChildren();
     for (const SharedPtr<Node> &i : children)
@@ -945,7 +944,7 @@ void Scene::MarkReplicationDirty(Node* node)
 
     if (id < FIRST_LOCAL_ID && networkState_)
     {
-        for (auto & elem : networkState_->replicationStates_)
+        for (ReplicationState* elem : networkState_->replicationStates_)
         {
             NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
             nodeState->sceneState_->dirtyNodes_.insert(id);

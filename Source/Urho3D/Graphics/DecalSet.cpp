@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -214,7 +214,7 @@ void DecalSet::UpdateBatches(const FrameInfo& frame)
     const Matrix3x4& worldTransform = node_->GetWorldTransform();
     distance_ = frame.camera_->GetDistance(worldBoundingBox.Center());
 
-    float scale = worldBoundingBox.Size().DotProduct(DOT_SCALE);
+    float scale = worldBoundingBox.size().DotProduct(DOT_SCALE);
     lodDistance_ = frame.camera_->GetLodDistance(distance_, scale, lodBias_);
 
     batches_[0].distance_ = distance_;
@@ -914,7 +914,7 @@ bool DecalSet::GetBones(Drawable* target, unsigned batchIndex, const float* blen
 
             if (!found)
             {
-                if (bones_.size() >= MAX_SKIN_MATRICES)
+                if (bones_.size() >= Graphics::GetMaxBones())
                 {
                     LOGWARNING("Maximum skinned decal bone count reached");
                     return false;

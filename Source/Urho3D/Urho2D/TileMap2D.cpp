@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../Graphics/DebugRenderer.h"
 #include "../Scene/Node.h"
@@ -50,6 +49,7 @@ TileMap2D::~TileMap2D()
 void TileMap2D::RegisterObject(Context* context)
 {
     context->RegisterFactory<TileMap2D>(URHO2D_CATEGORY);
+    ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     MIXED_ACCESSOR_ATTRIBUTE("Tmx File", GetTmxFileAttr, SetTmxFileAttr, ResourceRef, ResourceRef(TmxFile2D::GetTypeStatic()), AM_DEFAULT);
 }
 
@@ -181,7 +181,7 @@ void TileMap2D::OnNodeSet(Node* node)
         if (rootNode_)
             rootNode_->Remove();
 
-        rootNode_ = 0;
+        rootNode_ = nullptr;
         layers_.clear();
     }
 }

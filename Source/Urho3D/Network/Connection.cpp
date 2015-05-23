@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Scene/Component.h"
 #include "../Network/Connection.h"
 #include "../IO/File.h"
@@ -62,6 +61,7 @@ PackageUpload::PackageUpload() :
 
 Connection::Connection(Context* context, bool isClient, kNet::SharedPtr<kNet::MessageConnection> connection) :
     Object(context),
+    timeStamp_(0),
     connection_(connection),
     sendMode_(OPSM_NONE),
     isClient_(isClient),
@@ -181,7 +181,7 @@ void Connection::SetScene(Scene* newScene)
         // When scene is assigned on the server, instruct the client to load it. This may require downloading packages
         const Vector<SharedPtr<PackageFile> >& packages = scene_->GetRequiredPackageFiles();
         unsigned numPackages = packages.size();
-        msg_.Clear();
+        msg_.clear();
         msg_.WriteString(scene_->GetFileName());
         msg_.WriteVLE(numPackages);
         for (unsigned i = 0; i < numPackages; ++i)
@@ -267,16 +267,18 @@ void Connection::SendClientUpdate()
     if (!scene_ || !sceneLoaded_)
         return;
 
-    msg_.Clear();
+    msg_.clear();
     msg_.WriteUInt(controls_.buttons_);
     msg_.WriteFloat(controls_.yaw_);
     msg_.WriteFloat(controls_.pitch_);
     msg_.WriteVariantMap(controls_.extraData_);
+    msg_.WriteUByte(timeStamp_);
     if (sendMode_ >= OPSM_POSITION)
         msg_.WriteVector3(position_);
     if (sendMode_ >= OPSM_POSITION_ROTATION)
         msg_.WritePackedQuaternion(rotation_);
     SendMessage(MSG_CONTROLS, false, false, msg_, CONTROLS_CONTENT_ID);
+    ++timeStamp_;
 }
 
 void Connection::SendRemoteEvents()
@@ -299,7 +301,7 @@ void Connection::SendRemoteEvents()
 
     for (Vector<RemoteEvent>::const_iterator i = remoteEvents_.begin(); i != remoteEvents_.end(); ++i)
     {
-        msg_.Clear();
+        msg_.clear();
         if (!i->senderID_)
         {
             msg_.WriteStringHash(i->eventType_);
@@ -330,7 +332,7 @@ void Connection::SendPackages()
             unsigned fragmentSize = Min((int)(upload.file_->GetSize() - upload.file_->GetPosition()), (int)PACKAGE_FRAGMENT_SIZE);
             upload.file_->Read(buffer, fragmentSize);
 
-            msg_.Clear();
+            msg_.clear();
             msg_.WriteStringHash(MAP_KEY(i));
             msg_.WriteUInt(upload.fragment_++);
             msg_.Write(buffer, fragmentSize);
@@ -835,7 +837,7 @@ void Connection::ProcessPackageDownload(int msgID, MemoryBuffer& msg)
                     PackageDownload& nextDownload = MAP_VALUE(downloads_.begin());
 
                     LOGINFO("Requesting package " + nextDownload.name_ + " from server");
-                    msg_.Clear();
+                    msg_.clear();
                     msg_.WriteString(nextDownload.name_);
                     SendMessage(MSG_REQUESTPACKAGE, true, true, msg_);
                     nextDownload.initiated_ = true;
@@ -883,6 +885,7 @@ void Connection::ProcessControls(int msgID, MemoryBuffer& msg)
     newControls.extraData_ = msg.ReadVariantMap();
 
     SetControls(newControls);
+    timeStamp_ = msg.ReadUByte();
     // Client may or may not send observer position & rotation for interest management
     if (!msg.IsEof())
         position_ = msg.ReadVector3();
@@ -909,7 +912,7 @@ void Connection::ProcessSceneLoaded(int msgID, MemoryBuffer& msg)
     if (checksum != scene_->GetChecksum())
     {
         LOGINFO("Scene checksum error from client " + ToString());
-        msg_.Clear();
+        msg_.clear();
         SendMessage(MSG_SCENECHECKSUMERROR, true, true, msg_);
         OnSceneLoadFailed();
     }
@@ -1015,11 +1018,46 @@ float Connection::GetDownloadProgress() const
     return 1.0f;
 }
 
+void Connection::SendPackageToClient(PackageFile* package)
+{
+    if (!scene_)
+        return;
+
+    if (!IsClient())
+    {
+        LOGERROR("SendPackageToClient can be called on the server only");
+        return;
+    }
+    if (!package)
+    {
+        LOGERROR("Null package specified for SendPackageToClient");
+        return;
+    }
+
+    msg_.clear();
+
+    String filename = GetFileNameAndExtension(package->GetName());
+    msg_.WriteString(filename);
+    msg_.WriteUInt(package->GetTotalSize());
+    msg_.WriteUInt(package->GetChecksum());
+    SendMessage(MSG_PACKAGEINFO, true, true, msg_);
+}
+
+void Connection::ConfigureNetworkSimulator(int latencyMs, float packetLoss)
+{
+    if (connection_)
+    {
+        kNet::NetworkSimulator& simulator = connection_->NetworkSendSimulator();
+        simulator.enabled = latencyMs > 0 || packetLoss > 0.0f;
+        simulator.constantPacketSendDelay = (float)latencyMs;
+        simulator.packetLossRate = packetLoss;
+    }
+}
 void Connection::HandleAsyncLoadFinished(StringHash eventType, VariantMap& eventData)
 {
     sceneLoaded_ = true;
 
-    msg_.Clear();
+    msg_.clear();
     msg_.WriteUInt(scene_->GetChecksum());
     SendMessage(MSG_SCENELOADED, true, true, msg_);
 }
@@ -1038,7 +1076,7 @@ void Connection::ProcessNode(unsigned nodeID)
         Node* node = MAP_VALUE(i).node_;
         if (!node)
         {
-            msg_.Clear();
+            msg_.clear();
             msg_.WriteNetID(nodeID);
 
             // Note: we will send MSG_REMOVENODE redundantly for each node in the hierarchy, even if removing the root node
@@ -1075,7 +1113,7 @@ void Connection::ProcessNewNode(Node* node)
             ProcessNode(nodeID);
     }
 
-    msg_.Clear();
+    msg_.clear();
     msg_.WriteNetID(node->GetID());
 
     NodeReplicationState& nodeState = sceneState_.nodeStates_[node->GetID()];
@@ -1085,7 +1123,7 @@ void Connection::ProcessNewNode(Node* node)
     node->AddReplicationState(&nodeState);
 
     // Write node's attributes
-    node->WriteInitialDeltaUpdate(msg_);
+    node->WriteInitialDeltaUpdate(msg_, timeStamp_);
 
     // Write node's user variables
     const VariantMap& vars = node->GetVars();
@@ -1114,7 +1152,7 @@ void Connection::ProcessNewNode(Node* node)
 
         msg_.WriteStringHash(component->GetType());
         msg_.WriteNetID(component->GetID());
-        component->WriteInitialDeltaUpdate(msg_);
+        component->WriteInitialDeltaUpdate(msg_, timeStamp_);
     }
 
     SendMessage(MSG_CREATENODE, true, true, msg_);
@@ -1163,9 +1201,9 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
         // Send latestdata message if necessary
         if (hasLatestData)
         {
-            msg_.Clear();
+            msg_.clear();
             msg_.WriteNetID(node->GetID());
-            node->WriteLatestDataUpdate(msg_);
+            node->WriteLatestDataUpdate(msg_, timeStamp_);
 
             SendMessage(MSG_NODELATESTDATA, true, false, msg_, node->GetID());
         }
@@ -1173,9 +1211,9 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
         // Send deltaupdate if remaining dirty bits, or vars have changed
         if (nodeState.dirtyAttributes_.Count() || nodeState.dirtyVars_.size())
         {
-            msg_.Clear();
+            msg_.clear();
             msg_.WriteNetID(node->GetID());
-            node->WriteDeltaUpdate(msg_, nodeState.dirtyAttributes_);
+            node->WriteDeltaUpdate(msg_, nodeState.dirtyAttributes_, timeStamp_);
 
             // Write changed variables
             msg_.WriteVLE(nodeState.dirtyVars_.size());
@@ -1213,7 +1251,7 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
         if (!component)
         {
             // Removed component
-            msg_.Clear();
+            msg_.clear();
             msg_.WriteNetID(MAP_KEY(i));
 
             SendMessage(MSG_REMOVECOMPONENT, true, true, msg_);
@@ -1240,9 +1278,9 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
                 // Send latestdata message if necessary
                 if (hasLatestData)
                 {
-                    msg_.Clear();
+                    msg_.clear();
                     msg_.WriteNetID(component->GetID());
-                    component->WriteLatestDataUpdate(msg_);
+                    component->WriteLatestDataUpdate(msg_, timeStamp_);
 
                     SendMessage(MSG_COMPONENTLATESTDATA, true, false, msg_, component->GetID());
                 }
@@ -1250,9 +1288,9 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
                 // Send deltaupdate if remaining dirty bits
                 if (componentState.dirtyAttributes_.Count())
                 {
-                    msg_.Clear();
+                    msg_.clear();
                     msg_.WriteNetID(component->GetID());
-                    component->WriteDeltaUpdate(msg_, componentState.dirtyAttributes_);
+                    component->WriteDeltaUpdate(msg_, componentState.dirtyAttributes_, timeStamp_);
 
                     SendMessage(MSG_COMPONENTDELTAUPDATE, true, true, msg_);
 
@@ -1283,11 +1321,11 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
                 componentState.component_ = component;
                 component->AddReplicationState(&componentState);
 
-                msg_.Clear();
+                msg_.clear();
                 msg_.WriteNetID(node->GetID());
                 msg_.WriteStringHash(component->GetType());
                 msg_.WriteNetID(component->GetID());
-                component->WriteInitialDeltaUpdate(msg_);
+                component->WriteInitialDeltaUpdate(msg_, timeStamp_);
 
                 SendMessage(MSG_CREATECOMPONENT, true, true, msg_);
             }
@@ -1383,7 +1421,7 @@ void Connection::RequestPackage(const String& name, unsigned fileSize, unsigned 
     if (downloads_.size() == 1)
     {
         LOGINFO("Requesting package " + name + " from server");
-        msg_.Clear();
+        msg_.clear();
         msg_.WriteString(name);
         SendMessage(MSG_REQUESTPACKAGE, true, true, msg_);
         download.initiated_ = true;
@@ -1392,7 +1430,7 @@ void Connection::RequestPackage(const String& name, unsigned fileSize, unsigned 
 
 void Connection::SendPackageError(const String& name)
 {
-    msg_.Clear();
+    msg_.clear();
     msg_.WriteStringHash(name);
     SendMessage(MSG_PACKAGEDATA, true, false, msg_);
 }
@@ -1432,7 +1470,7 @@ void Connection::OnPackagesReady()
         scene_->Clear(true, false);
         sceneLoaded_ = true;
 
-        msg_.Clear();
+        msg_.clear();
         msg_.WriteUInt(scene_->GetChecksum());
         SendMessage(MSG_SCENELOADED, true, true, msg_);
     }
@@ -1451,31 +1489,6 @@ void Connection::OnPackagesReady()
         if (!success)
             OnSceneLoadFailed();
     }
-}
-
-void Connection::SendPackageToClient(PackageFile* package)
-{
-    if (!scene_)
-        return;
-
-    if (!IsClient())
-    {
-        LOGERROR("SendPackageToClient can be called on the server only");
-        return;
-    }
-    if (!package)
-    {
-        LOGERROR("Null package specified for SendPackageToClient");
-        return;
-    }
-
-    msg_.Clear();
-
-    String filename = GetFileNameAndExtension(package->GetName());
-    msg_.WriteString(filename);
-    msg_.WriteUInt(package->GetTotalSize());
-    msg_.WriteUInt(package->GetChecksum());
-    SendMessage(MSG_PACKAGEINFO, true, true, msg_);
 }
 
 void Connection::ProcessPackageInfo(int msgID, MemoryBuffer& msg)

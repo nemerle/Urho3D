@@ -46,6 +46,7 @@ void CreateMaterialEditor()
     SubscribeToEvent(materialWindow.GetChild("SlopeBiasEdit", true), "TextFinished", "EditSlopeBias");
     SubscribeToEvent(materialWindow.GetChild("CullModeEdit", true), "ItemSelected", "EditCullMode");
     SubscribeToEvent(materialWindow.GetChild("ShadowCullModeEdit", true), "ItemSelected", "EditShadowCullMode");
+    SubscribeToEvent(materialWindow.GetChild("FillModeEdit", true), "ItemSelected", "EditFillMode");
 }
 
 bool ShowMaterialEditor()
@@ -322,7 +323,9 @@ void RefreshMaterialMiscParameters()
     attrList.selection = editMaterial.cullMode;
     attrList = materialWindow.GetChild("ShadowCullModeEdit", true);
     attrList.selection = editMaterial.shadowCullMode;
-    
+    attrList = materialWindow.GetChild("FillModeEdit", true);
+    attrList.selection = editMaterial.fillMode;
+
     inMaterialRefresh = false;
 }
 
@@ -344,7 +347,7 @@ void RotateMaterialPreview(StringHash eventType, VariantMap& eventData)
 void EditMaterialName(StringHash eventType, VariantMap& eventData)
 {
     LineEdit@ nameEdit = eventData["Element"].GetPtr();
-    String newMaterialName = nameEdit.text.trimmed();
+    String newMaterialName = nameEdit.text.Trimmed();
     if (!newMaterialName.empty)
     {
         Material@ newMaterial = cache.GetResource("Material", newMaterialName);
@@ -505,7 +508,7 @@ void CreateShaderParameter(StringHash eventType, VariantMap& eventData)
         return;
 
     LineEdit@ nameEdit = materialWindow.GetChild("ParameterNameEdit", true);
-    String newName = nameEdit.text.trimmed();
+    String newName = nameEdit.text.Trimmed();
     if (newName.empty)
         return;
 
@@ -541,7 +544,7 @@ void DeleteShaderParameter()
         return;
 
     LineEdit@ nameEdit = materialWindow.GetChild("ParameterNameEdit", true);
-    String name = nameEdit.text.trimmed();
+    String name = nameEdit.text.Trimmed();
     if (name.empty)
         return;
 
@@ -603,7 +606,7 @@ void EditMaterialTexture(StringHash eventType, VariantMap& eventData)
         return;
 
     LineEdit@ attrEdit = eventData["Element"].GetPtr();
-    String textureName = attrEdit.text.trimmed();
+    String textureName = attrEdit.text.Trimmed();
     uint index = attrEdit.vars["Index"].GetUInt();
 
     BeginMaterialEdit();
@@ -695,7 +698,7 @@ void EditMaterialTechnique(StringHash eventType, VariantMap& eventData)
         return;
 
     LineEdit@ attrEdit = eventData["Element"].GetPtr();
-    String techniqueName = attrEdit.text.trimmed();
+    String techniqueName = attrEdit.text.Trimmed();
     uint index = attrEdit.vars["Index"].GetUInt();
 
     BeginMaterialEdit();
@@ -804,6 +807,19 @@ void EditShadowCullMode(StringHash eventType, VariantMap& eventData)
     
     DropDownList@ attrEdit = eventData["Element"].GetPtr();
     editMaterial.shadowCullMode = CullMode(attrEdit.selection);
+
+    EndMaterialEdit();
+}
+
+void EditFillMode(StringHash eventType, VariantMap& eventData)
+{
+    if (editMaterial is null || inMaterialRefresh)
+        return;
+        
+    BeginMaterialEdit();
+    
+    DropDownList@ attrEdit = eventData["Element"].GetPtr();
+    editMaterial.fillMode = FillMode(attrEdit.selection);
 
     EndMaterialEdit();
 }

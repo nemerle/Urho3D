@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #ifdef URHO3D_NAVIGATION
 #include "../Script/APITemplates.h"
 #include "../Navigation/Navigable.h"
@@ -39,7 +38,7 @@ void RegisterNavigable(asIScriptEngine* engine)
 
 static CScriptArray* NavigationMeshFindPath(const Vector3& start, const Vector3& end, const Vector3& extents, NavigationMesh* ptr)
 {
-    PODVector<Vector3> dest;
+    std::deque<Vector3> dest;
     ptr->FindPath(dest, start, end, extents);
     return VectorToArray<Vector3>(dest, "Array<Vector3>");
 }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,17 +32,17 @@ namespace Urho3D
 {
 
 /// %Sound stream that supports manual buffering of data from the main thread.
-class URHO3D_API BufferedSoundStream : public SoundStream
+class BufferedSoundStream : public SoundStream
 {
 public:
     /// Construct.
     BufferedSoundStream();
     /// Destruct.
     ~BufferedSoundStream();
-    
+
     /// Produce sound data into destination. Return number of bytes produced. Called by SoundSource from the mixing thread.
     virtual unsigned GetData(signed char* dest, unsigned numBytes);
-    
+
     /// Buffer sound data. Makes a copy of it.
     void AddData(void* data, unsigned numBytes);
     /// Buffer sound data by taking ownership of it.
@@ -51,12 +51,12 @@ public:
     void AddData(SharedArrayPtr<signed short> data, unsigned numBytes);
     /// Remove all buffered audio data.
     void Clear();
-    
+
     /// Return amount of buffered (unplayed) sound data in bytes.
     unsigned GetBufferNumBytes() const;
     /// Return length of buffered (unplayed) sound data in seconds.
     float GetBufferLength() const;
-    
+
 private:
     /// Buffers and their sizes.
     List<Pair<SharedArrayPtr<signed char>, unsigned> > buffers_;

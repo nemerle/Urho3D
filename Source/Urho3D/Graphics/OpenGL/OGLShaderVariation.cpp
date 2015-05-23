@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../../Graphics/Graphics.h"
 #include "../../Graphics/GraphicsImpl.h"
 #include "../../IO/Log.h"
@@ -51,8 +50,6 @@ void ShaderVariation::OnDeviceLost()
 
     compilerOutput_.clear();
 
-    if (graphics_)
-        graphics_->CleanupShaderPrograms();
 }
 
 void ShaderVariation::Release()
@@ -79,7 +76,7 @@ void ShaderVariation::Release()
         }
 
         object_ = 0;
-        graphics_->CleanupShaderPrograms();
+        graphics_->CleanupShaderPrograms(this);
     }
 
     compilerOutput_.clear();
@@ -125,10 +122,15 @@ bool ShaderVariation::Create()
             shaderCode += versionDefine + "\n";
         }
     }
+    // Force GLSL version 150 if no version define and GL3 is being used
+    if (!verEnd && Graphics::GetGL3Support())
+        shaderCode += "#version 150\n";
 
     // Distinguish between VS and PS compile in case the shader code wants to include/omit different things
     shaderCode += type_ == VS ? "#define COMPILEVS\n" : "#define COMPILEPS\n";
 
+    // Add define for the maximum number of supported bones
+    shaderCode += "#define MAXBONES " + String(Graphics::GetMaxBones()) + "\n";
     // Prepend the defines to the shader code
     Vector<String> defineVec = defines_.split(' ');
     for (unsigned i = 0; i < defineVec.size(); ++i)
@@ -149,6 +151,11 @@ bool ShaderVariation::Create()
     if (type_ == VS)
         shaderCode += "#define RPI\n";
     #endif
+    #ifdef EMSCRIPTEN
+    shaderCode += "#define WEBGL\n";
+    #endif
+    if (Graphics::GetGL3Support())
+        shaderCode += "#define GL3\n";
 
     // When version define found, do not insert it a second time
     if (verEnd > 0)

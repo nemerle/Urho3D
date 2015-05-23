@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
 #include "Light.h"
 #include <functional>
 #include <cstdio>
-
+#include <stdint.h>
 namespace Urho3D
 {
 
@@ -54,14 +54,24 @@ struct Batch
 {
     /// Construct with defaults.
     Batch() :
-        geometry_(0),
+        geometry_(nullptr),
         lightQueue_(nullptr),
         isBase_(false)
     {
     }
 
     /// Construct from a drawable's source batch.
-    Batch(const SourceBatch& rhs,bool is_base=false);
+    Batch(const SourceBatch& rhs,bool is_base=false) :
+        distance_(rhs.distance_),
+        geometry_(rhs.geometry_),
+        material_(rhs.material_),
+        worldTransform_(rhs.worldTransform_),
+        numWorldTransforms_(rhs.numWorldTransforms_),
+        lightQueue_(nullptr),
+        geometryType_(rhs.geometryType_),
+        isBase_(is_base)
+    {
+    }
     Batch(const SourceBatch& rhs, Camera *cam,Zone *z, LightBatchQueue *l, Pass *p,
           unsigned char lmask=DEFAULT_LIGHTMASK,bool is_base=false) :
         Batch(rhs,is_base)
@@ -106,8 +116,6 @@ struct Batch
     ShaderVariation* pixelShader_;
     /// %Geometry type.
     GeometryType geometryType_;
-    /// Override view transform flag. When set, the camera's view transform is replaced with an identity matrix.
-    bool overrideView_;
     /// Base batch flag. This tells to draw the object fully without light optimizations.
     bool isBase_;
     /// 8-bit light mask for stencil marking in deferred rendering.
@@ -143,8 +151,7 @@ struct BatchGroup : public Batch
     }
 
     /// Construct from a batch.
-    BatchGroup(const Batch& batch) :
-        Batch(batch),
+    BatchGroup(Batch batch) : Batch(batch),
         startIndex_(M_MAX_UNSIGNED)
     {
     }
@@ -171,9 +178,50 @@ struct BatchGroup : public Batch
     void Draw(View* view, bool allowDepthWrite) const;
 
     /// Instance data.
-    PODVector<InstanceData> instances_;
+    std::vector<InstanceData> instances_;
     /// Instance stream start index, or M_MAX_UNSIGNED if transforms not pre-set.
     unsigned startIndex_;
+};
+
+/// Instanced draw call grouping key.
+struct BatchGroupKey
+{
+private:
+    /// Material pass.
+    Pass* pass_;
+    /// Material.
+    Material* material_;
+    /// Geometry.
+    Geometry* geometry_;
+    uintptr_t hashCode_;
+public:
+    /// Construct undefined.
+    BatchGroupKey() = default;
+
+    /// Construct from a batch.
+    BatchGroupKey(const Batch& batch) :
+        pass_(batch.pass_),
+        material_(batch.material_),
+        geometry_(batch.geometry_),
+        hashCode_ ( (uintptr_t(pass_) >>1) ^
+                    (uintptr_t(material_) >>3) ^
+                    (uintptr_t(geometry_))>>5)
+    {
+    }
+
+
+    /// Test for equality with another batch group key.
+    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
+    /// Test for inequality with another batch group key.
+    constexpr bool operator != (const BatchGroupKey& rhs) const {
+        return  hashCode_   != rhs.hashCode_ ||
+                pass_       != rhs.pass_ ||
+                material_   != rhs.material_ ||
+                geometry_   != rhs.geometry_;
+    }
+
+    /// Return hash value.
+    constexpr unsigned ToHash() const { return  hashCode_; }
 };
 struct ZoneLightKey {
 private:
@@ -216,46 +264,6 @@ public:
     constexpr unsigned ToHash() const { return  hashCode_; }
 
 };
-/// Instanced draw call grouping key.
-struct BatchGroupKey
-{
-private:
-    /// Material pass.
-    Pass* pass_;
-    /// Material.
-    Material* material_;
-    /// Geometry.
-    Geometry* geometry_;
-    uintptr_t hashCode_;
-public:
-    /// Construct undefined.
-    BatchGroupKey() = default;
-
-    /// Construct from a batch.
-    BatchGroupKey(const Batch& batch) :
-        pass_(batch.pass_),
-        material_(batch.material_),
-        geometry_(batch.geometry_),
-        hashCode_ ( (uintptr_t(pass_) >>1) ^
-                    (uintptr_t(material_) >>3) ^
-                    (uintptr_t(geometry_))>>5)
-    {
-    }
-
-
-    /// Test for equality with another batch group key.
-    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
-    /// Test for inequality with another batch group key.
-    constexpr bool operator != (const BatchGroupKey& rhs) const {
-        return  hashCode_   != rhs.hashCode_ ||
-                pass_       != rhs.pass_ ||
-                material_   != rhs.material_ ||
-                geometry_   != rhs.geometry_;
-    }
-
-    /// Return hash value.
-    constexpr unsigned ToHash() const { return  hashCode_; }
-};
 }
 namespace std {
 template<> struct hash<Urho3D::ZoneLightKey> {
@@ -278,8 +286,8 @@ namespace Urho3D {
 struct BatchQueue
 {
 public:
-    typedef FasterHashMap<BatchGroupKey, BatchGroup *> BatchGroupMap;
-    typedef FasterHashMap<ZoneLightKey, BatchGroupMap> ZoneLightToGroupMap;
+    typedef std::unordered_map<BatchGroupKey, uint32_t> BatchGroupMap; //FasterHashMap<BatchGroupKey, int>
+    typedef std::unordered_map<ZoneLightKey, BatchGroupMap> ZoneLightToGroupMap; //typedef FasterHashMap<ZoneLightKey, BatchGroupMap> ZoneLightToGroupMap;
 
     /// Clear for new frame by clearing all groups and batches.
     void Clear(int maxSortedInstances);
@@ -299,7 +307,7 @@ public:
     bool IsEmpty() const { return batches_.empty() && batchGroupStorage_.empty(); }
 
     /// Instanced draw calls.
-    std::deque<BatchGroup> batchGroupStorage_;
+    std::vector<BatchGroup> batchGroupStorage_;
     //BatchGroupMap batchGroups_;
     ZoneLightToGroupMap zoneLightGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
@@ -339,6 +347,8 @@ struct LightBatchQueue
 {
     /// Per-pixel light.
     Light* light_;
+    /// Light negative flag.
+    bool negative_;
     /// Shadow map depth texture.
     Texture2D* shadowMap_;
     /// Lit geometry draw calls, base (replace blend mode)

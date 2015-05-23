@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Urho2D/ConstraintGear2D.h"
 #include "../Core/Context.h"
 #include "../Urho2D/PhysicsUtils2D.h"
@@ -44,6 +43,7 @@ void ConstraintGear2D::RegisterObject(Context* context)
 {
     context->RegisterFactory<ConstraintGear2D>();
 
+    ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Ratio", GetRatio, SetRatio, float, 0.0f, AM_DEFAULT);
     COPY_BASE_ATTRIBUTES(Constraint2D);
 }

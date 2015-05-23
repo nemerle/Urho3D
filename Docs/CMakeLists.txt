@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2014 the Urho3D project.
+# Copyright (c) 2008-2015 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ if (DOXYGEN_FOUND)
     # 2) ScriptAPI.dox and LuaScriptAPI.dox always get refreshed first before the 'doc' target is being built (similar to VS-only PRE_BUILD custom command)
     if (TARGET ScriptCompiler AND NOT CMAKE_CROSSCOMPILING)
         add_custom_command (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ScriptAPI.dox
-            COMMAND ${CMAKE_BINARY_DIR}/Bin/tool/ScriptCompiler -dumpapi ${CMAKE_SOURCE_DIR} ScriptAPI.dox AngelScriptAPI.h
+            COMMAND ${CMAKE_BINARY_DIR}/bin/tool/ScriptCompiler -dumpapi ${CMAKE_SOURCE_DIR} ScriptAPI.dox AngelScriptAPI.h
             DEPENDS Urho3D ScriptCompiler
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Dumping AngelScript API to ScriptAPI.dox")
@@ -73,9 +73,9 @@ if (DOXYGEN_FOUND)
         foreach (PKG ${PKGS})
             set (PKGLIST "${PKGLIST}$pfile \"${PKG}\"\n")
         endforeach ()
-        file (WRITE ${CMAKE_BINARY_DIR}/Bin/tool/LuaPkgToDox.txt ${PKGLIST})
+        file (WRITE ${CMAKE_BINARY_DIR}/bin/tool/LuaPkgToDox.txt ${PKGLIST})
         add_custom_command (OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/LuaScriptAPI.dox
-            COMMAND ${CMAKE_BINARY_DIR}/Bin/tool/tolua++ -L ToDoxHook.lua -P -o ${CMAKE_CURRENT_SOURCE_DIR}/LuaScriptAPI.dox ${CMAKE_BINARY_DIR}/Bin/tool/LuaPkgToDox.txt
+            COMMAND ${CMAKE_BINARY_DIR}/bin/tool/tolua++ -L ToDoxHook.lua -P -o ${CMAKE_CURRENT_SOURCE_DIR}/LuaScriptAPI.dox ${CMAKE_BINARY_DIR}/bin/tool/LuaPkgToDox.txt
             DEPENDS Urho3D tolua++
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/Source/Urho3D/LuaScript/pkgs
             COMMENT "Dumping LuaScript API to LuaScriptAPI.dox")
@@ -105,10 +105,10 @@ endif ()
 
 # Make sure html output directory exists and not empty
 file (WRITE ${CMAKE_CURRENT_BINARY_DIR}/html/Readme.txt "If URHO3D_DOCS build option is not set then use 'make doc' command to re-generate Urho3D documentation before calling 'make install', alternatively use the 'doc' and 'install' built-in targets in an IDE, respectively")
-    
+
 # Currently it is not possible to make built-in 'install' target to depend on 'doc' in CMake, therefore 'make doc' command need to be invoked manually before 'make install' in order to install the SDK with complete documentation
-# Unless, URHO3D_DOCS build option is set in which case the custom 'doc' target is part of the default 'all' target which in turn the 'install' target depends on, so a single 'make install' alone is suffice to install everything 
-install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION ${DEST_SHARE_DIR}/Docs ${DEST_PERMISSIONS})
+# Unless, URHO3D_DOCS build option is set in which case the custom 'doc' target is part of the default 'all' target which in turn the 'install' target depends on, so a single 'make install' alone is suffice to install everything
+install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION ${DEST_SHARE_DIR}/Docs)
 
 # Define post build steps
 if (CMAKE_EXTRA_GENERATOR MATCHES Eclipse AND NOT CMAKE_HOST_WIN32)

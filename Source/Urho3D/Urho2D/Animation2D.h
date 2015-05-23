@@ -26,6 +26,7 @@
 #include "../Container/RefCounted.h"
 #include "../Math/Vector2.h"
 #include "../Container/Vector.h"
+#include "../Container/Str.h"
 namespace Urho3D
 {
 

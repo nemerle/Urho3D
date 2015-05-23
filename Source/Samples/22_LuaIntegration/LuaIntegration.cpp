@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Core/CoreEvents.h>
@@ -116,7 +118,7 @@ void LuaIntegration::CreateScene()
         instance->CreateObject(scriptFile, "Rotator");
         
         // Call the script object's "SetRotationSpeed" function.
-        WeakPtr<LuaFunction> function = instance->GetScriptObjectFunction("SetRotationSpeed");
+        LuaFunction* function = instance->GetScriptObjectFunction("SetRotationSpeed");
         if (function && function->BeginCall(instance))
         {
             function->PushUserType(Vector3(10.0f, 20.0f, 30.0f), "Vector3");

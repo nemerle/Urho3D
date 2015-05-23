@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ struct CompressedLevel
 {
     /// Construct empty.
     CompressedLevel() :
-        data_(0),
+        data_(nullptr),
         width_(0),
         height_(0),
         depth_(0),
@@ -100,9 +100,9 @@ public:
     static void RegisterObject(Context* context);
 
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
-    virtual bool BeginLoad(Deserializer& source);
+    virtual bool BeginLoad(Deserializer& source) override;
     /// Save the image to a stream. Regardless of original format, the image is saved as png. Compressed image data is not supported. Return true if successful.
-    virtual bool Save(Serializer& dest) const;
+    virtual bool Save(Serializer& dest) const override;
 
     /// Set 2D size and number of color components. Old image data will be destroyed and new data is undefined. Return true if successful.
     bool SetSize(int width, int height, unsigned components);
@@ -169,6 +169,8 @@ public:
     unsigned GetNumCompressedLevels() const { return numCompressedLevels_; }
     /// Return next mip level by bilinear filtering.
     SharedPtr<Image> GetNextLevel() const;
+    /// Return image converted to 4-component (RGBA) to circumvent modern rendering API's not supporting e.g. the luminance-alpha format.
+    SharedPtr<Image> ConvertToRGBA() const;
     /// Return a compressed mip level.
     CompressedLevel GetCompressedLevel(unsigned index) const;
     /// Return subimage from the image by the defined rect or null if failed. 3D images are not supported. You must free the subimage yourself.

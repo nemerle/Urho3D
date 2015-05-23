@@ -3,6 +3,7 @@
 
 Window@ attributeInspectorWindow;
 UIElement@ parentContainer;
+UIElement@ inspectorLockButton;
 
 bool applyMaterialList = true;
 bool attributesDirty = false;
@@ -31,6 +32,8 @@ const uint LUASCRIPTINSTANCE_ATTRIBUTE_IGNORE = 4;
 
 // Node or UIElement hash-to-varname reverse mapping
 VariantMap globalVarNames;
+
+bool inspectorLocked = false;
 
 void InitXMLResources()
 {
@@ -126,16 +129,41 @@ void CreateAttributeInspectorWindow()
     attributeInspectorWindow.SetPosition(ui.root.width - 10 - attributeInspectorWindow.width, 100);
     attributeInspectorWindow.opacity = uiMaxOpacity;
     attributeInspectorWindow.BringToFront();
+    inspectorLockButton = attributeInspectorWindow.GetChild("LockButton", true);
 
     UpdateAttributeInspector();
 
-    SubscribeToEvent(attributeInspectorWindow.GetChild("CloseButton", true), "Released", "HideAttributeInspectorWindow");
+    SubscribeToEvent(inspectorLockButton, "Pressed", "ToggleInspectorLock");
+    SubscribeToEvent(attributeInspectorWindow.GetChild("CloseButton", true), "Pressed", "HideAttributeInspectorWindow");
     SubscribeToEvent(attributeInspectorWindow, "LayoutUpdated", "HandleWindowLayoutUpdated");
 }
 
 void HideAttributeInspectorWindow()
 {
     attributeInspectorWindow.visible = false;
+}
+
+void DisableInspectorLock()
+{
+    inspectorLocked = false;
+    if (inspectorLockButton !is null)
+        inspectorLockButton.style = "Button";
+    UpdateAttributeInspector(true);
+}
+
+void EnableInspectorLock()
+{
+    inspectorLocked = true;
+    if (inspectorLockButton !is null)
+        inspectorLockButton.style = "ToggledButton";
+}
+
+void ToggleInspectorLock()
+{
+    if (inspectorLocked)
+        DisableInspectorLock();
+    else
+        EnableInspectorLock();
 }
 
 bool ShowAttributeInspectorWindow()
@@ -195,6 +223,9 @@ Array<Serializable@> ToSerializableArray(Array<Node@> nodes)
 /// The fullUpdate flag is usually set to true when the structure of the attributes are different than the existing attributes in the list.
 void UpdateAttributeInspector(bool fullUpdate = true)
 {
+    if (inspectorLocked)
+        return;
+
     attributesDirty = false;
     if (fullUpdate)
         attributesFullDirty = false;
@@ -310,7 +341,7 @@ void UpdateAttributeInspector(bool fullUpdate = true)
             titleText.text = (sameType ? elementType : "Mixed type") + " [ID " + STRIKED_OUT + " : " + editUIElements.length + "x]";
             SetStyleListSelection(SetEditable(styleList, sameStyle), sameStyle ? appliedStyle : STRIKED_OUT);
             if (!sameType)
-                elementType.clear();   // No icon
+                elementType.Clear();   // No icon
         }
         IconizeUIElement(titleText, elementType);
 
@@ -742,7 +773,7 @@ String ExtractVariableName(VariantMap& eventData)
 {
     UIElement@ element = eventData["Element"].GetPtr();
     LineEdit@ nameEdit = element.parent.GetChild("VarNameEdit");
-    return nameEdit.text.trimmed();
+    return nameEdit.text.Trimmed();
 }
 
 Variant ExtractVariantType(VariantMap& eventData)
@@ -819,7 +850,7 @@ void HandleStyleItemSelected(StringHash eventType, VariantMap& eventData)
         return;
     String newStyle = text.text;
     if (newStyle == "auto")
-        newStyle.clear();
+        newStyle.Clear();
 
     // Group for storing undo actions
     EditActionGroup group;

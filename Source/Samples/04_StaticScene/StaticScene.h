@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ public:
     StaticScene(Context* context);
 
     /// Setup after engine initialization and before running the main loop.
-    virtual void Start();
+    virtual void Start() override;
 
 private:
     /// Construct the scene content.

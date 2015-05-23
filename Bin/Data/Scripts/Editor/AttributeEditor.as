@@ -367,7 +367,7 @@ UIElement@ CreateResourceRefAttributeEditor(ListView@ list, Array<Serializable@>
     parent = CreateAttributeEditorParentWithSeparatedLabel(list, info.name, index, subIndex, suppressedSeparatedLabel);
 
     UIElement@ container = UIElement();
-    container.SetLayout(LM_HORIZONTAL, 4, IntRect(info.name.startsWith("   ") ? 20 : 10, 0, 4, 0));    // Left margin is indented more when the name is so
+    container.SetLayout(LM_HORIZONTAL, 4, IntRect(info.name.StartsWith("   ") ? 20 : 10, 0, 4, 0));    // Left margin is indented more when the name is so
     container.SetFixedHeight(ATTR_HEIGHT);
     parent.AddChild(container);
 
@@ -828,7 +828,7 @@ void GetEditorValue(UIElement@ parent, VariantType type, Array<String>@ enumName
         attrEdit = parent.GetChild("LineEdit", true);
 
     if (type == VAR_STRING)
-        FillValue(values, Variant(attrEdit.text.trimmed()));
+        FillValue(values, Variant(attrEdit.text.Trimmed()));
     else if (type == VAR_BOOL)
     {
         CheckBox@ attrEdit = parent.children[1];
@@ -860,7 +860,7 @@ void GetEditorValue(UIElement@ parent, VariantType type, Array<String>@ enumName
     {
         LineEdit@ attrEdit = parent.children[0];
         ResourceRef ref;
-        ref.name = attrEdit.text.trimmed();
+        ref.name = attrEdit.text.Trimmed();
         ref.type = StringHash(attrEdit.vars[TYPE_VAR].GetUInt());
         FillValue(values, Variant(ref));
     }
@@ -941,6 +941,7 @@ void CreateDragSlider(LineEdit@ parent)
     dragSld.SetFixedHeight(ATTR_HEIGHT - 3);
     dragSld.SetFixedWidth(dragSld.height);
     dragSld.SetAlignment(HA_RIGHT, VA_TOP);
+    dragSld.focusMode = FM_NOTFOCUSABLE;
     parent.AddChild(dragSld);
 
     SubscribeToEvent(dragSld, "DragBegin", "LineDragBegin");
@@ -1311,7 +1312,7 @@ String GetResourceNameFromFullName(const String&in resourceName)
 
     for (uint i = 0; i < resourceDirs.length; ++i)
     {
-        if (!resourceName.toLower().startsWith(resourceDirs[i].toLower()))
+        if (!resourceName.ToLower().StartsWith(resourceDirs[i].ToLower()))
             continue;
         return resourceName.Substring(resourceDirs[i].length);
     }
@@ -1324,7 +1325,7 @@ void OpenResource(StringHash eventType, VariantMap& eventData)
     UIElement@ button = eventData["Element"].GetPtr();
     LineEdit@ attrEdit = button.parent.children[0];
 
-    String fileName = attrEdit.text.trimmed();
+    String fileName = attrEdit.text.Trimmed();
     if (fileName.empty)
         return;
 
@@ -1350,7 +1351,7 @@ void EditResource(StringHash eventType, VariantMap& eventData)
     UIElement@ button = eventData["Element"].GetPtr();
     LineEdit@ attrEdit = button.parent.children[0];
 
-    String fileName = attrEdit.text.trimmed();
+    String fileName = attrEdit.text.Trimmed();
     if (fileName.empty)
         return;
 

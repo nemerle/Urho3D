@@ -479,7 +479,7 @@ void ScanResourceDir(uint resourceDirIndex)
     for (uint i=0; i < dirs.length; ++i)
     {
         String path = dirs[i];
-        if (path.endsWith("."))
+        if (path.EndsWith("."))
             continue;
 
         InitBrowserDir(path);
@@ -560,7 +560,7 @@ void PopulateResourceDirFilters()
 
         Text@ label = Text();
         label.style = "EditorAttributeText";
-        label.text = cache.resourceDirs[i].replaced(fileSystem.programDir, "");
+        label.text = cache.resourceDirs[i].Replaced(fileSystem.programDir, "");
         CheckBox@ checkbox = CheckBox();
         checkbox.name = i;
         checkbox.SetStyleAuto();
@@ -624,7 +624,7 @@ void PopulateResourceBrowserBySearch()
             if (activeResourceDirFilters.Find(file.resourceSourceIndex) > -1)
                 continue;
 
-            int find = file.fullname.indexOf(query, 0, false);
+            int find = file.fullname.Find(query, 0, false);
             if (find > -1)
             {
                 int fudge = query.length - file.fullname.length;
@@ -1217,6 +1217,10 @@ bool GetBinaryType(String path, StringHash &out fileType, bool useCache = false)
 
 bool GetXmlType(String path, StringHash &out fileType, bool useCache = false)
 {
+    String extension = GetExtension(path);
+    if (extension == ".txt" || extension == ".json" || extension == ".icns")
+        return false;
+
     String name;
     if (useCache)
     {

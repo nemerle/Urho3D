@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Urho3D/Network/Controls.h>
+#include <Urho3D/Input/Controls.h>
 #include <Urho3D/Scene/LogicComponent.h>
 
 namespace Urho3D
@@ -59,9 +59,9 @@ public:
     static void RegisterObject(Context* context);
     
     /// Perform post-load after deserialization. Acquire the components from the scene nodes.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// Handle physics world update. Called by LogicComponent base class.
-    virtual void FixedUpdate(float timeStep);
+    virtual void FixedUpdate(float timeStep) override;
     
     /// Initialize the vehicle. Create rendering and physics components. Called by the application.
     void Init();

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 
 #include "../Graphics/AnimatedModel.h"
 #include "../Graphics/Camera.h"
@@ -242,6 +241,24 @@ void DebugRenderer::AddSphere(const Sphere& sphere, const Color& color, bool dep
     }
 }
 
+void DebugRenderer::AddCylinder(const Vector3& position, float radius, float height, const Color& color, bool depthTest)
+{
+    Sphere sphere(position, radius);
+    Vector3 heightVec(0, height, 0);
+    Vector3 offsetXVec(radius, 0, 0);
+    Vector3 offsetZVec(0, 0, radius);
+    for (unsigned i = 0; i < 360; i += 45)
+    {
+        Vector3 p1 = PointOnSphere(sphere, i, 90);
+        Vector3 p2 = PointOnSphere(sphere, i + 45, 90);
+        AddLine(p1, p2, color, depthTest);
+        AddLine(p1 + heightVec, p2 + heightVec, color, depthTest);
+    }
+    AddLine(position + offsetXVec, position + heightVec + offsetXVec, color, depthTest);
+    AddLine(position - offsetXVec, position + heightVec - offsetXVec, color, depthTest);
+    AddLine(position + offsetZVec, position + heightVec + offsetZVec, color, depthTest);
+    AddLine(position - offsetZVec, position + heightVec - offsetZVec, color, depthTest);
+}
 void DebugRenderer::AddSkeleton(const Skeleton& skeleton, const Color& color, bool depthTest)
 {
     const Vector<Bone>& bones = skeleton.GetBones();
@@ -253,7 +270,7 @@ void DebugRenderer::AddSkeleton(const Skeleton& skeleton, const Color& color, bo
     for (unsigned i = 0; i < bones.size(); ++i)
     {
         // Skip if bone contains no skinned geometry
-        if (bones[i].radius_ < M_EPSILON && bones[i].boundingBox_.Size().LengthSquared() < M_EPSILON)
+        if (bones[i].radius_ < M_EPSILON && bones[i].boundingBox_.size().LengthSquared() < M_EPSILON)
             continue;
 
         Node* boneNode = bones[i].node_;
@@ -267,7 +284,7 @@ void DebugRenderer::AddSkeleton(const Skeleton& skeleton, const Color& color, bo
         Node* parentNode = boneNode->GetParent();
 
         // If bone has a parent defined, and it also skins geometry, draw a line to it. Else draw the bone as a point
-        if (parentNode && (bones[j].radius_ >= M_EPSILON || bones[j].boundingBox_.Size().LengthSquared() >= M_EPSILON))
+        if (parentNode && (bones[j].radius_ >= M_EPSILON || bones[j].boundingBox_.size().LengthSquared() >= M_EPSILON))
             end = parentNode->GetWorldPosition();
         else
             end = start;
@@ -323,7 +340,7 @@ void DebugRenderer::AddTriangleMesh(const void* vertexData, unsigned vertexSize,
 
 void DebugRenderer::Render()
 {
-    if (lines_.empty() && noDepthLines_.empty() && triangles_.empty() && noDepthTriangles_.empty())
+    if (!HasContent())
         return;
 
     Graphics* graphics = GetSubsystem<Graphics>();
@@ -406,7 +423,6 @@ void DebugRenderer::Render()
     graphics->SetColorWrite(true);
     graphics->SetCullMode(CULL_NONE);
     graphics->SetDepthWrite(true);
-    graphics->SetDrawAntialiased(true);
     graphics->SetScissorTest(false);
     graphics->SetStencilTest(false);
     graphics->SetShaders(vs, ps);
@@ -454,6 +470,10 @@ bool DebugRenderer::IsInside(const BoundingBox& box) const
     return frustum_.IsInsideFast(box) == INSIDE;
 }
 
+bool DebugRenderer::HasContent() const
+{
+    return (lines_.empty() && noDepthLines_.empty() && triangles_.empty() && noDepthTriangles_.empty()) ? false : true;
+}
 void DebugRenderer::HandleEndFrame(StringHash eventType, VariantMap& eventData)
 {
     // When the amount of debug geometry is reduced, release memory

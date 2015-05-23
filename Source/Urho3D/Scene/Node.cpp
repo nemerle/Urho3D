@@ -1,5 +1,5 @@
 ﻿//
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Scene/Component.h"
 #include "../Core/Context.h"
 #include "../IO/Log.h"
@@ -224,14 +223,14 @@ void Node::AddReplicationState(NodeReplicationState* state)
     networkState_->replicationStates_.push_back(state);
 }
 
-bool Node::SaveXML(Serializer& dest) const
+bool Node::SaveXML(Serializer& dest, const String& indentation) const
 {
     SharedPtr<XMLFile> xml(new XMLFile(context_));
     XMLElement rootElem = xml->CreateRoot("node");
     if (!SaveXML(rootElem))
         return false;
 
-    return xml->Save(dest);
+    return xml->Save(dest, indentation);
 }
 
 void Node::SetName(const String& name)
@@ -557,8 +556,8 @@ void Node::MarkDirty()
             i = listeners_.erase(i);
     }
 
-    for (auto & elem : children_)
-        (elem)->MarkDirty();
+    for (SharedPtr<Node> & elem : children_)
+        elem->MarkDirty();
 }
 
 Node* Node::CreateChild(const String& name, CreateMode mode, unsigned id)
@@ -682,6 +681,10 @@ void Node::RemoveChildren(bool removeReplicated, bool removeLocal, bool recursiv
 
 Component* Node::CreateComponent(StringHash type, CreateMode mode, unsigned id)
 {
+    // Do not attempt to create replicated components to local nodes, as that may lead to component ID overwrite
+    // as replicated components are synced over
+    if (id_ >= FIRST_LOCAL_ID && mode == REPLICATED)
+        mode = LOCAL;
     // Check that creation succeeds and that the object in fact is a component
     SharedPtr<Component> newComponent = DynamicCast<Component>(context_->CreateObject(type));
     if (!newComponent)
@@ -935,7 +938,7 @@ unsigned Node::GetNumChildren(bool recursive) const
     {
         unsigned allChildren = children_.size();
         for (const auto & elem : children_)
-            allChildren += (elem)->GetNumChildren(true);
+            allChildren += elem->GetNumChildren(true);
 
         return allChildren;
     }
@@ -1003,9 +1006,9 @@ Node* Node::GetChild(StringHash nameHash, bool recursive) const
     return nullptr;
 }
 
-size_t Node::GetNumNetworkComponents() const
+unsigned Node::GetNumNetworkComponents() const
 {
-    size_t num = 0;
+    unsigned num = 0;
     for (const auto & elem : components_)
     {
         if ((elem)->GetID() < FIRST_LOCAL_ID)
@@ -1023,7 +1026,7 @@ void Node::GetComponents(PODVector<Component*>& dest, StringHash type, bool recu
     {
         for (const auto & elem : components_)
         {
-            if ((elem)->GetType() == type)
+            if (elem->GetType() == type)
                 dest.push_back(elem);
         }
     }
@@ -1137,14 +1140,14 @@ const Vector3& Node::GetNetPositionAttr() const
 
 const PODVector<unsigned char>& Node::GetNetRotationAttr() const
 {
-    attrBuffer_.Clear();
+    attrBuffer_.clear();
     attrBuffer_.WritePackedQuaternion(rotation_);
     return attrBuffer_.GetBuffer();
 }
 
 const PODVector<unsigned char>& Node::GetNetParentAttr() const
 {
-    attrBuffer_.Clear();
+    attrBuffer_.clear();
     Scene* scene = GetScene();
     if (scene && parent_ && parent_ != scene)
     {
@@ -1314,7 +1317,7 @@ void Node::PrepareNetworkUpdate()
             networkState_->previousValues_[i] = networkState_->currentValues_[i];
 
             // Mark the attribute dirty in all replication states that are tracking this node
-            for (auto & elem : networkState_->replicationStates_)
+            for (ReplicationState* elem : networkState_->replicationStates_)
             {
                 NodeReplicationState* nodeState = static_cast<NodeReplicationState*>(elem);
                 nodeState->dirtyAttributes_.Set(i);
@@ -1627,6 +1630,10 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
 
 Component* Node::SafeCreateComponent(const String& typeName, StringHash type, CreateMode mode, unsigned id)
 {
+    // Do not attempt to create replicated components to local nodes, as that may lead to component ID overwrite
+    // as replicated components are synced over
+    if (id_ >= FIRST_LOCAL_ID && mode == REPLICATED)
+        mode = LOCAL;
     // First check if factory for type exists
     if (!context_->GetTypeName(type).isEmpty())
         return CreateComponent(type, mode, id);
@@ -1688,6 +1695,7 @@ void Node::RemoveChild(Vector<SharedPtr<Node> >::iterator i)
     if (scene_)
         scene_->NodeRemoved(child);
 
+    children_.erase(i);
 }
 
 void Node::GetChildrenRecursive(PODVector<Node*>& dest) const
@@ -1772,7 +1780,6 @@ Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mod
 
 void Node::RemoveComponent(Vector<SharedPtr<Component> >::iterator i)
 {
-    WeakPtr<Component> componentWeak(*i);
 
     // Send node change event. Do not send when already being destroyed
     if (Refs() > 0 && scene_)
@@ -1790,11 +1797,9 @@ void Node::RemoveComponent(Vector<SharedPtr<Component> >::iterator i)
     RemoveListener(*i);
     if (scene_)
         scene_->ComponentRemoved(*i);
+    (*i)->SetNode(nullptr);
     components_.erase(i);
 
-    // If the component is still referenced elsewhere, reset its node pointer now
-    if (componentWeak)
-        componentWeak->SetNode(nullptr);
 }
 
 void Node::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& eventData)

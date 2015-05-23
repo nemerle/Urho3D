@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../../Graphics/Graphics.h"
 #include "../../Graphics/GraphicsImpl.h"
 #include "../../IO/Log.h"
@@ -155,6 +154,7 @@ void VertexBuffer::Release()
                     graphics_->SetVertexBuffer(nullptr);
             }
             
+            graphics_->SetVBO(0);
             glDeleteBuffers(1, &object_);
         }
         
@@ -218,7 +218,7 @@ bool VertexBuffer::SetData(const void* data)
     {
         if (!graphics_->IsDeviceLost())
         {
-            glBindBuffer(GL_ARRAY_BUFFER, object_);
+            graphics_->SetVBO(object_);
             glBufferData(GL_ARRAY_BUFFER, vertexCount_ * vertexSize_, data, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
         }
         else
@@ -265,7 +265,7 @@ bool VertexBuffer::SetDataRange(const void* data, unsigned start, unsigned count
     {
         if (!graphics_->IsDeviceLost())
         {
-            glBindBuffer(GL_ARRAY_BUFFER, object_);
+            graphics_->SetVBO(object_);
             if (!discard || start != 0)
                 glBufferSubData(GL_ARRAY_BUFFER, start * vertexSize_, count * vertexSize_, data);
             else
@@ -410,7 +410,7 @@ bool VertexBuffer::Create()
             return false;
         }
         
-        glBindBuffer(GL_ARRAY_BUFFER, object_);
+        graphics_->SetVBO(object_);
         glBufferData(GL_ARRAY_BUFFER, vertexCount_ * vertexSize_, nullptr, dynamic_ ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
     

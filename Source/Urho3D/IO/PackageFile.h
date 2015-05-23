@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ public:
     /// Return whether the files are compressed.
     bool IsCompressed() const { return compressed_; }
     /// Return list of entry names
-    Vector<String> GetEntryNames() const { return entries_.keys(); }
+    const Vector<String> GetEntryNames() const { return entries_.keys(); }
 
 private:
     /// File entries.

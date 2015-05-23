@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,12 @@
 // THE SOFTWARE.
 //
 
+
 #include <Urho3D/Graphics/AnimatedModel.h>
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Physics/CollisionShape.h>
-#include <Urho3D/Network/Controls.h>
+#include <Urho3D/Input/Controls.h>
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/IO/FileSystem.h>

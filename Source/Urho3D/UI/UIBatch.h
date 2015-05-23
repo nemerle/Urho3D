@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -84,6 +84,8 @@ public:
     unsigned vertexEnd_;
     /// Gradient flag.
     bool useGradient_;
+    /// Position adjustment vector for pixel-perfect rendering. Initialized by UI.
+    static Vector3 posAdjust;
 };
 
 }

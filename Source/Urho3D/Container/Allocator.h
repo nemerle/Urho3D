@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,6 @@
 //
 
 #pragma once
-
-#include "../Urho3D.h"
 
 #include <new>
 
@@ -55,13 +53,13 @@ struct AllocatorNode
 };
 
 /// Initialize a fixed-size allocator with the node size and initial capacity.
-URHO3D_API AllocatorBlock* AllocatorInitialize(unsigned nodeSize, unsigned initialCapacity = 1);
+AllocatorBlock* AllocatorInitialize(unsigned nodeSize, unsigned initialCapacity = 1);
 /// Uninitialize a fixed-size allocator. Frees all blocks in the chain.
-URHO3D_API void AllocatorUninitialize(AllocatorBlock* allocator);
+void AllocatorUninitialize(AllocatorBlock* allocator);
 /// Reserve a node. Creates a new block if necessary.
-URHO3D_API void* AllocatorReserve(AllocatorBlock* allocator);
+void* AllocatorReserve(AllocatorBlock* allocator);
 /// Free a node. Does not free any blocks.
-URHO3D_API void AllocatorFree(AllocatorBlock* allocator, void* ptr);
+void AllocatorFree(AllocatorBlock* allocator, void* ptr);
 
 /// %Allocator template class. Allocates objects of a specific class.
 template <class T> class Allocator
@@ -69,18 +67,18 @@ template <class T> class Allocator
 public:
     /// Construct.
     Allocator(unsigned initialCapacity = 0) :
-        allocator_(0)
+        allocator_(nullptr)
     {
         if (initialCapacity)
             allocator_ = AllocatorInitialize(sizeof(T), initialCapacity);
     }
-    
+
     /// Destruct.
     ~Allocator()
     {
         AllocatorUninitialize(allocator_);
     }
-    
+
     /// Reserve and default-construct an object.
     T* Reserve()
     {
@@ -88,10 +86,10 @@ public:
             allocator_ = AllocatorInitialize(sizeof(T));
         T* newObject = static_cast<T*>(AllocatorReserve(allocator_));
         new(newObject) T();
-        
+
         return newObject;
     }
-    
+
     /// Reserve and copy-construct an object.
     T* Reserve(const T& object)
     {
@@ -99,23 +97,23 @@ public:
             allocator_ = AllocatorInitialize(sizeof(T));
         T* newObject = static_cast<T*>(AllocatorReserve(allocator_));
         new(newObject) T(object);
-        
+
         return newObject;
     }
-    
+
     /// Destruct and free an object.
     void Free(T* object)
     {
         (object)->~T();
         AllocatorFree(allocator_, object);
     }
-    
+
 private:
     /// Prevent copy construction.
     Allocator(const Allocator<T>& rhs);
     /// Prevent assignment.
     Allocator<T>& operator = (const Allocator<T>& rhs);
-    
+
     /// Allocator block.
     AllocatorBlock* allocator_;
 };

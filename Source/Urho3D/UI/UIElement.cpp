@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -117,6 +117,8 @@ UIElement::UIElement(Context* context) :
     indentSpacing_(16),
     position_(IntVector2::ZERO),
     positionDirty_(true),
+    dragButtonCombo_(0),
+    dragButtonCount_(0),
     size_(IntVector2::ZERO),
     minSize_(IntVector2::ZERO),
     maxSize_(M_MAX_INT, M_MAX_INT),
@@ -129,9 +131,7 @@ UIElement::UIElement(Context* context) :
     sortOrderDirty_(false),
     colorGradient_(false),
     traversalMode_(TM_BREADTH_FIRST),
-    elementEventSender_(false),
-    dragButtonCombo_(0),
-    dragButtonCount_(0)
+    elementEventSender_(false)
 {
     SetEnabled(false);
 }
@@ -537,11 +537,11 @@ bool UIElement::LoadXML(Deserializer& source)
     return xml->Load(source) && LoadXML(xml->GetRoot());
 }
 
-bool UIElement::SaveXML(Serializer& dest) const
+bool UIElement::SaveXML(Serializer& dest, const String& indentation) const
 {
     SharedPtr<XMLFile> xml(new XMLFile(context_));
     XMLElement rootElem = xml->CreateRoot("element");
-    return SaveXML(rootElem) && xml->Save(dest);
+    return SaveXML(rootElem) && xml->Save(dest, indentation);
 }
 
 bool UIElement::FilterAttributes(XMLElement& dest) const
@@ -1154,7 +1154,7 @@ void UIElement::BringToFront()
 
     int maxPriority = M_MIN_INT;
     const Vector<SharedPtr<UIElement> >& rootChildren = root->GetChildren();
-    for (const auto & elem : rootChildren)
+    for (const SharedPtr<UIElement> & elem : rootChildren)
     {
         UIElement* other = elem;
         if (other->IsEnabled() && other->bringToBack_ && other != ptr)
@@ -1176,7 +1176,7 @@ void UIElement::BringToFront()
         while (usedPriorities.contains(minPriority))
             --minPriority;
 
-        for (const auto & elem : rootChildren)
+        for (const SharedPtr<UIElement> & elem : rootChildren)
         {
             UIElement* other = elem;
             int priority = other->GetPriority();
@@ -1433,7 +1433,7 @@ void UIElement::GetChildren(PODVector<UIElement*>& dest, bool recursive) const
     if (!recursive)
     {
         dest.reserve(children_.size());
-        for (const auto & elem : children_)
+        for (const SharedPtr<UIElement> & elem : children_)
             dest.push_back(elem);
     }
     else
@@ -1447,8 +1447,8 @@ unsigned UIElement::GetNumChildren(bool recursive) const
     else
     {
         unsigned allChildren = children_.size();
-        for (const auto & elem : children_)
-            allChildren += (elem)->GetNumChildren(true);
+        for (const SharedPtr<UIElement> & elem : children_)
+            allChildren += elem->GetNumChildren(true);
 
         return allChildren;
     }
@@ -1461,14 +1461,14 @@ UIElement* UIElement::GetChild(unsigned index) const
 
 UIElement* UIElement::GetChild(const String& name, bool recursive) const
 {
-    for (const auto & elem : children_)
+    for (const SharedPtr<UIElement> & elem : children_)
     {
-        if ((elem)->name_ == name)
+        if (elem->name_ == name)
             return elem;
 
         if (recursive)
         {
-            UIElement* element = (elem)->GetChild(name, true);
+            UIElement* element = elem->GetChild(name, true);
             if (element)
                 return element;
         }
@@ -1479,15 +1479,15 @@ UIElement* UIElement::GetChild(const String& name, bool recursive) const
 
 UIElement* UIElement::GetChild(const StringHash& key, const Variant& value, bool recursive) const
 {
-    for (const auto & elem : children_)
+    for (const SharedPtr<UIElement> & elem : children_)
     {
-        const Variant& varValue = (elem)->GetVar(key);
+        const Variant& varValue = elem->GetVar(key);
         if (value != Variant::EMPTY ? varValue == value : varValue != Variant::EMPTY)
             return elem;
 
         if (recursive)
         {
-            UIElement* element = (elem)->GetChild(key, value, true);
+            UIElement* element = elem->GetChild(key, value, true);
             if (element)
                 return element;
         }
@@ -1810,7 +1810,7 @@ bool UIElement::FilterImplicitAttributes(XMLElement& dest) const
 
 void UIElement::GetChildrenRecursive(PODVector<UIElement*>& dest) const
 {
-    for (const auto & elem : children_)
+    for (const SharedPtr<UIElement> & elem : children_)
     {
         UIElement* element = elem;
         dest.push_back(element);

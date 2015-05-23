@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -80,11 +80,11 @@ public:
     bool RemoveAttribute(const char* name);
 
     /// Select an element/attribute using XPath query.
-    XMLElement SelectSingle(const String& query, pugi::xpath_variable_set* variables = 0) const;
+    XMLElement SelectSingle(const String& query, pugi::xpath_variable_set* variables = nullptr) const;
     /// Select an element/attribute using XPath query.
     XMLElement SelectSinglePrepared(const XPathQuery& query) const;
     /// Select elements/attributes using XPath query.
-    XPathResultSet Select(const String& query, pugi::xpath_variable_set* variables = 0) const;
+    XPathResultSet Select(const String& query, pugi::xpath_variable_set* variables = nullptr) const;
     /// Select elements/attributes using XPath query.
     XPathResultSet SelectPrepared(const XPathQuery& query) const;
 

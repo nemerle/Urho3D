@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ struct LightQueryShadowEntry {
     unsigned shadowCasterBegin_;
     /// Shadow caster end indices.
     unsigned shadowCasterEnd_;
-    /// Combined bounding box of shadow casters in light view or projection space.
+    /// Combined bounding box of shadow casters in light projection space. Only used for focused spot lights.
     BoundingBox shadowCasterBox_;
     /// Shadow camera near splits (directional lights only.)
     float shadowNearSplits_;
@@ -82,8 +82,8 @@ struct LightQueryResult
 /// Scene render pass info.
 struct ScenePassInfo
 {
-    /// Pass name hash.
-    StringHash pass_;
+    /// Pass index.
+    unsigned passIndex_;
     /// Allow instancing flag.
     bool allowInstancing_;
     /// Mark to stencil flag.
@@ -93,7 +93,7 @@ struct ScenePassInfo
     /// Vertex light flag.
     bool vertexLights_;
     /// Batch queue.
-    BatchQueue* batchQueue_;
+    unsigned batchQueueIdx_;
 };
 
 /// Per-thread geometry, light and scene range collection structure.
@@ -116,9 +116,9 @@ class URHO3D_API View : public Object
 {
     friend void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex);
     friend void ProcessLightWork(const WorkItem* item, unsigned threadIndex);
+    typedef FasterHashMap<uint32_t, uint32_t> BatchQueueMap;
+    OBJECT(View)
 
-    OBJECT(View);
-    typedef FasterHashMap<StringHash, BatchQueue *> BatchQueueMap;
 public:
     /// Construct.
     View(Context* context);
@@ -159,7 +159,7 @@ public:
     /// Set global (per-frame) shader parameters. Called by Batch and internally by View.
     void SetGlobalShaderParameters();
     /// Set camera-specific shader parameters. Called by Batch and internally by View.
-    void SetCameraShaderParameters(Camera* camera, bool setProjectionMatrix, bool overrideView);
+    void SetCameraShaderParameters(Camera* camera, bool setProjectionMatrix);
     /// Set G-buffer offset and inverse size shader parameters. Called by Batch and internally by View.
     void SetGBufferShaderParameters(const IntVector2& texSize, const IntRect& viewRect);
 
@@ -168,10 +168,16 @@ private:
     void GetDrawables();
     /// Construct batches from the drawable objects.
     void GetBatches();
+    /// Get lit geometries and shadowcasters for visible lights.
+    void ProcessLights();
+    /// Get batches from lit geometries and shadowcasters.
+    void GetLightBatches(Technique *default_tech);
+    /// Get unlit batches.
+    void GetBaseBatches(Technique *default_tech);
     /// Update geometries and sort batches.
     void UpdateGeometries();
     /// Get pixel lit batches for a certain light and drawable.
-    void GetLitBatches(Drawable* drawable, Zone *zone, LightBatchQueue& lightQueue, BatchQueue *availableQueues[], BatchQueue::BatchGroupMap *groupMaps[], Technique *default_tech);
+    void GetLitBatches(Drawable *drawable, Zone *zone, LightBatchQueue &lightQueue, BatchQueue *availableQueues[], BatchQueue::BatchGroupMap *groupMaps[], Technique *default_tech);
     /// Execute render commands.
     void ExecuteRenderPathCommands();
     /// Set rendertargets for current render command.
@@ -191,7 +197,7 @@ private:
     /// Allocate needed screen buffers.
     void AllocateScreenBuffers();
     /// Blit the viewport from one surface to another.
-    void BlitFramebuffer(Texture2D* source, RenderSurface* destination, bool depthWrite);
+    void BlitFramebuffer(Texture* source, RenderSurface* destination, bool depthWrite);
     /// Draw a fullscreen quad. Shaders and renderstates must have been set beforehand.
     void DrawFullscreenQuad(bool nearQuad);
     /// Query for occluders as seen from a camera.
@@ -221,7 +227,7 @@ private:
     /// Check if material should render an auxiliary view (if it has a camera attached.)
     void CheckMaterialForAuxView(Material* material);
     /// Choose shaders for a batch and add it to queue.
-    void AddBatchToQueue(BatchQueue& queue, BatchQueue::BatchGroupMap &batchGroupMap, Batch &&batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
+    void AddBatchToQueue(BatchQueue& queue, BatchQueue::BatchGroupMap &batchGroupMap, Batch batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
     /// Prepare instancing buffer by filling it with all instance transforms.
     void PrepareInstancingBuffer();
     /// Set up a light volume rendering batch.
@@ -230,6 +236,10 @@ private:
     void RenderShadowMap(const LightBatchQueue& queue);
     /// Return the proper depth-stencil surface to use for a rendertarget.
     RenderSurface* GetDepthStencil(RenderSurface* renderTarget);
+    /// Helper function to get the render surface from a texture. 2D textures will always return the first face only.
+    RenderSurface* GetRenderSurfaceFromTexture(Texture* texture, CubeMapFace face = FACE_POSITIVE_X);
+    /// Get a named texture from the rendertarget list or from the resource cache, to be either used as a rendertarget or texture binding.
+    Texture* FindNamedTexture(const String& name, bool isRenderTarget, bool isVolumeMap = false);
 
     /// Return the drawable's zone, or camera zone if it has override mode enabled.
     Zone* GetZone(Drawable* drawable)
@@ -284,13 +294,13 @@ private:
     /// Substitute rendertarget for deferred rendering. Allocated if necessary.
     RenderSurface* substituteRenderTarget_;
     /// Texture(s) for sampling the viewport contents. Allocated if necessary.
-    Texture2D* viewportTextures_[MAX_VIEWPORT_TEXTURES];
+    Texture* viewportTextures_[MAX_VIEWPORT_TEXTURES];
     /// Color rendertarget active for the current renderpath command.
     RenderSurface* currentRenderTarget_;
     /// Texture containing the latest viewport texture.
-    Texture2D* currentViewportTexture_;
+    Texture* currentViewportTexture_;
     /// Dummy texture for D3D9 depth only rendering.
-    Texture2D* depthOnlyDummyTexture_;
+    Texture* depthOnlyDummyTexture_;
     /// Viewport rectangle.
     IntRect viewRect_;
     /// Viewport size.
@@ -323,8 +333,8 @@ private:
     bool useLitBase_;
     /// Has scene passes flag. If no scene passes, view can be defined without a valid scene or camera to only perform quad rendering.
     bool hasScenePasses_;
-    /// Whether is using a custom readable depth texture.
-    bool usingCustomDepth_;
+    /// Whether is using a custom readable depth texture without a stencil channel.
+    bool noStencil_;
     /// Draw debug geometry flag. Copied from the viewport.
     bool drawDebug_;
     /// Renderpath.
@@ -348,7 +358,7 @@ private:
     /// Drawables that limit their maximum light count.
     HashSet<Drawable*> maxLightsDrawables_;
     /// Rendertargets defined by the renderpath.
-    HashMap<StringHash, Texture2D*> renderTargets_;
+    HashMap<StringHash, Texture*> renderTargets_;
     /// Intermediate light processing results.
     Vector<LightQueryResult> lightQueryResults_;
     /// Info for scene render passes defined by the renderpath.
@@ -357,25 +367,23 @@ private:
     Vector<LightBatchQueue> lightQueues_;
     /// Per-vertex light queues.
     HashMap<unsigned long long, LightBatchQueue> vertexLightQueues_;
-    /// Batch queues.
-    std::deque<BatchQueue> batchQueueStorage_;
+    /// Batch queues by pass index.
     BatchQueueMap batchQueues_;
-    /// Hash of the GBuffer pass, or null if none.
-    StringHash gBufferPassName_;
-    /// Hash of the opaque forward base pass.
-    StringHash basePassName_;
-    /// Hash of the alpha pass.
-    StringHash alphaPassName_;
-    /// Hash of the forward light pass.
-    StringHash lightPassName_;
-    /// Hash of the litbase pass.
-    StringHash litBasePassName_;
-    /// Hash of the litalpha pass.
-    StringHash litAlphaPassName_;
-    /// Name of light volume vertex shader.
-    String lightVolumeVSName_;
-    /// Name of light volume pixel shader.
-    String lightVolumePSName_;
+    std::deque<BatchQueue> batchQueueStorage_;
+    /// Index of the GBuffer pass.
+    unsigned gBufferPassIndex_;
+    /// Index of the opaque forward base pass.
+    unsigned basePassIndex_;
+    /// Index of the alpha pass.
+    unsigned alphaPassIndex_;
+    /// Index of the forward light pass.
+    unsigned lightPassIndex_;
+    /// Index of the litbase pass.
+    unsigned litBasePassIndex_;
+    /// Index of the litalpha pass.
+    unsigned litAlphaPassIndex_;
+    /// Pointer to the light volume command if any.
+    const RenderPathCommand* lightVolumeCommand_;
 };
 
 }

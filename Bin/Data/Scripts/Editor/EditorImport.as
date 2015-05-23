@@ -32,7 +32,7 @@ void ImportModel(const String&in fileName)
     args.Push("\"" + fileName + "\"");
     args.Push("\"" + outFileName + "\"");
     args.Push("-p \"" + sceneResourcePath + "\"");
-    Array<String> options = importOptions.trimmed().Split(' ');
+    Array<String> options = importOptions.Trimmed().Split(' ');
     for (uint i = 0; i < options.length; ++i)
         args.Push(options[i]);
     // If material lists are to be applied, make sure the option to create them exists
@@ -55,6 +55,8 @@ void ImportModel(const String&in fileName)
 
         FocusNode(newNode);
     }
+    else
+        log.Error("Failed to execute AssetImporter to import model");
 }
 
 void ImportScene(const String&in fileName)
@@ -76,7 +78,7 @@ void ImportScene(const String&in fileName)
         args.Push("\"" + fileName + "\"");
         args.Push("\"" + tempSceneName + "\"");
         args.Push("-p \"" + sceneResourcePath + "\"");
-        Array<String> options = importOptions.trimmed().Split(' ');
+        Array<String> options = importOptions.Trimmed().Split(' ');
         for (uint i = 0; i < options.length; ++i)
             args.Push(options[i]);
         if (applyMaterialList)
@@ -88,6 +90,8 @@ void ImportScene(const String&in fileName)
             fileSystem.Delete(tempSceneName);
             UpdateWindowTitle();
         }
+        else
+            log.Error("Failed to execute AssetImporter to import scene");
     }
 }
 
@@ -215,7 +219,7 @@ void ImportTundraScene(const String&in fileName)
         }
 
         // If collision mesh not specified for the rigid body, assume same as the visible mesh
-        if ((shapeType == 4 || shapeType == 6) && collisionMeshName.trimmed().empty)
+        if ((shapeType == 4 || shapeType == 6) && collisionMeshName.Trimmed().empty)
             collisionMeshName = meshName;
 
         if (!meshName.empty || shapeType >= 0)
@@ -367,30 +371,30 @@ Vector3 GetVector3FromStrings(Array<String>@ coords, uint startIndex)
 
 void ProcessRef(String& ref)
 {
-    if (ref.startsWith("local://"))
+    if (ref.StartsWith("local://"))
         ref = ref.Substring(8);
-    if (ref.startsWith("file://"))
+    if (ref.StartsWith("file://"))
         ref = ref.Substring(7);
 }
 
 String GetOutModelName(const String&in ref)
 {
-    return "Models/" + GetFullAssetName(ref).replaced('/', '_').replaced(".mesh", ".mdl");
+    return "Models/" + GetFullAssetName(ref).Replaced('/', '_').Replaced(".mesh", ".mdl");
 }
 
 String GetOutMaterialName(const String&in ref)
 {
-    return "Materials/" + GetFullAssetName(ref).replaced('/', '_').replaced(".material", ".xml");
+    return "Materials/" + GetFullAssetName(ref).Replaced('/', '_').Replaced(".material", ".xml");
 }
 
 String GetOutTextureName(const String&in ref)
 {
-    return "Textures/" + GetFullAssetName(ref).replaced('/', '_');
+    return "Textures/" + GetFullAssetName(ref).Replaced('/', '_');
 }
 
 void ConvertModel(const String&in modelName, const String&in filePath, Array<String>@ convertedModels)
 {
-    if (modelName.trimmed().empty)
+    if (modelName.Trimmed().empty)
         return;
 
     for (uint i = 0; i < convertedModels.length; ++i)
@@ -406,7 +410,7 @@ void ConvertModel(const String&in modelName, const String&in filePath, Array<Str
     // Convert .mesh to .mesh.xml
     String cmdLine = "ogrexmlconverter \"" + meshFileName + "\" \"" + xmlFileName + "\"";
     if (!fileSystem.FileExists(xmlFileName))
-        fileSystem.SystemCommand(cmdLine.replaced('/', '\\'));
+        fileSystem.SystemCommand(cmdLine.Replaced('/', '\\'));
 
     if (!fileSystem.FileExists(outFileName))
     {
@@ -423,7 +427,7 @@ void ConvertModel(const String&in modelName, const String&in filePath, Array<Str
 
 void ConvertMaterial(const String&in materialName, const String&in filePath, Array<String>@ convertedMaterials)
 {
-    if (materialName.trimmed().empty)
+    if (materialName.Trimmed().empty)
         return;
 
     for (uint i = 0; i < convertedMaterials.length; ++i)
@@ -448,23 +452,23 @@ void ConvertMaterial(const String&in materialName, const String&in filePath, Arr
     File file(fileName, FILE_READ);
     while (!file.eof)
     {
-        String line = file.ReadLine().trimmed();
-        if (line.startsWith("alpha_rejection") || line.startsWith("scene_blend alpha_blend"))
+        String line = file.ReadLine().Trimmed();
+        if (line.StartsWith("alpha_rejection") || line.StartsWith("scene_blend alpha_blend"))
             mask = true;
-        if (line.startsWith("cull_hardware none"))
+        if (line.StartsWith("cull_hardware none"))
             twoSided = true;
         // Todo: handle multiple textures per material
-        if (textureName.empty && line.startsWith("texture "))
+        if (textureName.empty && line.StartsWith("texture "))
         {
             textureName = line.Substring(8);
             ProcessRef(textureName);
         }
-        if (!uvScaleSet && line.startsWith("scale "))
+        if (!uvScaleSet && line.StartsWith("scale "))
         {
             uvScale = line.Substring(6).ToVector2();
             uvScaleSet = true;
         }
-        if (line.startsWith("diffuse "))
+        if (line.StartsWith("diffuse "))
             diffuse = line.Substring(8).ToColor();
     }
 

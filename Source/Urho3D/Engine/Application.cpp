@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Engine/Application.h"
 #include "../Engine/Engine.h"
 #ifdef IOS
@@ -38,12 +37,14 @@
 namespace Urho3D
 {
 
-#ifdef IOS
-// Code for supporting SDL_iPhoneSetAnimationCallback
+#if defined(IOS) || defined(EMSCRIPTEN)
+// Code for supporting SDL_iPhoneSetAnimationCallback() and emscripten_set_main_loop_arg()
+#if defined(EMSCRIPTEN)
+#include <emscripten.h>
+#endif
 void RunFrame(void* data)
 {
-    Application* instance = reinterpret_cast<Application*>(data);
-    instance->GetSubsystem<Engine>()->RunFrame();
+    static_cast<Engine*>(data)->RunFrame();
 }
 #endif
     
@@ -62,6 +63,9 @@ Application::Application(Context* context) :
 
 int Application::Run()
 {
+    // Emscripten-specific: C++ exceptions are turned off by default in -O1 (and above), unless '-s DISABLE_EXCEPTION_CATCHING=0' flag is set
+    // Urho3D build configuration uses -O3 (Release), -O2 (RelWithDebInfo), and -O0 (Debug)
+    // Thus, the try-catch block below should be optimised out except in Debug build configuration
     try
     {
         Setup();
@@ -78,8 +82,8 @@ int Application::Run()
         if (exitCode_)
             return exitCode_;
 
-        // Platforms other than iOS run a blocking main loop
-        #ifndef IOS
+        // Platforms other than iOS and EMSCRIPTEN run a blocking main loop
+        #if !defined(IOS) && !defined(EMSCRIPTEN)
         while (!engine_->IsExiting())
             engine_->RunFrame();
 
@@ -87,7 +91,11 @@ int Application::Run()
         // iOS will setup a timer for running animation frames so eg. Game Center can run. In this case we do not
         // support calling the Stop() function, as the application will never stop manually
         #else
-        SDL_iPhoneSetAnimationCallback(GetSubsystem<Graphics>()->GetImpl()->GetWindow(), 1, &RunFrame, this);
+        #if defined(IOS)
+        SDL_iPhoneSetAnimationCallback(GetSubsystem<Graphics>()->GetImpl()->GetWindow(), 1, &RunFrame, engine_);
+        #elif defined(EMSCRIPTEN)
+        emscripten_set_main_loop_arg(RunFrame, engine_, 0, 1);
+        #endif
         #endif
         
         return exitCode_;

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Container/ArrayPtr.h"
 #include "../Core/Context.h"
 #include "../IO/Deserializer.h"
@@ -84,14 +83,18 @@ bool JSONFile::BeginLoad(Deserializer& source)
 
 bool JSONFile::Save(Serializer& dest) const
 {
+    return Save(dest, "\t");
+}
+
+bool JSONFile::Save(Serializer& dest, const String& indendation) const
+{
     StringBuffer buffer;
     PrettyWriter<StringBuffer> writer(buffer, &(document_->GetAllocator()));
-    writer.SetIndent('\t', 1);
+    writer.SetIndent(!indendation.isEmpty() ?  indendation.Front() : '\0', indendation.length());
 
     document_->Accept(writer);
-    dest.Write(buffer.GetString(), buffer.GetSize());
-
-    return true;
+    unsigned size = (unsigned)buffer.GetSize();
+    return dest.Write(buffer.GetString(), size) == size;
 }
 
 JSONValue JSONFile::CreateRoot(JSONValueType valueType)

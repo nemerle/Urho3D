@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -770,7 +770,7 @@ public:
         else if (type_ == VAR_PTR)
             return *reinterpret_cast<const WeakPtr<RefCounted>*>(&value_);
         else
-            return 0;
+            return nullptr;
     }
 
     /// Return a resource reference or empty on type mismatch.
@@ -786,7 +786,7 @@ public:
     /// Return an IntVector2 or empty on type mismatch.
     const IntVector2& GetIntVector2() const { return type_ == VAR_INTVECTOR2 ? *reinterpret_cast<const IntVector2*>(&value_) : IntVector2::ZERO; }
     /// Return a RefCounted pointer or null on type mismatch. Will return null if holding a void pointer, as it can not be safely verified that the object is a RefCounted.
-    RefCounted* GetPtr() const { return type_ == VAR_PTR ? *reinterpret_cast<const WeakPtr<RefCounted>*>(&value_) : (RefCounted*)0; }
+    RefCounted* GetPtr() const { return type_ == VAR_PTR ? *reinterpret_cast<const WeakPtr<RefCounted>*>(&value_) : (RefCounted*)nullptr; }
     /// Return a Matrix3 or identity on type mismatch.
     const Matrix3& GetMatrix3() const { return type_ == VAR_MATRIX3 ? *(reinterpret_cast<const Matrix3*>(value_.ptr_)) : Matrix3::IDENTITY; }
     /// Return a Matrix3x4 or identity on type mismatch.
@@ -807,11 +807,11 @@ public:
     template <class T> T Get() const;
 
     /// Return a pointer to a modifiable buffer or null on type mismatch.
-    PODVector<unsigned char>* GetBufferPtr() { return type_ == VAR_BUFFER ? reinterpret_cast<PODVector<unsigned char>*>(&value_) : 0; }
+    PODVector<unsigned char>* GetBufferPtr() { return type_ == VAR_BUFFER ? reinterpret_cast<PODVector<unsigned char>*>(&value_) : nullptr; }
     /// Return a pointer to a modifiable variant vector or null on type mismatch.
-    VariantVector* GetVariantVectorPtr() { return type_ == VAR_VARIANTVECTOR ? reinterpret_cast<VariantVector*>(&value_) : 0; }
+    VariantVector* GetVariantVectorPtr() { return type_ == VAR_VARIANTVECTOR ? reinterpret_cast<VariantVector*>(&value_) : nullptr; }
     /// Return a pointer to a modifiable variant map or null on type mismatch.
-    VariantMap* GetVariantMapPtr() { return type_ == VAR_VARIANTMAP ? reinterpret_cast<VariantMap*>(value_.ptr_) : 0; }
+    VariantMap* GetVariantMapPtr() { return type_ == VAR_VARIANTMAP ? reinterpret_cast<VariantMap*>(value_.ptr_) : nullptr; }
 
     /// Return name for variant type.
     static String GetTypeName(VariantType type);

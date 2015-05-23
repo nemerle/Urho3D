@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 namespace Urho3D
 {
-
+class String;
 /// Four-dimensional vector.
 class URHO3D_API Vector4
 {
@@ -39,7 +39,7 @@ public:
         w_(0.0f)
     {
     }
-    
+
     /// Copy-construct from another vector.
     Vector4(const Vector4& vector) :
         x_(vector.x_),
@@ -48,7 +48,7 @@ public:
         w_(vector.w_)
     {
     }
-    
+
     /// Construct from a 3-dimensional vector and the W coordinate.
     Vector4(const Vector3& vector, float w) :
         x_(vector.x_),
@@ -57,7 +57,7 @@ public:
         w_(w)
     {
     }
-    
+
     /// Construct from coordinates.
     Vector4(float x, float y, float z, float w) :
         x_(x),
@@ -66,7 +66,7 @@ public:
         w_(w)
     {
     }
-    
+
     /// Construct from a float array.
     Vector4(const float* data) :
         x_(data[0]),
@@ -75,7 +75,7 @@ public:
         w_(data[3])
     {
     }
-    
+
     /// Assign from another vector.
     Vector4& operator = (const Vector4& rhs)
     {
@@ -85,7 +85,7 @@ public:
         w_ = rhs.w_;
         return *this;
     }
-    
+
     /// Test for equality with another vector without epsilon.
     bool operator == (const Vector4& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_ && z_ == rhs.z_ && w_ == rhs.w_; }
     /// Test for inequality with another vector without epsilon.
@@ -104,7 +104,7 @@ public:
     Vector4 operator / (float rhs) const { return Vector4(x_ / rhs, y_ / rhs, z_ / rhs, w_ / rhs); }
     /// Divide by a vector.
     Vector4 operator / (const Vector4& rhs) const { return Vector4(x_ / rhs.x_, y_ / rhs.y_, z_ / rhs.z_, w_ / rhs.w_); }
-    
+
     /// Add-assign a vector.
     Vector4& operator += (const Vector4& rhs)
     {
@@ -114,7 +114,7 @@ public:
         w_ += rhs.w_;
         return *this;
     }
-    
+
     /// Subtract-assign a vector.
     Vector4& operator -= (const Vector4& rhs)
     {
@@ -124,7 +124,7 @@ public:
         w_ -= rhs.w_;
         return *this;
     }
-    
+
     /// Multiply-assign a scalar.
     Vector4& operator *= (float rhs)
     {
@@ -134,7 +134,7 @@ public:
         w_ *= rhs;
         return *this;
     }
-    
+
     /// Multiply-assign a vector.
     Vector4& operator *= (const Vector4& rhs)
     {
@@ -144,7 +144,7 @@ public:
         w_ *= rhs.w_;
         return *this;
     }
-    
+
     /// Divide-assign a scalar.
     Vector4& operator /= (float rhs)
     {
@@ -155,7 +155,7 @@ public:
         w_ *= invRhs;
         return *this;
     }
-    
+
     /// Divide-assign a vector.
     Vector4& operator /= (const Vector4& rhs)
     {
@@ -165,7 +165,7 @@ public:
         w_ /= rhs.w_;
         return *this;
     }
-    
+
     /// Calculate dot product.
     float DotProduct(const Vector4& rhs) const { return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_ + w_ * rhs.w_; }
     /// Calculate absolute dot product.
@@ -178,12 +178,12 @@ public:
     bool Equals(const Vector4& rhs) const { return Urho3D::Equals(x_, rhs.x_) && Urho3D::Equals(y_, rhs.y_) && Urho3D::Equals(z_, rhs.z_) && Urho3D::Equals(w_, rhs.w_); }
     /// Return whether is NaN.
     bool IsNaN() const { return Urho3D::IsNaN(x_) || Urho3D::IsNaN(y_) || Urho3D::IsNaN(z_) || Urho3D::IsNaN(w_); }
-    
+
     /// Return float data.
     const float* Data() const { return &x_; }
     /// Return as string.
     String ToString() const;
-    
+
     /// X coordinate.
     float x_;
     /// Y coordinate.
@@ -192,7 +192,7 @@ public:
     float z_;
     /// W coordinate.
     float w_;
-    
+
     /// Zero vector.
     static const Vector4 ZERO;
     /// (1,1,1) vector.

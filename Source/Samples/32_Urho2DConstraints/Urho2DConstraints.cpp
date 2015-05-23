@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Urho2D/CollisionBox2D.h>
@@ -534,7 +536,7 @@ void Urho2DConstraints::HandleMouseButtonUp(StringHash eventType, VariantMap& ev
         staticSprite->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f)); // Restore picked sprite color
 
         pickedNode->RemoveComponent<ConstraintMouse2D>(); // Remove temporary constraint
-        pickedNode = NULL;
+        pickedNode = nullptr;
     }
     UnsubscribeFromEvent(E_MOUSEMOVE);
     UnsubscribeFromEvent(E_MOUSEBUTTONUP);
@@ -604,7 +606,7 @@ void Urho2DConstraints::HandleTouchEnd3(StringHash eventType, VariantMap& eventD
         staticSprite->SetColor(Color(1.0f, 1.0f, 1.0f, 1.0f)); // Restore picked sprite color
 
         pickedNode->RemoveComponent<ConstraintMouse2D>(); // Remove temporary constraint
-        pickedNode = NULL;
+        pickedNode = nullptr;
     }
     UnsubscribeFromEvent(E_TOUCHMOVE);
     UnsubscribeFromEvent(E_TOUCHEND);

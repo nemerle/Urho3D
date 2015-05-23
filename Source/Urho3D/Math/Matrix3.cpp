@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Math/Matrix3.h"
+#include "../Container/Str.h"
+#include "../DebugNew.h"
 
 #include <cstdio>
-
-#include "../DebugNew.h"
 
 namespace Urho3D
 {
@@ -45,9 +44,9 @@ Matrix3 Matrix3::Inverse() const
         m20_ * m11_ * m02_ -
         m10_ * m01_ * m22_ -
         m00_ * m21_ * m12_;
-    
+
     float invDet = 1.0f / det;
-    
+
     return Matrix3(
         (m11_ * m22_ - m21_ * m12_) * invDet,
         -(m01_ * m22_ - m21_ * m02_) * invDet,

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -104,6 +104,7 @@ UI::UI(Context* context) :
     #endif
     useMutableGlyphs_(false),
     forceAutoHint_(false),
+    uiRendered_(false),
     nonModalBatchSize_(0),
     dragElementsCount_(0),
     dragConfirmedCount_(0)
@@ -391,6 +392,7 @@ void UI::RenderUpdate()
     assert(rootElement_ && rootModalElement_ && graphics_);
 
     PROFILE(GetUIBatches);
+    uiRendered_ = false;
 
     // If the OS cursor is visible, do not render the UI's own cursor
     bool osCursorVisible = GetSubsystem<Input>()->IsMouseVisible();
@@ -417,8 +419,11 @@ void UI::RenderUpdate()
     }
 }
 
-void UI::Render()
+void UI::Render(bool resetRenderTargets)
 {
+    // Perform the default render only if not rendered yet
+    if (resetRenderTargets && uiRendered_)
+        return;
     PROFILE(RenderUI);
 
     // If the OS cursor is visible, apply its shape now if changed
@@ -430,15 +435,16 @@ void UI::Render()
     SetVertexData(debugVertexBuffer_, debugVertexData_);
 
     // Render non-modal batches
-    Render(vertexBuffer_, batches_, 0, nonModalBatchSize_);
+    Render(resetRenderTargets, vertexBuffer_, batches_, 0, nonModalBatchSize_);
     // Render debug draw
-    Render(debugVertexBuffer_, debugDrawBatches_, 0, debugDrawBatches_.size());
+    Render(resetRenderTargets, debugVertexBuffer_, debugDrawBatches_, 0, debugDrawBatches_.size());
     // Render modal batches
-    Render(vertexBuffer_, batches_, nonModalBatchSize_, batches_.size());
+    Render(resetRenderTargets, vertexBuffer_, batches_, nonModalBatchSize_, batches_.size());
 
     // Clear the debug draw batches and data
     debugDrawBatches_.clear();
     debugVertexData_.clear();
+    uiRendered_ = true;
 }
 
 void UI::DebugDraw(UIElement* element)
@@ -684,6 +690,7 @@ void UI::Initialize()
     PROFILE(InitUI);
 
     graphics_ = graphics;
+    UIBatch::posAdjust = Vector3(Graphics::GetPixelUVOffset(), 0.0f);
 
     rootElement_->SetSize(graphics->GetWidth(), graphics->GetHeight());
     rootModalElement_->SetSize(rootElement_->GetSize());
@@ -729,7 +736,7 @@ void UI::SetVertexData(VertexBuffer* dest, const PODVector<float>& vertexData)
     dest->SetData(&vertexData[0]);
 }
 
-void UI::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigned batchStart, unsigned batchEnd)
+void UI::Render(bool resetRenderTargets, VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigned batchStart, unsigned batchEnd)
 {
     // Engine does not render when window is closed or device is lost
     assert(graphics_ && graphics_->IsInitialized() && !graphics_->IsDeviceLost());
@@ -755,9 +762,9 @@ void UI::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigne
     graphics_->SetCullMode(CULL_CCW);
     graphics_->SetDepthTest(CMP_ALWAYS);
     graphics_->SetDepthWrite(false);
-    graphics_->SetDrawAntialiased(false);
     graphics_->SetFillMode(FILL_SOLID);
     graphics_->SetStencilTest(false);
+    if (resetRenderTargets)
     graphics_->ResetRenderTargets();
     graphics_->SetVertexBuffer(buffer);
 
@@ -798,7 +805,7 @@ void UI::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, unsigne
         }
 
         graphics_->SetShaders(vs, ps);
-        if (graphics_->NeedParameterUpdate(SP_OBJECTTRANSFORM, this))
+        if (graphics_->NeedParameterUpdate(SP_OBJECT, this))
             graphics_->SetShaderParameter(VSP_MODEL, Matrix3x4::IDENTITY);
         if (graphics_->NeedParameterUpdate(SP_CAMERA, this))
             graphics_->SetShaderParameter(VSP_VIEWPROJ, projection);
@@ -1676,15 +1683,18 @@ void UI::HandleDropFile(StringHash eventType, VariantMap& eventData)
 
 HashMap<WeakPtr<UIElement>, UI::DragData*>::iterator UI::dragElementErase(HashMap<WeakPtr<UIElement>, DragData*>::iterator i)
 {
+    // If running the engine frame in response to an event (re-entering UI frame logic) the dragElements_ may already be empty
+    if (dragElements_.empty())
+        return dragElements_.end();
     dragElementsConfirmed_.clear();
 
     WeakPtr<UIElement> dragElement = MAP_KEY(i);
     DragData* dragData = MAP_VALUE(i);
 
     if (!dragData->dragBeginPending)
-        dragConfirmedCount_ --;
+        --dragConfirmedCount_;
     i = dragElements_.erase(i);
-    dragElementsCount_ --;
+    --dragElementsCount_;
 
     delete dragData;
     return i;

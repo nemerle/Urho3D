@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ public:
     /// Set motion parameters: forward movement speed, rotation speed, and movement boundaries.
     void SetParameters(float moveSpeed, float rotateSpeed, const BoundingBox& bounds);
     /// Handle scene update. Called by LogicComponent base class.
-    virtual void Update(float timeStep);
+    virtual void Update(float timeStep) override;
     
     /// Return forward movement speed.
     float GetMoveSpeed() const { return moveSpeed_; }

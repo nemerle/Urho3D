@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Script/APITemplates.h"
 #include "../IO/Compression.h"
 #include "../IO/FileSystem.h"
@@ -282,6 +281,7 @@ static void RegisterSerialization(asIScriptEngine* engine)
     engine->RegisterGlobalProperty("const uint SCAN_DIRS", (void*)&SCAN_DIRS);
     engine->RegisterGlobalProperty("const uint SCAN_HIDDEN", (void*)&SCAN_HIDDEN);
 
+    engine->RegisterObjectType("VectorBuffer", sizeof(VectorBuffer), asOBJ_VALUE | asOBJ_APP_CLASS_CDK);
     engine->RegisterObjectType("Serializer", 0, asOBJ_REF);
     engine->RegisterObjectBehaviour("Serializer", asBEHAVE_ADDREF, "void f()", asFUNCTION(FakeAddRef), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("Serializer", asBEHAVE_RELEASE, "void f()", asFUNCTION(FakeReleaseRef), asCALL_CDECL_OBJLAST);
@@ -303,14 +303,13 @@ static void RegisterSerialization(asIScriptEngine* engine)
     RegisterSerializer<File>(engine, "File");
     RegisterDeserializer<File>(engine, "File");
 
-    engine->RegisterObjectType("VectorBuffer", sizeof(VectorBuffer), asOBJ_VALUE | asOBJ_APP_CLASS_CDK);
     engine->RegisterObjectBehaviour("VectorBuffer", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructVectorBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("VectorBuffer", asBEHAVE_CONSTRUCT, "void f(const VectorBuffer&in)", asFUNCTION(ConstructVectorBufferCopy), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("VectorBuffer", asBEHAVE_CONSTRUCT, "void f(Deserializer@+, uint)", asFUNCTION(ConstructVectorBufferFromStream), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("VectorBuffer", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructVectorBuffer), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("VectorBuffer", "VectorBuffer& opAssign(const VectorBuffer&in)", asMETHOD(VectorBuffer, operator =), asCALL_THISCALL);
+    engine->RegisterObjectMethod("VectorBuffer", "VectorBuffer& opAssign(const VectorBuffer&in)", asMETHODPR(VectorBuffer, operator =, (const VectorBuffer&), VectorBuffer&), asCALL_THISCALL);
     engine->RegisterObjectMethod("VectorBuffer", "void SetData(Deserializer@+, uint)", asFUNCTION(VectorBufferSetData), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("VectorBuffer", "void Clear()", asMETHOD(VectorBuffer, Clear), asCALL_THISCALL);
+    engine->RegisterObjectMethod("VectorBuffer", "void Clear()", asMETHOD(VectorBuffer, clear), asCALL_THISCALL);
     engine->RegisterObjectMethod("VectorBuffer", "void Resize(uint)", asMETHOD(VectorBuffer, Resize), asCALL_THISCALL);
     engine->RegisterObjectMethod("VectorBuffer", "uint8 &opIndex(uint)", asFUNCTION(VectorBufferAt), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("VectorBuffer", "const uint8 &opIndex(uint) const", asFUNCTION(VectorBufferAt), asCALL_CDECL_OBJLAST);
@@ -322,7 +321,7 @@ static void RegisterSerialization(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const VectorBuffer&in)", asFUNCTION(VariantAssignBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Variant", "VectorBuffer GetBuffer() const", asFUNCTION(VariantGetBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Variant", "bool opEquals(const VectorBuffer&in) const", asFUNCTION(VariantEqualsBuffer), asCALL_CDECL_OBJLAST);
-    
+
     // Register VectorBuffer compression functions
     engine->RegisterGlobalFunction("VectorBuffer CompressVectorBuffer(VectorBuffer&in)", asFUNCTION(CompressVectorBuffer), asCALL_CDECL);
     engine->RegisterGlobalFunction("VectorBuffer DecompressVectorBuffer(VectorBuffer&in)", asFUNCTION(DecompressVectorBuffer), asCALL_CDECL);

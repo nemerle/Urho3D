@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/Graphics.h"
 #include "../Math/Matrix3x4.h"
 #include "../Graphics/ShaderVariation.h"
@@ -32,13 +31,7 @@
 namespace Urho3D
 {
 
-#ifdef URHO3D_OPENGL
-static const float posAdjust = 0.0f;
-#else
-static const float posAdjust = 0.5f;
-#endif
-
-static const Vector3 posAdjustVec(posAdjust, posAdjust, 0.0f);
+Vector3 UIBatch::posAdjust(0.0f, 0.0f, 0.0f);
 
 UIBatch::UIBatch() :
     element_(nullptr),
@@ -113,9 +106,9 @@ void UIBatch::AddQuad(int x, int y, int width, int height, int texOffsetX, int t
     
     const IntVector2& screenPos = element_->GetScreenPosition();
     
-    float left = (float)(x + screenPos.x_) - posAdjust;
+    float left = (float)(x + screenPos.x_) - posAdjust.x_;
     float right = left + (float)width;
-    float top = (float)(y + screenPos.y_) - posAdjust;
+    float top = (float)(y + screenPos.y_) - posAdjust.x_;
     float bottom = top + (float)height;
     
     float leftUV = texOffsetX * invTextureSize_.x_;
@@ -179,10 +172,10 @@ void UIBatch::AddQuad(const Matrix3x4& transform, int x, int y, int width, int h
         bottomRightColor = GetInterpolatedColor(x + width, y + height);
     }
     
-    Vector3 v1 = (transform * Vector3((float)x, (float)y, 0.0f)) - posAdjustVec;
-    Vector3 v2 = (transform * Vector3((float)x + (float)width, (float)y, 0.0f)) - posAdjustVec;
-    Vector3 v3 = (transform * Vector3((float)x, (float)y + (float)height, 0.0f)) - posAdjustVec;
-    Vector3 v4 = (transform * Vector3((float)x + (float)width, (float)y + (float)height, 0.0f)) - posAdjustVec;
+    Vector3 v1 = (transform * Vector3((float)x, (float)y, 0.0f)) - posAdjust;
+    Vector3 v2 = (transform * Vector3((float)x + (float)width, (float)y, 0.0f)) - posAdjust;
+    Vector3 v3 = (transform * Vector3((float)x, (float)y + (float)height, 0.0f)) - posAdjust;
+    Vector3 v4 = (transform * Vector3((float)x + (float)width, (float)y + (float)height, 0.0f)) - posAdjust;
     
     float leftUV = ((float)texOffsetX) * invTextureSize_.x_;
     float topUV = ((float)texOffsetY) * invTextureSize_.y_;

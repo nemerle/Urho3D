@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Urho3D/Network/Controls.h>
+
+#include <Urho3D/Input/Controls.h>
 #include <Urho3D/Graphics/Graphics.h>
 #include <Urho3D/Input/Input.h>
 #include <Urho3D/Graphics/Renderer.h>

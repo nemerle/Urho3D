@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -136,7 +136,7 @@ void AnimatedModel::ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQu
 {
     // If no bones or no bone-level testing, use the StaticModel test
     RayQueryLevel level = query.level_;
-    if (level < RAY_AABB || !skeleton_.GetNumBones())
+    if (level < RAY_TRIANGLE || !skeleton_.GetNumBones())
     {
         StaticModel::ProcessRayQuery(query, results);
         return;
@@ -212,7 +212,7 @@ void AnimatedModel::Update(const FrameInfo& frame)
         // If distance is greater than draw distance, no need to update at all
         if (drawDistance_ > 0.0f && distance > drawDistance_)
             return;
-        float scale = GetWorldBoundingBox().Size().DotProduct(DOT_SCALE);
+        float scale = GetWorldBoundingBox().size().DotProduct(DOT_SCALE);
         animationLodDistance_ = frame.camera_->GetLodDistance(distance, scale, lodBias_);
     }
 
@@ -230,18 +230,18 @@ void AnimatedModel::UpdateBatches(const FrameInfo& frame)
 
     // Note: per-geometry distances do not take skinning into account. Especially in case of a ragdoll they may be
     // much off base if the node's own transform is not updated
-    if (batches_.size() > 1)
+    if (batches_.size() == 1)
+        batches_[0].distance_ = distance_;
+    else
     {
         for (unsigned i = 0; i < batches_.size(); ++i)
             batches_[i].distance_ = frame.camera_->GetDistance(worldTransform * geometryData_[i].center_);
     }
-    else if (batches_.size() == 1)
-        batches_[0].distance_ = distance_;
 
     // Use a transformed version of the model's bounding box instead of world bounding box for LOD scale
     // determination so that animation does not change the scale
     BoundingBox transformedBoundingBox = boundingBox_.Transformed(worldTransform);
-    float scale = transformedBoundingBox.Size().DotProduct(DOT_SCALE);
+    float scale = transformedBoundingBox.size().DotProduct(DOT_SCALE);
     float newLodDistance = frame.camera_->GetLodDistance(distance_, scale, lodBias_);
 
     // If model is rendered from several views, use the minimum LOD distance for animation LOD
@@ -689,7 +689,7 @@ void AnimatedModel::SetSkeleton(const Skeleton& skeleton, bool createBones)
         Vector<Bone>& bones = skeleton_.GetModifiableBones();
         for (Bone &bone : bones)
         {
-            if (bone.collisionMask_ & BONECOLLISION_BOX && bone.boundingBox_.Size().Length() < M_EPSILON)
+            if (bone.collisionMask_ & BONECOLLISION_BOX && bone.boundingBox_.size().Length() < M_EPSILON)
                 bone.collisionMask_ &= ~BONECOLLISION_BOX;
             if (bone.collisionMask_ & BONECOLLISION_SPHERE && bone.radius_ < M_EPSILON)
                 bone.collisionMask_ &= ~BONECOLLISION_SPHERE;
@@ -846,7 +846,7 @@ VariantVector AnimatedModel::GetAnimationStatesAttr() const
 
 const PODVector<unsigned char>& AnimatedModel::GetMorphsAttr() const
 {
-    attrBuffer_.Clear();
+    attrBuffer_.clear();
     for (const ModelMorph & morph : morphs_)
         attrBuffer_.WriteUByte((unsigned char)(morph.weight_ * 255.0f));
 

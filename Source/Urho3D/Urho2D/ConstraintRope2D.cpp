@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Urho2D/ConstraintRope2D.h"
 #include "../Core/Context.h"
 #include "../Urho2D/PhysicsUtils2D.h"
@@ -47,6 +46,7 @@ void ConstraintRope2D::RegisterObject(Context* context)
 {
     context->RegisterFactory<ConstraintRope2D>();
     
+    ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Owner Body Anchor", GetOwnerBodyAnchor, SetOwnerBodyAnchor, Vector2, Vector2::ZERO, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Other Body Anchor", GetOtherBodyAnchor, SetOtherBodyAnchor, Vector2, Vector2::ZERO, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Max Length", GetMaxLength, SetMaxLength, float, 0.0f, AM_DEFAULT);

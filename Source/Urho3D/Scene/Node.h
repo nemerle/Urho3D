@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -68,24 +68,24 @@ public:
     static void RegisterObject(Context* context);
 
     /// Load from binary data. Return true if successful.
-    virtual bool Load(Deserializer& source, bool setInstanceDefault = false);
+    virtual bool Load(Deserializer& source, bool setInstanceDefault = false) override;
     /// Load from XML data. Return true if successful.
-    virtual bool LoadXML(const XMLElement& source, bool setInstanceDefault = false);
+    virtual bool LoadXML(const XMLElement& source, bool setInstanceDefault = false) override;
     /// Save as binary data. Return true if successful.
-    virtual bool Save(Serializer& dest) const;
+    virtual bool Save(Serializer& dest) const override;
     /// Save as XML data. Return true if successful.
-    virtual bool SaveXML(XMLElement& dest) const;
+    virtual bool SaveXML(XMLElement& dest) const override;
     /// Apply attribute changes that can not be applied immediately recursively to child nodes and components.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// Return whether should save default-valued attributes into XML. Always save node transforms for readability, even if identity.
-    virtual bool SaveDefaultAttributes() const { return true; }
+    virtual bool SaveDefaultAttributes() const override { return true; }
     /// Mark for attribute check on the next network update.
-    virtual void MarkNetworkUpdate();
+    virtual void MarkNetworkUpdate() override;
     /// Add a replication state that is tracking this node.
     virtual void AddReplicationState(NodeReplicationState* state);
 
     /// Save to an XML file. Return true if successful.
-    bool SaveXML(Serializer& dest) const;
+    bool SaveXML(Serializer& dest, const String& indentation = "\t") const;
     /// Set name of the scene node. Names are not required to be unique.
     void SetName(const String& name);
     /// Set position in parent space. If the scene node is on the root level (is child of the scene itself), this is same as world space.
@@ -389,7 +389,7 @@ public:
     /// Return number of components.
     unsigned GetNumComponents() const { return components_.size(); }
     /// Return number of non-local components.
-    size_t GetNumNetworkComponents() const;
+    unsigned GetNumNetworkComponents() const;
     /// Return all components.
     const Vector<SharedPtr<Component> >& GetComponents() const { return components_; }
     /// Return all components of type. Optionally recursive.
@@ -466,11 +466,11 @@ public:
 
 protected:
     /// Handle attribute animation added.
-    virtual void OnAttributeAnimationAdded();
+    virtual void OnAttributeAnimationAdded() override;
     /// Handle attribute animation removed.
-    virtual void OnAttributeAnimationRemoved();
+    virtual void OnAttributeAnimationRemoved() override;
     /// Set object attribute animation internal.
-    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed);
+    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) override;
 
     /// Network update queued flag.
     bool networkUpdate_;
@@ -549,9 +549,9 @@ template <class T> bool Node::HasComponent() const { return HasComponent(T::GetT
 
 template <class T> T* Node::GetDerivedComponent() const
 {
-    for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
+    for (const SharedPtr<Component> & elem : components_)
     {
-        T* component = dynamic_cast<T*>(i->Get());
+        T* component = dynamic_cast<T*>(elem.Get());
         if (component)
             return component;
     }
@@ -563,9 +563,9 @@ template <class T> void Node::GetDerivedComponents(PODVector<T*>& dest) const
 {
     dest.clear();
 
-    for (Vector<SharedPtr<Component> >::const_iterator i = components_.begin(); i != components_.end(); ++i)
+    for (const SharedPtr<Component> & elem : components_)
     {
-        T* component = dynamic_cast<T*>(i->Get());
+        T* component = dynamic_cast<T*>(elem.Get());
         if (component)
             dest.push_back(component);
     }

@@ -16,6 +16,9 @@
 /** @file DebugMemoryLeakCheck.h
 	@brief Provides overloads of operators new and delete for tracking memory leaks. */
 
+// Modified by Lasse Oorni for Urho3D
+
+// Urho3D: only include on MSVC
 #if defined(_MSC_VER) && defined(_DEBUG) && defined(KNET_MEMORY_LEAK_CHECK)
 
 #include <new>

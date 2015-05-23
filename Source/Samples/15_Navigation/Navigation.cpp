@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Graphics/AnimatedModel.h>
 #include <Urho3D/Graphics/Camera.h>
@@ -342,7 +344,7 @@ Node* Navigation::CreateMushroom(const Vector3& pos)
 
 bool Navigation::Raycast(float maxDistance, Vector3& hitPos, Drawable*& hitDrawable)
 {
-    hitDrawable = 0;
+    hitDrawable = nullptr;
 
     UI* ui = GetSubsystem<UI>();
     IntVector2 pos = ui->GetCursorPosition();
@@ -370,22 +372,23 @@ bool Navigation::Raycast(float maxDistance, Vector3& hitPos, Drawable*& hitDrawa
 
 void Navigation::FollowPath(float timeStep)
 {
-    if (currentPath_.empty())
-        return;
-    Vector3 nextWaypoint = currentPath_[0]; // NB: currentPath[0] is the next waypoint in order
+    if (currentPath_.size())
+    {
+        Vector3 nextWaypoint = currentPath_[0]; // NB: currentPath[0] is the next waypoint in order
 
-    // Rotate Jack toward next waypoint to reach and move. Check for not overshooting the target
-    float move = 5.0f * timeStep;
-    float distance = (jackNode_->GetPosition() - nextWaypoint).Length();
-    if (move > distance)
-        move = distance;
+        // Rotate Jack toward next waypoint to reach and move. Check for not overshooting the target
+        float move = 5.0f * timeStep;
+        float distance = (jackNode_->GetPosition() - nextWaypoint).Length();
+        if (move > distance)
+            move = distance;
 
-    jackNode_->LookAt(nextWaypoint, Vector3::UP);
-    jackNode_->Translate(Vector3::FORWARD * move);
+        jackNode_->LookAt(nextWaypoint, Vector3::UP);
+        jackNode_->Translate(Vector3::FORWARD * move);
 
-    // Remove waypoint if reached it
+        // Remove waypoint if reached it
         if (distance < 0.1f)
-        currentPath_.erase(currentPath_.begin());
+            currentPath_.pop_front();
+    }
 }
 
 void Navigation::HandleUpdate(StringHash eventType, VariantMap& eventData)

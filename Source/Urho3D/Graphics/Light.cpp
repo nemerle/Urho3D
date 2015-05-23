@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Context.h"
 #include "../Graphics/DebugRenderer.h"
@@ -70,8 +69,8 @@ void BiasParameters::Validate()
 
 void CascadeParameters::Validate()
 {
-    for (auto & elem : splits_)
-        elem = Max(elem, 0.0f);
+    for (unsigned i = 0; i < MAX_CASCADE_SPLITS; ++i)
+        splits_[i] = Max(splits_[i], 0.0f);
     fadeStart_ = Clamp(fadeStart_, M_EPSILON, 1.0f);
 }
 
@@ -397,39 +396,7 @@ int Light::GetNumShadowSplits() const
         }
     }
 
-    ret = Min(ret, MAX_CASCADE_SPLITS);
-    // Shader Model 2 can only support 3 splits max. due to pixel shader instruction count limits
-    if (ret == 4)
-    {
-        Graphics* graphics = GetSubsystem<Graphics>();
-        if (graphics && !graphics->GetSM3Support())
-            --ret;
-    }
-
-    return ret;
-}
-
-Matrix3x4 Light::GetDirLightTransform(Camera* camera, bool getNearQuad)
-{
-    if (!camera)
-        return Matrix3x4::IDENTITY;
-
-    Vector3 nearVector, farVector;
-    camera->GetFrustumSize(nearVector, farVector);
-    float nearClip = camera->GetNearClip();
-    float farClip = camera->GetFarClip();
-
-    float distance = getNearQuad ? nearClip : farClip;
-    if (!camera->IsOrthographic())
-        farVector *= (distance / farClip);
-    else
-        farVector.z_ *= (distance / farClip);
-
-    // Set an epsilon from clip planes due to possible inaccuracy
-    /// \todo Rather set an identity projection matrix
-    farVector.z_ = Clamp(farVector.z_, (1.0f + M_LARGE_EPSILON) * nearClip, (1.0f - M_LARGE_EPSILON) * farClip);
-
-    return  Matrix3x4(Vector3(0.0f, 0.0f, farVector.z_), Quaternion::IDENTITY, Vector3(farVector.x_, farVector.y_, 1.0f));
+    return Min(ret, MAX_CASCADE_SPLITS);
 }
 
 const Matrix3x4& Light::GetVolumeTransform(Camera* camera)
@@ -440,8 +407,16 @@ const Matrix3x4& Light::GetVolumeTransform(Camera* camera)
     switch (lightType_)
     {
     case LIGHT_DIRECTIONAL:
-        volumeTransform_ = GetDirLightTransform(camera);
-        break;
+        {
+            Matrix3x4 quadTransform;
+            Vector3 near, far;
+            // Position the directional light quad in halfway between far & near planes to prevent depth clipping
+            camera->GetFrustumSize(near, far);
+            quadTransform.SetTranslation(Vector3(0.0f, 0.0f, (camera->GetNearClip() + camera->GetFarClip()) * 0.5f));
+            quadTransform.SetScale(Vector3(far.x_, far.y_, 1.0f)); // Will be oversized, but doesn't matter (gets frustum clipped)
+            volumeTransform_ = camera->GetEffectiveWorldTransform() * quadTransform;
+            break;
+        }
 
     case LIGHT_SPOT:
         {
@@ -572,7 +547,7 @@ void Light::SetIntensitySortValue(const BoundingBox& box)
             float distance = lightRay.HitDistance(box);
             float normDistance = distance / range_;
             float att = Max(1.0f - normDistance * normDistance, M_EPSILON);
-            sortValue_ = 1.0f / (Max(color_.SumRGB(), 0.0f) * att + M_EPSILON);
+            sortValue_ = 1.0f / GetIntensityDivisor(att);
         }
         break;
     }

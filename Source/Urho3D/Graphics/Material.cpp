@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../Core/CoreEvents.h"
 #include "../IO/FileSystem.h"
 #include "../Graphics/Graphics.h"
 #include "../IO/Log.h"
+#include "../IO/VectorBuffer.h"
 #include "../Graphics/Material.h"
 #include "../Math/Matrix3x4.h"
 #include "../Core/Profiler.h"
@@ -35,6 +35,7 @@
 #include "../Core/StringUtils.h"
 #include "../Graphics/Technique.h"
 #include "../Graphics/Texture2D.h"
+#include "../Graphics/Texture3D.h"
 #include "../Graphics/TextureCube.h"
 #include "../Scene/ValueAnimation.h"
 #include "../Resource/XMLFile.h"
@@ -53,6 +54,10 @@ static const char* textureUnitNames[] =
     "specular",
     "emissive",
     "environment",
+#ifdef DESKTOP_GRAPHICS
+    "volume",
+    "custom1",
+    "custom2",
     "lightramp",
     "lightshape",
     "shadowmap",
@@ -60,9 +65,14 @@ static const char* textureUnitNames[] =
     "indirection",
     "depth",
     "light",
-    "volume",
     "zone",
     nullptr
+#else
+    "lightramp",
+    "lightshape",
+    "shadowmap",
+    0
+#endif
 };
 
 static const char* cullModeNames[] =
@@ -73,6 +83,13 @@ static const char* cullModeNames[] =
     nullptr
 };
 
+static const char* fillModeNames[] =
+{
+    "solid",
+    "wireframe",
+    "point",
+    nullptr
+};
 TextureUnit ParseTextureUnitName(String name)
 {
     name = name.toLower().trimmed();
@@ -153,10 +170,11 @@ void ShaderParameterAnimationInfo::ApplyValue(const Variant& newValue)
 Material::Material(Context* context) :
     Resource(context),
     auxViewFrameNumber_(0),
-    numUsedTextureUnits_(0),
+    shaderParameterHash_(0),
     occlusion_(true),
     specular_(false),
-    subscribed_(false)
+    subscribed_(false),
+    batchedParameterUpdate_(false)
 {
     ResetToDefaults();
 }
@@ -200,7 +218,17 @@ bool Material::BeginLoad(Deserializer& source)
                 // Detect cube maps by file extension: they are defined by an XML file
                 /// \todo Differentiate with 3D textures by actually reading the XML content
                 if (GetExtension(name) == ".xml")
+                {
+                    #ifdef DESKTOP_GRAPHICS
+                    TextureUnit unit = TU_DIFFUSE;
+                    if (textureElem.HasAttribute("unit"))
+                        unit = ParseTextureUnitName(textureElem.GetAttribute("unit"));
+                    if (unit == TU_VOLUMEMAP)
+                        cache->BackgroundLoadResource<Texture3D>(name, true, this);
+                    else
+                    #endif
                     cache->BackgroundLoadResource<TextureCube>(name, true, this);
+                }
                 else
                     cache->BackgroundLoadResource<Texture2D>(name, true, this);
                 textureElem = textureElem.GetNext("texture");
@@ -292,13 +320,21 @@ bool Material::Load(const XMLElement& source)
             // Detect cube maps by file extension: they are defined by an XML file
             /// \todo Differentiate with 3D textures by actually reading the XML content
             if (GetExtension(name) == ".xml")
+            {
+                #ifdef DESKTOP_GRAPHICS
+                if (unit == TU_VOLUMEMAP)
+                    SetTexture(unit, cache->GetResource<Texture3D>(name));
+                else
+                #endif
                 SetTexture(unit, cache->GetResource<TextureCube>(name));
+            }
             else
                 SetTexture(unit, cache->GetResource<Texture2D>(name));
         }
         textureElem = textureElem.GetNext("texture");
     }
 
+    batchedParameterUpdate_ = true;
     XMLElement parameterElem = source.GetChild("parameter");
     while (parameterElem)
     {
@@ -306,6 +342,7 @@ bool Material::Load(const XMLElement& source)
         SetShaderParameter(name, ParseShaderParameterValue(parameterElem.GetAttribute("value")));
         parameterElem = parameterElem.GetNext("parameter");
     }
+    batchedParameterUpdate_ = false;
 
     XMLElement parameterAnimationElem = source.GetChild("parameteranimation");
     while (parameterAnimationElem)
@@ -343,10 +380,14 @@ bool Material::Load(const XMLElement& source)
     if (shadowCullElem)
         SetShadowCullMode((CullMode)GetStringListIndex(shadowCullElem.GetAttribute("value").CString(), cullModeNames, CULL_CCW));
 
+    XMLElement fillElem = source.GetChild("fill");
+    if (fillElem)
+        SetFillMode((FillMode)GetStringListIndex(fillElem.GetAttribute("value").CString(), fillModeNames, FILL_SOLID));
     XMLElement depthBiasElem = source.GetChild("depthbias");
     if (depthBiasElem)
         SetDepthBias(BiasParameters(depthBiasElem.GetFloat("constant"), depthBiasElem.GetFloat("slopescaled")));
 
+    RefreshShaderParameterHash();
     RefreshMemoryUse();
     CheckOcclusion();
     return true;
@@ -380,7 +421,7 @@ bool Material::Save(XMLElement& dest) const
         if (texture)
         {
             XMLElement textureElem = dest.CreateChild("texture");
-            textureElem.SetString("unit", j < MAX_NAMED_TEXTURE_UNITS ? textureUnitNames[j] : String(j).CString());
+            textureElem.SetString("unit", textureUnitNames[j]);
             textureElem.SetString("name", texture->GetName());
         }
     }
@@ -412,6 +453,9 @@ bool Material::Save(XMLElement& dest) const
 
     XMLElement shadowCullElem = dest.CreateChild("shadowcull");
     shadowCullElem.SetString("value", cullModeNames[shadowCullMode_]);
+    // Write fill mode
+    XMLElement fillElem = dest.CreateChild("fill");
+    fillElem.SetString("value", fillModeNames[fillMode_]);
 
     // Write depth bias
     XMLElement depthBiasElem = dest.CreateChild("depthbias");
@@ -462,7 +506,11 @@ void Material::SetShaderParameter(const String& name, const Variant& value)
         }
     }
 
+    if (!batchedParameterUpdate_)
+    {
+        RefreshShaderParameterHash();
     RefreshMemoryUse();
+}
 }
 
 void Material::SetShaderParameterAnimation(const String& name, ValueAnimation* animation, WrapMode wrapMode, float speed)
@@ -517,16 +565,11 @@ void Material::SetTexture(TextureUnit unit, Texture* texture)
 {
     if (unit < MAX_TEXTURE_UNITS)
     {
+        if (texture)
         textures_[unit] = texture;
 
-        // Update the number of used texture units
-        if (texture && (unsigned)unit >= numUsedTextureUnits_)
-            numUsedTextureUnits_ = unit + 1;
-        else if (!texture && unit == numUsedTextureUnits_ - 1)
-        {
-            while (numUsedTextureUnits_ && !textures_[numUsedTextureUnits_ - 1])
-                --numUsedTextureUnits_;
-        }
+        else
+            textures_.erase(unit);
     }
 }
 
@@ -573,6 +616,11 @@ void Material::SetShadowCullMode(CullMode mode)
     shadowCullMode_ = mode;
 }
 
+void Material::SetFillMode(FillMode mode)
+{
+    fillMode_ = mode;
+}
+
 void Material::SetDepthBias(const BiasParameters& parameters)
 {
     depthBias_ = parameters;
@@ -596,6 +644,7 @@ void Material::RemoveShaderParameter(const String& name)
     if (nameHash == PSP_MATSPECCOLOR)
         specular_ = false;
 
+    RefreshShaderParameterHash();
     RefreshMemoryUse();
 }
 
@@ -616,13 +665,12 @@ SharedPtr<Material> Material::Clone(const String& cloneName) const
     ret->SetName(cloneName);
     ret->techniques_ = techniques_;
     ret->shaderParameters_ = shaderParameters_;
-    for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        ret->textures_[i] = textures_[i];
+    ret->textures_ = textures_;
     ret->occlusion_ = occlusion_;
     ret->specular_ = specular_;
     ret->cullMode_ = cullMode_;
     ret->shadowCullMode_ = shadowCullMode_;
-    ret->numUsedTextureUnits_ = numUsedTextureUnits_;
+    ret->fillMode_ = fillMode_;
     ret->RefreshMemoryUse();
 
     return ret;
@@ -648,15 +696,16 @@ Technique* Material::GetTechnique(unsigned index) const
     return index < techniques_.size() ? techniques_[index].technique_ : (Technique*)nullptr;
 }
 
-Pass* Material::GetPass(unsigned index, StringHash passType) const
+Pass* Material::GetPass(unsigned index, const String& passName) const
 {
     Technique* tech = index < techniques_.size() ? techniques_[index].technique_ : (Technique*)nullptr;
-    return tech ? tech->GetPass(passType) : nullptr;
+    return tech ? tech->GetPass(passName) : nullptr;
 }
 
 Texture* Material::GetTexture(TextureUnit unit) const
 {
-    return unit < MAX_TEXTURE_UNITS ? textures_[unit] : (Texture*)0;
+    HashMap<TextureUnit, SharedPtr<Texture> >::const_iterator i = textures_.find(unit);
+    return i != textures_.end() ? MAP_VALUE(i).Get() : (Texture*)nullptr;
 }
 
 const Variant& Material::GetShaderParameter(const String& name) const
@@ -711,7 +760,7 @@ void Material::CheckOcclusion()
         Technique* tech = techniques_[i].technique_;
         if (tech)
         {
-            Pass* pass = tech->GetPass(PASS_BASE);
+            Pass* pass = tech->GetPass("base");
             if (pass && pass->GetDepthWrite() && !pass->GetAlphaMask())
                 occlusion_ = true;
         }
@@ -727,9 +776,9 @@ void Material::ResetToDefaults()
     SetNumTechniques(1);
     SetTechnique(0, GetSubsystem<ResourceCache>()->GetResource<Technique>("Techniques/NoTexture.xml"));
 
-    for (auto & tex : textures_)
-        tex = nullptr;
+    textures_.clear();
 
+    batchedParameterUpdate_ = true;
     shaderParameters_.clear();
 
     SetShaderParameter("UOffset", Vector4(1.0f, 0.0f, 0.0f, 0.0f));
@@ -738,14 +787,34 @@ void Material::ResetToDefaults()
     SetShaderParameter("MatEmissiveColor", Vector3::ZERO);
     SetShaderParameter("MatEnvMapColor", Vector3::ONE);
     SetShaderParameter("MatSpecColor", Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+    batchedParameterUpdate_ = false;
 
     cullMode_ = CULL_CCW;
     shadowCullMode_ = CULL_CCW;
+    fillMode_ = FILL_SOLID;
     depthBias_ = BiasParameters(0.0f, 0.0f);
 
+    RefreshShaderParameterHash();
     RefreshMemoryUse();
 }
 
+void Material::RefreshShaderParameterHash()
+{
+    VectorBuffer temp;
+    for (HashMap<StringHash, MaterialShaderParameter>::const_iterator i = shaderParameters_.begin();
+         i != shaderParameters_.end();
+         ++i)
+    {
+        temp.WriteStringHash(MAP_KEY(i));
+        temp.WriteVariant(MAP_VALUE(i).value_);
+    }
+
+    shaderParameterHash_ = 0;
+    const unsigned char* data = temp.GetData();
+    unsigned dataSize = temp.GetSize();
+    for (unsigned i = 0; i < dataSize; ++i)
+        shaderParameterHash_ = SDBMHash(shaderParameterHash_, data[i]);
+}
 void Material::RefreshMemoryUse()
 {
     unsigned memoryUse = sizeof(Material);
@@ -799,7 +868,7 @@ void Material::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& 
 
     // Remove finished animations
     for (unsigned i = 0; i < finishedNames.size(); ++i)
-        SetShaderParameterAnimation(finishedNames[i], 0);
+        SetShaderParameterAnimation(finishedNames[i], nullptr);
 }
 
 }

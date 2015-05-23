@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Graphics/AnimatedModel.h>
 #include <Urho3D/Graphics/Animation.h>
@@ -110,6 +112,7 @@ bool noHierarchy_ = false;
 bool noMaterials_ = false;
 bool noTextures_ = false;
 bool noMaterialDiffuseColor_ = false;
+bool noEmptyNodes_ = false;
 bool saveMaterialList_ = false;
 bool includeNonSkinningBones_ = false;
 bool verboseLog_ = false;
@@ -118,6 +121,7 @@ bool noOverwriteMaterial_ = false;
 bool noOverwriteTexture_ = false;
 bool noOverwriteNewerTexture_ = false;
 bool checkUniqueModel_ = true;
+unsigned maxBones_ = 64;
 Vector<String> nonSkinningBoneIncludes_;
 Vector<String> nonSkinningBoneExcludes_;
 
@@ -141,6 +145,7 @@ void BuildAndSaveAnimations(OutModel* model = nullptr);
 
 void ExportScene(const String& outName, bool asPrefab);
 void CollectSceneModels(OutScene& scene, aiNode* node);
+void CreateHierarchy(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping);
 Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping);
 void BuildAndSaveScene(OutScene& scene, bool asPrefab);
 
@@ -225,6 +230,8 @@ void Run(const Vector<String>& arguments)
             "-ns         Do not create subdirectories for resources\n"
             "-nz         Do not create a zone and a directional light (scene mode only)\n"
             "-nf         Do not fix infacing normals\n"
+            "-ne         Do not save empty nodes (scene mode only)\n"
+            "-mb <x>     Maximum number of bones per submesh. Default 64\n"
             "-p <path>   Set path for scene resources. Default is output file path\n"
             "-r <name>   Use the named scene node as root node\n"
             "-f <freq>   Animation tick frequency to use if unspecified. Default 4800\n"
@@ -311,6 +318,9 @@ void Run(const Vector<String>& arguments)
                     noHierarchy_ = true;
                     break;
 
+                case 'e':
+                    noEmptyNodes_ = true;
+                    break;
                 case 's':
                     useSubdirs_ = false;
                     break;
@@ -327,6 +337,13 @@ void Run(const Vector<String>& arguments)
                     flags &= ~aiProcess_FixInfacingNormals;
                     break;
                 }
+            }
+            else if (argument == "mb" && !value.isEmpty())
+            {
+                maxBones_ = ToUInt(value);
+                if (maxBones_ < 1)
+                    maxBones_ = 1;
+                ++i;
             }
             else if (argument == "p" && !value.isEmpty())
             {
@@ -349,12 +366,12 @@ void Run(const Vector<String>& arguments)
                 if (value.length() && (value[0] != '-' || value.length() > 3))
                 {
                     Vector<String> filters = value.split(';');
-                    for (unsigned i = 0; i < filters.size(); ++i)
+                    for (auto & filter : filters)
                     {
-                        if (filters[i][0] == '-')
-                            nonSkinningBoneExcludes_.push_back(filters[i].Substring(1));
+                        if (filter[0] == '-')
+                            nonSkinningBoneExcludes_.push_back(filter.Substring(1));
                         else
-                            nonSkinningBoneIncludes_.push_back(filters[i]);
+                            nonSkinningBoneIncludes_.push_back(filter);
                     }
                 }
             }
@@ -407,7 +424,7 @@ void Run(const Vector<String>& arguments)
         PrintLine("Reading file " + inFile);
         scene_ = aiImportFile(GetNativePath(inFile).CString(), flags);
         if (!scene_)
-            ErrorExit("Could not open or parse input file " + inFile);
+            ErrorExit("Could not open or parse input file " + inFile + ": " + String(aiGetErrorString()));
 
         if (verboseLog_)
             Assimp::DefaultLogger::kill();
@@ -895,7 +912,7 @@ void BuildAndSaveModel(OutModel& model)
         outModel->SetNumGeometryLodLevels(destGeomIndex, 1);
         outModel->SetGeometry(destGeomIndex, 0, geom);
         outModel->SetGeometryCenter(destGeomIndex, center);
-        if (model.bones_.size() > MAX_SKIN_MATRICES)
+        if (model.bones_.size() > maxBones_)
             allBoneMappings.push_back(boneMappings);
 
         startVertexOffset += mesh->mNumVertices;
@@ -956,7 +973,7 @@ void BuildAndSaveModel(OutModel& model)
         }
 
         outModel->SetSkeleton(skeleton);
-        if (model.bones_.size() > MAX_SKIN_MATRICES)
+        if (model.bones_.size() > maxBones_)
             outModel->SetGeometryBoneMappings(allBoneMappings);
     }
 
@@ -1015,7 +1032,7 @@ void BuildAndSaveAnimations(OutModel* model)
                 startTime = Min(startTime, (float)channel->mPositionKeys[0].mTime);
             if (channel->mNumRotationKeys > 0)
                 startTime = Min(startTime, (float)channel->mRotationKeys[0].mTime);
-            if (channel->mScalingKeys > nullptr)
+            if (channel->mNumScalingKeys > 0)
                 startTime = Min(startTime, (float)channel->mScalingKeys[0].mTime);
         }
         duration -= startTime;
@@ -1255,6 +1272,12 @@ void CollectSceneModels(OutScene& scene, aiNode* node)
         CollectSceneModels(scene, node->mChildren[i]);
 }
 
+void CreateHierarchy(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping)
+{
+    CreateSceneNode(scene, srcNode, nodeMapping);
+    for (unsigned i = 0; i < srcNode->mNumChildren; ++i)
+        CreateHierarchy(scene, srcNode->mChildren[i], nodeMapping);
+}
 Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping)
 {
     if (nodeMapping.contains(srcNode))
@@ -1344,8 +1367,20 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
 
     HashMap<aiNode*, Node*> nodeMapping;
     Node* outRootNode = nullptr;
-    if (asPrefab || !noHierarchy_)
+    if (asPrefab)
         outRootNode = CreateSceneNode(outScene, rootNode_, nodeMapping);
+    else
+    {
+        // If not saving as a prefab, associate the root node with the scene first to prevent unnecessary creation of a root
+        // However do not do that if the root node does not have an identity matrix, or itself contains a model
+        // (models at the Urho scene root are not preferable)
+        if (ToMatrix3x4(rootNode_->mTransformation).Equals(Matrix3x4::IDENTITY) && !scene.nodes_.contains(rootNode_))
+           nodeMapping[rootNode_] = outScene;
+    }
+
+    // If is allowed to export empty nodes, export the full Assimp node hierarchy first
+    if (!noHierarchy_ && !noEmptyNodes_)
+        CreateHierarchy(outScene, rootNode_, nodeMapping);
 
     // Create geometry nodes
     for (unsigned i = 0; i < scene.nodes_.size(); ++i)
@@ -1412,7 +1447,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
                 break;
             case aiLightSource_SPOT:
                 outLight->SetLightType(LIGHT_SPOT);
-                outLight->SetFov(light->mAngleOuterCone * M_RADTODEG);
+                outLight->SetFov(light->mAngleOuterCone * 0.5f * M_RADTODEG);
                 break;
             case aiLightSource_POINT:
                 outLight->SetLightType(LIGHT_POINT);
@@ -1862,15 +1897,16 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
     boneMappings.clear();
 
     // If model has more bones than can fit vertex shader parameters, write the per-geometry mappings
-    if (model.bones_.size() > MAX_SKIN_MATRICES)
+    if (model.bones_.size() > maxBones_)
     {
-        if (mesh->mNumBones > MAX_SKIN_MATRICES)
+        if (mesh->mNumBones > maxBones_)
         {
             ErrorExit(
-                "Geometry (submesh) has over 64 bone influences. Try splitting to more submeshes\n"
-                "that each stay at 64 bones or below."
+                "Geometry (submesh) has over " + String(maxBones_) + " bone influences. Try splitting to more submeshes\n"
+                "that each stay at " + String(maxBones_) + " bones or below."
             );
         }
+        boneMappings.resize(mesh->mNumBones);
         for (unsigned i = 0; i < mesh->mNumBones; ++i)
         {
             aiBone* bone = mesh->mBones[i];

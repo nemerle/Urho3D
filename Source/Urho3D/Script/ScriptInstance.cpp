@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Core/Context.h"
 #include "../IO/Log.h"
 #include "../IO/MemoryBuffer.h"
@@ -363,7 +362,7 @@ void ScriptInstance::SetDelayedCallsAttr(const PODVector<unsigned char>& value)
 {
     MemoryBuffer buf(value);
     delayedCalls_.resize(buf.ReadVLE());
-    for (auto & elem : delayedCalls_)
+    for (DelayedCall & elem : delayedCalls_)
     {
         elem.period_ = buf.ReadFloat();
         elem.delay_ = buf.ReadFloat();
@@ -407,7 +406,7 @@ PODVector<unsigned char> ScriptInstance::GetDelayedCallsAttr() const
 {
     VectorBuffer buf;
     buf.WriteVLE(delayedCalls_.size());
-    for (const auto & elem : delayedCalls_)
+    for (const DelayedCall & elem : delayedCalls_)
     {
         buf.WriteFloat(elem.period_);
         buf.WriteFloat(elem.delay_);

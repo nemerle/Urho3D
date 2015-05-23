@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 namespace Urho3D
 {
-
+class String;
 /// Three-dimensional vector.
 class URHO3D_API Vector3
 {
@@ -38,7 +38,7 @@ public:
         z_(0.0f)
     {
     }
-    
+
     /// Copy-construct from another vector.
     Vector3(const Vector3& vector) :
         x_(vector.x_),
@@ -46,7 +46,7 @@ public:
         z_(vector.z_)
     {
     }
-    
+
     /// Construct from a two-dimensional vector and the Z coordinate.
     Vector3(const Vector2& vector, float z) :
         x_(vector.x_),
@@ -62,7 +62,7 @@ public:
         z_(0.0f)
     {
     }
-    
+
     /// Construct from coordinates.
     Vector3(float x, float y, float z) :
         x_(x),
@@ -78,7 +78,7 @@ public:
         z_(0.0f)
     {
     }
-    
+
     /// Construct from a float array.
     Vector3(const float* data) :
         x_(data[0]),
@@ -86,7 +86,7 @@ public:
         z_(data[2])
     {
     }
-    
+
     /// Assign from another vector.
     Vector3& operator = (const Vector3& rhs)
     {
@@ -95,7 +95,7 @@ public:
         z_ = rhs.z_;
         return *this;
     }
-    
+
     /// Test for equality with another vector without epsilon.
     bool operator == (const Vector3& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_ && z_ == rhs.z_; }
     /// Test for inequality with another vector without epsilon.
@@ -114,7 +114,7 @@ public:
     Vector3 operator / (float rhs) const { return Vector3(x_ / rhs, y_ / rhs, z_ / rhs); }
     /// Divide by a vector.
     Vector3 operator / (const Vector3& rhs) const { return Vector3(x_ / rhs.x_, y_ / rhs.y_, z_ / rhs.z_); }
-    
+
     /// Add-assign a vector.
     Vector3& operator += (const Vector3& rhs)
     {
@@ -123,7 +123,7 @@ public:
         z_ += rhs.z_;
         return *this;
     }
-    
+
     /// Subtract-assign a vector.
     Vector3& operator -= (const Vector3& rhs)
     {
@@ -132,7 +132,7 @@ public:
         z_ -= rhs.z_;
         return *this;
     }
-    
+
     /// Multiply-assign a scalar.
     Vector3& operator *= (float rhs)
     {
@@ -141,7 +141,7 @@ public:
         z_ *= rhs;
         return *this;
     }
-    
+
     /// Multiply-assign a vector.
     Vector3& operator *= (const Vector3& rhs)
     {
@@ -150,7 +150,7 @@ public:
         z_ *= rhs.z_;
         return *this;
     }
-    
+
     /// Divide-assign a scalar.
     Vector3& operator /= (float rhs)
     {
@@ -160,7 +160,7 @@ public:
         z_ *= invRhs;
         return *this;
     }
-    
+
     /// Divide-assign a vector.
     Vector3& operator /= (const Vector3& rhs)
     {
@@ -169,7 +169,7 @@ public:
         z_ /= rhs.z_;
         return *this;
     }
-    
+
     /// Normalize to unit length.
     void Normalize()
     {
@@ -182,7 +182,7 @@ public:
             z_ *= invLen;
         }
     }
-    
+
     /// Return length.
     float Length() const { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); }
     /// Return squared length.
@@ -191,7 +191,7 @@ public:
     float DotProduct(const Vector3& rhs) const { return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_; }
     /// Calculate absolute dot product.
     float AbsDotProduct(const Vector3& rhs) const { return Urho3D::Abs(x_ * rhs.x_) + Urho3D::Abs(y_ * rhs.y_) + Urho3D::Abs(z_ * rhs.z_); }
-    
+
     /// Calculate cross product.
     Vector3 CrossProduct(const Vector3& rhs) const
     {
@@ -201,7 +201,7 @@ public:
             x_ * rhs.y_ - y_ * rhs.x_
         );
     }
-    
+
     /// Return absolute vector.
     Vector3 Abs() const { return Vector3(Urho3D::Abs(x_), Urho3D::Abs(y_), Urho3D::Abs(z_)); }
     /// Linear interpolation with another vector.
@@ -212,7 +212,7 @@ public:
     float Angle(const Vector3& rhs) const { return Urho3D::Acos(DotProduct(rhs) / (Length() * rhs.Length() ) ); }
     /// Return whether is NaN.
     bool IsNaN() const { return Urho3D::IsNaN(x_) || Urho3D::IsNaN(y_) || Urho3D::IsNaN(z_); }
-    
+
     /// Return normalized to unit length.
     Vector3 Normalized() const
     {
@@ -225,19 +225,19 @@ public:
         else
             return *this;
     }
-    
+
     /// Return float data.
     const float* Data() const { return &x_; }
     /// Return as string.
     String ToString() const;
-    
+
     /// X coordinate.
     float x_;
     /// Y coordinate.
     float y_;
     /// Z coordinate.
     float z_;
-    
+
     /// Zero vector.
     static const Vector3 ZERO;
     /// (-1,0,0) vector.

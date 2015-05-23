@@ -99,6 +99,7 @@ bool ResetScene()
     StopSceneUpdate();
 
     UpdateWindowTitle();
+    DisableInspectorLock();
     UpdateHierarchyItem(editorScene, true);
     ClearEditActions();
 
@@ -116,6 +117,8 @@ void SetResourcePath(String newPath, bool usePreferredDir = true, bool additive 
 {
     if (newPath.empty)
         return;
+    if (!IsAbsolutePath(newPath))
+        newPath = fileSystem.currentDir + newPath;
 
     if (usePreferredDir)
         newPath = AddTrailingSlash(cache.GetPreferredResourceDir(newPath));
@@ -137,6 +140,17 @@ void SetResourcePath(String newPath, bool usePreferredDir = true, bool additive 
 
         if (!sceneResourcePath.empty && !isDefaultResourcePath)
             cache.RemoveResourceDir(sceneResourcePath);
+    }
+    else
+    {
+        // If additive (path of a loaded prefab) check that the new path isn't already part of an old path
+        Array<String>@ resourceDirs = cache.resourceDirs;
+
+        for (uint i = 0; i < resourceDirs.length; ++i)
+        {
+            if (newPath.StartsWith(resourceDirs[i], false))
+                return;
+        }
     }
 
     // Add resource path as first priority so that it takes precedence over the default data paths
@@ -189,7 +203,7 @@ bool LoadScene(const String&in fileName)
 
     // Add the scene's resource path in case it's necessary
     String newScenePath = GetPath(fileName);
-    if (!rememberResourcePath || !sceneResourcePath.startsWith(newScenePath, false))
+    if (!rememberResourcePath || !sceneResourcePath.StartsWith(newScenePath, false))
         SetResourcePath(newScenePath);
 
     suppressSceneChanges = true;
@@ -211,6 +225,7 @@ bool LoadScene(const String&in fileName)
     editorScene.updateEnabled = false;
 
     UpdateWindowTitle();
+    DisableInspectorLock();
     UpdateHierarchyItem(editorScene, true);
     ClearEditActions();
 
@@ -638,7 +653,7 @@ bool ScenePaste(bool pasteRoot = false, bool duplication = false)
     {
         XMLElement rootElem = sceneCopyBuffer[i].root;
         String mode = rootElem.name;
-        if (mode == "component")
+        if (mode == "component" && editNode !is null)
         {
             // If this is the root node, do not allow to create duplicate scene-global components
             if (editNode is editorScene && CheckForExistingGlobalComponent(editNode, rootElem.GetAttribute("type")))
@@ -670,7 +685,7 @@ bool ScenePaste(bool pasteRoot = false, bool duplication = false)
                 // If we are duplicating, paste into the selected nodes parent
                 if (duplication)
                 {
-                    if (editNode.parent !is null)
+                    if (editNode !is null && editNode.parent !is null)
                         newNode = editNode.parent.CreateChild("", rootElem.GetBool("local") ? LOCAL : REPLICATED);
                     else
                         newNode = editorScene.CreateChild("", rootElem.GetBool("local") ? LOCAL : REPLICATED);
@@ -983,8 +998,12 @@ bool SceneRebuildNavigation()
     Array<Component@>@ navMeshes = editorScene.GetComponents("NavigationMesh", true);
     if (navMeshes.empty)
     {
-        MessageBox("No NavigationMesh components in the scene, nothing to rebuild.");
-        return false;
+        @navMeshes = editorScene.GetComponents("DynamicNavigationMesh", true);
+        if (navMeshes.empty)
+        {
+            MessageBox("No NavigationMesh components in the scene, nothing to rebuild.");
+            return false;
+        }
     }
 
     bool success = true;
@@ -996,6 +1015,34 @@ bool SceneRebuildNavigation()
     }
 
     return success;
+}
+
+bool SceneAddChildrenStaticModelGroup()
+{
+    StaticModelGroup@ smg = cast<StaticModelGroup>(editComponents.length > 0 ? editComponents[0] : null);
+    if (smg is null && editNode !is null)
+        smg = editNode.GetComponent("StaticModelGroup");
+
+    if (smg is null)
+    {
+        MessageBox("Must have a StaticModelGroup component selected.");
+        return false;
+    }
+
+    uint attrIndex = GetAttributeIndex(smg, "Instance Nodes");
+    Variant oldValue = smg.attributes[attrIndex];
+
+    Array<Node@> children = smg.node.GetChildren(true);
+    for (uint i = 0; i < children.length; ++i)
+        smg.AddInstanceNode(children[i]);
+
+    EditAttributeAction action;
+    action.Define(smg, attrIndex, oldValue);;
+    SaveEditAction(action);
+    SetSceneModified();
+    FocusComponent(smg);
+    
+    return true;
 }
 
 void AssignMaterial(StaticModel@ model, String materialPath)
@@ -1070,12 +1117,15 @@ void CreateModelWithStaticModel(String filepath, Node@ parent)
 {
     if (parent is null)
         return;
+    /// \todo should be able to specify the createmode
+    if (parent is editorScene)
+        parent = CreateNode(REPLICATED);
 
     Model@ model = cache.GetResource("Model", filepath);
     if (model is null)
         return;
 
-    StaticModel@ staticModel = cast<StaticModel>(editNode.CreateComponent("StaticModel"));
+    StaticModel@ staticModel = parent.GetOrCreateComponent("StaticModel");
     staticModel.model = model;
     CreateLoadedComponent(staticModel);
 }
@@ -1084,12 +1134,15 @@ void CreateModelWithAnimatedModel(String filepath, Node@ parent)
 {
     if (parent is null)
         return;
+    /// \todo should be able to specify the createmode
+    if (parent is editorScene)
+        parent = CreateNode(REPLICATED);
 
     Model@ model = cache.GetResource("Model", filepath);
     if (model is null)
         return;
 
-    AnimatedModel@ animatedModel = cast<StaticModel>(editNode.CreateComponent("AnimatedModel"));
+    AnimatedModel@ animatedModel = parent.GetOrCreateComponent("AnimatedModel");
     animatedModel.model = model;
     CreateLoadedComponent(animatedModel);
 }

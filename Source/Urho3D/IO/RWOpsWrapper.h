@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ private:
     {
         T* object = reinterpret_cast<T*>(context->hidden.unknown.data1);
         Deserializer* des = dynamic_cast<Deserializer*>(object);
-        return des ? des->GetSize() : 0;
+        return des ? (Sint64)des->GetSize() : 0;
     }
 
     /// Seek within the object's data.
@@ -98,7 +98,7 @@ private:
     {
         T* object = reinterpret_cast<T*>(context->hidden.unknown.data1);
         Deserializer* des = dynamic_cast<Deserializer*>(object);
-        return des ? des->Read(ptr, size * maxNum) / size : 0;
+        return des ? (size_t)(des->Read(ptr, size * maxNum) / size) : 0;
     }
 
     /// Write to the object. Return number of "packets" written.
@@ -106,7 +106,7 @@ private:
     {
         T* object = reinterpret_cast<T*>(context->hidden.unknown.data1);
         Serializer* ser = dynamic_cast<Serializer*>(object);
-        return ser ? ser->Write(ptr, size * maxNum) / size : 0;
+        return ser ? (size_t)(ser->Write(ptr, size * maxNum) / size) : 0;
     }
 
     /// SDL RWOps structure associated with the object.

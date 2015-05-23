@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #ifdef URHO3D_URHO2D
 #include "../Urho2D/AnimatedSprite2D.h"
 #include "../Urho2D/Animation2D.h"
@@ -95,10 +94,6 @@ template <class T> void RegisterDrawable2D(asIScriptEngine* engine, const char* 
     engine->RegisterObjectMethod(className, "int get_layer() const", asMETHOD(T, GetLayer), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void set_orderInLayer(int)", asMETHOD(T, SetOrderInLayer), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "int get_orderInLayer() const", asMETHOD(T, GetOrderInLayer), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "void set_texture(Texture2D@+)", asMETHOD(T, SetTexture), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "Texture2D@+ get_texture() const", asMETHOD(T, GetTexture), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "void set_blendMode(BlendMode)", asMETHOD(T, SetBlendMode), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "BlendMode get_blendMode() const", asMETHOD(T, GetBlendMode), asCALL_THISCALL);
 }
 
 static void RegisterDrawable2D(asIScriptEngine* engine)
@@ -115,6 +110,8 @@ template <class T> void RegisterStaticSprite2D(asIScriptEngine* engine, const ch
     RegisterSubclass<StaticSprite2D, T>(engine, "StaticSprite2D", className);
     engine->RegisterObjectMethod(className, "void set_sprite(Sprite2D@+)", asMETHOD(T, SetSprite), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "Sprite2D@+ get_sprite() const", asMETHOD(T, GetSprite), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void set_blendMode(BlendMode)", asMETHOD(T, SetBlendMode), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "BlendMode get_blendMode() const", asMETHOD(T, GetBlendMode), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SetFlip(bool, bool)", asMETHOD(T, SetFlip), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void set_flipX(bool)", asMETHOD(T, SetFlipX), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool get_flipX() const", asMETHOD(T, GetFlipX), asCALL_THISCALL);
@@ -122,6 +119,14 @@ template <class T> void RegisterStaticSprite2D(asIScriptEngine* engine, const ch
     engine->RegisterObjectMethod(className, "bool get_flipY() const", asMETHOD(T, GetFlipY), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void set_color(const Color&in)", asMETHOD(T, SetColor), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "const Color& get_color() const", asMETHOD(T, GetColor), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void set_alpha(float)", asMETHOD(T, SetAlpha), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "float get_alpha() const", asMETHOD(T, GetAlpha), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void set_useHotSpot(bool)", asMETHOD(T, SetUseHotSpot), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool get_useHotSpot() const", asMETHOD(T, GetUseHotSpot), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void set_hotSpot(const Vector2&in)", asMETHOD(T, SetHotSpot), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "const Vector2& get_hotSpot() const", asMETHOD(T, GetHotSpot), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void set_customMaterial(Material@+)", asMETHOD(T, SetCustomMaterial), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "Material@+ get_customMaterial() const", asMETHOD(T, GetCustomMaterial), asCALL_THISCALL);
 }
 
 static void RegisterStaticSprite2D(asIScriptEngine* engine)
@@ -181,6 +186,8 @@ static void RegisterParticleEmitter2D(asIScriptEngine* engine)
     engine->RegisterObjectMethod("ParticleEmitter2D", "ParticleEffect2D@+ get_effect() const", asMETHOD(ParticleEmitter2D, GetEffect), asCALL_THISCALL);
     engine->RegisterObjectMethod("ParticleEmitter2D", "void set_sprite(Sprite2D@+)", asMETHOD(ParticleEmitter2D, SetSprite), asCALL_THISCALL);
     engine->RegisterObjectMethod("ParticleEmitter2D", "Sprite2D@+ get_sprite() const", asMETHOD(ParticleEmitter2D, GetSprite), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ParticleEmitter2D", "void set_blendMode(BlendMode)", asMETHOD(ParticleEmitter2D, SetBlendMode), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ParticleEmitter2D", "BlendMode get_blendMode() const", asMETHOD(ParticleEmitter2D, GetBlendMode), asCALL_THISCALL);
 }
 
 static void FakeAddRef(void* ptr)
@@ -244,7 +251,7 @@ static void RegisterTileMapDefs2D(asIScriptEngine* engine)
     engine->RegisterObjectMethod("TileMapObject2D", "int get_tileGid() const", asMETHOD(TileMapObject2D, GetTileGid), asCALL_THISCALL);
     engine->RegisterObjectMethod("TileMapObject2D", "Sprite2D@+ get_tileSprite() const", asMETHOD(TileMapObject2D, GetTileSprite), asCALL_THISCALL);
     engine->RegisterObjectMethod("TileMapObject2D", "bool HasProperty(const String&in) const", asMETHOD(TileMapObject2D, HasProperty), asCALL_THISCALL);
-    engine->RegisterObjectMethod("TileMapObject2D", "const String& GetProperty(const String&in) const", asMETHOD(TileMapObject2D, HasProperty), asCALL_THISCALL);
+    engine->RegisterObjectMethod("TileMapObject2D", "const String& GetProperty(const String&in) const", asMETHOD(TileMapObject2D, GetProperty), asCALL_THISCALL);
 }
 
 static void RegisterTmxFile2D(asIScriptEngine* engine)

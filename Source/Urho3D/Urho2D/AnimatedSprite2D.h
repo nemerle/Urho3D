@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -91,12 +91,10 @@ protected:
     virtual void OnNodeSet(Node* node);
     /// Recalculate the world-space bounding box.
     virtual void OnWorldBoundingBoxUpdate();
-    /// Handle layer changed.
-    virtual void OnLayerChanged();
-    /// Handle blend mode changed.
-    virtual void OnBlendModeChanged();
+    /// Handle draw order changed.
+    virtual void OnDrawOrderChanged();
     /// Handle update vertices.
-    virtual void UpdateVertices();
+    virtual void UpdateSourceBatches();
     /// Handle flip changed.
     virtual void OnFlipChanged();
     /// Set animation.

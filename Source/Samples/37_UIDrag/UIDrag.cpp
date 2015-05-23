@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/Core/CoreEvents.h>
@@ -66,7 +68,7 @@ void UIDrag::CreateGUI()
 
     for (int i=0; i < 10; i++)
     {
-        Button* b = new Button(context_);
+        auto  b = new Button(context_);
         root->AddChild(b);
         // Reference a style from the style sheet loaded earlier:
         b->SetStyle("Button");
@@ -79,7 +81,7 @@ void UIDrag::CreateGUI()
         SubscribeToEvent(b, E_DRAGEND, HANDLER(UIDrag, HandleDragEnd));
 
         {
-            Text* t = new Text(context_);
+            auto  t = new Text(context_);
             b->AddChild(t);
             t->SetStyle("Text");
             t->SetHorizontalAlignment(HA_CENTER);
@@ -88,7 +90,7 @@ void UIDrag::CreateGUI()
         }
 
         {
-            Text* t = new Text(context_);
+            auto  t = new Text(context_);
             b->AddChild(t);
             t->SetStyle("Text");
             t->SetName("Event Touch");
@@ -97,7 +99,7 @@ void UIDrag::CreateGUI()
         }
 
         {
-            Text* t = new Text(context_);
+            auto  t = new Text(context_);
             b->AddChild(t);
             t->SetStyle("Text");
             t->SetName("Num Touch");
@@ -108,7 +110,7 @@ void UIDrag::CreateGUI()
 
     for (int i = 0; i < 10; i++)
     {
-        Text* t = new Text(context_);
+        auto  t = new Text(context_);
         root->AddChild(t);
         t->SetStyle("Text");
         t->SetName("Touch "+ String(i));

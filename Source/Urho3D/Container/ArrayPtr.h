@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,8 @@ template <class T> class SharedArrayPtr
 public:
     /// Construct a null shared array pointer.
     SharedArrayPtr() :
-        ptr_(0),
-        refCount_(0)
+        ptr_(nullptr),
+        refCount_(nullptr)
     {
     }
 
@@ -177,8 +177,8 @@ private:
                 delete refCount_;
         }
 
-        ptr_ = 0;
-        refCount_ = 0;
+        ptr_ = nullptr;
+        refCount_ = nullptr;
     }
 
     /// Pointer to the array.
@@ -210,7 +210,7 @@ public:
     /// Construct a null weak array pointer.
     WeakArrayPtr() :
         ptr_(0),
-        refCount_(0)
+        refCount_(nullptr)
     {
     }
 

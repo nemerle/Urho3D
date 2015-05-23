@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -41,19 +41,19 @@ public:
     ShaderVariation(Shader* owner, ShaderType type);
     /// Destruct.
     virtual ~ShaderVariation();
-    
+
     /// Mark the GPU resource destroyed on context destruction.
     virtual void OnDeviceLost();
     /// Release the shader.
     virtual void Release();
-    
+
     /// Compile the shader. Return true if successful.
     bool Create();
     /// Set name.
     void SetName(const String& name);
     /// Set defines.
     void SetDefines(const String& defines);
-    
+
     /// Return the owner resource.
     Shader* GetOwner() const;
     /// Return shader type.
@@ -66,7 +66,7 @@ public:
     String GetFullName() const { return name_ + "(" + defines_ + ")"; }
     /// Return compile error/warning string.
     const String& GetCompilerOutput() const { return compilerOutput_; }
-    
+
 private:
     /// Shader this variation belongs to.
     WeakPtr<Shader> owner_;

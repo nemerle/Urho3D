@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,15 +43,15 @@ public:
     static void RegisterObject(Context* context);
 
     /// Apply attribute changes that can not be applied immediately.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// Return UI rendering batches.
-    virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor);
+    virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) override;
     /// React to the popup being shown.
-    virtual void OnShowPopup();
+    virtual void OnShowPopup() override;
     /// React to the popup being hidden.
-    virtual void OnHidePopup();
+    virtual void OnHidePopup() override;
     /// React to editable status change.
-    virtual void OnSetEditable();
+    virtual void OnSetEditable() override;
     
     /// Add item to the end of the list.
     void AddItem(UIElement* item);
@@ -94,9 +94,9 @@ public:
 
 protected:
     /// Filter implicit attributes in serialization process.
-    virtual bool FilterImplicitAttributes(XMLElement& dest) const;
+    virtual bool FilterImplicitAttributes(XMLElement& dest) const override;
     /// Filter implicit attributes in serialization process.
-    virtual bool FilterPopupImplicitAttributes(XMLElement& dest) const;
+    virtual bool FilterPopupImplicitAttributes(XMLElement& dest) const override;
 
     /// Listview element.
     SharedPtr<ListView> listView_;

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,14 @@
 #include "../Math/Vector4.h"
 
 #include <unordered_map>
+namespace std {
+template<> struct hash<Urho3D::TextureUnit> {
+    inline size_t operator()(const Urho3D::TextureUnit & key) const
+    {
+        return (unsigned)key;
+    }
+};
+}
 
 namespace Urho3D
 {
@@ -138,6 +146,8 @@ public:
     void SetCullMode(CullMode mode);
     /// Set culling mode for shadows.
     void SetShadowCullMode(CullMode mode);
+    /// Set polygon fill mode. Interacts with the camera's fill mode setting so that the "least filled" mode will be used.
+    void SetFillMode(FillMode mode);
     /// Set depth bias.
     void SetDepthBias(const BiasParameters& parameters);
     /// Associate the material with a scene to ensure that shader parameter animation happens in sync with scene update, respecting the scene time scale. If no scene is set, the global update events will be used.
@@ -161,12 +171,12 @@ public:
     const TechniqueEntry& GetTechniqueEntry(unsigned index) const;
     /// Return technique by index.
     Technique* GetTechnique(unsigned index) const;
-    /// Return pass by technique index and pass type.
-    Pass* GetPass(unsigned index, StringHash passType) const;
+    /// Return pass by technique index and pass name.
+    Pass* GetPass(unsigned index, const String& passName) const;
     /// Return texture by unit.
     Texture* GetTexture(TextureUnit unit) const;
    /// Return all textures.
-    const SharedPtr<Texture>* GetTextures() const { return &textures_[0]; }
+    const HashMap<TextureUnit, SharedPtr<Texture> >& GetTextures() const { return textures_; }
     /// Return shader parameter.
     const Variant& GetShaderParameter(const String& name) const;
     /// Return shader parameter animation.
@@ -181,6 +191,8 @@ public:
     CullMode GetCullMode() const { return cullMode_; }
     /// Return culling mode for shadows.
     CullMode GetShadowCullMode() const { return shadowCullMode_; }
+    /// Return polygon fill mode.
+    FillMode GetFillMode() const { return fillMode_; }
     /// Return depth bias.
     const BiasParameters& GetDepthBias() const { return depthBias_; }
     /// Return last auxiliary view rendered frame number.
@@ -191,8 +203,8 @@ public:
     bool GetSpecular() const { return specular_; }
     /// Return the scene associated with the material for shader parameter animation updates.
     Scene* GetScene() const;
-    /// Return the last non-null texture unit + 1. Used as an optimization when applying the material to render state.
-    unsigned GetNumUsedTextureUnits() const { return numUsedTextureUnits_; }
+    /// Return shader parameter hash value. Used as an optimization to avoid setting shader parameters unnecessarily.
+    unsigned GetShaderParameterHash() const { return shaderParameterHash_; }
 
     /// Return name for texture unit.
     static String GetTextureUnitName(TextureUnit unit);
@@ -204,6 +216,8 @@ private:
     void CheckOcclusion();
     /// Reset to defaults.
     void ResetToDefaults();
+    /// Recalculate shader parameter hash.
+    void RefreshShaderParameterHash();
     /// Recalculate the memory used by the material.
     void RefreshMemoryUse();
     /// Return shader parameter animation info.
@@ -216,7 +230,7 @@ private:
     /// Techniques.
     Vector<TechniqueEntry> techniques_;
     /// Textures.
-    SharedPtr<Texture> textures_[MAX_TEXTURE_UNITS];
+    HashMap<TextureUnit, SharedPtr<Texture> > textures_;
     /// %Shader parameters.
     HashMap<StringHash, MaterialShaderParameter> shaderParameters_;
     /// %Shader parameters animation infos.
@@ -225,18 +239,22 @@ private:
     CullMode cullMode_;
     /// Culling mode for shadow rendering.
     CullMode shadowCullMode_;
+    /// Polygon fill mode.
+    FillMode fillMode_;
     /// Depth bias parameters.
     BiasParameters depthBias_;
     /// Last auxiliary view rendered frame number.
     unsigned auxViewFrameNumber_;
-    /// Number of maximum non-null texture unit + 1.
-    unsigned numUsedTextureUnits_;
+    /// Shader parameter hash value.
+    unsigned shaderParameterHash_;
     /// Render occlusion flag.
     bool occlusion_;
     /// Specular lighting flag.
     bool specular_;
     /// Flag for whether is subscribed to animation updates.
     bool subscribed_;
+    /// Flag to suppress parameter hash and memory use recalculation when setting multiple shader parameters (loading or resetting the material.)
+    bool batchedParameterUpdate_;
     /// XML file used while loading.
     SharedPtr<XMLFile> loadXMLFile_;
     /// Associated scene for shader parameter animation updates.

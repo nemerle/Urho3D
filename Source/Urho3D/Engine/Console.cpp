@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Engine/Console.h"
 #include "../Core/Context.h"
 #include "../Core/CoreEvents.h"
@@ -392,8 +391,8 @@ void Console::HandleLogMessage(StringHash eventType, VariantMap& eventData)
     // The message may be multi-line, so split to rows in that case
     Vector<String> rows = eventData[P_MESSAGE].GetString().split('\n');
 
-    for (unsigned i = 0; i < rows.size(); ++i)
-        pendingRows_.push_back(MakePair(level, rows[i]));
+    for (String & row : rows)
+        pendingRows_.push_back(MakePair(level, row));
 
     if (autoVisibleOnError_ && level == LOG_ERROR && !IsVisible())
         SetVisible(true);
@@ -417,13 +416,13 @@ void Console::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
     rowContainer_->DisableLayoutUpdate();
 
     Text* text;
-    for (unsigned i = 0; i < pendingRows_.size(); ++i)
+    for (auto & elem : pendingRows_)
     {
         rowContainer_->RemoveItem((unsigned)0);
         text = new Text(context_);
-        text->SetText(pendingRows_[i].second_);
+        text->SetText(elem.second_);
         // Make error message highlight
-        text->SetStyle(pendingRows_[i].first_ == LOG_ERROR ? "ConsoleHighlightedText" : "ConsoleText");
+        text->SetStyle(elem.first_ == LOG_ERROR ? "ConsoleHighlightedText" : "ConsoleText");
         rowContainer_->AddItem(text);
     }
 

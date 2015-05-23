@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
+#include "../Graphics/GraphicsDefs.h"
 #include "../Math/StringHash.h"
 #include "../Math/Vector3.h"
 
@@ -29,65 +29,53 @@
 namespace Urho3D
 {
 
-StringHash VSP_AMBIENTSTARTCOLOR("AmbientStartColor");
-StringHash VSP_AMBIENTENDCOLOR("AmbientEndColor");
-StringHash VSP_BILLBOARDROT("BillboardRot");
-StringHash VSP_CAMERAPOS("CameraPos");
-StringHash VSP_CAMERAROT("CameraRot");
-StringHash VSP_NEARCLIP("NearClip");
-StringHash VSP_FARCLIP("FarClip");
-StringHash VSP_DEPTHMODE("DepthMode");
-StringHash VSP_DELTATIME("DeltaTime");
-StringHash VSP_ELAPSEDTIME("ElapsedTime");
-StringHash VSP_FRUSTUMSIZE("FrustumSize");
-StringHash VSP_GBUFFEROFFSETS("GBufferOffsets");
-StringHash VSP_LIGHTDIR("LightDir");
-StringHash VSP_LIGHTPOS("LightPos");
-StringHash VSP_MODEL("Model");
-StringHash VSP_VIEWPROJ("ViewProj");
-StringHash VSP_UOFFSET("UOffset");
-StringHash VSP_VOFFSET("VOffset");
-StringHash VSP_ZONE("Zone");
-StringHash VSP_LIGHTMATRICES("LightMatrices");
-StringHash VSP_SKINMATRICES("SkinMatrices");
-StringHash VSP_VERTEXLIGHTS("VertexLights");
-StringHash PSP_AMBIENTCOLOR("AmbientColor");
-StringHash PSP_CAMERAPOS("CameraPosPS");
-StringHash PSP_DELTATIME("DeltaTimePS");
-StringHash PSP_DEPTHRECONSTRUCT("DepthReconstruct");
-StringHash PSP_ELAPSEDTIME("ElapsedTimePS");
-StringHash PSP_FOGCOLOR("FogColor");
-StringHash PSP_FOGPARAMS("FogParams");
-StringHash PSP_GBUFFERINVSIZE("GBufferInvSize");
-StringHash PSP_LIGHTCOLOR("LightColor");
-StringHash PSP_LIGHTDIR("LightDirPS");
-StringHash PSP_LIGHTPOS("LightPosPS");
-StringHash PSP_MATDIFFCOLOR("MatDiffColor");
-StringHash PSP_MATEMISSIVECOLOR("MatEmissiveColor");
-StringHash PSP_MATENVMAPECOLOR("MatEnvMapColor");
-StringHash PSP_MATSPECCOLOR("MatSpecColor");
-StringHash PSP_NEARCLIP("NearClipPS");
-StringHash PSP_FARCLIP("FarClipPS");
-StringHash PSP_SHADOWCUBEADJUST("ShadowCubeAdjust");
-StringHash PSP_SHADOWDEPTHFADE("ShadowDepthFade");
-StringHash PSP_SHADOWINTENSITY("ShadowIntensity");
-StringHash PSP_SHADOWMAPINVSIZE("ShadowMapInvSize");
-StringHash PSP_SHADOWSPLITS("ShadowSplits");
-StringHash PSP_LIGHTMATRICES("LightMatricesPS");
+extern URHO3D_API const StringHash VSP_AMBIENTSTARTCOLOR("AmbientStartColor");
+extern URHO3D_API const StringHash VSP_AMBIENTENDCOLOR("AmbientEndColor");
+extern URHO3D_API const StringHash VSP_BILLBOARDROT("BillboardRot");
+extern URHO3D_API const StringHash VSP_CAMERAPOS("CameraPos");
+extern URHO3D_API const StringHash VSP_CAMERAROT("CameraRot");
+extern URHO3D_API const StringHash VSP_CLIPPLANE("ClipPlane");
+extern URHO3D_API const StringHash VSP_NEARCLIP("NearClip");
+extern URHO3D_API const StringHash VSP_FARCLIP("FarClip");
+extern URHO3D_API const StringHash VSP_DEPTHMODE("DepthMode");
+extern URHO3D_API const StringHash VSP_DELTATIME("DeltaTime");
+extern URHO3D_API const StringHash VSP_ELAPSEDTIME("ElapsedTime");
+extern URHO3D_API const StringHash VSP_FRUSTUMSIZE("FrustumSize");
+extern URHO3D_API const StringHash VSP_GBUFFEROFFSETS("GBufferOffsets");
+extern URHO3D_API const StringHash VSP_LIGHTDIR("LightDir");
+extern URHO3D_API const StringHash VSP_LIGHTPOS("LightPos");
+extern URHO3D_API const StringHash VSP_MODEL("Model");
+extern URHO3D_API const StringHash VSP_VIEWPROJ("ViewProj");
+extern URHO3D_API const StringHash VSP_UOFFSET("UOffset");
+extern URHO3D_API const StringHash VSP_VOFFSET("VOffset");
+extern URHO3D_API const StringHash VSP_ZONE("Zone");
+extern URHO3D_API const StringHash VSP_LIGHTMATRICES("LightMatrices");
+extern URHO3D_API const StringHash VSP_SKINMATRICES("SkinMatrices");
+extern URHO3D_API const StringHash VSP_VERTEXLIGHTS("VertexLights");
+extern URHO3D_API const StringHash PSP_AMBIENTCOLOR("AmbientColor");
+extern URHO3D_API const StringHash PSP_CAMERAPOS("CameraPosPS");
+extern URHO3D_API const StringHash PSP_DELTATIME("DeltaTimePS");
+extern URHO3D_API const StringHash PSP_DEPTHRECONSTRUCT("DepthReconstruct");
+extern URHO3D_API const StringHash PSP_ELAPSEDTIME("ElapsedTimePS");
+extern URHO3D_API const StringHash PSP_FOGCOLOR("FogColor");
+extern URHO3D_API const StringHash PSP_FOGPARAMS("FogParams");
+extern URHO3D_API const StringHash PSP_GBUFFERINVSIZE("GBufferInvSize");
+extern URHO3D_API const StringHash PSP_LIGHTCOLOR("LightColor");
+extern URHO3D_API const StringHash PSP_LIGHTDIR("LightDirPS");
+extern URHO3D_API const StringHash PSP_LIGHTPOS("LightPosPS");
+extern URHO3D_API const StringHash PSP_MATDIFFCOLOR("MatDiffColor");
+extern URHO3D_API const StringHash PSP_MATEMISSIVECOLOR("MatEmissiveColor");
+extern URHO3D_API const StringHash PSP_MATENVMAPECOLOR("MatEnvMapColor");
+extern URHO3D_API const StringHash PSP_MATSPECCOLOR("MatSpecColor");
+extern URHO3D_API const StringHash PSP_NEARCLIP("NearClipPS");
+extern URHO3D_API const StringHash PSP_FARCLIP("FarClipPS");
+extern URHO3D_API const StringHash PSP_SHADOWCUBEADJUST("ShadowCubeAdjust");
+extern URHO3D_API const StringHash PSP_SHADOWDEPTHFADE("ShadowDepthFade");
+extern URHO3D_API const StringHash PSP_SHADOWINTENSITY("ShadowIntensity");
+extern URHO3D_API const StringHash PSP_SHADOWMAPINVSIZE("ShadowMapInvSize");
+extern URHO3D_API const StringHash PSP_SHADOWSPLITS("ShadowSplits");
+extern URHO3D_API const StringHash PSP_LIGHTMATRICES("LightMatricesPS");
 
-StringHash PASS_BASE("base");
-StringHash PASS_LITBASE("litbase");
-StringHash PASS_LIGHT("light");
-StringHash PASS_ALPHA("alpha");
-StringHash PASS_LITALPHA("litalpha");
-StringHash PASS_SHADOW("shadow");
-StringHash PASS_DEFERRED("deferred");
-StringHash PASS_PREPASS("prepass");
-StringHash PASS_MATERIAL("material");
-StringHash PASS_POSTOPAQUE("postopaque");
-StringHash PASS_REFRACT("refract");
-StringHash PASS_POSTALPHA("postalpha");
-
-Vector3 DOT_SCALE(1 / 3.0f, 1 / 3.0f, 1 / 3.0f);
+extern URHO3D_API const Vector3 DOT_SCALE(1 / 3.0f, 1 / 3.0f, 1 / 3.0f);
 
 }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/AnimatedModel.h"
 #include "../Graphics/Animation.h"
 #include "../Graphics/AnimationController.h"
@@ -266,6 +265,7 @@ static void RegisterRenderPath(asIScriptEngine* engine)
     engine->RegisterEnumValue("RenderCommandType", "CMD_QUAD", CMD_QUAD);
     engine->RegisterEnumValue("RenderCommandType", "CMD_FORWARDLIGHTS", CMD_FORWARDLIGHTS);
     engine->RegisterEnumValue("RenderCommandType", "CMD_LIGHTVOLUMES", CMD_LIGHTVOLUMES);
+    engine->RegisterEnumValue("RenderCommandType", "CMD_RENDERUI", CMD_RENDERUI);
 
     engine->RegisterEnum("RenderCommandSortMode");
     engine->RegisterEnumValue("RenderCommandSortMode", "SORT_FRONTTOBACK", SORT_FRONTTOBACK);
@@ -278,30 +278,33 @@ static void RegisterRenderPath(asIScriptEngine* engine)
 
     engine->RegisterEnum("TextureUnit");
     engine->RegisterEnumValue("TextureUnit", "TU_DIFFUSE", TU_DIFFUSE);
+    engine->RegisterEnumValue("TextureUnit", "TU_ALBEDOBUFFER", TU_ALBEDOBUFFER);
     engine->RegisterEnumValue("TextureUnit", "TU_NORMAL", TU_NORMAL);
+    engine->RegisterEnumValue("TextureUnit", "TU_NORMALBUFFER", TU_NORMALBUFFER);
     engine->RegisterEnumValue("TextureUnit", "TU_SPECULAR", TU_SPECULAR);
     engine->RegisterEnumValue("TextureUnit", "TU_EMISSIVE", TU_EMISSIVE);
     engine->RegisterEnumValue("TextureUnit", "TU_ENVIRONMENT", TU_ENVIRONMENT);
     engine->RegisterEnumValue("TextureUnit", "TU_LIGHTRAMP", TU_LIGHTRAMP);
     engine->RegisterEnumValue("TextureUnit", "TU_LIGHTSHAPE", TU_LIGHTSHAPE);
     engine->RegisterEnumValue("TextureUnit", "TU_SHADOWMAP", TU_SHADOWMAP);
+    #ifdef DESKTOP_GRAPHICS
+    engine->RegisterEnumValue("TextureUnit", "TU_CUSTOM1", TU_CUSTOM1);
+    engine->RegisterEnumValue("TextureUnit", "TU_CUSTOM2", TU_CUSTOM2);
+    engine->RegisterEnumValue("TextureUnit", "TU_VOLUMEMAP", TU_VOLUMEMAP);
     engine->RegisterEnumValue("TextureUnit", "TU_FACESELECT", TU_FACESELECT);
     engine->RegisterEnumValue("TextureUnit", "TU_INDIRECTION", TU_INDIRECTION);
-    engine->RegisterEnumValue("TextureUnit", "TU_ALBEDOBUFFER", TU_ALBEDOBUFFER);
-    engine->RegisterEnumValue("TextureUnit", "TU_NORMALBUFFER", TU_NORMALBUFFER);
     engine->RegisterEnumValue("TextureUnit", "TU_DEPTHBUFFER", TU_DEPTHBUFFER);
     engine->RegisterEnumValue("TextureUnit", "TU_LIGHTBUFFER", TU_LIGHTBUFFER);
-    engine->RegisterEnumValue("TextureUnit", "TU_VOLUMEMAP", TU_VOLUMEMAP);
     engine->RegisterEnumValue("TextureUnit", "TU_ZONE", TU_ZONE);
+    #endif
     engine->RegisterEnumValue("TextureUnit", "MAX_MATERIAL_TEXTURE_UNITS", MAX_MATERIAL_TEXTURE_UNITS);
-    engine->RegisterEnumValue("TextureUnit", "MAX_NAMED_TEXTURE_UNITS", MAX_NAMED_TEXTURE_UNITS);
     engine->RegisterEnumValue("TextureUnit", "MAX_TEXTURE_UNITS", MAX_TEXTURE_UNITS);
 
     engine->RegisterObjectType("RenderTargetInfo", sizeof(RenderTargetInfo), asOBJ_VALUE | asOBJ_APP_CLASS_C);
     engine->RegisterObjectBehaviour("RenderTargetInfo", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructRenderTargetInfo), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("RenderTargetInfo", asBEHAVE_CONSTRUCT, "void f(const RenderTargetInfo&in)", asFUNCTION(ConstructRenderTargetInfoCopy), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("RenderTargetInfo", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructRenderTargetInfo), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("RenderTargetInfo", "RenderTargetInfo& opAssign(const RenderTargetInfo&in)", asMETHOD(RenderTargetInfo, operator =), asCALL_THISCALL);
+    engine->RegisterObjectMethod("RenderTargetInfo", "RenderTargetInfo& opAssign(const RenderTargetInfo&in)", asMETHODPR(RenderTargetInfo, operator =, (const RenderTargetInfo&), RenderTargetInfo&), asCALL_THISCALL);
     engine->RegisterObjectProperty("RenderTargetInfo", "String name", offsetof(RenderTargetInfo, name_));
     engine->RegisterObjectProperty("RenderTargetInfo", "String tag", offsetof(RenderTargetInfo, tag_));
     engine->RegisterObjectProperty("RenderTargetInfo", "uint format", offsetof(RenderTargetInfo, format_));
@@ -317,7 +320,7 @@ static void RegisterRenderPath(asIScriptEngine* engine)
     engine->RegisterObjectBehaviour("RenderPathCommand", asBEHAVE_CONSTRUCT, "void f(const RenderPathCommand&in)", asFUNCTION(ConstructRenderPathCommandCopy), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("RenderPathCommand", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructRenderPathCommand), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("RenderPathCommand", "void RemoveShaderParameter(const String&in)", asMETHOD(RenderPathCommand, RemoveShaderParameter), asCALL_THISCALL);
-    engine->RegisterObjectMethod("RenderPathCommand", "RenderPathCommand& opAssign(const RenderPathCommand&in)", asMETHOD(RenderPathCommand, operator =), asCALL_THISCALL);
+    engine->RegisterObjectMethod("RenderPathCommand", "RenderPathCommand& opAssign(const RenderPathCommand&in)", asMETHODPR(RenderPathCommand, operator =, (const RenderPathCommand&), RenderPathCommand&), asCALL_THISCALL);
     engine->RegisterObjectMethod("RenderPathCommand", "void set_textureNames(TextureUnit, const String&in)", asMETHOD(RenderPathCommand, SetTextureName), asCALL_THISCALL);
     engine->RegisterObjectMethod("RenderPathCommand", "const String& get_textureNames(TextureUnit) const", asMETHOD(RenderPathCommand, GetTextureName), asCALL_THISCALL);
     engine->RegisterObjectMethod("RenderPathCommand", "void set_shaderParameters(const String&in, const Variant&in)", asMETHOD(RenderPathCommand, SetShaderParameter), asCALL_THISCALL);
@@ -480,9 +483,11 @@ static void RegisterTextures(asIScriptEngine* engine)
     engine->RegisterGlobalFunction("uint GetRGFloat32Format()", asFUNCTION(Graphics::GetRGFloat32Format), asCALL_CDECL);
     engine->RegisterGlobalFunction("uint GetFloat16Format()", asFUNCTION(Graphics::GetFloat16Format), asCALL_CDECL);
     engine->RegisterGlobalFunction("uint GetFloat32Format()", asFUNCTION(Graphics::GetFloat32Format), asCALL_CDECL);
+    engine->RegisterGlobalFunction("uint GetLinearDepthFormat()", asFUNCTION(Graphics::GetLinearDepthFormat), asCALL_CDECL);
     engine->RegisterGlobalFunction("uint GetDepthStencilFormat()", asFUNCTION(Graphics::GetDepthStencilFormat), asCALL_CDECL);
     engine->RegisterGlobalFunction("uint GetReadableDepthFormat()", asFUNCTION(Graphics::GetReadableDepthFormat), asCALL_CDECL);
     engine->RegisterGlobalFunction("uint GetFormat(const String&in)", asFUNCTIONPR(Graphics::GetFormat, (const String&), unsigned), asCALL_CDECL);
+    engine->RegisterGlobalFunction("uint GetMaxBones()", asFUNCTION(Graphics::GetMaxBones), asCALL_CDECL);
 }
 
 static Material* MaterialClone(const String& cloneName, Material* ptr)
@@ -514,9 +519,9 @@ static void ConstructTechniqueEntry(TechniqueEntry* ptr)
     new(ptr) TechniqueEntry();
 }
 
-static CScriptArray* TechniqueGetPassTypes(const Technique& technique)
+static CScriptArray* TechniqueGetPassNames(const Technique& technique)
 {
-    return VectorToArray<StringHash>(technique.GetPassTypes(), "Array<StringHash>");
+    return VectorToArray<String>(technique.GetPassNames(), "Array<String>");
 }
 
 static CScriptArray* TechniqueGetPasses(const Technique& technique)
@@ -618,8 +623,6 @@ static void RegisterMaterial(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Pass", "bool get_depthWrite() const", asMETHOD(Pass, GetDepthWrite), asCALL_THISCALL);
     engine->RegisterObjectMethod("Pass", "void set_alphaMask(bool)", asMETHOD(Pass, SetAlphaMask), asCALL_THISCALL);
     engine->RegisterObjectMethod("Pass", "bool get_alphaMask() const", asMETHOD(Pass, GetAlphaMask), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Pass", "void set_sm3(bool)", asMETHOD(Technique, SetIsSM3), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Pass", "bool get_sm3() const", asMETHOD(Technique, IsSM3), asCALL_THISCALL);
     engine->RegisterObjectMethod("Pass", "void set_desktop(bool)", asMETHOD(Technique, SetIsDesktop), asCALL_THISCALL);
     engine->RegisterObjectMethod("Pass", "bool get_desktop() const", asMETHOD(Technique, IsDesktop), asCALL_THISCALL);
     engine->RegisterObjectMethod("Pass", "void set_vertexShader(const String&in)", asMETHOD(Pass, SetVertexShader), asCALL_THISCALL);
@@ -632,18 +635,16 @@ static void RegisterMaterial(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Pass", "const String& get_pixelShaderDefines() const", asMETHOD(Pass, GetPixelShaderDefines), asCALL_THISCALL);
 
     RegisterResource<Technique>(engine, "Technique");
-    engine->RegisterObjectMethod("Technique", "Pass@+ CreatePass(StringHash)", asMETHOD(Technique, CreatePass), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "void RemovePass(StringHash)", asMETHOD(Technique, RemovePass), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "bool HasPass(StringHash) const", asMETHOD(Technique, HasPass), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "Pass@+ GetPass(StringHash)", asMETHOD(Technique, GetPass), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "Pass@+ GetSupportedPass(StringHash)", asMETHOD(Technique, GetSupportedPass), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Technique", "Pass@+ CreatePass(const String&in)", asMETHOD(Technique, CreatePass), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Technique", "void RemovePass(const String&in)", asMETHOD(Technique, RemovePass), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Technique", "bool HasPass(const String&in) const", asMETHODPR(Technique, HasPass, (const String&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Technique", "Pass@+ GetPass(const String&in)", asMETHODPR(Technique, GetPass, (const String&) const, Pass*), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Technique", "Pass@+ GetSupportedPass(const String&in)", asMETHODPR(Technique, GetSupportedPass, (const String&) const, Pass*), asCALL_THISCALL);
     engine->RegisterObjectMethod("Technique", "bool get_supported() const", asMETHOD(Technique, IsSupported), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "void set_sm3(bool)", asMETHOD(Technique, SetIsSM3), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "bool get_sm3() const", asMETHOD(Technique, IsSM3), asCALL_THISCALL);
     engine->RegisterObjectMethod("Technique", "void set_desktop(bool)", asMETHOD(Technique, SetIsDesktop), asCALL_THISCALL);
     engine->RegisterObjectMethod("Technique", "bool get_desktop() const", asMETHOD(Technique, IsDesktop), asCALL_THISCALL);
     engine->RegisterObjectMethod("Technique", "uint get_numPasses() const", asMETHOD(Technique, GetNumPasses), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Technique", "Array<StringHash>@ get_passTypes() const", asFUNCTION(TechniqueGetPassTypes), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Technique", "Array<String>@ get_passNames() const", asFUNCTION(TechniqueGetPassNames), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Technique", "Array<Pass@>@ get_passes() const", asFUNCTION(TechniqueGetPasses), asCALL_CDECL_OBJLAST);
 
     engine->RegisterObjectType("TechniqueEntry", sizeof(TechniqueEntry), asOBJ_VALUE | asOBJ_APP_CLASS_CD);
@@ -665,6 +666,7 @@ static void RegisterMaterial(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Material", "void RemoveShaderParameter(const String&in)", asMETHOD(Material, RemoveShaderParameter), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "void SortTechniques()", asMETHOD(Material, SortTechniques), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "Material@ Clone(const String&in cloneName = String()) const", asFUNCTION(MaterialClone), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Material", "Pass@+ GetPass(uint, const String&in)", asMETHOD(Material, GetPass), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "void set_numTechniques(uint)", asMETHOD(Material, SetNumTechniques), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "uint get_numTechniques() const", asMETHOD(Material, GetNumTechniques), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "Technique@+ get_techniques(uint)", asMETHOD(Material, GetTechnique), asCALL_THISCALL);
@@ -685,9 +687,10 @@ static void RegisterMaterial(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Material", "CullMode get_cullMode() const", asMETHOD(Material, GetCullMode), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "void set_shadowCullMode(CullMode)", asMETHOD(Material, SetShadowCullMode), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "CullMode get_shadowCullMode() const", asMETHOD(Material, GetShadowCullMode), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Material", "void set_fillMode(FillMode)", asMETHOD(Material, SetFillMode), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Material", "FillMode get_fillMode() const", asMETHOD(Material, GetFillMode), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "void set_depthBias(const BiasParameters&in)", asMETHOD(Material, SetDepthBias), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "const BiasParameters& get_depthBias() const", asMETHOD(Material, GetDepthBias), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Material", "uint get_numUsedTextureUnits() const", asMETHOD(Material, GetNumUsedTextureUnits), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "void set_scene(Scene@+)", asMETHOD(Material, SetScene), asCALL_THISCALL);
     engine->RegisterObjectMethod("Material", "Scene@+ get_scene() const", asMETHOD(Material, GetScene), asCALL_THISCALL);
 
@@ -1354,6 +1357,7 @@ static void RegisterGraphics(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Graphics", "void PrecacheShaders(VectorBuffer&)", asFUNCTION(GraphicsPrecacheShadersVectorBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Graphics", "void set_windowTitle(const String&in)", asMETHOD(Graphics, SetWindowTitle), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "const String& get_windowTitle() const", asMETHOD(Graphics, GetWindowTitle), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Graphics", "const String& get_apiName() const", asMETHOD(Graphics, GetApiName), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "void set_windowIcon(Image@+)", asMETHOD(Graphics, SetWindowIcon), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "void set_windowPosition(const IntVector2&in)", asMETHODPR(Graphics, SetWindowPosition, (const IntVector2&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "IntVector2 get_windowPosition() const", asMETHOD(Graphics, GetWindowPosition), asCALL_THISCALL);
@@ -1375,7 +1379,6 @@ static void RegisterGraphics(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Graphics", "bool get_deviceLost() const", asMETHOD(Graphics, IsDeviceLost), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "uint get_numPrimitives() const", asMETHOD(Graphics, GetNumPrimitives), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "uint get_numBatches() const", asMETHOD(Graphics, GetNumBatches), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Graphics", "bool get_sm3Support() const", asMETHOD(Graphics, GetSM3Support), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "bool get_instancingSupport() const", asMETHOD(Graphics, GetInstancingSupport), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "bool get_lightPrepassSupport() const", asMETHOD(Graphics, GetLightPrepassSupport), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "bool get_deferredSupport() const", asMETHOD(Graphics, GetDeferredSupport), asCALL_THISCALL);
@@ -1383,8 +1386,6 @@ static void RegisterGraphics(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Graphics", "bool get_readableDepthSupport() const", asMETHOD(Graphics, GetReadableDepthSupport), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "bool get_sRGBSupport() const", asMETHOD(Graphics, GetSRGBSupport), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "bool get_sRGBWriteSupport() const", asMETHOD(Graphics, GetSRGBWriteSupport), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Graphics", "void set_forceSM2(bool)", asMETHOD(Graphics, SetForceSM2), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Graphics", "bool get_forceSM2() const", asMETHOD(Graphics, GetForceSM2), asCALL_THISCALL);
     engine->RegisterObjectMethod("Graphics", "Array<IntVector2>@ get_resolutions() const", asFUNCTION(GraphicsGetResolutions), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Graphics", "Array<int>@ get_multiSampleLevels() const", asFUNCTION(GraphicsGetMultiSampleLevels), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Graphics", "IntVector2 get_desktopResolution() const", asMETHOD(Graphics, GetDesktopResolution), asCALL_THISCALL);
@@ -1448,8 +1449,6 @@ static void RegisterRenderer(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Renderer", "bool get_dynamicInstancing() const", asMETHOD(Renderer, GetDynamicInstancing), asCALL_THISCALL);
     engine->RegisterObjectMethod("Renderer", "void set_minInstances(int)", asMETHOD(Renderer, SetMinInstances), asCALL_THISCALL);
     engine->RegisterObjectMethod("Renderer", "int get_minInstances() const", asMETHOD(Renderer, GetMinInstances), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Renderer", "void set_maxInstanceTriangles(int)", asMETHOD(Renderer, SetMaxInstanceTriangles), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Renderer", "int get_maxInstanceTriangles() const", asMETHOD(Renderer, GetMaxInstanceTriangles), asCALL_THISCALL);
     engine->RegisterObjectMethod("Renderer", "void set_maxSortedInstances(int)", asMETHOD(Renderer, SetMaxSortedInstances), asCALL_THISCALL);
     engine->RegisterObjectMethod("Renderer", "int get_maxSortedInstances() const", asMETHOD(Renderer, GetMaxSortedInstances), asCALL_THISCALL);
     engine->RegisterObjectMethod("Renderer", "void set_maxOccluderTriangles(int)", asMETHOD(Renderer, SetMaxOccluderTriangles), asCALL_THISCALL);
@@ -1611,10 +1610,10 @@ static void RegisterOctree(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Octree", "void RemoveManualDrawable(Drawable@+)", asMETHOD(Octree, RemoveManualDrawable), asCALL_THISCALL);
     engine->RegisterObjectMethod("Octree", "Array<RayQueryResult>@ Raycast(const Ray&in, RayQueryLevel level = RAY_TRIANGLE, float maxDistance = M_INFINITY, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK) const", asFUNCTION(OctreeRaycast), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Octree", "RayQueryResult RaycastSingle(const Ray&in, RayQueryLevel level = RAY_TRIANGLE, float maxDistance = M_INFINITY, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK) const", asFUNCTION(OctreeRaycastSingle), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Octree", "Array<Node@>@ GetDrawables(const Vector3&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesPoint), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Octree", "Array<Node@>@ GetDrawables(const BoundingBox&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesBox), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Octree", "Array<Node@>@ GetDrawables(const Frustum&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesFrustum), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("Octree", "Array<Node@>@ GetDrawables(const Sphere&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesSphere), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Octree", "Array<Drawable@>@ GetDrawables(const Vector3&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesPoint), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Octree", "Array<Drawable@>@ GetDrawables(const BoundingBox&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesBox), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Octree", "Array<Drawable@>@ GetDrawables(const Frustum&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesFrustum), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("Octree", "Array<Drawable@>@ GetDrawables(const Sphere&in, uint8 drawableFlags = DRAWABLE_ANY, uint viewMask = DEFAULT_VIEWMASK)", asFUNCTION(OctreeGetDrawablesSphere), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("Octree", "const BoundingBox& get_worldBoundingBox() const", asMETHODPR(Octree, GetWorldBoundingBox, () const, const BoundingBox&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Octree", "uint get_numLevels() const", asMETHOD(Octree, GetNumLevels), asCALL_THISCALL);
     engine->RegisterObjectMethod("Scene", "Octree@+ get_octree() const", asFUNCTION(SceneGetOctree), asCALL_CDECL_OBJLAST);

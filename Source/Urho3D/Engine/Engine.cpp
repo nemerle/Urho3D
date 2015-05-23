@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Audio/Audio.h"
 #include "../Engine/Console.h"
 #include "../Core/Context.h"
@@ -54,6 +53,10 @@
 #endif
 #include "../Core/WorkQueue.h"
 #include "../Resource/XMLFile.h"
+
+#if defined(EMSCRIPTEN) && defined(URHO3D_TESTING)
+#include <emscripten.h>
+#endif
 
 #include "../DebugNew.h"
 
@@ -199,66 +202,67 @@ bool Engine::Initialize(const VariantMap& parameters)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-    String defaultPrefixPath(AddTrailingSlash(getenv("URHO3D_PREFIX_PATH")));
-    if (defaultPrefixPath.isEmpty())
-        defaultPrefixPath = fileSystem->GetProgramDir();
-    String resourcePrefixPath = GetParameter(parameters, "ResourcePrefixPath", defaultPrefixPath).GetString();
+    String resourcePrefixPath = AddTrailingSlash(GetParameter(parameters, "ResourcePrefixPath", getenv("URHO3D_PREFIX_PATH")).GetString());
+    if (resourcePrefixPath.isEmpty())
+        resourcePrefixPath = fileSystem->GetProgramDir();
+    else if (!IsAbsolutePath(resourcePrefixPath))
+        resourcePrefixPath = fileSystem->GetProgramDir() + resourcePrefixPath;
     Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
     Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
     Vector<String> autoLoadPaths = GetParameter(parameters, "AutoloadPaths", "Autoload").GetString().split(';');
 
-    for (unsigned i = 0; i < resourcePaths.size(); ++i)
+    for (String & resourcePath : resourcePaths)
     {
         bool success = false;
 
         // If path is not absolute, prefer to add it as a package if possible
-        if (!IsAbsolutePath(resourcePaths[i]))
+        if (!IsAbsolutePath(resourcePath))
         {
-            String packageName = resourcePrefixPath + resourcePaths[i] + ".pak";
+            String packageName = resourcePrefixPath + resourcePath + ".pak";
             if (fileSystem->FileExists(packageName))
                 success = cache->AddPackageFile(packageName);
 
             if (!success)
             {
-                String pathName = resourcePrefixPath + resourcePaths[i];
+                String pathName = resourcePrefixPath + resourcePath;
                 if (fileSystem->DirExists(pathName))
                     success = cache->AddResourceDir(pathName);
             }
         }
         else
         {
-            String pathName = resourcePaths[i];
+            String pathName = resourcePath;
             if (fileSystem->DirExists(pathName))
                 success = cache->AddResourceDir(pathName);
         }
 
         if (!success)
         {
-            LOGERRORF("Failed to add resource path '%s', check the documentation on how to set the 'resource prefix path'", resourcePaths[i].CString());
+            LOGERRORF("Failed to add resource path '%s', check the documentation on how to set the 'resource prefix path'", resourcePath.CString());
             return false;
         }
     }
 
     // Then add specified packages
-    for (unsigned i = 0; i < resourcePackages.size(); ++i)
+    for (String & resourcePackage : resourcePackages)
     {
-        String packageName = resourcePrefixPath + resourcePackages[i];
+        String packageName = resourcePrefixPath + resourcePackage;
         if (fileSystem->FileExists(packageName))
         {
             if (!cache->AddPackageFile(packageName))
             {
-                LOGERRORF("Failed to add resource package '%s', check the documentation on how to set the 'resource prefix path'", resourcePackages[i].CString());
+                LOGERRORF("Failed to add resource package '%s', check the documentation on how to set the 'resource prefix path'", resourcePackage.CString());
                 return false;
             }
         }
         else
-            LOGDEBUGF("Skip specified resource package '%s' as it does not exist, check the documentation on how to set the 'resource prefix path'", resourcePackages[i].CString());
+            LOGDEBUGF("Skip specified resource package '%s' as it does not exist, check the documentation on how to set the 'resource prefix path'", resourcePackage.CString());
     }
 
     // Add auto load folders. Prioritize these (if exist) before the default folders
-    for (unsigned i = 0; i < autoLoadPaths.size(); ++i)
+    for (String & autoLoadPaths_i : autoLoadPaths)
     {
-        String autoLoadPath(autoLoadPaths[i]);
+        String autoLoadPath(autoLoadPaths_i);
         if (!IsAbsolutePath(autoLoadPath))
             autoLoadPath = resourcePrefixPath + autoLoadPath;
 
@@ -267,16 +271,16 @@ bool Engine::Initialize(const VariantMap& parameters)
             // Add all the subdirs (non-recursive) as resource directory
             Vector<String> subdirs;
             fileSystem->ScanDir(subdirs, autoLoadPath, "*", SCAN_DIRS, false);
-            for (unsigned y = 0; y < subdirs.size(); ++y)
+            for (String & subdir : subdirs)
             {
-                String dir = subdirs[y];
+                String dir = subdir;
                 if (dir.startsWith("."))
                     continue;
 
                 String autoResourceDir = autoLoadPath + "/" + dir;
                 if (!cache->AddResourceDir(autoResourceDir, 0))
                 {
-                    LOGERRORF("Failed to add resource directory '%s' in autoload path %s, check the documentation on how to set the 'resource prefix path'", dir.CString(), autoLoadPaths[i].CString());
+                    LOGERRORF("Failed to add resource directory '%s' in autoload path %s, check the documentation on how to set the 'resource prefix path'", dir.CString(), autoLoadPaths_i.CString());
                     return false;
                 }
             }
@@ -284,22 +288,22 @@ bool Engine::Initialize(const VariantMap& parameters)
             // Add all the found package files (non-recursive)
             Vector<String> paks;
             fileSystem->ScanDir(paks, autoLoadPath, "*.pak", SCAN_FILES, false);
-            for (unsigned y = 0; y < paks.size(); ++y)
+            for (String & paks_y : paks)
             {
-                String pak = paks[y];
+                String pak = paks_y;
                 if (pak.startsWith("."))
                     continue;
 
                 String autoPackageName = autoLoadPath + "/" + pak;
                 if (!cache->AddPackageFile(autoPackageName, 0))
                 {
-                    LOGERRORF("Failed to add package file '%s' in autoload path %s, check the documentation on how to set the 'resource prefix path'", pak.CString(), autoLoadPaths[i].CString());
+                    LOGERRORF("Failed to add package file '%s' in autoload path %s, check the documentation on how to set the 'resource prefix path'", pak.CString(), autoLoadPaths_i.CString());
                     return false;
                 }
             }
         }
         else
-            LOGDEBUGF("Skipped autoload path '%s' as it does not exist, check the documentation on how to set the 'resource prefix path'", autoLoadPaths[i].CString());
+            LOGDEBUGF("Skipped autoload path '%s' as it does not exist, check the documentation on how to set the 'resource prefix path'", autoLoadPaths_i.CString());
     }
 
     // Initialize graphics & audio output
@@ -310,7 +314,6 @@ bool Engine::Initialize(const VariantMap& parameters)
 
         if (HasParameter(parameters, "ExternalWindow"))
             graphics->SetExternalWindow(GetParameter(parameters, "ExternalWindow").GetVoidPtr());
-        graphics->SetForceSM2(GetParameter(parameters, "ForceSM2", false).GetBool());
         graphics->SetWindowTitle(GetParameter(parameters, "WindowTitle", "Urho3D").GetString());
         graphics->SetWindowIcon(cache->GetResource<Image>(GetParameter(parameters, "WindowIcon", String::EMPTY).GetString()));
         graphics->SetFlushGPU(GetParameter(parameters, "FlushGPU", false).GetBool());
@@ -318,6 +321,11 @@ bool Engine::Initialize(const VariantMap& parameters)
 
         if (HasParameter(parameters, "WindowPositionX") && HasParameter(parameters, "WindowPositionY"))
             graphics->SetWindowPosition(GetParameter(parameters, "WindowPositionX").GetInt(), GetParameter(parameters, "WindowPositionY").GetInt());
+
+        #ifdef URHO3D_OPENGL
+        if (HasParameter(parameters, "ForceGL2"))
+            graphics->SetForceGL2(GetParameter(parameters, "ForceGL2").GetBool());
+        #endif
 
         if (!graphics->SetMode(
             GetParameter(parameters, "WindowWidth", 0).GetInt(),
@@ -369,11 +377,11 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     // In debug mode, check now that all factory created objects can be created without crashing
     #ifdef _DEBUG
-    if (!resourcePaths.Empty())
+    if (!resourcePaths.empty())
     {
         const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = context_->GetObjectFactories();
         for (const auto & factorie : factories)
-             SharedPtr<Object> object = factorie.second->CreateObject();
+             SharedPtr<Object> object = ELEMENT_VALUE(factorie)->CreateObject();
     }
     #endif
 
@@ -531,7 +539,7 @@ void Engine::DumpResources(bool dumpFileName)
 
     for (const auto & entry : resourceGroups)
     {
-        const ResourceGroup & resourceGroup(entry.second);
+        const ResourceGroup & resourceGroup(ELEMENT_VALUE(entry));
         const HashMap<StringHash, SharedPtr<Resource> >& resources = resourceGroup.resources_;
         if (dumpFileName)
         {
@@ -673,8 +681,7 @@ void Engine::ApplyFrameLimit()
         }
     }
 
-    elapsed = frameTimer_.GetUSec();
-    frameTimer_.Reset();
+    elapsed = frameTimer_.GetUSec(true);
     #ifdef URHO3D_TESTING
     if (timeOut_ > 0)
     {
@@ -699,8 +706,8 @@ void Engine::ApplyFrameLimit()
     {
         // If the smoothing configuration was changed, ensure correct amount of samples
         lastTimeSteps_.erase(lastTimeSteps_.begin(), lastTimeSteps_.begin() + lastTimeSteps_.size() - timeStepSmoothing_);
-        for (unsigned i = 0; i < lastTimeSteps_.size(); ++i)
-            timeStep_ += lastTimeSteps_[i];
+        for (float elem : lastTimeSteps_)
+            timeStep_ += elem;
         timeStep_ /= lastTimeSteps_.size();
     }
     else
@@ -724,6 +731,8 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ret["FrameLimiter"] = false;
             else if (argument == "flushgpu")
                 ret["FlushGPU"] = true;
+            else if (argument == "gl2")
+                ret["ForceGL2"] = true;
             else if (argument == "landscape")
                 ret["Orientations"] = "LandscapeLeft LandscapeRight " + ret["Orientations"].GetString();
             else if (argument == "portrait")
@@ -738,7 +747,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ret["RenderPath"] = "RenderPaths/Prepass.xml";
             else if (argument == "deferred")
                 ret["RenderPath"] = "RenderPaths/Deferred.xml";
-            else if (argument == "renderpath" && !value.Empty())
+            else if (argument == "renderpath" && !value.isEmpty())
             {
                 ret["RenderPath"] = value;
                 ++i;
@@ -749,8 +758,6 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ret["LowQualityShadows"] = true;
             else if (argument == "nothreads")
                 ret["WorkerThreads"] = false;
-            else if (argument == "sm2")
-                ret["ForceSM2"] = true;
             else if (argument == "v")
                 ret["VSync"] = true;
             else if (argument == "t")
@@ -846,7 +853,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
             else if (argument == "touch")
                 ret["TouchEmulation"] = true;
             #ifdef URHO3D_TESTING
-            else if (argument == "timeout" && !value.Empty())
+            else if (argument == "timeout" && !value.isEmpty())
             {
                 ret["TimeOut"] = ToInt(value);
                 ++i;
@@ -888,6 +895,9 @@ void Engine::DoExit()
         graphics->Close();
 
     exiting_ = true;
+    #if defined(EMSCRIPTEN) && defined(URHO3D_TESTING)
+    emscripten_force_exit(EXIT_SUCCESS);    // Some how this is required to signal emrun to stop
+    #endif
 }
 
 }

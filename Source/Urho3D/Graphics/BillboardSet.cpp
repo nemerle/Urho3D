@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/Batch.h"
 #include "../Graphics/BillboardSet.h"
 #include "../Graphics/Camera.h"
@@ -172,7 +171,7 @@ void BillboardSet::UpdateBatches(const FrameInfo& frame)
     distance_ = frame.camera_->GetDistance(GetWorldBoundingBox().Center());
 
     // Calculate scaled distance for animation LOD
-    float scale = GetWorldBoundingBox().Size().DotProduct(DOT_SCALE);
+    float scale = GetWorldBoundingBox().size().DotProduct(DOT_SCALE);
     // If there are no billboards, the size becomes zero, and LOD'ed updates no longer happen. Disable LOD in that case
     if (scale > M_EPSILON)
         lodDistance_ = frame.camera_->GetLodDistance(distance_, scale, lodBias_);
@@ -365,7 +364,7 @@ VariantVector BillboardSet::GetBillboardsAttr() const
 
 const PODVector<unsigned char>& BillboardSet::GetNetBillboardsAttr() const
 {
-    attrBuffer_.Clear();
+    attrBuffer_.clear();
     attrBuffer_.WriteVLE(billboards_.size());
 
     for (const Billboard & elem : billboards_)

@@ -167,7 +167,7 @@ void HandleQuickSearchChange(StringHash eventType, VariantMap& eventData)
     if (search is null)
         return;
 
-    PerformQuickMenuSearch(search.text.toLower().trimmed());
+    PerformQuickMenuSearch(search.text.ToLower().Trimmed());
 }
 
 void PerformQuickMenuSearch(const String&in query)
@@ -191,7 +191,7 @@ void PerformQuickMenuSearch(const String&in query)
             for (uint x=0; x < quickMenuItems.length; x++)
             {
                 @qi = quickMenuItems[x];
-                int find = qi.action.indexOf(query, 0, false);
+                int find = qi.action.Find(query, 0, false);
                 if (find > -1)
                 {
                     qi.sortScore = find;
@@ -327,6 +327,7 @@ void CreateMenuBar()
         popup.AddChild(CreateMenuItem("Paste", @Paste, 'V', QUAL_CTRL));
         popup.AddChild(CreateMenuItem("Delete", @Delete, KEY_DELETE, QUAL_ANY));
         popup.AddChild(CreateMenuItem("Select all", @SelectAll, 'A', QUAL_CTRL));
+        popup.AddChild(CreateMenuItem("Deselect all", @DeselectAll, 'A', QUAL_SHIFT | QUAL_CTRL));
         CreateChildDivider(popup);
         popup.AddChild(CreateMenuItem("Reset to default", @ResetToDefault));
         CreateChildDivider(popup);
@@ -340,6 +341,7 @@ void CreateMenuBar()
         popup.AddChild(CreateMenuItem("Stop test animation", @StopTestAnimation));
         CreateChildDivider(popup);
         popup.AddChild(CreateMenuItem("Rebuild navigation data", @SceneRebuildNavigation));
+        popup.AddChild(CreateMenuItem("Add children to SM-group", @SceneAddChildrenStaticModelGroup));
         FinalizedPopupMenu(popup);
         uiMenuBar.AddChild(menu);
     }
@@ -659,7 +661,7 @@ bool PickUIElement()
 // When calling items from the quick menu, they have "Create" prepended for clarity. Strip that now to get the object name to create
 String GetActionName(const String&in name)
 {
-    if (name.startsWith("Create"))
+    if (name.StartsWith("Create"))
         return name.Substring(7);
     else
         return name;
@@ -1134,37 +1136,40 @@ void HandleKeyDown(StringHash eventType, VariantMap& eventData)
         if (!fileSystem.DirExists(screenshotDir))
             fileSystem.CreateDir(screenshotDir);
         screenshot.SavePNG(screenshotDir + "/Screenshot_" +
-                time.timeStamp.replaced(':', '_').replaced('.', '_').replaced(' ', '_') + ".png");
+                time.timeStamp.Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_') + ".png");
     }   
     else if (key == KEY_KP_1 && ui.focusElement is null) // Front view
     {
-        Vector3 pos = cameraNode.position;
-        pos.z = -pos.length * viewDirection;
-        pos.x = 0;
-        pos.y = 0;
-        cameraNode.position = pos;
+        Vector3 center = Vector3(0,0,0);
+        if (selectedNodes.length > 0 || selectedComponents.length > 0)
+            center = SelectedNodesCenterPoint();
+            
+        Vector3 pos = cameraNode.worldPosition - center;
+        cameraNode.worldPosition = center - Vector3(0.0, 0.0, pos.length * viewDirection);
         cameraNode.direction = Vector3(0, 0, viewDirection);
         ReacquireCameraYawPitch();
     }
 
     else if (key == KEY_KP_3 && ui.focusElement is null) // Side view
     {
-        Vector3 pos = cameraNode.position;
-        pos.x = pos.length * viewDirection;
-        pos.y = 0;
-        pos.z = 0;
-        cameraNode.position = pos;
+        Vector3 center = Vector3(0,0,0);
+        if (selectedNodes.length > 0 || selectedComponents.length > 0)
+            center = SelectedNodesCenterPoint();
+            
+        Vector3 pos = cameraNode.worldPosition - center;
+        cameraNode.worldPosition = center - Vector3(pos.length * -viewDirection, 0.0, 0.0);
         cameraNode.direction = Vector3(-viewDirection, 0, 0);
         ReacquireCameraYawPitch();
     }
 
     else if (key == KEY_KP_7 && ui.focusElement is null) // Top view
     {
-        Vector3 pos = cameraNode.position;
-        pos.y = pos.length * viewDirection;
-        pos.x = 0;
-        pos.z = 0;
-        cameraNode.position = pos;
+        Vector3 center = Vector3(0,0,0);
+        if (selectedNodes.length > 0 || selectedComponents.length > 0)
+            center = SelectedNodesCenterPoint();
+            
+        Vector3 pos = cameraNode.worldPosition - center;
+        cameraNode.worldPosition = center - Vector3(0.0, pos.length * -viewDirection, 0.0);
         cameraNode.direction = Vector3(0, -viewDirection, 0);
         ReacquireCameraYawPitch();
     }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -46,9 +46,9 @@ public:
     /// Construct with defaults.
     Viewport(Context* context);
     /// Construct with a full rectangle.
-    Viewport(Context* context, Scene* scene, Camera* camera, RenderPath* renderPath = 0);
+    Viewport(Context* context, Scene* scene, Camera* camera, RenderPath* renderPath = nullptr);
     /// Construct with a specified rectangle.
-    Viewport(Context* context, Scene* scene, Camera* camera, const IntRect& rect, RenderPath* renderPath = 0);
+    Viewport(Context* context, Scene* scene, Camera* camera, const IntRect& rect, RenderPath* renderPath = nullptr);
     /// Destruct.
     ~Viewport();
     

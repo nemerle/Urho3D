@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -76,14 +76,25 @@ void AnimatedSprite2D::RegisterObject(Context* context)
 void AnimatedSprite2D::OnSetEnabled()
 {
     StaticSprite2D::OnSetEnabled();
+    bool enabled = IsEnabledEffective();
 
     Scene* scene = GetScene();
     if (scene)
     {
-        if (IsEnabledEffective())
+        if (enabled)
             SubscribeToEvent(scene, E_SCENEPOSTUPDATE, HANDLER(AnimatedSprite2D, HandleScenePostUpdate));
         else
             UnsubscribeFromEvent(scene, E_SCENEPOSTUPDATE);
+    }
+
+    for (unsigned i = 0; i < trackNodes_.size(); ++i)
+    {
+        if (!trackNodes_[i])
+            continue;
+
+        StaticSprite2D* staticSprite = trackNodes_[i]->GetComponent<StaticSprite2D>();
+        if (staticSprite)
+            staticSprite->SetEnabled(enabled);
     }
 }
 
@@ -210,7 +221,7 @@ void AnimatedSprite2D::OnWorldBoundingBoxUpdate()
     boundingBox_ = worldBoundingBox_.Transformed(node_->GetWorldTransform().Inverse());
 }
 
-void AnimatedSprite2D::OnLayerChanged()
+void AnimatedSprite2D::OnDrawOrderChanged()
 {
     for (unsigned i = 0; i < numTracks_; ++i)
     {
@@ -218,21 +229,11 @@ void AnimatedSprite2D::OnLayerChanged()
             continue;
 
         StaticSprite2D* staticSprite = trackNodes_[i]->GetComponent<StaticSprite2D>();
+        if (staticSprite)
         staticSprite->SetLayer(layer_);
     }
 }
 
-void AnimatedSprite2D::OnBlendModeChanged()
-{
-    for (unsigned i = 0; i < numTracks_; ++i)
-    {
-        if (!trackNodes_[i])
-            continue;
-
-        StaticSprite2D* staticSprite = trackNodes_[i]->GetComponent<StaticSprite2D>();
-        staticSprite->SetBlendMode(blendMode_);
-    }
-}
 
 void AnimatedSprite2D::OnFlipChanged()
 {
@@ -249,9 +250,9 @@ void AnimatedSprite2D::OnFlipChanged()
     UpdateAnimation(0.0f);
 }
 
-void AnimatedSprite2D::UpdateVertices()
+void AnimatedSprite2D::UpdateSourceBatches()
 {
-    verticesDirty_ = false;
+    sourceBatchesDirty_ = false;
 }
 
 void AnimatedSprite2D::SetAnimation(Animation2D* animation, LoopMode2D loopMode)
@@ -315,7 +316,10 @@ void AnimatedSprite2D::SetAnimation(Animation2D* animation, LoopMode2D loopMode)
 
             // Create StaticSprite2D component
             if (track.hasSprite_)
+            {
                 staticSprite = trackNode->CreateComponent<StaticSprite2D>();
+                staticSprite->SetEnabled(IsEnabledEffective());
+            }
         }
 
         if (staticSprite)
@@ -345,16 +349,16 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
     currentTime_ += timeStep * speed_;
 
     float time;
-    float animtationLength = animation_->GetLength();
+    float animationLength = animation_->GetLength();
 
     if (looped_)
     {
-        time = fmodf(currentTime_, animtationLength);
+        time = fmodf(currentTime_, animationLength);
         if (time < 0.0f)
             time += animation_->GetLength();
     }
     else
-        time = Clamp(currentTime_, 0.0f, animtationLength);
+        time = Clamp(currentTime_, 0.0f, animationLength);
 
     for (unsigned i = 0; i < numTracks_; ++i)
     {
@@ -446,6 +450,7 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
                 {
                     staticSprite->SetOrderInLayer(orderInLayer_ + nodeInfo.value.zIndex_);
                     staticSprite->SetSprite(nodeInfo.value.sprite_);
+                    staticSprite->SetAlpha(nodeInfo.value.alpha_);
                     staticSprite->SetUseHotSpot(nodeInfo.value.useHotSpot_);
                     staticSprite->SetHotSpot(nodeInfo.value.hotSpot_);
                 }
@@ -453,7 +458,6 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
         }
     }
 
-    MarkForUpdate();
 }
 
 void AnimatedSprite2D::CalculateTimelineWorldTransform(unsigned index)

@@ -1,6 +1,6 @@
 //
 
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@
 // THE SOFTWARE.
 //
 
-#include "Precompiled.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Context.h"
 #include "../Graphics/DebugRenderer.h"
@@ -44,8 +43,7 @@ SourceBatch::SourceBatch() :
     geometry_(nullptr),
     worldTransform_(&Matrix3x4::IDENTITY),
     numWorldTransforms_(1),
-    geometryType_(GEOM_STATIC),
-    overrideView_(false)
+    geometryType_(GEOM_STATIC)
 {
 }
 
@@ -61,6 +59,9 @@ Drawable::Drawable(Context* context, unsigned char drawableFlags) :
     occluder_(false),
     occludee_(true),
     updateQueued_(false),
+    zoneDirty_(false),
+    octant_(nullptr),
+    zone_(nullptr),
     viewMask_(DEFAULT_VIEWMASK),
     lightMask_(DEFAULT_LIGHTMASK),
     shadowMask_(DEFAULT_SHADOWMASK),
@@ -76,10 +77,7 @@ Drawable::Drawable(Context* context, unsigned char drawableFlags) :
     lodBias_(1.0f),
     basePassFlags_(0),
     maxLights_(0),
-    octant_(nullptr),
-    firstLight_(nullptr),
-    zone_(nullptr),
-    zoneDirty_(false)
+    firstLight_(nullptr)
 {
     lights_.reserve(1);
 }
@@ -140,7 +138,7 @@ void Drawable::UpdateBatches(const FrameInfo& frame)
         batches_[i].worldTransform_ = &worldTransform;
     }
 
-    float scale = worldBoundingBox.Size().DotProduct(DOT_SCALE);
+    float scale = worldBoundingBox.size().DotProduct(DOT_SCALE);
     float newLodDistance = frame.camera_->GetLodDistance(distance_, scale, lodBias_);
 
     if (newLodDistance != lodDistance_)
@@ -294,12 +292,6 @@ void Drawable::SetSortValue(float value)
     sortValue_ = value;
 }
 
-void Drawable::SetMinMaxZ(float minZ, float maxZ)
-{
-    minZ_ = minZ;
-    maxZ_ = maxZ;
-}
-
 void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
 {
     if (frameNumber != viewFrameNumber_)
@@ -309,6 +301,10 @@ void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
     }
     if (camera)
         viewCameras_.insert(camera);
+    basePassFlags_ = 0;
+    firstLight_ = nullptr;
+    lights_.clear();
+    vertexLights_.clear();
 }
 
 void Drawable::LimitLights()
@@ -327,12 +323,24 @@ void Drawable::LimitLights()
     lights_.resize(maxLights_);
 }
 
-void Drawable::LimitVertexLights()
+void Drawable::LimitVertexLights(bool removeConvertedLights)
 {
+    if (removeConvertedLights)
+    {
+        for (auto iter =vertexLights_.begin(),fin=vertexLights_.end(); iter!=fin; )
+        {
+            if (!(*iter)->GetPerVertex())
+                iter = vertexLights_.erase(iter);
+            else
+                ++iter;
+        }
+    }
+
     if (vertexLights_.size() <= MAX_VERTEX_LIGHTS)
         return;
 
     const BoundingBox& box = GetWorldBoundingBox();
+
     for (unsigned i = vertexLights_.size() - 1; i < vertexLights_.size(); --i)
         vertexLights_[i]->SetIntensitySortValue(box);
 

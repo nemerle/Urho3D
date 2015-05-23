@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ enum LightType
 static constexpr const float SHADOW_MIN_QUANTIZE = 0.1f;
 static constexpr const float SHADOW_MIN_VIEW = 1.0f;
 static constexpr const int MAX_LIGHT_SPLITS = 6;
-#if !defined(ANDROID) && !defined(IOS) && !defined(RPI)
+#ifdef DESKTOP_GRAPHICS
 static const int MAX_CASCADE_SPLITS = 4;
 #else
 static const int MAX_CASCADE_SPLITS = 1;
@@ -259,8 +259,6 @@ public:
     void SetIntensitySortValue(const BoundingBox& box);
     /// Set light queue used for this light. Called by View.
     void SetLightQueue(LightBatchQueue* queue);
-    /// Return directional light quad transform for either near or far split.
-    Matrix3x4 GetDirLightTransform(Camera* camera, bool getNearQuad = false);
     /// Return light volume model transform.
     const Matrix3x4& GetVolumeTransform(Camera* camera);
     /// Return light queue. Called by View.

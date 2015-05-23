@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Urho3D/Network/Controls.h>
+#include <Urho3D/Input/Controls.h>
 #include <Urho3D/Scene/LogicComponent.h>
 
 using namespace Urho3D;
@@ -53,9 +53,9 @@ public:
     static void RegisterObject(Context* context);
     
     /// Handle startup. Called by LogicComponent base class.
-    virtual void Start();
+    virtual void Start() override;
     /// Handle physics world update. Called by LogicComponent base class.
-    virtual void FixedUpdate(float timeStep);
+    virtual void FixedUpdate(float timeStep) override;
     
     /// Movement controls. Assigned by the main program each frame.
     Controls controls_;
