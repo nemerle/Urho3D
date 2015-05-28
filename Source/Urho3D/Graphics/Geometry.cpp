@@ -107,8 +107,10 @@ bool Geometry::SetDrawRange(PrimitiveType type, unsigned indexStart, unsigned in
     }
     if (indexBuffer_ && indexStart + indexCount > indexBuffer_->GetIndexCount())
     {
-        LOGERROR("Illegal draw range " + String(indexStart) + " to " + String(indexStart + indexCount - 1) + ", index buffer has " +
-            String(indexBuffer_->GetIndexCount()) + " indices");
+        LOGERROR(QString("Illegal draw range %1 to %2, index buffer has %3 indices")
+                 .arg(indexStart)
+                 .arg(indexStart + indexCount - 1)
+                 .arg(indexBuffer_->GetIndexCount()));
         return false;
     }
 
@@ -141,8 +143,10 @@ bool Geometry::SetDrawRange(PrimitiveType type, unsigned indexStart, unsigned in
         // We can allow setting an illegal draw range now if the caller guarantees to resize / fill the buffer later
         if (checkIllegal && indexStart + indexCount > indexBuffer_->GetIndexCount())
         {
-            LOGERROR("Illegal draw range " + String(indexStart) + " to " + String(indexStart + indexCount - 1) +
-                ", index buffer has " + String(indexBuffer_->GetIndexCount()) + " indices");
+            LOGERROR(QString("Illegal draw range %1 to %2, index buffer has %3 indices")
+                     .arg(indexStart)
+                     .arg(indexStart + indexCount - 1)
+                     .arg(indexBuffer_->GetIndexCount()));
             return false;
         }
     }

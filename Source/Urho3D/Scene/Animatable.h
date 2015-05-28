@@ -80,22 +80,22 @@ public:
     /// Set object animation.
     void SetObjectAnimation(ObjectAnimation* objectAnimation);
     /// Set attribute animation.
-    void SetAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode = WM_LOOP, float speed = 1.0f);
+    void SetAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode = WM_LOOP, float speed = 1.0f);
     /// Set attribute animation wrap mode.
-    void SetAttributeAnimationWrapMode(const String& name, WrapMode wrapMode);
+    void SetAttributeAnimationWrapMode(const QString& name, WrapMode wrapMode);
     /// Set attribute animation speed.
-    void SetAttributeAnimationSpeed(const String& name, float speed);
+    void SetAttributeAnimationSpeed(const QString& name, float speed);
 
     /// Return animation enabled.
     bool GetAnimationEnabled() const { return animationEnabled_; }
     /// Return object animation.
     ObjectAnimation* GetObjectAnimation() const;
     /// Return attribute animation.
-    ValueAnimation* GetAttributeAnimation(const String& name) const;
+    ValueAnimation* GetAttributeAnimation(const QString& name) const;
     /// Return attribute animation wrap mode.
-    WrapMode GetAttributeAnimationWrapMode(const String& name) const;
+    WrapMode GetAttributeAnimationWrapMode(const QString& name) const;
     /// Return attribute animation speed.
-    float GetAttributeAnimationSpeed(const String& name) const;
+    float GetAttributeAnimationSpeed(const QString& name) const;
 
     /// Set object animation attribute.
     void SetObjectAnimationAttr(const ResourceRef& value);
@@ -108,7 +108,7 @@ protected:
     /// Handle attribute animation removed.
     virtual void OnAttributeAnimationRemoved() = 0;
     /// Set object attribute animation internal.
-    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed);
+    virtual void SetObjectAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed);
     /// Handle object animation added.
     void OnObjectAnimationAdded(ObjectAnimation* objectAnimation);
     /// Handle object animation removed.
@@ -118,7 +118,7 @@ protected:
     /// Is animated network attribute.
     bool IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const;
     /// Return attribute animation info.
-    AttributeAnimationInfo* GetAttributeAnimationInfo(const String& name) const;
+    AttributeAnimationInfo* GetAttributeAnimationInfo(const QString& name) const;
     /// Handle attribute animation added.
     void HandleAttributeAnimationAdded(StringHash eventType, VariantMap& eventData);
     /// Handle attribute animation removed.
@@ -131,7 +131,7 @@ protected:
     /// Animated network attribute set.
     HashSet<const AttributeInfo*> animatedNetworkAttributes_;
     /// Attribute animation infos.
-    HashMap<String, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
+    HashMap<QString, SharedPtr<AttributeAnimationInfo> > attributeAnimationInfos_;
 };
 
 }

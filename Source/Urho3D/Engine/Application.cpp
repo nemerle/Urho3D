@@ -47,7 +47,7 @@ void RunFrame(void* data)
     static_cast<Engine*>(data)->RunFrame();
 }
 #endif
-    
+
 Application::Application(Context* context) :
     Object(context),
     exitCode_(EXIT_SUCCESS)
@@ -56,7 +56,7 @@ Application::Application(Context* context) :
 
     // Create the Engine, but do not initialize it yet. Subsystems except Graphics & Renderer are registered at this point
     engine_ = new Engine(context);
-    
+
     // Subscribe to log messages so that can show errors if ErrorExit() is called with empty message
     SubscribeToEvent(E_LOGMESSAGE, HANDLER(Application, HandleLogMessage));
 }
@@ -97,7 +97,7 @@ int Application::Run()
         emscripten_set_main_loop_arg(RunFrame, engine_, 0, 1);
         #endif
         #endif
-        
+
         return exitCode_;
     }
     catch (std::bad_alloc&)
@@ -107,7 +107,7 @@ int Application::Run()
     }
 }
 
-void Application::ErrorExit(const String& message)
+void Application::ErrorExit(const QString& message)
 {
     engine_->Exit(); // Close the rendering window
     exitCode_ = EXIT_FAILURE;
@@ -127,15 +127,15 @@ void Application::ErrorExit(const String& message)
 void Application::HandleLogMessage(StringHash eventType, VariantMap& eventData)
 {
     using namespace LogMessage;
-    
+
     if (eventData[P_LEVEL].GetInt() == LOG_ERROR)
     {
         // Strip the timestamp if necessary
-        String error = eventData[P_MESSAGE].GetString();
+        QString error = eventData[P_MESSAGE].GetString();
         unsigned bracketPos = error.indexOf(']');
-        if (bracketPos != String::NPOS)
-            error = error.Substring(bracketPos + 2);
-        
+        if (bracketPos != -1)
+            error = error.mid(bracketPos + 2);
+
         startupErrors_ += error + "\n";
     }
 }

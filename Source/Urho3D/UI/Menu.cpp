@@ -125,7 +125,7 @@ void Menu::OnShowPopup()
 bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanceDefault)
 {
     // Get style override if defined
-    String styleName = source.GetAttribute("style");
+    QString styleName = source.GetAttribute("style");
 
     // Apply the style first, if the style file is available
     if (styleFile)
@@ -145,7 +145,7 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
         if (styleFile)
         {
             // Remember the original applied style
-            String appliedStyle(appliedStyle_);
+            QString appliedStyle(appliedStyle_);
             SetStyle(styleName, styleFile);
             appliedStyle_ = appliedStyle;
         }
@@ -163,7 +163,7 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
     {
         bool internalElem = childElem.GetBool("internal");
         bool popupElem = childElem.GetBool("popup");
-        String typeName = childElem.GetAttribute("type");
+        QString typeName = childElem.GetAttribute("type");
         if (typeName.isEmpty())
             typeName = "UIElement";
         unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
@@ -172,7 +172,7 @@ bool Menu::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanc
         if (!internalElem)
         {
             if (!popupElem)
-                child = CreateChild(typeName, String::EMPTY, index);
+                child = CreateChild(typeName, QString::null, index);
             else
             {
                 // Do not add the popup element as a child even temporarily, as that can break layouts

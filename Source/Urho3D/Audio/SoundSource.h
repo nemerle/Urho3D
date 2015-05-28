@@ -61,7 +61,7 @@ public:
     /// Stop playback.
     void Stop();
     /// Set sound type, determines the master gain group.
-    void SetSoundType(const String& type);
+    void SetSoundType(const QString& type);
     /// Set frequency.
     void SetFrequency(float frequency);
     /// Set gain. 0.0 is silence, 1.0 is full volume.
@@ -80,7 +80,7 @@ public:
     /// Return playback position.
     volatile signed char* GetPlayPosition() const { return position_; }
     /// Return sound type, determines the master gain group.
-    String GetSoundType() const { return soundType_; }
+    QString GetSoundType() const { return soundType_; }
     /// Return playback time position.
     float GetTimePosition() const { return timePosition_; }
     /// Return frequency.
@@ -118,7 +118,7 @@ protected:
     /// Audio subsystem.
     WeakPtr<Audio> audio_;
     /// SoundSource type, determines the master gain group.
-    String soundType_;
+    QString soundType_;
     /// SoundSource type hash.
     StringHash soundTypeHash_;
     /// Frequency.

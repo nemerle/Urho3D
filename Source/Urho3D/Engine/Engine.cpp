@@ -195,115 +195,125 @@ bool Engine::Initialize(const VariantMap& parameters)
     {
         GetSubsystem<WorkQueue>()->CreateThreads(numThreads);
 
-        LOGINFOF("Created %u worker thread%s", numThreads, numThreads > 1 ? "s" : "");
+        LOGINFO(QString("Created %1 worker thread%2").arg(numThreads).arg(numThreads > 1 ? "s" : ""));
     }
 
     // Add resource paths
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-    String resourcePrefixPath = AddTrailingSlash(GetParameter(parameters, "ResourcePrefixPath", getenv("URHO3D_PREFIX_PATH")).GetString());
+    QString resourcePrefixPath = AddTrailingSlash(GetParameter(parameters, "ResourcePrefixPath", getenv("URHO3D_PREFIX_PATH")).GetString());
     if (resourcePrefixPath.isEmpty())
         resourcePrefixPath = fileSystem->GetProgramDir();
     else if (!IsAbsolutePath(resourcePrefixPath))
         resourcePrefixPath = fileSystem->GetProgramDir() + resourcePrefixPath;
-    Vector<String> resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
-    Vector<String> resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
-    Vector<String> autoLoadPaths = GetParameter(parameters, "AutoloadPaths", "Autoload").GetString().split(';');
+    QStringList resourcePaths = GetParameter(parameters, "ResourcePaths", "Data;CoreData").GetString().split(';');
+    QStringList resourcePackages = GetParameter(parameters, "ResourcePackages").GetString().split(';');
+    QStringList autoLoadPaths = GetParameter(parameters, "AutoloadPaths", "Autoload").GetString().split(';');
 
-    for (String & resourcePath : resourcePaths)
+    for (QString & resourcePath : resourcePaths)
     {
         bool success = false;
 
         // If path is not absolute, prefer to add it as a package if possible
         if (!IsAbsolutePath(resourcePath))
         {
-            String packageName = resourcePrefixPath + resourcePath + ".pak";
+            QString packageName = resourcePrefixPath + resourcePath + ".pak";
             if (fileSystem->FileExists(packageName))
                 success = cache->AddPackageFile(packageName);
 
             if (!success)
             {
-                String pathName = resourcePrefixPath + resourcePath;
+                QString pathName = resourcePrefixPath + resourcePath;
                 if (fileSystem->DirExists(pathName))
                     success = cache->AddResourceDir(pathName);
             }
         }
         else
         {
-            String pathName = resourcePath;
+            QString pathName = resourcePath;
             if (fileSystem->DirExists(pathName))
                 success = cache->AddResourceDir(pathName);
         }
 
         if (!success)
         {
-            LOGERRORF("Failed to add resource path '%s', check the documentation on how to set the 'resource prefix path'", resourcePath.CString());
+            LOGERROR(QString("Failed to add resource path '%1', check the documentation on how to set the 'resource prefix path'")
+                     .arg(resourcePath));
             return false;
         }
     }
 
     // Then add specified packages
-    for (String & resourcePackage : resourcePackages)
+    for (QString & resourcePackage : resourcePackages)
     {
-        String packageName = resourcePrefixPath + resourcePackage;
+        QString packageName = resourcePrefixPath + resourcePackage;
         if (fileSystem->FileExists(packageName))
         {
             if (!cache->AddPackageFile(packageName))
             {
-                LOGERRORF("Failed to add resource package '%s', check the documentation on how to set the 'resource prefix path'", resourcePackage.CString());
+                LOGERROR(QString("Failed to add resource package '%1', check the documentation on how to set the 'resource prefix path'")
+                         .arg(resourcePackage));
                 return false;
             }
         }
-        else
-            LOGDEBUGF("Skip specified resource package '%s' as it does not exist, check the documentation on how to set the 'resource prefix path'", resourcePackage.CString());
+        else {
+            LOGDEBUG(QString("Skip specified resource package '%1' as it does not exist, check the documentation on how to set the 'resource prefix path'")
+                     .arg(resourcePackage));
+        }
     }
 
     // Add auto load folders. Prioritize these (if exist) before the default folders
-    for (String & autoLoadPaths_i : autoLoadPaths)
+    for (QString & autoLoadPaths_i : autoLoadPaths)
     {
-        String autoLoadPath(autoLoadPaths_i);
+        QString autoLoadPath(autoLoadPaths_i);
         if (!IsAbsolutePath(autoLoadPath))
             autoLoadPath = resourcePrefixPath + autoLoadPath;
 
         if (fileSystem->DirExists(autoLoadPath))
         {
             // Add all the subdirs (non-recursive) as resource directory
-            Vector<String> subdirs;
+            QStringList subdirs;
             fileSystem->ScanDir(subdirs, autoLoadPath, "*", SCAN_DIRS, false);
-            for (String & subdir : subdirs)
+            for (QString & subdir : subdirs)
             {
-                String dir = subdir;
+                QString dir = subdir;
                 if (dir.startsWith("."))
                     continue;
 
-                String autoResourceDir = autoLoadPath + "/" + dir;
+                QString autoResourceDir = autoLoadPath + "/" + dir;
                 if (!cache->AddResourceDir(autoResourceDir, 0))
                 {
-                    LOGERRORF("Failed to add resource directory '%s' in autoload path %s, check the documentation on how to set the 'resource prefix path'", dir.CString(), autoLoadPaths_i.CString());
+                    LOGERROR(QString("Failed to add resource directory '%1' in autoload path %2, check the documentation on how to set the 'resource prefix path'")
+                             .arg(dir)
+                             .arg(autoLoadPaths_i));
                     return false;
                 }
             }
 
             // Add all the found package files (non-recursive)
-            Vector<String> paks;
+            QStringList paks;
             fileSystem->ScanDir(paks, autoLoadPath, "*.pak", SCAN_FILES, false);
-            for (String & paks_y : paks)
+            for (QString & paks_y : paks)
             {
-                String pak = paks_y;
+                QString pak = paks_y;
                 if (pak.startsWith("."))
                     continue;
 
-                String autoPackageName = autoLoadPath + "/" + pak;
+                QString autoPackageName = autoLoadPath + "/" + pak;
                 if (!cache->AddPackageFile(autoPackageName, 0))
                 {
-                    LOGERRORF("Failed to add package file '%s' in autoload path %s, check the documentation on how to set the 'resource prefix path'", pak.CString(), autoLoadPaths_i.CString());
+                    LOGERROR(QString("Failed to add package file '%1' in autoload path %2, check the documentation on how to set the 'resource prefix path'")
+                             .arg(pak)
+                             .arg(autoLoadPaths_i));
                     return false;
                 }
             }
         }
-        else
-            LOGDEBUGF("Skipped autoload path '%s' as it does not exist, check the documentation on how to set the 'resource prefix path'", autoLoadPaths_i.CString());
+        else {
+            LOGDEBUG(QString("Skipped autoload path '%1' as it does not exist, check the documentation on how to set the 'resource prefix path'")
+                     .arg(autoLoadPaths_i));
+        }
     }
 
     // Initialize graphics & audio output
@@ -315,7 +325,7 @@ bool Engine::Initialize(const VariantMap& parameters)
         if (HasParameter(parameters, "ExternalWindow"))
             graphics->SetExternalWindow(GetParameter(parameters, "ExternalWindow").GetVoidPtr());
         graphics->SetWindowTitle(GetParameter(parameters, "WindowTitle", "Urho3D").GetString());
-        graphics->SetWindowIcon(cache->GetResource<Image>(GetParameter(parameters, "WindowIcon", String::EMPTY).GetString()));
+        graphics->SetWindowIcon(cache->GetResource<Image>(GetParameter(parameters, "WindowIcon", QString()).GetString()));
         graphics->SetFlushGPU(GetParameter(parameters, "FlushGPU", false).GetBool());
         graphics->SetOrientations(GetParameter(parameters, "Orientations", "LandscapeLeft LandscapeRight").GetString());
 
@@ -340,7 +350,7 @@ bool Engine::Initialize(const VariantMap& parameters)
             return false;
 
         if (HasParameter(parameters, "DumpShaders"))
-            graphics->BeginDumpShaders(GetParameter(parameters, "DumpShaders", String::EMPTY).GetString());
+            graphics->BeginDumpShaders(GetParameter(parameters, "DumpShaders", QString()).GetString());
         if (HasParameter(parameters, "RenderPath"))
             renderer->SetDefaultRenderPath(cache->GetResource<XMLFile>(GetParameter(parameters, "RenderPath").GetString()));
 
@@ -556,15 +566,17 @@ void Engine::DumpResources(bool dumpFileName)
 
             if (num)
             {
-                LOGRAW("Resource type " + MAP_VALUE(resources.begin())->GetTypeName() +
-                    ": count " + String(num) + " memory use " + String(memoryUse) + "\n");
+                LOGRAW(QString("Resource type %1: count %2 memory use %3\n")
+                       .arg(MAP_VALUE(resources.begin())->GetTypeName())
+                       .arg(num)
+                       .arg(memoryUse));
             }
         }
     }
 
     if (!dumpFileName)
     {
-        LOGRAW("Total memory use of all resources " + String(cache->GetTotalMemoryUse()) + "\n\n");
+        LOGRAW(QString("Total memory use of all resources %1\n\n").arg(cache->GetTotalMemoryUse()));
     }
     #endif
 }
@@ -592,9 +604,9 @@ void Engine::DumpMemory()
         if (block->nBlockUse > 0)
         {
             if (block->szFileName)
-                LOGRAW("Block " + String((int)block->lRequest) + ": " + String(block->nDataSize) + " bytes, file " + String(block->szFileName) + " line " + String(block->nLine) + "\n");
+                LOGRAW("Block " + String::number((int)block->lRequest) + ": " + String::number(block->nDataSize) + " bytes, file " + String::number(block->szFileName) + " line " + String(block->nLine) + "\n");
             else
-                LOGRAW("Block " + String((int)block->lRequest) + ": " + String(block->nDataSize) + " bytes\n");
+                LOGRAW("Block " + String::number((int)block->lRequest) + ": " + String::number(block->nDataSize) + " bytes\n");
 
             total += block->nDataSize;
             ++blocks;
@@ -602,7 +614,7 @@ void Engine::DumpMemory()
         block = block->pBlockHeaderPrev;
     }
 
-    LOGRAW("Total allocated memory " + String(total) + " bytes in " + String(blocks) + " blocks\n\n");
+    LOGRAW("Total allocated memory " + String::number(total) + " bytes in " + String::number(blocks) + " blocks\n\n");
     #else
     LOGRAW("DumpMemory() supported on MSVC debug mode only\n\n");
     #endif
@@ -668,7 +680,7 @@ void Engine::ApplyFrameLimit()
 
         for (;;)
         {
-            elapsed = frameTimer_.GetUSec();
+            elapsed = frameTimer_.GetUSecS();
             if (elapsed >= targetMax)
                 break;
 
@@ -714,7 +726,7 @@ void Engine::ApplyFrameLimit()
         timeStep_ = lastTimeSteps_.back();
 }
 
-VariantMap Engine::ParseParameters(const Vector<String>& arguments)
+VariantMap Engine::ParseParameters(const QStringList& arguments)
 {
     VariantMap ret;
 
@@ -722,8 +734,8 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
     {
         if (arguments[i].length() > 1 && arguments[i][0] == '-')
         {
-            String argument = arguments[i].Substring(1).toLower();
-            String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
+            QString argument = arguments[i].mid(1).toLower();
+            QString value = i + 1 < arguments.size() ? arguments[i + 1] : QString::null;
 
             if (argument == "headless")
                 ret["Headless"] = true;
@@ -772,7 +784,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ret["LogQuiet"] = true;
             else if (argument == "log" && !value.isEmpty())
             {
-                int logLevel = GetStringListIndex(value.CString(), logLevelPrefixes, -1);
+                int logLevel = GetStringListIndex(value, logLevelPrefixes, -1);
                 if (logLevel != -1)
                 {
                     ret["LogLevel"] = logLevel;
@@ -865,13 +877,13 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
     return ret;
 }
 
-bool Engine::HasParameter(const VariantMap& parameters, const String& parameter)
+bool Engine::HasParameter(const VariantMap& parameters, const QString& parameter)
 {
     StringHash nameHash(parameter);
     return parameters.find(nameHash) != parameters.end();
 }
 
-const Variant& Engine::GetParameter(const VariantMap& parameters, const String& parameter, const Variant& defaultValue)
+const Variant& Engine::GetParameter(const VariantMap& parameters, const QString& parameter, const Variant& defaultValue)
 {
     StringHash nameHash(parameter);
     VariantMap::const_iterator i = parameters.find(nameHash);

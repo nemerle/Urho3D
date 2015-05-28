@@ -36,12 +36,12 @@ static PListValue EMPTY_VALUE;
 static PListValueMap EMPTY_VALUEMAP;
 static PListValueVector EMPTY_VALUEVECTOR;
 
-PListValue& PListValueMap::operator [](const String& key)
+PListValue& PListValueMap::operator [](const QString& key)
 {
-    return HashMap<String, PListValue>::operator [](key);
+    return HashMap<QString, PListValue>::operator [](key);
 }
 
-const PListValue& PListValueMap::operator [](const String& key) const
+const PListValue& PListValueMap::operator [](const QString& key) const
 {
     const_iterator i = find(key);
     if (i == end())
@@ -69,7 +69,7 @@ PListValue::PListValue(float value) : type_(PLVT_NONE)
     SetFloat(value);
 }
 
-PListValue::PListValue(const String& value) : type_(PLVT_NONE)
+PListValue::PListValue(const QString& value) : type_(PLVT_NONE)
 {
     SetString(value);
 }
@@ -156,13 +156,13 @@ void PListValue::SetFloat(float value)
     float_ = value;
 }
 
-void PListValue::SetString(const String& value)
+void PListValue::SetString(const QString& value)
 {
     if (type_ != PLVT_STRING)
     {
         Reset();
         type_ = PLVT_STRING;
-        string_ = new String();
+        string_ = new QString();
     }
 
     *string_ = value;
@@ -207,9 +207,9 @@ float PListValue::GetFloat() const
     return type_ == PLVT_FLOAT? float_ : 0.0f;
 }
 
-const String& PListValue::GetString() const
+const QString& PListValue::GetString() const
 {
-    return type_ == PLVT_STRING ? * string_ : String::EMPTY;
+    return type_ == PLVT_STRING ? * string_ : s_dummy;
 }
 
 IntRect PListValue::GetIntRect() const
@@ -218,7 +218,7 @@ IntRect PListValue::GetIntRect() const
         return IntRect::ZERO;
 
     int x, y, w, h;
-    sscanf(string_->CString(), "{{%d,%d},{%d,%d}}", &x, &y, &w, &h);
+    sscanf(qPrintable(*string_), "{{%d,%d},{%d,%d}}", &x, &y, &w, &h);
     return IntRect(x, y, x + w, y + h);
 }
 
@@ -228,7 +228,7 @@ IntVector2 PListValue::GetIntVector2() const
         return IntVector2::ZERO;
 
     int x, y;
-    sscanf(string_->CString(), "{%d,%d}", &x, &y);
+    sscanf(qPrintable(*string_), "{%d,%d}", &x, &y);
     return IntVector2(x, y);
 }
 
@@ -341,7 +341,7 @@ bool PListFile::LoadDict(PListValueMap& dict, const XMLElement& dictElem)
     XMLElement valueElem = keyElem.GetNext();
     while (keyElem && valueElem)
     {
-        String key = keyElem.GetValue();
+        QString key = keyElem.GetValue();
         XMLElement valueElem = keyElem.GetNext();
 
         PListValue value;
@@ -377,7 +377,7 @@ bool PListFile::LoadArray(PListValueVector& array, const XMLElement& arrayElem)
 
 bool PListFile::LoadValue(PListValue& value, XMLElement valueElem)
 {
-    String valueType = valueElem.GetName();
+    QString valueType = valueElem.GetName();
 
     if (valueType == "string")
         value.SetString(valueElem.GetValue());

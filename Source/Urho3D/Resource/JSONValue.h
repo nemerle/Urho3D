@@ -77,102 +77,102 @@ public:
 
     // JSON object value functions
     /// Create a child value.
-    JSONValue CreateChild(const String& name, JSONValueType valueType = JSON_OBJECT);
+    JSONValue CreateChild(const QString& name, JSONValueType valueType = JSON_OBJECT);
     /// Return a child value by name. Return null if not exist.
-    JSONValue GetChild(const String& name, JSONValueType valueType = JSON_ANY) const;
+    JSONValue GetChild(const QString& name, JSONValueType valueType = JSON_ANY) const;
     /// Set int.
-    void SetInt(const String& name, int value);
+    void SetInt(const QString& name, int value);
     /// Set bool.
-    void SetBool(const String& name, bool value);
+    void SetBool(const QString& name, bool value);
     /// Set float.
-    void SetFloat(const String& name, float value);
+    void SetFloat(const QString& name, float value);
     /// Set vector2.
-    void SetVector2(const String& name, const Vector2& value);
+    void SetVector2(const QString& name, const Vector2& value);
     /// Set vector3.
-    void SetVector3(const String& name, const Vector3& value);
+    void SetVector3(const QString& name, const Vector3& value);
     /// Set vector4.
-    void SetVector4(const String& name, const Vector4& value);
+    void SetVector4(const QString& name, const Vector4& value);
     /// Set vector variant.
-    void SetVectorVariant(const String& name, const Variant& value);
+    void SetVectorVariant(const QString& name, const Variant& value);
     /// Set quaternion.
-    void SetQuaternion(const String& name, const Quaternion& value);
+    void SetQuaternion(const QString& name, const Quaternion& value);
     /// Set color.
-    void SetColor(const String& name, const Color& value);
+    void SetColor(const QString& name, const Color& value);
     /// Set string.
-    void SetString(const String& name, const String& value);
+    void SetString(const QString& name, const QString& value);
     /// Set buffer.
-    void SetBuffer(const String& name, const void* data, unsigned size);
+    void SetBuffer(const QString& name, const void* data, unsigned size);
     /// Set buffer.
-    void SetBuffer(const String& name, const PODVector<unsigned char>& value);
+    void SetBuffer(const QString& name, const PODVector<unsigned char>& value);
     /// Set resource ref.
-    void SetResourceRef(const String& name, const ResourceRef& value);
+    void SetResourceRef(const QString& name, const ResourceRef& value);
     /// Set resource ref list.
-    void SetResourceRefList(const String& name, const ResourceRefList& value);
+    void SetResourceRefList(const QString& name, const ResourceRefList& value);
     /// Set int rect.
-    void SetIntRect(const String& name, const IntRect& value);
+    void SetIntRect(const QString& name, const IntRect& value);
     /// Set int vector2.
-    void SetIntVector2(const String& name, const IntVector2& value);
+    void SetIntVector2(const QString& name, const IntVector2& value);
     /// Set matrix3.
-    void SetMatrix3(const String& name, const Matrix3& value);
+    void SetMatrix3(const QString& name, const Matrix3& value);
     /// Set matrix3x4.
-    void SetMatrix3x4(const String& name, const Matrix3x4& value);
+    void SetMatrix3x4(const QString& name, const Matrix3x4& value);
     /// Set matrix4.
-    void SetMatrix4(const String& name, const Matrix4& value);
+    void SetMatrix4(const QString& name, const Matrix4& value);
     /// Set variant (include type).
-    void SetVariant(const String& name, const Variant& value);
+    void SetVariant(const QString& name, const Variant& value);
     /// Set variant value.
-    void SetVariantValue(const String& name, const Variant& value);
+    void SetVariantValue(const QString& name, const Variant& value);
 
     /// Is object type.
     bool IsObject() const;
     /// Return child names (only object and array child name).
-    Vector<String> GetChildNames() const;
+    QStringList GetChildNames() const;
     /// Return member value names.
-    Vector<String> GetValueNames() const;
+    QStringList GetValueNames() const;
     /// Return int.
-    int GetInt(const String& name) const;
+    int GetInt(const QString& name) const;
     /// Return bool.
-    bool GetBool(const String& name) const;
+    bool GetBool(const QString& name) const;
     /// Return float.
-    float GetFloat(const String& name) const;
+    float GetFloat(const QString& name) const;
     /// Return vector2.
-    Vector2 GetVector2(const String& name) const;
+    Vector2 GetVector2(const QString& name) const;
     /// Return vector3.
-    Vector3 GetVector3(const String& name) const;
+    Vector3 GetVector3(const QString& name) const;
     /// Return vector4.
-    Vector4 GetVector4(const String& name) const;
+    Vector4 GetVector4(const QString& name) const;
     /// Return vector variant.
-    Variant GetVectorVariant(const String& name) const;
+    Variant GetVectorVariant(const QString& name) const;
     /// Return quaternion.
-    Quaternion GetQuaternion(const String& name) const;
+    Quaternion GetQuaternion(const QString& name) const;
     /// Return color.
-    Color GetColor(const String& name) const;
+    Color GetColor(const QString& name) const;
     /// Return string.
-    String GetString(const String& name) const;
+    QString GetString(const QString& name) const;
     /// Return C string.
-    const char* GetCString(const String& name) const;
+    const char* GetCString(const QString& name) const;
     /// Return buffer.
-    PODVector<unsigned char> GetBuffer(const String& name) const;
+    PODVector<unsigned char> GetBuffer(const QString& name) const;
     /// Return buffer.
-    bool GetBuffer(const String& name, void* dest, unsigned size) const;
+    bool GetBuffer(const QString& name, void* dest, unsigned size) const;
     /// Return resource ref.
-    ResourceRef GetResourceRef(const String& name) const;
+    ResourceRef GetResourceRef(const QString& name) const;
     /// Return resource ref list.
-    ResourceRefList GetResourceRefList(const String& name) const;
+    ResourceRefList GetResourceRefList(const QString& name) const;
     /// Return int rect.
-    IntRect GetIntRect(const String& name) const;
+    IntRect GetIntRect(const QString& name) const;
     /// Return int vector2.
-    IntVector2 GetIntVector2(const String& name) const;
+    IntVector2 GetIntVector2(const QString& name) const;
     /// Return matrix3.
-    Matrix3 GetMatrix3(const String& name) const;
+    Matrix3 GetMatrix3(const QString& name) const;
     /// Return matrix3x4.
-    Matrix3x4 GetMatrix3x4(const String& name) const;
+    Matrix3x4 GetMatrix3x4(const QString& name) const;
     /// Return matrix4.
-    Matrix4 GetMatrix4(const String& name) const;
+    Matrix4 GetMatrix4(const QString& name) const;
     /// Return variant.
-    Variant GetVariant(const String& name) const;
+    Variant GetVariant(const QString& name) const;
     /// Return variant value.
-    Variant GetVariantValue(const String& name, VariantType type) const;
+    Variant GetVariantValue(const QString& name, VariantType type) const;
 
     // JSON array value functions
     /// Create a child value in array.
@@ -198,7 +198,7 @@ public:
     /// Add color.
     void AddColor(const Color& value);
     /// Add string.
-    void AddString(const String& value);
+    void AddString(const QString& value);
     /// Add buffer.
     void AddBuffer(const PODVector<unsigned char>& value);
     /// Add buffer.
@@ -244,7 +244,7 @@ public:
     /// Return color.
     Color GetColor(unsigned index) const;
     /// Return string.
-    String GetString(unsigned index) const;
+    QString GetString(unsigned index) const;
     /// Return C string.
     const char* GetCString(unsigned index) const;
     /// Return buffer.
@@ -275,9 +275,9 @@ public:
 
 private:
     /// Set JSON value for object type.
-    void AddMember(const String& name, rapidjson::Value& jsonValue);
+    void AddMember(const QString& name, rapidjson::Value& jsonValue);
     /// Return JSON value by name for object type.
-    rapidjson::Value& GetMember(const String& name) const;
+    rapidjson::Value& GetMember(const QString& name) const;
     /// Add JSON value to array type.
     void AddMember(rapidjson::Value& jsonValue);
     /// Return JSON value by index for array type.

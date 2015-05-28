@@ -32,7 +32,7 @@
 
 namespace Urho3D
 {
-
+static const QString s_dummy_str;
 static const char* commandTypeNames[] =
 {
     "none",
@@ -52,7 +52,9 @@ static const char* sortModeNames[] =
     nullptr
 };
 
-TextureUnit ParseTextureUnitName(String name);
+extern const char* blendModeNames[];
+
+TextureUnit ParseTextureUnitName(QString name);
 
 void RenderTargetInfo::Load(const XMLElement& element)
 {
@@ -63,7 +65,7 @@ void RenderTargetInfo::Load(const XMLElement& element)
     if (element.HasAttribute("cubemap"))
         cubemap_ = element.GetBool("cubemap");
 
-    String formatName = element.GetAttribute("format");
+    QString formatName = element.GetAttribute("format");
     format_ = Graphics::GetFormat(formatName);
 
     if (element.HasAttribute("filter"))
@@ -103,7 +105,7 @@ void RenderTargetInfo::Load(const XMLElement& element)
 
 void RenderPathCommand::Load(const XMLElement& element)
 {
-    type_ = (RenderCommandType)GetStringListIndex(element.GetAttributeLower("type").CString(), commandTypeNames, CMD_NONE);
+    type_ = (RenderCommandType)GetStringListIndex(element.GetAttributeLower("type"), commandTypeNames, CMD_NONE);
     tag_ = element.GetAttribute("tag");
     if (element.HasAttribute("enabled"))
         enabled_ = element.GetBool("enabled");
@@ -135,7 +137,7 @@ void RenderPathCommand::Load(const XMLElement& element)
 
     case CMD_SCENEPASS:
         pass_ = element.GetAttribute("pass");
-        sortMode_ = (RenderCommandSortMode)GetStringListIndex(element.GetAttributeLower("sort").CString(), sortModeNames, SORT_FRONTTOBACK);
+        sortMode_ = (RenderCommandSortMode)GetStringListIndex(element.GetAttributeLower("sort"), sortModeNames, SORT_FRONTTOBACK);
         if (element.HasAttribute("marktostencil"))
             markToStencil_ = element.GetBool("marktostencil");
         if (element.HasAttribute("vertexlights"))
@@ -157,10 +159,15 @@ void RenderPathCommand::Load(const XMLElement& element)
 
         if (type_ == CMD_QUAD)
         {
+            if (element.HasAttribute("blend"))
+            {
+                QString blend = element.GetAttributeLower("blend");
+                blendMode_ = ((BlendMode)GetStringListIndex(blend, blendModeNames, BLEND_REPLACE));
+            }
             XMLElement parameterElem = element.GetChild("parameter");
             while (parameterElem)
             {
-                String name = parameterElem.GetAttribute("name");
+                QString name = parameterElem.GetAttribute("name");
                 shaderParameters_[name] = Material::ParseShaderParameterValue(parameterElem.GetAttribute("value"));
                 parameterElem = parameterElem.GetNext("parameter");
             }
@@ -173,7 +180,7 @@ void RenderPathCommand::Load(const XMLElement& element)
 
     // By default use 1 output, which is the viewport
     outputs_.resize(1);
-    outputs_[0] = MakePair(String("viewport"), FACE_POSITIVE_X);
+    outputs_[0] = MakePair(QString("viewport"), FACE_POSITIVE_X);
     if (element.HasAttribute("output"))
         outputs_[0].first_ = element.GetAttribute("output");
     if (element.HasAttribute("face"))
@@ -203,7 +210,7 @@ void RenderPathCommand::Load(const XMLElement& element)
             unit = ParseTextureUnitName(textureElem.GetAttribute("unit"));
         if (unit < MAX_TEXTURE_UNITS)
         {
-            String name = textureElem.GetAttribute("name");
+            QString name = textureElem.GetAttribute("name");
             textureNames_[unit] = name;
         }
 
@@ -211,18 +218,18 @@ void RenderPathCommand::Load(const XMLElement& element)
     }
 }
 
-void RenderPathCommand::SetTextureName(TextureUnit unit, const String& name)
+void RenderPathCommand::SetTextureName(TextureUnit unit, const QString& name)
 {
     if (unit < MAX_TEXTURE_UNITS)
         textureNames_[unit] = name;
 }
 
-void RenderPathCommand::SetShaderParameter(const String& name, const Variant& value)
+void RenderPathCommand::SetShaderParameter(const QString& name, const Variant& value)
 {
     shaderParameters_[name] = value;
 }
 
-void RenderPathCommand::RemoveShaderParameter(const String& name)
+void RenderPathCommand::RemoveShaderParameter(const QString& name)
 {
     shaderParameters_.remove(name);
 }
@@ -233,7 +240,7 @@ void RenderPathCommand::SetNumOutputs(unsigned num)
     outputs_.resize(num);
 }
 
-void RenderPathCommand::SetOutput(unsigned index, const String& name, CubeMapFace face)
+void RenderPathCommand::SetOutput(unsigned index, const QString& name, CubeMapFace face)
 {
     if (index < outputs_.size())
         outputs_[index] = MakePair(name, face);
@@ -241,7 +248,7 @@ void RenderPathCommand::SetOutput(unsigned index, const String& name, CubeMapFac
         outputs_.push_back(MakePair(name, face));
 }
 
-void RenderPathCommand::SetOutputName(unsigned index, const String& name)
+void RenderPathCommand::SetOutputName(unsigned index, const QString& name)
 {
     if (index < outputs_.size())
         outputs_[index].first_ = name;
@@ -254,27 +261,27 @@ void RenderPathCommand::SetOutputFace(unsigned index, CubeMapFace face)
     if (index < outputs_.size())
         outputs_[index].second_ = face;
     else if (index == outputs_.size() && index < MAX_RENDERTARGETS)
-        outputs_.push_back(MakePair(String::EMPTY, face));
+        outputs_.push_back(MakePair(QString(), face));
 }
-void RenderPathCommand::SetDepthStencilName(const String& name)
+void RenderPathCommand::SetDepthStencilName(const QString& name)
 {
     depthStencilName_ = name;
 }
 
-const String& RenderPathCommand::GetTextureName(TextureUnit unit) const
+const QString& RenderPathCommand::GetTextureName(TextureUnit unit) const
 {
-    return unit < MAX_TEXTURE_UNITS ? textureNames_[unit] : String::EMPTY;
+    return unit < MAX_TEXTURE_UNITS ? textureNames_[unit] : s_dummy_str;
 }
 
-const Variant& RenderPathCommand::GetShaderParameter(const String& name) const
+const Variant& RenderPathCommand::GetShaderParameter(const QString& name) const
 {
     VariantMap::const_iterator i = shaderParameters_.find(name);
     return i != shaderParameters_.end() ? MAP_VALUE(i) : Variant::EMPTY;
 }
 
-const String& RenderPathCommand::GetOutputName(unsigned index) const
+const QString& RenderPathCommand::GetOutputName(unsigned index) const
 {
-    return index < outputs_.size() ? outputs_[index].first_ : String::EMPTY;
+    return index < outputs_.size() ? outputs_[index].first_ : s_dummy_str;
 }
 
 CubeMapFace RenderPathCommand::GetOutputFace(unsigned index) const
@@ -340,32 +347,32 @@ bool RenderPath::Append(XMLFile* file)
     return true;
 }
 
-void RenderPath::SetEnabled(const String& tag, bool active)
+void RenderPath::SetEnabled(const QString& tag, bool active)
 {
     for (unsigned i = 0; i < renderTargets_.size(); ++i)
     {
-        if (!renderTargets_[i].tag_.Compare(tag, false))
+        if (!renderTargets_[i].tag_.compare(tag, Qt::CaseInsensitive))
             renderTargets_[i].enabled_ = active;
     }
 
     for (unsigned i = 0; i < commands_.size(); ++i)
     {
-        if (!commands_[i].tag_.Compare(tag, false))
+        if (!commands_[i].tag_.compare(tag, Qt::CaseInsensitive))
             commands_[i].enabled_ = active;
     }
 }
 
-void RenderPath::ToggleEnabled(const String& tag)
+void RenderPath::ToggleEnabled(const QString& tag)
 {
     for (unsigned i = 0; i < renderTargets_.size(); ++i)
     {
-        if (!renderTargets_[i].tag_.Compare(tag, false))
+        if (!renderTargets_[i].tag_.compare(tag, Qt::CaseInsensitive))
             renderTargets_[i].enabled_ = !renderTargets_[i].enabled_;
     }
 
     for (unsigned i = 0; i < commands_.size(); ++i)
     {
-        if (!commands_[i].tag_.Compare(tag, false))
+        if (!commands_[i].tag_.compare(tag, Qt::CaseInsensitive))
             commands_[i].enabled_ = !commands_[i].enabled_;
     }
 }
@@ -388,11 +395,11 @@ void RenderPath::RemoveRenderTarget(unsigned index)
     renderTargets_.erase(renderTargets_.begin()+index);
 }
 
-void RenderPath::RemoveRenderTarget(const String& name)
+void RenderPath::RemoveRenderTarget(const QString& name)
 {
     for (unsigned i = 0; i < renderTargets_.size(); ++i)
     {
-        if (!renderTargets_[i].name_.Compare(name, false))
+        if (!renderTargets_[i].name_.compare(name, Qt::CaseInsensitive))
         {
             renderTargets_.erase(renderTargets_.begin()+i);
             return;
@@ -400,11 +407,11 @@ void RenderPath::RemoveRenderTarget(const String& name)
     }
 }
 
-void RenderPath::RemoveRenderTargets(const String& tag)
+void RenderPath::RemoveRenderTargets(const QString& tag)
 {
     for (unsigned i = renderTargets_.size() - 1; i < renderTargets_.size(); --i)
     {
-        if (!renderTargets_[i].tag_.Compare(tag, false))
+        if (!renderTargets_[i].tag_.compare(tag, Qt::CaseInsensitive))
             renderTargets_.erase(renderTargets_.begin()+i);
     }
 }
@@ -432,16 +439,16 @@ void RenderPath::RemoveCommand(unsigned index)
     commands_.erase(commands_.begin()+index);
 }
 
-void RenderPath::RemoveCommands(const String& tag)
+void RenderPath::RemoveCommands(const QString& tag)
 {
     for (unsigned i = commands_.size() - 1; i < commands_.size(); --i)
     {
-        if (!commands_[i].tag_.Compare(tag, false))
+        if (!commands_[i].tag_.compare(tag, Qt::CaseInsensitive))
             commands_.erase(commands_.begin()+i);
     }
 }
 
-void RenderPath::SetShaderParameter(const String& name, const Variant& value)
+void RenderPath::SetShaderParameter(const QString& name, const Variant& value)
 {
     StringHash nameHash(name);
 
@@ -453,7 +460,7 @@ void RenderPath::SetShaderParameter(const String& name, const Variant& value)
     }
 }
 
-const Variant& RenderPath::GetShaderParameter(const String& name) const
+const Variant& RenderPath::GetShaderParameter(const QString& name) const
 {
     StringHash nameHash(name);
 

@@ -52,7 +52,7 @@ public:
     {
         if (name)
         {
-            unsigned nameLength = String::CStringLength(name);
+            unsigned nameLength = QLatin1String(name).size();
             name_ = new char[nameLength + 1];
             memcpy(name_, name, nameLength + 1);
         }
@@ -80,7 +80,7 @@ public:
     /// End timing.
     void End()
     {
-        long long time = timer_.GetUSec();
+        long long time = timer_.GetUSecS();
         if (time > maxTime_)
             maxTime_ = time;
         time_ += time;
@@ -124,7 +124,7 @@ public:
     {
         for (ProfilerBlock* elem : children_)
         {
-            if (!String::Compare(elem->name_, name, true))
+            if (!QString(elem->name_).compare(name))
                 return elem;
         }
 
@@ -211,7 +211,7 @@ public:
     void BeginInterval();
 
     /// Return profiling data as text output.
-    String GetData(bool showUnused = false, bool showTotal = false, unsigned maxDepth = M_MAX_UNSIGNED) const;
+    QString GetData(bool showUnused = false, bool showTotal = false, unsigned maxDepth = M_MAX_UNSIGNED) const;
     /// Return the current profiling block.
     const ProfilerBlock* GetCurrentBlock() { return current_; }
     /// Return the root profiling block.
@@ -219,7 +219,7 @@ public:
 
 private:
     /// Return profiling data as text output for a specified profiling block.
-    void GetData(ProfilerBlock* block, String& output, unsigned depth, unsigned maxDepth, bool showUnused, bool showTotal) const;
+    void GetData(ProfilerBlock* block, QString& output, unsigned depth, unsigned maxDepth, bool showUnused, bool showTotal) const;
 
     /// Current profiling block.
     ProfilerBlock* current_;

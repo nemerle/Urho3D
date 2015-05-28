@@ -51,7 +51,7 @@ private:
     void HandleScriptReloadFailed(StringHash eventType, VariantMap& eventData);
 
     /// Script file name.
-    String scriptFileName_;
+    QString scriptFileName_;
     
 #ifdef URHO3D_ANGELSCRIPT
     /// Script file.

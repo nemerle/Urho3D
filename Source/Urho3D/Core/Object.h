@@ -36,15 +36,15 @@ typedef LinkedList<EventHandler *>::const_iterator cilEventHandler;
 #define OBJECT(typeName) \
     public: \
         typedef typeName ClassName; \
-        virtual Urho3D::StringHash GetType() const override { return GetTypeStatic(); } \
-        virtual Urho3D::StringHash GetBaseType() const override { return GetBaseTypeStatic(); } \
-        virtual const Urho3D::String& GetTypeName() const override { return GetTypeNameStatic(); } \
-        static Urho3D::StringHash GetTypeStatic() { static const Urho3D::StringHash typeStatic(#typeName); return typeStatic; } \
-        static const Urho3D::String& GetTypeNameStatic() { static const Urho3D::String typeNameStatic(#typeName); return typeNameStatic; } \
+        virtual StringHash GetType() const override { return GetTypeStatic(); } \
+        virtual StringHash GetBaseType() const override { return GetBaseTypeStatic(); } \
+        virtual const QString& GetTypeName() const override { return GetTypeNameStatic(); } \
+        static StringHash GetTypeStatic() { static const StringHash typeStatic(#typeName); return typeStatic; } \
+        static const QString& GetTypeNameStatic() { static const QString typeNameStatic(#typeName); return typeNameStatic; } \
 
 #define BASEOBJECT(typeName) \
     public: \
-        static Urho3D::StringHash GetBaseTypeStatic() { static const Urho3D::StringHash baseTypeStatic(#typeName); return baseTypeStatic; } \
+        static StringHash GetBaseTypeStatic() { static const StringHash baseTypeStatic(#typeName); return baseTypeStatic; } \
 
 /// Base class for objects with type identification, subsystem access and event sending/receiving capability.
 class URHO3D_API Object : public RefCounted
@@ -60,11 +60,11 @@ public:
     virtual ~Object();
 
     /// Return type hash.
-    virtual Urho3D::StringHash GetType() const = 0;
+    virtual StringHash GetType() const = 0;
     /// Return base class type hash.
-    virtual Urho3D::StringHash GetBaseType() const = 0;
+    virtual StringHash GetBaseType() const = 0;
     /// Return type name.
-    virtual const Urho3D::String& GetTypeName() const = 0;
+    virtual const QString& GetTypeName() const = 0;
     /// Handle event.
     virtual void OnEvent(Object* sender, StringHash eventType, VariantMap& eventData);
 
@@ -106,7 +106,7 @@ public:
     /// Template version of returning a subsystem.
     template <class T> T* GetSubsystem() const;
     /// Return object category. Categories are (optionally) registered along with the object factory. Return an empty string if the object category is not registered.
-    const String& GetCategory() const;
+    const QString& GetCategory() const;
 
 protected:
     /// Execution context.
@@ -149,7 +149,7 @@ public:
     /// Return base type hash of objects created by this factory.
     StringHash GetBaseType() const { return baseType_; }
     /// Return type name of objects created by this factory.
-    const String& GetTypeName() const { return typeName_; }
+    const QString& GetTypeName() const { return typeName_; }
 
 protected:
     /// Execution context.
@@ -159,7 +159,7 @@ protected:
     /// Object base type.
     StringHash baseType_;
     /// Object type name.
-    String typeName_;
+    QString typeName_;
 };
 
 /// Template implementation of the object factory.
@@ -277,9 +277,9 @@ private:
 };
 
 /// Describe an event's hash ID and begin a namespace in which to define its parameters.
-#define EVENT(eventID, eventName) static const Urho3D::StringHash eventID(#eventName); namespace eventName
+#define EVENT(eventID, eventName) static const StringHash eventID(#eventName); namespace eventName
 /// Describe an event's parameter hash ID. Should be used inside an event namespace.
-#define PARAM(paramID, paramName) static const Urho3D::StringHash paramID(#paramName)
+#define PARAM(paramID, paramName) static const StringHash paramID(#paramName)
 /// Convenience macro to construct an EventHandler that points to a receiver object and its member function.
 #define HANDLER(className, function) (new Urho3D::EventHandlerImpl<className>(this, &className::function))
 /// Convenience macro to construct an EventHandler that points to a receiver object and its member function, and also defines a userdata pointer.

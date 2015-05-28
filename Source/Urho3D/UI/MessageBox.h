@@ -39,21 +39,21 @@ class URHO3D_API MessageBox : public Object
 
 public:
     /// Construct. If layout file is not given, use the default message box layout. If style file is not given, use the default style file from root UI element.
-    MessageBox(Context* context, const String& messageString = String::EMPTY, const String& titleString = String::EMPTY, XMLFile* layoutFile = 0, XMLFile* styleFile = 0);
+    MessageBox(Context* context, const QString& messageString = QString::null, const QString& titleString = QString::null, XMLFile* layoutFile = 0, XMLFile* styleFile = 0);
     /// Destruct.
     virtual ~MessageBox();
     /// Register object factory.
     static void RegisterObject(Context* context);
 
     /// Set title text. No-ops if there is no title text element.
-    void SetTitle(const String& text);
+    void SetTitle(const QString& text);
     /// Set message text. No-ops if there is no message text element.
-    void SetMessage(const String& text);
+    void SetMessage(const QString& text);
 
     /// Return title text. Return empty string if there is no title text element.
-    const String& GetTitle() const;
+    const QString& GetTitle() const;
     /// Return message text. Return empty string if there is no message text element.
-    const String& GetMessage() const;
+    const QString& GetMessage() const;
     /// Return dialog window.
     UIElement* GetWindow() const { return window_; }
 

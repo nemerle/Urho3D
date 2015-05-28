@@ -41,7 +41,7 @@ public:
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const override { return
+    virtual QString GetScreenJoystickPatchString() const override { return
         "<patch>"
         "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Button2']]\">"
         "        <attribute name=\"Is Visible\" value=\"false\" />"
@@ -62,13 +62,13 @@ private:
     /// Print intro message and initialize the game state.
     void StartGame();
     /// Print game over message.
-    void EndGame(const String& message);
+    void EndGame(const QString& message);
     /// Advance the game state.
     void Advance();
     /// Handle user input either from the engine console or standard input.
-    void HandleInput(const String& input);
+    void HandleInput(const QString& input);
     /// Print text to the engine console and standard output.
-    void Print(const String& output);
+    void Print(const QString& output);
 
     /// Game on flag.
     bool gameOn_;

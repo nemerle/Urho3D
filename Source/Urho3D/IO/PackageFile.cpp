@@ -35,7 +35,7 @@ PackageFile::PackageFile(Context* context) :
 {
 }
 
-PackageFile::PackageFile(Context* context, const String& fileName, unsigned startOffset) :
+PackageFile::PackageFile(Context* context, const QString& fileName, unsigned startOffset) :
     Object(context),
     totalSize_(0),
     checksum_(0),
@@ -48,7 +48,7 @@ PackageFile::~PackageFile()
 {
 }
 
-bool PackageFile::Open(const String& fileName, unsigned startOffset)
+bool PackageFile::Open(const QString& fileName, unsigned startOffset)
 {
     #ifdef ANDROID
     if (fileName.startsWith("/apk/"))
@@ -64,7 +64,7 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
 
     // Check ID, then read the directory
     file->Seek(startOffset);
-    String id = file->ReadFileID();
+    QString id = file->ReadFileID();
     if (id != "UPAK" && id != "ULZ4")
     {
         // If start offset has not been explicitly specified, also try to read package size from the end of file
@@ -99,7 +99,7 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
 
     for (unsigned i = 0; i < numFiles; ++i)
     {
-        String entryName = file->ReadString();
+        QString entryName = file->ReadString();
         PackageEntry newEntry;
         newEntry.offset_ = file->ReadUInt() + startOffset;
         newEntry.size_ = file->ReadUInt();
@@ -113,12 +113,12 @@ bool PackageFile::Open(const String& fileName, unsigned startOffset)
     return true;
 }
 
-bool PackageFile::Exists(const String& fileName) const
+bool PackageFile::Exists(const QString& fileName) const
 {
     return entries_.find(fileName.toLower()) != entries_.end();
 }
 
-const PackageEntry* PackageFile::GetEntry(const String& fileName) const
+const PackageEntry* PackageFile::GetEntry(const QString& fileName) const
 {
     auto i = entries_.find(fileName.toLower());
     if (i != entries_.end())

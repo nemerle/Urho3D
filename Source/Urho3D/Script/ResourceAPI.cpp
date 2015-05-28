@@ -37,12 +37,16 @@ void RegisterResource(asIScriptEngine* engine)
     RegisterResource<Resource>(engine, "Resource");
 }
 
-static Resource* ResourceCacheGetResource(const String& type, const String& name, bool sendEventOnFailure, ResourceCache* ptr)
+static Resource* ResourceCacheGetResource(const QString& type, const QString& name, bool sendEventOnFailure, ResourceCache* ptr)
 {
     return ptr->GetResource(StringHash(type), name, sendEventOnFailure);
 }
 
-static File* ResourceCacheGetFile(const String& name, ResourceCache* ptr)
+static Resource* ResourceCacheGetExistingResource(const QString& type, const QString& name, ResourceCache* ptr)
+{
+    return ptr->GetResource(StringHash(type), name);
+}
+static File* ResourceCacheGetFile(const QString& name, ResourceCache* ptr)
 {
     SharedPtr<File> file = ptr->GetFile(name);
     // The shared pointer will go out of scope, so have to increment the reference count
@@ -52,27 +56,27 @@ static File* ResourceCacheGetFile(const String& name, ResourceCache* ptr)
     return file.Get();
 }
 
-static void ResourceCacheReleaseResource(const String& type, const String& name, bool force, ResourceCache* ptr)
+static void ResourceCacheReleaseResource(const QString& type, const QString& name, bool force, ResourceCache* ptr)
 {
     ptr->ReleaseResource(type, name, force);
 }
 
-static void ResourceCacheReleaseResourcesPartial(const String& type, const String& partialName, bool force, ResourceCache* ptr)
+static void ResourceCacheReleaseResourcesPartial(const QString& type, const QString& partialName, bool force, ResourceCache* ptr)
 {
     ptr->ReleaseResources(type, partialName, force);
 }
 
-static void ResourceCacheSetMemoryBudget(const String& type, unsigned budget, ResourceCache* ptr)
+static void ResourceCacheSetMemoryBudget(const QString& type, unsigned budget, ResourceCache* ptr)
 {
     ptr->SetMemoryBudget(type, budget);
 }
 
-static unsigned ResourceCacheGetMemoryBudget(const String& type, ResourceCache* ptr)
+static unsigned ResourceCacheGetMemoryBudget(const QString& type, ResourceCache* ptr)
 {
     return ptr->GetMemoryBudget(type);
 }
 
-static unsigned ResourceCacheGetMemoryUse(const String& type, ResourceCache* ptr)
+static unsigned ResourceCacheGetMemoryUse(const QString& type, ResourceCache* ptr)
 {
     return ptr->GetMemoryUse(type);
 }
@@ -84,7 +88,7 @@ static ResourceCache* GetResourceCache()
 
 static CScriptArray* ResourceCacheGetResourceDirs(ResourceCache* ptr)
 {
-    return VectorToArray<String>(ptr->GetResourceDirs(), "Array<String>");
+    return StringListToArray(ptr->GetResourceDirs(), "Array<String>");
 }
 
 static CScriptArray* ResourceCacheGetPackageFiles(ResourceCache* ptr)
@@ -92,7 +96,7 @@ static CScriptArray* ResourceCacheGetPackageFiles(ResourceCache* ptr)
     return VectorToHandleArray<PackageFile>(ptr->GetPackageFiles(), "Array<PackageFile@>");
 }
 
-static bool ResourceCacheBackgroundLoadResource(const String& type, const String& name, bool sendEventOnFailure, ResourceCache* ptr)
+static bool ResourceCacheBackgroundLoadResource(const QString& type, const QString& name, bool sendEventOnFailure, ResourceCache* ptr)
 {
     return ptr->BackgroundLoadResource(type, name, sendEventOnFailure);
 }
@@ -102,26 +106,28 @@ static void RegisterResourceCache(asIScriptEngine* engine)
     RegisterObject<ResourceCache>(engine, "ResourceCache");
     engine->RegisterObjectMethod("ResourceCache", "bool AddResourceDir(const String&in, uint priority = M_MAX_UNSIGNED)", asMETHOD(ResourceCache, AddResourceDir), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "bool AddPackageFile(PackageFile@+, uint priority = M_MAX_UNSIGNED)", asMETHODPR(ResourceCache, AddPackageFile, (PackageFile*, unsigned), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("ResourceCache", "bool AddPackageFile(const String&in, uint priority = M_MAX_UNSIGNED)", asMETHODPR(ResourceCache, AddPackageFile, (const String&, unsigned), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ResourceCache", "bool AddPackageFile(const String&in, uint priority = M_MAX_UNSIGNED)", asMETHODPR(ResourceCache, AddPackageFile, (const QString&, unsigned), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "bool AddManualResource(Resource@+)", asMETHOD(ResourceCache, AddManualResource), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "void RemoveResourceDir(const String&in)", asMETHOD(ResourceCache, RemoveResourceDir), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "void RemovePackageFile(PackageFile@+, bool releaseResources = true, bool forceRelease = false)", asMETHODPR(ResourceCache, RemovePackageFile, (PackageFile*, bool, bool), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("ResourceCache", "void RemovePackageFile(const String&in, bool releaseResources = true, bool forceRelease = false)", asMETHODPR(ResourceCache, RemovePackageFile, (const String&, bool, bool), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ResourceCache", "void RemovePackageFile(const String&in, bool releaseResources = true, bool forceRelease = false)", asMETHODPR(ResourceCache, RemovePackageFile, (const QString&, bool, bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "void ReleaseResource(const String&in, const String&in, bool force = false)", asFUNCTION(ResourceCacheReleaseResource), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("ResourceCache", "void ReleaseResources(StringHash, bool force = false)", asMETHODPR(ResourceCache, ReleaseResources, (StringHash, bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "void ReleaseResources(const String&in, const String&in, bool force = false)", asFUNCTION(ResourceCacheReleaseResourcesPartial), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("ResourceCache", "void ReleaseResources(const String&in, bool force = false)", asMETHODPR(ResourceCache, ReleaseResources, (const String&, bool), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ResourceCache", "void ReleaseResources(const String&in, bool force = false)", asMETHODPR(ResourceCache, ReleaseResources, (const QString&, bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "void ReleaseAllResources(bool force = false)", asMETHOD(ResourceCache, ReleaseAllResources), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "bool ReloadResource(Resource@+)", asMETHOD(ResourceCache, ReloadResource), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "void ReloadResourceWithDependencies(const String&in)", asMETHOD(ResourceCache, ReloadResourceWithDependencies), asCALL_THISCALL);
-    engine->RegisterObjectMethod("ResourceCache", "bool Exists(const String&in) const", asMETHODPR(ResourceCache, Exists, (const String&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ResourceCache", "bool Exists(const String&in) const", asMETHODPR(ResourceCache, Exists, (const QString&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "File@ GetFile(const String&in)", asFUNCTION(ResourceCacheGetFile), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("ResourceCache", "String GetPreferredResourceDir(const String&in) const", asMETHOD(ResourceCache, GetPreferredResourceDir), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "String SanitateResourceName(const String&in) const", asMETHOD(ResourceCache, SanitateResourceName), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "String SanitateResourceDirName(const String&in) const", asMETHOD(ResourceCache, SanitateResourceDirName), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "String GetResourceFileName(const String&in) const", asMETHOD(ResourceCache, GetResourceFileName), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "Resource@+ GetResource(const String&in, const String&in, bool sendEventOnFailure = true)", asFUNCTION(ResourceCacheGetResource), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("ResourceCache", "Resource@+ GetResource(StringHash, const String&in, bool sendEventOnFailure = true)", asMETHODPR(ResourceCache, GetResource, (StringHash, const String&, bool), Resource*), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ResourceCache", "Resource@+ GetResource(StringHash, const String&in, bool sendEventOnFailure = true)", asMETHODPR(ResourceCache, GetResource, (StringHash, const QString&, bool), Resource*), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ResourceCache", "Resource@+ GetExistingResource(const String&in, const String&in)", asFUNCTION(ResourceCacheGetExistingResource), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("ResourceCache", "Resource@+ GetExistingResource(StringHash, const String&in)", asMETHODPR(ResourceCache, GetExistingResource, (StringHash, const QString&), Resource*), asCALL_THISCALL);
     engine->RegisterObjectMethod("ResourceCache", "bool BackgroundLoadResource(const String&in, const String&in, bool sendEventOnFailure = true)", asFUNCTION(ResourceCacheBackgroundLoadResource), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("ResourceCache", "void set_memoryBudget(const String&in, uint)", asFUNCTION(ResourceCacheSetMemoryBudget), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("ResourceCache", "uint get_memoryBudget(const String&in) const", asFUNCTION(ResourceCacheGetMemoryBudget), asCALL_CDECL_OBJLAST);
@@ -217,14 +223,14 @@ static void DestructJSONValue(JSONValue* ptr)
 
 static CScriptArray* JSONValueGetValueNames(JSONValue* ptr)
 {
-    Vector<String> names = ptr->GetValueNames();
-    return VectorToArray<String>(names, "Array<String>");
+    QStringList names = ptr->GetValueNames();
+    return StringListToArray(names, "Array<String>");
 }
 
 static CScriptArray* JSONValueGetChildNames(JSONValue* ptr)
 {
-    Vector<String> names = ptr->GetChildNames();
-    return VectorToArray<String>(names, "Array<String>");
+    QStringList names = ptr->GetChildNames();
+    return StringListToArray(names, "Array<String>");
 }
 
 static void RegisterJSONValue(asIScriptEngine* engine)
@@ -243,8 +249,8 @@ static void RegisterJSONValue(asIScriptEngine* engine)
     engine->RegisterObjectMethod("JSONValue", "bool get_notNull() const", asMETHOD(JSONValue, NotNull), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "JSONValue& opAssign(const JSONValue&in)", asMETHOD(JSONValue, operator =), asCALL_THISCALL);
 
-    engine->RegisterObjectMethod("JSONValue", "JSONValue CreateChild(const String&in, JSONValueType valueType = JSON_OBJECT)", asMETHODPR(JSONValue, CreateChild,(const String&, JSONValueType), JSONValue), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "JSONValue GetChild(const String&in, JSONValueType valueType = JSON_ANY) const", asMETHODPR(JSONValue, GetChild, (const String&, JSONValueType) const, JSONValue), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "JSONValue CreateChild(const String&in, JSONValueType valueType = JSON_OBJECT)", asMETHODPR(JSONValue, CreateChild,(const QString&, JSONValueType), JSONValue), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "JSONValue GetChild(const String&in, JSONValueType valueType = JSON_ANY) const", asMETHODPR(JSONValue, GetChild, (const QString&, JSONValueType) const, JSONValue), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "void SetInt(const String&in, int)", asMETHOD(JSONValue, SetInt), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "void SetBool(const String&in, bool)", asMETHOD(JSONValue, SetBool), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "void SetFloat(const String&in, float)", asMETHOD(JSONValue, SetFloat), asCALL_THISCALL);
@@ -267,25 +273,25 @@ static void RegisterJSONValue(asIScriptEngine* engine)
     engine->RegisterObjectMethod("JSONValue", "bool get_isObject() const", asMETHOD(JSONValue, IsObject), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "Array<String>@ GetValueNames() const", asFUNCTION(JSONValueGetValueNames), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("JSONValue", "Array<String>@ GetChildNames() const", asFUNCTION(JSONValueGetChildNames), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("JSONValue", "int GetInt(const String&in) const", asMETHODPR(JSONValue, GetInt, (const String&) const, int), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "bool GetBool(const String&in) const", asMETHODPR(JSONValue, GetBool, (const String&) const, bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "float GetFloat(const String&in) const", asMETHODPR(JSONValue, GetFloat, (const String&) const, float), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Vector2 GetVector2(const String&in) const", asMETHODPR(JSONValue, GetVector2, (const String&) const, Vector2), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Vector3 GetVector3(const String&in) const", asMETHODPR(JSONValue, GetVector3, (const String&) const, Vector3), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Vector4 GetVector4(const String&in) const", asMETHODPR(JSONValue, GetVector4, (const String&) const, Vector4), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Variant GetVectorVariant(const String&in) const", asMETHODPR(JSONValue, GetVectorVariant, (const String&) const, Variant), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Quaternion GetQuaternion(const String&in) const", asMETHODPR(JSONValue, GetQuaternion, (const String&) const, Quaternion), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Color GetColor(const String&in) const", asMETHODPR(JSONValue, GetColor, (const String&) const, Color), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "String GetString(const String&in) const", asMETHODPR(JSONValue, GetString, (const String&) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "ResourceRef GetResourceRef(const String&in) const", asMETHODPR(JSONValue, GetResourceRef, (const String&) const, ResourceRef), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "ResourceRefList GetResourceRefList(const String&in) const", asMETHODPR(JSONValue, GetResourceRefList, (const String&) const, ResourceRefList), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "IntRect GetIntRect(const String&in) const", asMETHODPR(JSONValue, GetIntRect, (const String&) const, IntRect), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "IntVector2 GetIntVector2(const String&in) const", asMETHODPR(JSONValue, GetIntVector2, (const String&) const, IntVector2), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Matrix3 GetMatrix3(const String&in) const", asMETHODPR(JSONValue, GetMatrix3, (const String&) const, Matrix3), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Matrix3x4 GetMatrix3x4(const String&in) const", asMETHODPR(JSONValue, GetMatrix3x4, (const String&) const, Matrix3x4), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Matrix4 GetMatrix4(const String&in) const", asMETHODPR(JSONValue, GetMatrix4, (const String&) const, Matrix4), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Variant GetVariant(const String&in) const", asMETHODPR(JSONValue, GetVariant, (const String&) const, Variant), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "Variant GetVariantValue(const String&in, VariantType type) const", asMETHODPR(JSONValue, GetVariantValue, (const String&, VariantType) const, Variant), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "int GetInt(const String&in) const", asMETHODPR(JSONValue, GetInt, (const QString&) const, int), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "bool GetBool(const String&in) const", asMETHODPR(JSONValue, GetBool, (const QString&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "float GetFloat(const String&in) const", asMETHODPR(JSONValue, GetFloat, (const QString&) const, float), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Vector2 GetVector2(const String&in) const", asMETHODPR(JSONValue, GetVector2, (const QString&) const, Vector2), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Vector3 GetVector3(const String&in) const", asMETHODPR(JSONValue, GetVector3, (const QString&) const, Vector3), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Vector4 GetVector4(const String&in) const", asMETHODPR(JSONValue, GetVector4, (const QString&) const, Vector4), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Variant GetVectorVariant(const String&in) const", asMETHODPR(JSONValue, GetVectorVariant, (const QString&) const, Variant), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Quaternion GetQuaternion(const String&in) const", asMETHODPR(JSONValue, GetQuaternion, (const QString&) const, Quaternion), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Color GetColor(const String&in) const", asMETHODPR(JSONValue, GetColor, (const QString&) const, Color), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "String GetString(const String&in) const", asMETHODPR(JSONValue, GetString, (const QString&) const, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "ResourceRef GetResourceRef(const String&in) const", asMETHODPR(JSONValue, GetResourceRef, (const QString&) const, ResourceRef), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "ResourceRefList GetResourceRefList(const String&in) const", asMETHODPR(JSONValue, GetResourceRefList, (const QString&) const, ResourceRefList), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "IntRect GetIntRect(const String&in) const", asMETHODPR(JSONValue, GetIntRect, (const QString&) const, IntRect), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "IntVector2 GetIntVector2(const String&in) const", asMETHODPR(JSONValue, GetIntVector2, (const QString&) const, IntVector2), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Matrix3 GetMatrix3(const String&in) const", asMETHODPR(JSONValue, GetMatrix3, (const QString&) const, Matrix3), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Matrix3x4 GetMatrix3x4(const String&in) const", asMETHODPR(JSONValue, GetMatrix3x4, (const QString&) const, Matrix3x4), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Matrix4 GetMatrix4(const String&in) const", asMETHODPR(JSONValue, GetMatrix4, (const QString&) const, Matrix4), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Variant GetVariant(const String&in) const", asMETHODPR(JSONValue, GetVariant, (const QString&) const, Variant), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "Variant GetVariantValue(const String&in, VariantType type) const", asMETHODPR(JSONValue, GetVariantValue, (const QString&, VariantType) const, Variant), asCALL_THISCALL);
 
     engine->RegisterObjectMethod("JSONValue", "JSONValue CreateChild(JSONValueType valueType = JSON_OBJECT)", asMETHODPR(JSONValue, CreateChild, (JSONValueType), JSONValue), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "JSONValue GetChild(uint, JSONValueType valueType = JSON_ANY) const", asMETHODPR(JSONValue, GetChild, (unsigned, JSONValueType) const, JSONValue), asCALL_THISCALL);
@@ -319,7 +325,7 @@ static void RegisterJSONValue(asIScriptEngine* engine)
     engine->RegisterObjectMethod("JSONValue", "Variant GetVectorVariant(uint) const", asMETHODPR(JSONValue, GetVectorVariant, (unsigned) const, Variant), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "Quaternion GetQuaternion(uint) const", asMETHODPR(JSONValue, GetQuaternion, (unsigned) const, Quaternion), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "Color GetColor(uint) const", asMETHODPR(JSONValue, GetColor, (unsigned) const, Color), asCALL_THISCALL);
-    engine->RegisterObjectMethod("JSONValue", "String GetString(uint) const", asMETHODPR(JSONValue, GetString, (unsigned) const, String), asCALL_THISCALL);
+    engine->RegisterObjectMethod("JSONValue", "String GetString(uint) const", asMETHODPR(JSONValue, GetString, (unsigned) const, QString), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "ResourceRef GetResourceRef(uint) const", asMETHODPR(JSONValue, GetResourceRef, (unsigned) const, ResourceRef), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "ResourceRefList GetResourceRefList(uint) const", asMETHODPR(JSONValue, GetResourceRefList, (unsigned) const, ResourceRefList), asCALL_THISCALL);
     engine->RegisterObjectMethod("JSONValue", "IntRect GetIntRect(uint) const", asMETHODPR(JSONValue, GetIntRect, (unsigned) const, IntRect), asCALL_THISCALL);
@@ -331,7 +337,7 @@ static void RegisterJSONValue(asIScriptEngine* engine)
     engine->RegisterObjectMethod("JSONValue", "Variant GetVariantValue(uint, VariantType type) const", asMETHODPR(JSONValue, GetVariantValue, (unsigned, VariantType) const, Variant), asCALL_THISCALL);
 }
 
-static bool JSONFileSave(File* file, const String& indendation, JSONFile* ptr)
+static bool JSONFileSave(File* file, const QString& indendation, JSONFile* ptr)
 {
     return file && ptr->Save(*file, indendation);
 }
@@ -367,7 +373,7 @@ static bool XMLElementSetVariantVector(CScriptArray* value, XMLElement* ptr)
 
 static CScriptArray* XMLElementGetAttributeNames(XMLElement* ptr)
 {
-    return VectorToArray<String>(ptr->GetAttributeNames(), "Array<String>");
+    return StringListToArray(ptr->GetAttributeNames(), "Array<String>");
 }
 
 static CScriptArray* XMLElementGetVariantVector(XMLElement* ptr)
@@ -400,7 +406,7 @@ static void ConstructXPathQuery(XPathQuery* ptr)
     new(ptr) XPathQuery();
 }
 
-static void ConstructXPathQueryWithString(const String& queryString, const String& variableString, XPathQuery* ptr)
+static void ConstructXPathQueryWithString(const QString& queryString, const QString& variableString, XPathQuery* ptr)
 {
     new(ptr) XPathQuery(queryString, variableString);
 }
@@ -420,18 +426,18 @@ static void RegisterXMLElement(asIScriptEngine* engine)
     engine->RegisterObjectBehaviour("XMLElement", asBEHAVE_CONSTRUCT, "void f(const XMLElement&in)", asFUNCTION(ConstructXMLElementCopy), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("XMLElement", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructXMLElement), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("XMLElement", "XMLElement& opAssign(const XMLElement&in)", asMETHOD(XMLElement, operator =), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "XMLElement CreateChild(const String&in)", asMETHODPR(XMLElement, CreateChild, (const String&), XMLElement), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "XMLElement CreateChild(const String&in)", asMETHODPR(XMLElement, CreateChild, (const QString&), XMLElement), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool RemoveChild(const XMLElement&in)", asMETHODPR(XMLElement, RemoveChild, (const XMLElement&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool RemoveChild(const String&in)", asMETHODPR(XMLElement, RemoveChild, (const String&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool RemoveChildren(const String&in name = String())", asMETHODPR(XMLElement, RemoveChildren, (const String&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool RemoveAttribute(const String&in name = String())", asMETHODPR(XMLElement, RemoveAttribute, (const String&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool RemoveChild(const String&in)", asMETHODPR(XMLElement, RemoveChild, (const QString&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool RemoveChildren(const String&in name = String())", asMETHODPR(XMLElement, RemoveChildren, (const QString&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool RemoveAttribute(const String&in name = String())", asMETHODPR(XMLElement, RemoveAttribute, (const QString&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "XMLElement SelectSingle(const String&in)", asMETHOD(XMLElement, SelectSingle), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "XMLElement SelectSinglePrepared(const XPathQuery&in)", asMETHOD(XMLElement, SelectSinglePrepared), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "XPathResultSet Select(const String&in)", asMETHOD(XMLElement, Select), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "XPathResultSet SelectPrepared(const XPathQuery&in)", asMETHOD(XMLElement, SelectPrepared), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool SetValue(const String&in)", asMETHODPR(XMLElement, SetValue, (const String&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool SetAttribute(const String&in, const String&in)", asMETHODPR(XMLElement, SetAttribute, (const String&, const String&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool SetAttribute(const String&in)", asMETHODPR(XMLElement, SetAttribute, (const String&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool SetValue(const String&in)", asMETHODPR(XMLElement, SetValue, (const QString&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool SetAttribute(const String&in, const String&in)", asMETHODPR(XMLElement, SetAttribute, (const QString&, const QString&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool SetAttribute(const String&in)", asMETHODPR(XMLElement, SetAttribute, (const QString&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool SetBool(const String&in, bool)", asMETHOD(XMLElement, SetBool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool SetBoundingBox(const BoundingBox&in)", asMETHOD(XMLElement, SetBoundingBox), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool SetColor(const String&in, const Color&in)", asMETHOD(XMLElement, SetColor), asCALL_THISCALL);
@@ -451,15 +457,15 @@ static void RegisterXMLElement(asIScriptEngine* engine)
     engine->RegisterObjectMethod("XMLElement", "bool SetMatrix3(const String&in, const Matrix3&in)", asMETHOD(XMLElement, SetMatrix3), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool SetMatrix3x4(const String&in, const Matrix3x4&in)", asMETHOD(XMLElement, SetMatrix3x4), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool SetMatrix4(const String&in, const Matrix4&in)", asMETHOD(XMLElement, SetMatrix4), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool HasAttribute(const String&in) const", asMETHODPR(XMLElement, HasAttribute, (const String&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool HasAttribute(const String&in) const", asMETHODPR(XMLElement, HasAttribute, (const QString&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "String GetValue() const", asMETHOD(XMLElement, GetValue), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "String GetAttribute(const String&in arg0 = String()) const", asMETHODPR(XMLElement, GetAttribute, (const String&) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "String GetAttributeLower(const String&in) const", asMETHODPR(XMLElement, GetAttributeLower, (const String&) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "String GetAttributeUpper(const String&in) const", asMETHODPR(XMLElement, GetAttributeUpper, (const String&) const, String), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "String GetAttribute(const String&in arg0 = String()) const", asMETHODPR(XMLElement, GetAttribute, (const QString&) const, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "String GetAttributeLower(const String&in) const", asMETHODPR(XMLElement, GetAttributeLower, (const QString&) const, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "String GetAttributeUpper(const String&in) const", asMETHODPR(XMLElement, GetAttributeUpper, (const QString&) const, QString), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "Array<String>@ GetAttributeNames() const", asFUNCTION(XMLElementGetAttributeNames), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("XMLElement", "bool HasChild(const String&in) const", asMETHODPR(XMLElement, HasChild, (const String&) const, bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "XMLElement GetChild(const String&in name = String()) const", asMETHODPR(XMLElement, GetChild, (const String&) const, XMLElement), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "XMLElement GetNext(const String&in name = String()) const", asMETHODPR(XMLElement, GetNext, (const String&) const, XMLElement), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool HasChild(const String&in) const", asMETHODPR(XMLElement, HasChild, (const QString&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "XMLElement GetChild(const String&in name = String()) const", asMETHODPR(XMLElement, GetChild, (const QString&) const, XMLElement), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "XMLElement GetNext(const String&in name = String()) const", asMETHODPR(XMLElement, GetNext, (const QString&) const, XMLElement), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "bool GetBool(const String&in) const", asMETHOD(XMLElement, GetBool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "BoundingBox GetBoundingBox() const", asMETHOD(XMLElement, GetBoundingBox), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "Color GetColor(const String&in) const", asMETHOD(XMLElement, GetColor), asCALL_THISCALL);
@@ -479,7 +485,7 @@ static void RegisterXMLElement(asIScriptEngine* engine)
     engine->RegisterObjectMethod("XMLElement", "Matrix3 GetMatrix3(const String&in) const", asMETHOD(XMLElement, GetMatrix3), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "Matrix3x4 GetMatrix3x4(const String&in) const", asMETHOD(XMLElement, GetMatrix3x4), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "Matrix4 GetMatrix4(const String&in) const", asMETHOD(XMLElement, GetMatrix4), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XMLElement", "bool set_value(const String&in)", asMETHODPR(XMLElement, SetValue, (const String&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XMLElement", "bool set_value(const String&in)", asMETHODPR(XMLElement, SetValue, (const QString&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "String get_value() const", asMETHOD(XMLElement, GetValue), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "String get_name() const", asMETHOD(XMLElement, GetName), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLElement", "uint get_numAttributes() const", asMETHOD(XMLElement, GetNumAttributes), asCALL_THISCALL);
@@ -502,10 +508,10 @@ static void RegisterXMLElement(asIScriptEngine* engine)
     engine->RegisterObjectBehaviour("XPathQuery", asBEHAVE_CONSTRUCT, "void f(const String&in, const String& arg1 = String())", asFUNCTION(ConstructXPathQueryWithString), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("XPathQuery", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructXPathQuery), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("XPathQuery", "void Bind()", asMETHOD(XPathQuery, Bind), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, bool)", asMETHODPR(XPathQuery, SetVariable, (const String&, bool), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, float)", asMETHODPR(XPathQuery, SetVariable, (const String&, float), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, const String&in)", asMETHODPR(XPathQuery, SetVariable, (const String&, const String&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, const XPathResultSet&in)", asMETHODPR(XPathQuery, SetVariable, (const String&, const XPathResultSet&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, bool)", asMETHODPR(XPathQuery, SetVariable, (const QString&, bool), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, float)", asMETHODPR(XPathQuery, SetVariable, (const QString&, float), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, const String&in)", asMETHODPR(XPathQuery, SetVariable, (const QString&, const QString&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("XPathQuery", "bool SetVariable(const String&in, const XPathResultSet&in)", asMETHODPR(XPathQuery, SetVariable, (const QString&, const XPathResultSet&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("XPathQuery", "bool SetQuery(const String&, const String& arg1 = String(), bool arg2 = true)", asMETHOD(XPathQuery, SetQuery), asCALL_THISCALL);
     engine->RegisterObjectMethod("XPathQuery", "void Clear()", asMETHOD(XPathQuery, Clear), asCALL_THISCALL);
     engine->RegisterObjectMethod("XPathQuery", "bool EvaluateToBool(XMLElement)", asMETHOD(XPathQuery, EvaluateToBool), asCALL_THISCALL);
@@ -521,7 +527,7 @@ static XMLElement XMLFileGetRootDefault(XMLFile* ptr)
     return ptr->GetRoot();
 }
 
-static bool XMLFileSave(File* file, const String& indendation, XMLFile* ptr)
+static bool XMLFileSave(File* file, const QString& indendation, XMLFile* ptr)
 {
     return file && ptr->Save(*file, indendation);
 }

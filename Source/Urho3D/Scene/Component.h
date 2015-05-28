@@ -51,7 +51,7 @@ public:
     /// Handle enabled/disabled state change.
     virtual void OnSetEnabled() {}
     /// Save as binary data. Return true if successful.
-    virtual bool Save(Serializer& dest) const;
+    virtual bool Save(Serializer& dest) const override;
     /// Save as XML data. Return true if successful.
     virtual bool SaveXML(XMLElement& dest) const;
     /// Mark for attribute check on the next network update.

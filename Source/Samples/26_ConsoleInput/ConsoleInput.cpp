@@ -41,7 +41,7 @@
 DEFINE_APPLICATION_MAIN(ConsoleInput)
 
 // Hunger level descriptions
-String hungerLevels[] = {
+QString hungerLevels[] = {
     "bursting",
     "well-fed",
     "fed",
@@ -51,7 +51,7 @@ String hungerLevels[] = {
 };
 
 // Urho threat level descriptions
-String urhoThreatLevels[] = {
+QString urhoThreatLevels[] = {
     "Suddenly Urho appears from a dark corner of the fish tank",
     "Urho seems to have his eyes set on you",
     "Urho is homing in on you mercilessly"
@@ -109,7 +109,7 @@ void ConsoleInput::HandleConsoleCommand(StringHash eventType, VariantMap& eventD
 void ConsoleInput::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
     // Check if there is input from stdin
-    String input = GetConsoleInput();
+    QString input = GetConsoleInput();
     if (input.length())
         HandleInput(input);
 }
@@ -136,10 +136,10 @@ void ConsoleInput::StartGame()
     urhoThreat_ = 0;
 }
 
-void ConsoleInput::EndGame(const String& message)
+void ConsoleInput::EndGame(const QString & message)
 {
     Print(message);
-    Print("Game over! You survived " + String(numTurns_) + " turns.\n"
+    Print("Game over! You survived " + QString::number(numTurns_) + " turns.\n"
           "Do you want to play again (Y/N)?");
 
     gameOn_ = false;
@@ -192,9 +192,9 @@ void ConsoleInput::Advance()
     ++numTurns_;
 }
 
-void ConsoleInput::HandleInput(const String& input)
+void ConsoleInput::HandleInput(const QString& input)
 {
-    String inputLower = input.toLower().trimmed();
+    QString inputLower = input.toLower().trimmed();
     if (inputLower.isEmpty())
     {
         Print("Empty input given!");
@@ -209,7 +209,7 @@ void ConsoleInput::HandleInput(const String& input)
         if (inputLower == "help")
             Print("The following commands are available: 'eat', 'hide', 'wait', 'score', 'quit'.");
         else if (inputLower == "score")
-            Print("You have survived " + String(numTurns_) + " turns.");
+            Print("You have survived " + QString::number(numTurns_) + " turns.");
         else if (inputLower == "eat")
         {
             if (foodAvailable_)
@@ -269,7 +269,7 @@ void ConsoleInput::HandleInput(const String& input)
     }
 }
 
-void ConsoleInput::Print(const String& output)
+void ConsoleInput::Print(const QString & output)
 {
     // Logging appears both in the engine console and stdout
     LOGRAW(output + "\n");

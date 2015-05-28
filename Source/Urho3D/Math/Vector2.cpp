@@ -39,18 +39,16 @@ const Vector2 Vector2::ONE(1.0f, 1.0f);
 
 const IntVector2 IntVector2::ZERO;
 
-String Vector2::ToString() const
+QString Vector2::ToString() const
 {
     char tempBuffer[CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%g %g", x_, y_);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
-String IntVector2::ToString() const
+QString IntVector2::ToString() const
 {
-    char tempBuffer[CONVERSION_BUFFER_LENGTH];
-    sprintf(tempBuffer, "%d %d", x_, y_);
-    return String(tempBuffer);
+    return QString("%1 %2").arg(x_).arg(y_);
 }
 
 }

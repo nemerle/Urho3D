@@ -85,7 +85,7 @@ bool FontFaceBitmap::Load(const unsigned char* fontData, unsigned fontDataSize, 
     textures_.reserve(pages);
 
     ResourceCache* resourceCache = font_->GetSubsystem<ResourceCache>();
-    String fontPath = GetPath(font_->GetName());
+    QString fontPath = GetPath(font_->GetName());
     unsigned totalTextureSize = 0;
 
     XMLElement pageElem = pagesElem.GetChild("page");
@@ -93,12 +93,12 @@ bool FontFaceBitmap::Load(const unsigned char* fontData, unsigned fontDataSize, 
     {
         if (pageElem.IsNull())
         {
-            LOGERROR("Could not find Page element for page: " + String(i));
+            LOGERROR("Could not find Page element for page: " + QString::number(i));
             return 0;
         }
 
         // Assume the font image is in the same directory as the font description file
-        String textureFile = fontPath + pageElem.GetAttribute("file");
+        QString textureFile = fontPath + pageElem.GetAttribute("file");
 
         // Load texture manually to allow controlling the alpha channel mode
         SharedPtr<File> fontFile = resourceCache->GetFile(textureFile);
@@ -161,7 +161,7 @@ bool FontFaceBitmap::Load(const unsigned char* fontData, unsigned fontDataSize, 
         }
     }
 
-    LOGDEBUGF("Bitmap font face %s has %d glyphs", GetFileName(font_->GetName()).CString(), count);
+    LOGDEBUG(QString("Bitmap font face %1 has %2 glyphs").arg(GetFileName(font_->GetName())).arg(count));
 
     font_->SetMemoryUse(font_->GetMemoryUse() + totalTextureSize);
     return true;
@@ -263,7 +263,7 @@ bool FontFaceBitmap::Load(FontFace* fontFace, bool usedGlyphs)
     return true;
 }
 
-bool FontFaceBitmap::Save(Serializer& dest, int pointSize, const String& indentation)
+bool FontFaceBitmap::Save(Serializer& dest, int pointSize, const QString& indentation)
 {
     Context* context = font_->GetContext();
 
@@ -272,9 +272,9 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize, const String& indenta
 
     // Information
     XMLElement childElem = rootElem.CreateChild("info");
-    String fileName = GetFileName(font_->GetName());
+    QString fileName = GetFileName(font_->GetName());
     childElem.SetAttribute("face", fileName);
-    childElem.SetAttribute("size", String(pointSize));
+    childElem.SetAttribute("size", QString::number(pointSize));
 
     // Common
     childElem = rootElem.CreateChild("common");
@@ -283,7 +283,7 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize, const String& indenta
     childElem.SetInt("pages", pages);
 
     // Construct the path to store the texture
-    String pathName;
+    QString pathName;
     File* file = dynamic_cast<File*>(&dest);
     if (file)
         // If serialize to file, use the file's path
@@ -298,7 +298,7 @@ bool FontFaceBitmap::Save(Serializer& dest, int pointSize, const String& indenta
     {
         XMLElement pageElem = childElem.CreateChild("page");
         pageElem.SetInt("id", i);
-        String texFileName = fileName + "_" + String(i) + ".png";
+        QString texFileName = fileName + "_" + QString::number(i) + ".png";
         pageElem.SetAttribute("file", texFileName);
 
         // Save the font face texture to image file
@@ -367,7 +367,7 @@ SharedPtr<Image> FontFaceBitmap::SaveFaceTexture(Texture2D* texture)
     return SharedPtr<Image>(image);
 }
 
-bool FontFaceBitmap::SaveFaceTexture(Texture2D* texture, const String& fileName)
+bool FontFaceBitmap::SaveFaceTexture(Texture2D* texture, const QString& fileName)
 {
     SharedPtr<Image> image = SaveFaceTexture(texture);
     return image ? image->SavePNG(fileName) : false;

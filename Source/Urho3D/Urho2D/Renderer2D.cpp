@@ -64,7 +64,7 @@ Renderer2D::Renderer2D(Context* context) :
 {
     material_->SetName("Urho2D");
 
-    auto  tech = new Technique(context_);
+    Technique* tech = new Technique(context_);
     Pass* pass = tech->CreatePass("alpha");
     pass->SetVertexShader("Urho2D");
     pass->SetPixelShader("Urho2D");

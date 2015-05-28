@@ -40,11 +40,11 @@ bool Resource::Load(Deserializer& source)
     // Because BeginLoad() / EndLoad() can be called from worker threads, where profiling would be a no-op,
     // create a type name -based profile block here
 #ifdef URHO3D_PROFILING
-    String profileBlockName("Load" + GetTypeName());
+    QString profileBlockName("Load" + GetTypeName());
     
     Profiler* profiler = GetSubsystem<Profiler>();
     if (profiler)
-        profiler->BeginBlock(profileBlockName.CString());
+        profiler->BeginBlock(qPrintable(profileBlockName));
 #endif
 
     // If we are loading synchronously in a non-main thread, behave as if async loading (for example use
@@ -82,7 +82,7 @@ bool Resource::Save(Serializer& dest) const
     return false;
 }
 
-void Resource::SetName(const String& name)
+void Resource::SetName(const QString& name)
 {
     name_ = name;
     nameHash_ = name;

@@ -23,10 +23,9 @@
 #pragma once
 
 #include "../Math/Vector3.h"
-
+class QString;
 namespace Urho3D
 {
-class String;
 /// Four-dimensional vector.
 class URHO3D_API Vector4
 {
@@ -182,7 +181,7 @@ public:
     /// Return float data.
     const float* Data() const { return &x_; }
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
 
     /// X coordinate.
     float x_;

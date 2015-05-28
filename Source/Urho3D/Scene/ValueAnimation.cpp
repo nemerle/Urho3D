@@ -89,7 +89,7 @@ bool ValueAnimation::LoadXML(const XMLElement& source)
     valueType_ = VAR_NONE;
     eventFrames_.clear();
 
-    String interpMethodString = source.GetAttribute("interpolationmethod");
+    QString interpMethodString = source.GetAttribute("interpolationmethod");
     InterpMethod method = IM_LINEAR;
     for (int i = 0; i <= IM_SPLINE; ++i)
     {

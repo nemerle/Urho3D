@@ -103,7 +103,7 @@ public:
     /// Load from an XML file. Return true if successful.
     bool LoadXML(Deserializer& source);
     /// Save to an XML file. Return true if successful.
-    bool SaveXML(Serializer& dest, const String& indentation = "\t") const;
+    bool SaveXML(Serializer& dest, const QString& indentation = "\t") const;
     /// Load from a binary file asynchronously. Return true if started successfully. The LOAD_RESOURCES_ONLY mode can also be used to preload resources from object prefab files.
     bool LoadAsync(File* file, LoadMode mode = LOAD_SCENE_AND_RESOURCES);
     /// Load from an XML file asynchronously. Return true if started successfully. The LOAD_RESOURCES_ONLY mode can also be used to preload resources from object prefab files.
@@ -135,9 +135,9 @@ public:
     /// Clear required package files.
     void ClearRequiredPackageFiles();
     /// Register a node user variable hash reverse mapping (for editing.)
-    void RegisterVar(const String& name);
+    void RegisterVar(const QString& name);
     /// Unregister a node user variable hash reverse mapping.
-    void UnregisterVar(const String& name);
+    void UnregisterVar(const QString& name);
     /// Clear all registered node user variable hash reverse mappings.
     void UnregisterAllVars();
 
@@ -154,7 +154,7 @@ public:
     /// Return the load mode of the current asynchronous loading operation.
     LoadMode GetAsyncLoadMode() const { return asyncProgress_.mode_; }
     /// Return source file name.
-    const String& GetFileName() const { return fileName_; }
+    const QString& GetFileName() const { return fileName_; }
     /// Return source file checksum.
     unsigned GetChecksum() const { return checksum_; }
     /// Return update time scale.
@@ -170,7 +170,7 @@ public:
     /// Return required package files.
     const Vector<SharedPtr<PackageFile> >& GetRequiredPackageFiles() const { return requiredPackageFiles_; }
     /// Return a node user variable name, or empty if not registered.
-    const String& GetVarName(StringHash hash) const;
+    QString GetVarName(StringHash hash) const;
 
     /// Update scene. Called by HandleUpdate.
     void Update(float timeStep);
@@ -195,9 +195,9 @@ public:
     /// Component removed. Remove from ID map.
     void ComponentRemoved(Component* component);
     /// Set node user variable reverse mappings.
-    void SetVarNamesAttr(const String& value);
+    void SetVarNamesAttr(const QString& value);
     /// Return node user variable reverse mappings.
-    String GetVarNamesAttr() const;
+    QString GetVarNamesAttr() const;
     /// Prepare network update by comparing attributes and marking replication states dirty as necessary.
     void PrepareNetworkUpdate();
     /// Clean up all references to a network connection that is about to be removed.
@@ -240,11 +240,11 @@ private:
     /// Node and component ID resolver for asynchronous loading.
     SceneResolver resolver_;
     /// Source file name.
-    mutable String fileName_;
+    mutable QString fileName_;
     /// Required package files for networking.
     Vector<SharedPtr<PackageFile> > requiredPackageFiles_;
     /// Registered node user variable reverse mappings.
-    HashMap<StringHash, String> varNames_;
+    HashMap<StringHash, QString> varNames_;
     /// Nodes to check for attribute changes on the next network update.
     QSet<unsigned> networkUpdateNodes_;
     /// Components to check for attribute changes on the next network update.

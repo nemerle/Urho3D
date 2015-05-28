@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include "../Container/Str.h"
 #include "../Math/Vector3.h"
+#include "../Container/Str.h"
 #include "../DebugNew.h"
 
 #include <cstdio>
@@ -39,11 +39,11 @@ const Vector3 Vector3::FORWARD(0.0f, 0.0f, 1.0f);
 const Vector3 Vector3::BACK(0.0f, 0.0f, -1.0f);
 const Vector3 Vector3::ONE(1.0f, 1.0f, 1.0f);
 
-String Vector3::ToString() const
+QString Vector3::ToString() const
 {
     char tempBuffer[CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%g %g %g", x_, y_, z_);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
 }

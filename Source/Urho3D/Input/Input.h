@@ -108,7 +108,7 @@ struct JoystickState
     /// UI element containing the screen joystick.
     UIElement* screenJoystick_;
     /// Joystick name.
-    String name_;
+    QString name_;
     /// Button up/down state.
     PODVector<bool> buttons_;
     /// Button pressed on this frame.
@@ -196,17 +196,17 @@ public:
     void RemoveAllGestures();
 
     /// Return keycode from key name.
-    int GetKeyFromName(const String& name) const;
+    int GetKeyFromName(const QString& name) const;
     /// Return keycode from scancode.
     int GetKeyFromScancode(int scancode) const;
     /// Return name of key from keycode.
-    String GetKeyName(int key) const;
+    QString GetKeyName(int key) const;
     /// Return scancode from keycode.
     int GetScancodeFromKey(int key) const;
     /// Return scancode from key name.
-    int GetScancodeFromName(const String& name) const;
+    int GetScancodeFromName(const QString& name) const;
     /// Return name of key from scancode.
-    String GetScancodeName(int scancode) const;
+    QString GetScancodeName(int scancode) const;
     /// Check if a key is held down.
     bool GetKeyDown(int key) const;
     /// Check if a key has been pressed on this frame.
@@ -327,7 +327,7 @@ private:
     /// Mapping of touch indicies
     HashMap<int, int> touchIDMap_;
     /// String for text input.
-    String textInput_;
+    QString textInput_;
     /// Opened joysticks.
     HashMap<SDL_JoystickID, JoystickState> joysticks_;
     /// Mouse buttons' down state.

@@ -90,7 +90,7 @@ protected:
     /// Filter implicit attributes in serialization process.
     virtual bool FilterImplicitAttributes(XMLElement& dest) const;
     /// Filter implicit attributes in serialization process for internal button.
-    bool FilterButtonImplicitAttributes(XMLElement& dest, const String& name) const;
+    bool FilterButtonImplicitAttributes(XMLElement& dest, const QString& name) const;
 
     /// Back button.
     SharedPtr<Button> backButton_;

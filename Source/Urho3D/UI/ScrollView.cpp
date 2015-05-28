@@ -54,10 +54,10 @@ ScrollView::ScrollView(Context* context) :
     scrollSnapEpsilon_(M_EPSILON),
     scrollTouchDown_(false),
     barScrolling_(false),
-    scrollChildrenDisable_(false),
     autoDisableChildren_(false),
-    autoDisableThreshold_(25.0f),
-    touchDistanceSum_(0.0f)
+    scrollChildrenDisable_(false),
+    touchDistanceSum_(0.0f),
+    autoDisableThreshold_(25.0f)
 {
     clipChildren_ = true;
     SetEnabled(true);
@@ -384,7 +384,7 @@ bool ScrollView::FilterImplicitAttributes(XMLElement& dest) const
     return true;
 }
 
-bool ScrollView::FilterScrollBarImplicitAttributes(XMLElement& dest, const String& name) const
+bool ScrollView::FilterScrollBarImplicitAttributes(XMLElement& dest, const QString& name) const
 {
     if (!dest)
         return false;

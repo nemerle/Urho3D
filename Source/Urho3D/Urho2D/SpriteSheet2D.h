@@ -53,12 +53,12 @@ public:
     /// Return texture.
     Texture2D* GetTexture() const { return texture_; }
     /// Return sprite.
-    Sprite2D* GetSprite(const String& name) const;
+    Sprite2D* GetSprite(const QString& name) const;
     /// Define sprite.
-    void DefineSprite(const String& name, const IntRect& rectangle, const Vector2& hotSpot = Vector2(0.5f, 0.5f), const IntVector2& offset = IntVector2::ZERO);
+    void DefineSprite(const QString& name, const IntRect& rectangle, const Vector2& hotSpot = Vector2(0.5f, 0.5f), const IntVector2& offset = IntVector2::ZERO);
 
     /// Return sprite mapping.
-    const HashMap<String, SharedPtr<Sprite2D> >& GetSpriteMapping() const { return spriteMapping_; }
+    const HashMap<QString, SharedPtr<Sprite2D> >& GetSpriteMapping() const { return spriteMapping_; }
 
 private:
     /// Begin load from PList file.
@@ -73,13 +73,13 @@ private:
     /// Texture.
     SharedPtr<Texture2D> texture_;
     /// Sprite mapping.
-    HashMap<String, SharedPtr<Sprite2D> > spriteMapping_;
+    HashMap<QString, SharedPtr<Sprite2D> > spriteMapping_;
     /// PList file used while loading.
     SharedPtr<PListFile> loadPListFile_;
     /// XML file used while loading.
     SharedPtr<XMLFile> loadXMLFile_;
     /// Texture name used while loading.
-    String loadTextureName_;
+    QString loadTextureName_;
 };
 
 }

@@ -424,16 +424,16 @@ void Texture::SetParameters(const XMLElement& elem)
     XMLElement paramElem = elem.GetChild();
     while (paramElem)
     {
-        String name = paramElem.GetName();
+        QString name = paramElem.GetName();
 
         if (name == "address")
         {
-            String coord = paramElem.GetAttributeLower("coord");
+            QString coord = paramElem.GetAttributeLower("coord");
             if (coord.length() >= 1)
             {
-                TextureCoordinate coordIndex = (TextureCoordinate)(coord[0] - 'u');
-                String mode = paramElem.GetAttributeLower("mode");
-                SetAddressMode(coordIndex, (TextureAddressMode)GetStringListIndex(mode.CString(), addressModeNames, ADDRESS_WRAP));
+                TextureCoordinate coordIndex = (TextureCoordinate)(coord[0].toLatin1() - 'u');
+                QString mode = paramElem.GetAttributeLower("mode");
+                SetAddressMode(coordIndex, (TextureAddressMode)GetStringListIndex(mode, addressModeNames, ADDRESS_WRAP));
             }
         }
 
@@ -442,8 +442,8 @@ void Texture::SetParameters(const XMLElement& elem)
 
         if (name == "filter")
         {
-            String mode = paramElem.GetAttributeLower("mode");
-            SetFilterMode((TextureFilterMode)GetStringListIndex(mode.CString(), filterModeNames, FILTER_DEFAULT));
+            QString mode = paramElem.GetAttributeLower("mode");
+            SetFilterMode((TextureFilterMode)GetStringListIndex(mode, filterModeNames, FILTER_DEFAULT));
         }
 
         if (name == "mipmap")

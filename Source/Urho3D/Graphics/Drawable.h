@@ -202,9 +202,11 @@ public:
     /// Set view-space depth bounds.
     void SetMinMaxZ(float minZ, float maxZ) { minZ_ = minZ; maxZ_ = maxZ; }
     /// Mark in view. Also clear the light list.
-    void MarkInView(const FrameInfo& frame) { MarkInView(frame.frameNumber_,frame.camera_); }
-    /// Mark in view of a specific camera. Specify null camera to update just the frame number (Used for shadow casters.).
+    void MarkInView(const FrameInfo &f ) { MarkInView(f.frameNumber_,f.camera_); }
+    /// Mark in view. Also clear the light list.
     void MarkInView(unsigned frameNumber, Camera* camera);
+    /// Mark in view without specifying a camera. Used for shadow casters.
+    void MarkInView(unsigned frameNumber);
     /// Sort and limit per-pixel lights to maximum allowed. Convert extra lights into vertex lights.
     void LimitLights();
     /// Sort and limit per-vertex lights to maximum allowed.
@@ -228,9 +230,9 @@ public:
     /// Return whether has a base pass.
     bool HasBasePass(unsigned batchIndex) const { return (basePassFlags_ & (1 << batchIndex)) != 0; }
     /// Return per-pixel lights.
-    const PODVectorN<Light*,4>& GetLights() const { return lights_; }
+    const Vector<Light*>& GetLights() const { return lights_; }
     /// Return per-vertex lights.
-    const PODVectorN<Light*,4>& GetVertexLights() const { return vertexLights_; }
+    const Vector<Light*>& GetVertexLights() const { return vertexLights_; }
     /// Return the first added per-pixel light.
     Light* GetFirstLight() const { return firstLight_; }
     /// Return the minimum view-space depth.
@@ -238,23 +240,16 @@ public:
     /// Return the maximum view-space depth.
     float GetMaxZ() const { return maxZ_; }
 
-    // Clear the frame's light list.
-    void ClearLights()
-    {
-        basePassFlags_ = 0;
-        firstLight_ = 0;
-        lights_.clear();
-        vertexLights_.clear();
-    }
 
     // Add a per-pixel light affecting the object this frame.
     void AddLight(Light* light)
     {
-        firstLight_ = firstLight_ ? firstLight_ : light;
+        if(!firstLight_)
+            firstLight_ = light;
         // Need to store into the light list only if the per-pixel lights are being limited.
         // Otherwise recording the first light is enough
         if (maxLights_)
-        lights_.push_back(light);
+            lights_.push_back(light);
     }
 
     // Add a per-vertex light affecting the object this frame.
@@ -338,9 +333,9 @@ protected:
     /// First per-pixel light added this frame.
     Light* firstLight_;
     /// Per-pixel lights affecting this drawable.
-    PODVectorN<Light *,4> lights_;
+    PODVector<Light*> lights_;
     /// Per-vertex lights affecting this drawable.
-    PODVectorN<Light*,4> vertexLights_;
+    PODVector<Light*> vertexLights_;
 };
 
 inline bool CompareDrawables(Drawable* lhs, Drawable* rhs)

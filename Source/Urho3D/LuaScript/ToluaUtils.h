@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,11 @@ struct lua_State;
 
 namespace Urho3D
 {
+class Component;
 class Context;
+#ifdef URHO3D_NAVIGATION
+class CrowdAgent;
+#endif
 class Pass;
 class SoundSource;
 class UIElement;
@@ -120,6 +124,11 @@ template<typename T> int ToluaPushPODVector(lua_State* L, void* data, const char
 template<> int ToluaPushPODVector<int>(lua_State* L, void* data, const char* type);
 /// Push PODVector<unsigned> to Lua as a table.
 template<> int ToluaPushPODVector<unsigned>(lua_State* L, void* data, const char* type);
+/// Push Vector<Component*> to Lua as a table.
+template<> int ToluaPushPODVector<Component*>(lua_State* L, void* data, const char* type);
+
+/// Push Vector<Node*> to Lua as a table.
+template<> int ToluaPushPODVector<Node*>(lua_State* L, void* data, const char* type);
 /// Push PODVector<SoundSource*> to Lua as a table.
 template<> int ToluaPushPODVector<SoundSource*>(lua_State* L, void* data, const char* type);
 /// Push PODVector<UIElement*> to Lua as a table.
@@ -138,6 +147,10 @@ template<> int ToluaPushPODVector<Vector3>(lua_State* L, void* data, const char*
 template<> int ToluaPushPODVector<IntVector2>(lua_State* L, void* data, const char* type);
 /// Push PODVector<OctreeQueryResult> to Lua as a table.
 template<> int ToluaPushPODVector<OctreeQueryResult>(lua_State* L, void* data, const char* type);
+#ifdef URHO3D_NAVIGATION
+/// Push Vector<CrowdAgent*> to Lua as a table.
+template<> int ToluaPushPODVector<CrowdAgent*>(lua_State* L, void* data, const char* type);
+#endif
 #ifdef URHO3D_PHYSICS
 /// Push PODVector<PhysicsRaycastResult> to Lua as a table.
 template<> int ToluaPushPODVector<PhysicsRaycastResult>(lua_State* L, void* data, const char* type);

@@ -157,7 +157,7 @@ Bone* Skeleton::GetBone(unsigned index)
     return index < bones_.size() ? &bones_[index] : (Bone*)nullptr;
 }
 
-Bone* Skeleton::GetBone(const String& name)
+Bone* Skeleton::GetBone(const QString& name)
 {
     return GetBone(StringHash(name));
 }

@@ -46,7 +46,7 @@ public:
     /// Return type.
     TileMapLayerType2D GetType() const { return type_; }
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return width.
     int GetWidth() const { return width_; }
     /// Return height.
@@ -54,9 +54,9 @@ public:
     /// Return is visible.
     bool IsVisible() const { return visible_; }
     /// Return has property (use for script).
-    bool HasProperty(const String& name) const;
+    bool HasProperty(const QString& name) const;
     /// Return property value (use for script).
-    const String& GetProperty(const String& name) const;
+    const QString& GetProperty(const QString& name) const;
 
 
 protected:
@@ -70,7 +70,7 @@ protected:
     /// Layer type.
     TileMapLayerType2D type_;
     /// Name.
-    String name_;
+    QString name_;
     /// Width.
     int width_;
     /// Height.
@@ -126,7 +126,7 @@ public:
     /// Return position.
     const Vector2& GetPosition() const { return position_; }
     /// Return source.
-    const String& GetSource() const { return source_; }
+    const QString& GetSource() const { return source_; }
     /// Return sprite.
     Sprite2D* GetSprite() const;
 
@@ -134,7 +134,7 @@ private:
     /// Position.
     Vector2 position_;
     /// Source.
-    String source_;
+    QString source_;
     /// Sprite.
     SharedPtr<Sprite2D> sprite_;
 };
@@ -170,14 +170,14 @@ public:
 
 private:
     /// Load TSX file.
-    SharedPtr<XMLFile> LoadTSXFile(const String& source);
+    SharedPtr<XMLFile> LoadTSXFile(const QString& source);
     /// Load tile set.
     bool LoadTileSet(const XMLElement& element);
 
     /// XML file used during loading.
     SharedPtr<XMLFile> loadXMLFile_;
     /// TSX name to XML file mapping.
-    HashMap<String, SharedPtr<XMLFile> > tsxXMLFiles_;
+    HashMap<QString, SharedPtr<XMLFile> > tsxXMLFiles_;
     /// Tile map information.
     TileMapInfo2D info_;
     /// Tile set textures.

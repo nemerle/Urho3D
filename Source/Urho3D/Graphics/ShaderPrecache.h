@@ -39,7 +39,7 @@ class URHO3D_API ShaderPrecache : public Object
 
 public:
     /// Construct and begin collecting shader combinations. Load existing combinations from XML if the file exists.
-    ShaderPrecache(Context* context, const String& fileName);
+    ShaderPrecache(Context* context, const QString& fileName);
     /// Destruct. Write the collected shaders to XML.
     ~ShaderPrecache();
 
@@ -51,13 +51,13 @@ public:
 
 private:
     /// XML file name.
-    String fileName_;
+    QString fileName_;
     /// XML file.
     XMLFile xmlFile_;
     /// Already encountered shader combinations, pointer version for fast queries.
     QSet<Pair<ShaderVariation*, ShaderVariation*> > usedPtrCombinations_;
     /// Already encountered shader combinations.
-    QSet<String> usedCombinations_;
+    QSet<QString> usedCombinations_;
 };
 
 }

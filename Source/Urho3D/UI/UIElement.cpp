@@ -150,7 +150,7 @@ void UIElement::RegisterObject(Context* context)
 {
     context->RegisterFactory<UIElement>(UI_CATEGORY);
 
-    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, String, String::EMPTY, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, QString, QString(), AM_FILE);
     ACCESSOR_ATTRIBUTE("Position", GetPosition, SetPosition, IntVector2, IntVector2::ZERO, AM_FILE);
     ACCESSOR_ATTRIBUTE("Size", GetSize, SetSize, IntVector2, IntVector2::ZERO, AM_FILE);
     ACCESSOR_ATTRIBUTE("Min Size", GetMinSize, SetMinSize, IntVector2, IntVector2::ZERO, AM_FILE);
@@ -204,7 +204,7 @@ bool UIElement::LoadXML(const XMLElement& source, bool setInstanceDefault)
 bool UIElement::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setInstanceDefault)
 {
     // Get style override if defined
-    String styleName = source.GetAttribute("style");
+    QString styleName = source.GetAttribute("style");
 
     // Apply the style first, if the style file is available
     if (styleFile)
@@ -224,7 +224,7 @@ bool UIElement::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setIn
         if (styleFile)
         {
             // Remember the original applied style
-            String appliedStyle(appliedStyle_);
+            QString appliedStyle(appliedStyle_);
             SetStyle(styleName, styleFile);
             appliedStyle_ = appliedStyle;
         }
@@ -244,14 +244,14 @@ bool UIElement::LoadXML(const XMLElement& source, XMLFile* styleFile, bool setIn
     while (childElem)
     {
         bool internalElem = childElem.GetBool("internal");
-        String typeName = childElem.GetAttribute("type");
+        QString typeName = childElem.GetAttribute("type");
         if (typeName.isEmpty())
             typeName = "UIElement";
         unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
         UIElement* child = nullptr;
 
         if (!internalElem)
-            child = CreateChild(typeName, String::EMPTY, index);
+            child = CreateChild(typeName, QString::null, index);
         else
         {
             for (unsigned i = nextInternalChild; i < children_.size(); ++i)
@@ -296,11 +296,11 @@ bool UIElement::LoadChildXML(const XMLElement& childElem, XMLFile* styleFile, bo
         return false;
     }
 
-    String typeName = childElem.GetAttribute("type");
+    QString typeName = childElem.GetAttribute("type");
     if (typeName.isEmpty())
         typeName = "UIElement";
     unsigned index = childElem.HasAttribute("index") ? childElem.GetUInt("index") : M_MAX_UNSIGNED;
-    UIElement* child = CreateChild(typeName, String::EMPTY, index);
+    UIElement* child = CreateChild(typeName, QString::null, index);
 
     if (child)
     {
@@ -397,7 +397,7 @@ void UIElement::GetDebugDrawBatches(PODVector<UIBatch>& batches, PODVector<float
         }
     }
 
-    batch.SetColor(DEBUG_DRAW_COLOR, true);
+    batch.SetColor(Color::BLUE, true);
     // Left
     batch.AddQuad(0, 0, horizontalThickness, size_.y_, 0, 0);
     // Top
@@ -527,7 +527,7 @@ void UIElement::OnKey(int key, int buttons, int qualifiers)
 {
 }
 
-void UIElement::OnTextInput(const String& text, int buttons, int qualifiers)
+void UIElement::OnTextInput(const QString& text, int buttons, int qualifiers)
 {
 }
 
@@ -537,7 +537,7 @@ bool UIElement::LoadXML(Deserializer& source)
     return xml->Load(source) && LoadXML(xml->GetRoot());
 }
 
-bool UIElement::SaveXML(Serializer& dest, const String& indentation) const
+bool UIElement::SaveXML(Serializer& dest, const QString& indentation) const
 {
     SharedPtr<XMLFile> xml(new XMLFile(context_));
     XMLElement rootElem = xml->CreateRoot("element");
@@ -550,7 +550,7 @@ bool UIElement::FilterAttributes(XMLElement& dest) const
     XMLFile* styleFile = GetDefaultStyle();
     if (styleFile)
     {
-        String style = dest.GetAttribute("style");
+        QString style = dest.GetAttribute("style");
         if (!style.isEmpty() && style != "none")
         {
             if (styleXPathQuery_.SetVariable("typeName", style))
@@ -572,7 +572,7 @@ bool UIElement::FilterAttributes(XMLElement& dest) const
     return true;
 }
 
-void UIElement::SetName(const String& name)
+void UIElement::SetName(const QString& name)
 {
     name_ = name;
 
@@ -919,10 +919,10 @@ void UIElement::SetDragDropMode(unsigned mode)
     dragDropMode_ = mode;
 }
 
-bool UIElement::SetStyle(const String& styleName, XMLFile* file)
+bool UIElement::SetStyle(const QString& styleName, XMLFile* file)
 {
     // If empty style was requested, replace with type name
-    String actualStyleName = !styleName.isEmpty() ? styleName : GetTypeName();
+    QString actualStyleName = !styleName.isEmpty() ? styleName : GetTypeName();
 
     appliedStyle_ = actualStyleName;
     if (styleName == "none")
@@ -955,7 +955,7 @@ bool UIElement::SetStyle(const XMLElement& element)
 
 bool UIElement::SetStyleAuto(XMLFile* file)
 {
-    return SetStyle(String::EMPTY, file);
+    return SetStyle(QString::null, file);
 }
 
 void UIElement::SetDefaultStyle(XMLFile* style)
@@ -1187,7 +1187,7 @@ void UIElement::BringToFront()
     }
 }
 
-UIElement* UIElement::CreateChild(StringHash type, const String& name, unsigned index)
+UIElement* UIElement::CreateChild(StringHash type, const QString& name, unsigned index)
 {
     // Check that creation succeeds and that the object in fact is a UI element
     SharedPtr<UIElement> newElement = DynamicCast<UIElement>(context_->CreateObject(type));
@@ -1404,9 +1404,9 @@ bool UIElement::HasFocus() const
     return GetSubsystem<UI>()->GetFocusElement() == this;
 }
 
-const String& UIElement::GetAppliedStyle() const
+const QString& UIElement::GetAppliedStyle() const
 {
-    return appliedStyle_ == GetTypeName() ? String::EMPTY : appliedStyle_;
+    return appliedStyle_ == GetTypeName() ? s_dummy : appliedStyle_;
 }
 
 XMLFile* UIElement::GetDefaultStyle(bool recursiveUp) const
@@ -1459,7 +1459,7 @@ UIElement* UIElement::GetChild(unsigned index) const
     return index < children_.size() ? children_[index] : (UIElement*)nullptr;
 }
 
-UIElement* UIElement::GetChild(const String& name, bool recursive) const
+UIElement* UIElement::GetChild(const QString& name, bool recursive) const
 {
     for (const SharedPtr<UIElement> & elem : children_)
     {
@@ -1520,7 +1520,7 @@ const Color& UIElement::GetDerivedColor() const
 
 const Variant& UIElement::GetVar(const StringHash& key) const
 {
-    auto i = vars_.find(key);
+    VariantMap::const_iterator i = vars_.find(key);
     return i != vars_.end() ? MAP_VALUE(i) : Variant::EMPTY;
 }
 
@@ -1669,13 +1669,13 @@ void UIElement::OnAttributeAnimationAdded()
 
 void UIElement::OnAttributeAnimationRemoved()
 {
-    if (attributeAnimationInfos_.isEmpty())
+    if (attributeAnimationInfos_.empty())
         UnsubscribeFromEvent(E_POSTUPDATE);
 }
 
-void UIElement::SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
+void UIElement::SetObjectAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
 {
-    Vector<String> names = name.split('/');
+    QStringList names = name.split('/');
     // Only attribute name
     if (names.size() == 1)
         SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
@@ -1685,13 +1685,13 @@ void UIElement::SetObjectAttributeAnimation(const String& name, ValueAnimation* 
         UIElement* element = this;
         for (unsigned i = 0; i < names.size() - 1; ++i)
         {
-            if (names[i].Front() != '#')
+            if (!names[i].startsWith('#'))
             {
                 LOGERROR("Invalid name " + name);
                 return;
             }
 
-            unsigned index = ToInt(names[i].Substring(1, names[i].length() - 1));
+            unsigned index = names[i].mid(1, names[i].length() - 1).toInt();
             element = element->GetChild(index);
             if (!element)
             {
@@ -1714,7 +1714,7 @@ void UIElement::MarkDirty()
         (*i)->MarkDirty();
 }
 
-bool UIElement::RemoveChildXML(XMLElement& parent, const String& name) const
+bool UIElement::RemoveChildXML(XMLElement& parent, const QString& name) const
 {
     static XPathQuery matchXPathQuery("./attribute[@name=$attributeName]", "attributeName:String");
 
@@ -1725,7 +1725,7 @@ bool UIElement::RemoveChildXML(XMLElement& parent, const String& name) const
     return !removeElem || parent.RemoveChild(removeElem);
 }
 
-bool UIElement::RemoveChildXML(XMLElement& parent, const String& name, const String& value) const
+bool UIElement::RemoveChildXML(XMLElement& parent, const QString& name, const QString& value) const
 {
     static XPathQuery matchXPathQuery("./attribute[@name=$attributeName and @value=$attributeValue]", "attributeName:String, attributeValue:String");
 
@@ -1741,7 +1741,7 @@ bool UIElement::RemoveChildXML(XMLElement& parent, const String& name, const Str
 bool UIElement::FilterUIStyleAttributes(XMLElement& dest, const XMLElement& styleElem) const
 {
     // Remove style attribute only when its value is identical to the value stored in style file
-    String style = styleElem.GetAttribute("style");
+    QString style = styleElem.GetAttribute("style");
     if (!style.isEmpty())
     {
         if (style == dest.GetAttribute("style"))

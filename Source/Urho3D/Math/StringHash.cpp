@@ -38,8 +38,8 @@ StringHash::StringHash(const char* str) :
 {
 }
 
-StringHash::StringHash(const String& str) :
-    value_(Calculate(str.CString()))
+StringHash::StringHash(const QString& str) :
+    value_(Calculate(qPrintable(str)))
 {
 }
 
@@ -61,11 +61,11 @@ unsigned StringHash::Calculate(const char* str)
     return hash;
 }
 
-String StringHash::ToString() const
+QString StringHash::ToString() const
 {
     char tempBuffer[CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%08X", value_);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
 }

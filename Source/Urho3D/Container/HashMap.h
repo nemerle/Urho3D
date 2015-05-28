@@ -1,5 +1,4 @@
-#ifndef HASHMAP
-#define HASHMAP
+#pragma once
 #include "../Container/Vector.h"
 //#include <mct/hash-map.hpp>
 #include <sherwood_map/sherwood_map.hpp>
@@ -124,7 +123,6 @@ public:
             if(v==elem)
                 return true;
         return false;
-        //return std::binary_search(members.begin(),members.end(),v);
     }
     /// Erase an element if found.
     void clear()
@@ -132,16 +130,13 @@ public:
         members.resize(0);
     }
     void insert(const T &val) {
-        if(contains(val))
+        if(!members.empty() && contains(val))
             return;
         members.push_back(val);
-//        auto loc = std::lower_bound(members.begin(),members.end(),val);
-//        members.insert(loc,val);
     }
     bool empty() const { return members.empty(); }
 
 };
 #endif
 }
-#endif // HASHMAP
 

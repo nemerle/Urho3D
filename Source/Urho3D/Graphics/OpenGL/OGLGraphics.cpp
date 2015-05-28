@@ -161,9 +161,9 @@ static unsigned glesDepthStencilFormat = GL_DEPTH_COMPONENT16;
 static unsigned glesReadableDepthFormat = GL_DEPTH_COMPONENT;
 #endif
 
-static String extensions;
+static QString extensions;
 
-bool CheckExtension(const String& name)
+bool CheckExtension(const QString& name)
 {
     if (extensions.isEmpty())
         extensions = (const char*)glGetString(GL_EXTENSIONS);
@@ -278,11 +278,11 @@ void Graphics::SetExternalWindow(void* window)
         LOGERROR("Window already opened, can not set external window");
 }
 
-void Graphics::SetWindowTitle(const String& windowTitle)
+void Graphics::SetWindowTitle(const QString& windowTitle)
 {
     windowTitle_ = windowTitle;
     if (impl_->window_)
-        SDL_SetWindowTitle(impl_->window_, windowTitle_.CString());
+        SDL_SetWindowTitle(impl_->window_, qPrintable(windowTitle_));
 }
 
 void Graphics::SetWindowIcon(Image* windowIcon)
@@ -381,7 +381,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     }
 #endif
 
-    String extensions;
+    QString extensions;
 
     // With an external window, only the size can change after initial setup, so do not recreate context
     if (!externalWindow_ || !impl_->context_)
@@ -446,12 +446,12 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
         if (borderless)
             flags |= SDL_WINDOW_BORDERLESS;
 
-        SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations_.CString());
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, qPrintable(orientations_));
 
         for (;;)
         {
             if (!externalWindow_)
-                impl_->window_ = SDL_CreateWindow(windowTitle_.CString(), x, y, width, height, flags);
+                impl_->window_ = SDL_CreateWindow(qPrintable(windowTitle_), x, y, width, height, flags);
             else
             {
 #ifndef EMSCRIPTEN
@@ -474,7 +474,7 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
                 }
                 else
                 {
-                    LOGERRORF("Could not create window, root cause: '%s'", SDL_GetError());
+                    LOGERROR(QString("Could not create window, root cause: '%1'").arg(SDL_GetError()));
                     return false;
                 }
             }
@@ -525,14 +525,13 @@ bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, 
     CheckFeatureSupport();
 
 #ifdef URHO3D_LOGGING
-    String msg;
-    msg.AppendWithFormat("Set screen mode %dx%d %s", width_, height_, (fullscreen_ ? "fullscreen" : "windowed"));
+    QString msg  = QString("Set screen mode %1x%2 %3").arg(width_).arg(height_).arg((fullscreen_ ? "fullscreen" : "windowed"));
     if (borderless_)
         msg.append(" borderless");
     if (resizable_)
         msg.append(" resizable");
     if (multiSample > 1)
-        msg.AppendWithFormat(" multisample %d", multiSample);
+        msg += QString(" multisample %1").arg(multiSample);
     LOGINFO(msg);
 #endif
 
@@ -579,10 +578,10 @@ void Graphics::SetForceGL2(bool enable)
 
     forceGL2_ = enable;
 }
-void Graphics::SetOrientations(const String& orientations)
+void Graphics::SetOrientations(const QString& orientations)
 {
     orientations_ = orientations.trimmed();
-    SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations_.CString());
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, qPrintable(orientations_));
 }
 
 bool Graphics::ToggleFullscreen()
@@ -1877,7 +1876,7 @@ void Graphics::SetStencilTest(bool enable, CompareMode mode, StencilOp pass, Ste
 }
 
 
-void Graphics::BeginDumpShaders(const String& fileName)
+void Graphics::BeginDumpShaders(const QString& fileName)
 {
     shaderPrecache_ = new ShaderPrecache(context_, fileName);
 }
@@ -2017,9 +2016,9 @@ unsigned Graphics::GetMaxBones()
 #endif
 }
 
-ShaderVariation* Graphics::GetShader(ShaderType type, const String& name, const String& defines) const
+ShaderVariation* Graphics::GetShader(ShaderType type, const QString& name, const QString& defines) const
 {
-    return GetShader(type, name.CString(), defines.CString());
+    return GetShader(type, qPrintable(name), qPrintable(defines));
 }
 
 ShaderVariation* Graphics::GetShader(ShaderType type, const char* name, const char* defines) const
@@ -2028,7 +2027,7 @@ ShaderVariation* Graphics::GetShader(ShaderType type, const char* name, const ch
     {
         ResourceCache* cache = GetSubsystem<ResourceCache>();
 
-        String fullShaderName = shaderPath_ + name + shaderExtension_;
+        QString fullShaderName = shaderPath_ + name + shaderExtension_;
         // Try to reduce repeated error log prints because of missing shaders
         if (lastShaderName_ == name && !cache->Exists(fullShaderName))
             return nullptr;
@@ -2045,7 +2044,7 @@ VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
     return index < MAX_VERTEX_STREAMS ? vertexBuffers_[index] : nullptr;
 }
 
-TextureUnit Graphics::GetTextureUnit(const String& name)
+TextureUnit Graphics::GetTextureUnit(const QString& name)
 {
     auto i = textureUnits_.find(name);
     if (i != textureUnits_.end())
@@ -2054,14 +2053,14 @@ TextureUnit Graphics::GetTextureUnit(const String& name)
         return MAX_TEXTURE_UNITS;
 }
 
-const String& Graphics::GetTextureUnitName(TextureUnit unit)
+const QString& Graphics::GetTextureUnitName(TextureUnit unit)
 {
     for (auto elem=textureUnits_.begin(),fin=textureUnits_.end(); elem!=fin; ++elem)
     {
         if (MAP_VALUE(elem) == unit)
             return MAP_KEY(elem);
     }
-    return String::EMPTY;
+    return s_dummy;
 }
 
 Texture* Graphics::GetTexture(unsigned index) const
@@ -2115,7 +2114,7 @@ void Graphics::WindowResized()
     CleanupFramebuffers();
     ResetRenderTargets();
 
-    LOGDEBUGF("Window was resized to %dx%d", width_, height_);
+    LOGDEBUG(QString("Window was resized to %1x%2").arg(width_).arg(height_));
 
     using namespace ScreenMode;
 
@@ -2142,7 +2141,7 @@ void Graphics::WindowMoved()
     position_.x_ = newX;
     position_.y_ = newY;
 
-    LOGDEBUGF("Window was moved to %d,%d", position_.x_, position_.y_);
+    LOGDEBUG(QString("Window was moved to %1,%2").arg(position_.x_).arg(position_.y_));
 
     using namespace WindowPos;
 
@@ -2411,7 +2410,7 @@ void Graphics::Restore()
 
         if (!impl_->context_)
         {
-            LOGERRORF("Could not create OpenGL context, root cause '%s'", SDL_GetError());
+            LOGERROR(QString("Could not create OpenGL context, root cause '%1'").arg(SDL_GetError()));
             return;
         }
 
@@ -2424,7 +2423,7 @@ void Graphics::Restore()
         GLenum err = glewInit();
         if (GLEW_OK != err)
         {
-            LOGERRORF("Could not initialize OpenGL extensions, root cause: '%s'", glewGetErrorString(err));
+            LOGERROR(QString("Could not initialize OpenGL extensions, root cause: '%1'").arg((char *)glewGetErrorString(err)));
             return;
         }
 
@@ -2656,9 +2655,9 @@ unsigned Graphics::GetReadableDepthFormat()
 #endif
 }
 
-unsigned Graphics::GetFormat(const String& formatName)
+unsigned Graphics::GetFormat(const QString& formatName)
 {
-    String nameLower = formatName.toLower().trimmed();
+    QString nameLower = formatName.toLower().trimmed();
 
     if (nameLower == "a")
         return GetAlphaFormat();

@@ -47,20 +47,20 @@ public:
     /// Construct.
     PackageFile(Context* context);
     /// Construct and open.
-    PackageFile(Context* context, const String& fileName, unsigned startOffset = 0);
+    PackageFile(Context* context, const QString& fileName, unsigned startOffset = 0);
     /// Destruct.
     virtual ~PackageFile();
 
     /// Open the package file. Return true if successful.
-    bool Open(const String& fileName, unsigned startOffset = 0);
+    bool Open(const QString& fileName, unsigned startOffset = 0);
     /// Check if a file exists within the package file.
-    bool Exists(const String& fileName) const;
+    bool Exists(const QString& fileName) const;
     /// Return the file entry corresponding to the name, or null if not found.
-    const PackageEntry* GetEntry(const String& fileName) const;
+    const PackageEntry* GetEntry(const QString& fileName) const;
     /// Return all file entries.
-    const HashMap<String, PackageEntry>& GetEntries() const { return entries_; }
+    const HashMap<QString, PackageEntry>& GetEntries() const { return entries_; }
     /// Return the package file name.
-    const String& GetName() const { return fileName_; }
+    const QString& GetName() const { return fileName_; }
     /// Return hash of the package file name.
     StringHash GetNameHash() const { return nameHash_; }
     /// Return number of files.
@@ -72,13 +72,13 @@ public:
     /// Return whether the files are compressed.
     bool IsCompressed() const { return compressed_; }
     /// Return list of entry names
-    const Vector<String> GetEntryNames() const { return entries_.keys(); }
+    const PODVector<QString> GetEntryNames() const { return entries_.keys(); }
 
 private:
     /// File entries.
-    HashMap<String, PackageEntry> entries_;
+    HashMap<QString, PackageEntry> entries_;
     /// File name.
-    String fileName_;
+    QString fileName_;
     /// Package file name hash.
     StringHash nameHash_;
     /// Package file total size.

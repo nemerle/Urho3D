@@ -85,7 +85,7 @@ void Spline::SetKnot(const Variant& knot, unsigned index)
         else if (knots_.empty())
             knots_.push_back(knot);
         else
-            LOGERRORF("Attempted to set a Spline's Knot value of type %s where elements are already using %s", knot.GetTypeName().CString(), knots_[0].GetTypeName().CString());
+            LOGERROR(QString("Attempted to set a Spline's Knot value of type %1 where elements are already using %2").arg(knot.GetTypeName()).arg(knots_[0].GetTypeName()));
     }
 }
 
@@ -96,7 +96,7 @@ void Spline::AddKnot(const Variant& knot)
     else if (knots_.empty())
         knots_.push_back(knot);
     else
-        LOGERRORF("Attempted to add Knot to Spline of type %s where elements are already using %s", knot.GetTypeName().CString(), knots_[0].GetTypeName().CString());
+        LOGERROR(QString("Attempted to add Knot to Spline of type %1 where elements are already using %2").arg(knot.GetTypeName()).arg(knots_[0].GetTypeName()));
 }
 
 void Spline::AddKnot(const Variant& knot, unsigned index)
@@ -109,7 +109,7 @@ void Spline::AddKnot(const Variant& knot, unsigned index)
     else if (knots_.empty())
         knots_.push_back(knot);
     else
-        LOGERRORF("Attempted to add Knot to Spline of type %s where elements are already using %s", knot.GetTypeName().CString(), knots_[0].GetTypeName().CString());
+        LOGERROR(QString("Attempted to add Knot to Spline of type %1 where elements are already using %2").arg(knot.GetTypeName()).arg(knots_[0].GetTypeName()));
 }
 
 Variant Spline::BezierInterpolation(const Vector<Variant>& knots, float t) const

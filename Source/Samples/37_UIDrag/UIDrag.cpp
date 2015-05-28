@@ -45,7 +45,7 @@ void UIDrag::Start()
     Sample::Start();
 
     // Set mouse visible
-    String platform = GetPlatform();
+    QString platform = GetPlatform();
     if (platform != "Android" && platform != "iOS")
         GetSubsystem<Input>()->SetMouseVisible(true);
 
@@ -68,7 +68,7 @@ void UIDrag::CreateGUI()
 
     for (int i=0; i < 10; i++)
     {
-        auto  b = new Button(context_);
+        Button* b = new Button(context_);
         root->AddChild(b);
         // Reference a style from the style sheet loaded earlier:
         b->SetStyle("Button");
@@ -81,7 +81,7 @@ void UIDrag::CreateGUI()
         SubscribeToEvent(b, E_DRAGEND, HANDLER(UIDrag, HandleDragEnd));
 
         {
-            auto  t = new Text(context_);
+            Text* t = new Text(context_);
             b->AddChild(t);
             t->SetStyle("Text");
             t->SetHorizontalAlignment(HA_CENTER);
@@ -90,7 +90,7 @@ void UIDrag::CreateGUI()
         }
 
         {
-            auto  t = new Text(context_);
+            Text* t = new Text(context_);
             b->AddChild(t);
             t->SetStyle("Text");
             t->SetName("Event Touch");
@@ -99,7 +99,7 @@ void UIDrag::CreateGUI()
         }
 
         {
-            auto  t = new Text(context_);
+            Text* t = new Text(context_);
             b->AddChild(t);
             t->SetStyle("Text");
             t->SetName("Num Touch");
@@ -110,10 +110,10 @@ void UIDrag::CreateGUI()
 
     for (int i = 0; i < 10; i++)
     {
-        auto  t = new Text(context_);
+        Text* t = new Text(context_);
         root->AddChild(t);
         t->SetStyle("Text");
-        t->SetName("Touch "+ String(i));
+        t->SetName("Touch "+ QString::number(i));
         t->SetVisible(false);
     }
 }
@@ -154,11 +154,11 @@ void UIDrag::HandleDragBegin(StringHash eventType, VariantMap& eventData)
     int buttons = eventData[P_BUTTONS].GetInt();
     element->SetVar("BUTTONS", buttons);
 
-    Text* t = (Text*)element->GetChild(String("Text"));
-    t->SetText("Drag Begin Buttons: " + String(buttons));
+    Text* t = (Text*)element->GetChild(QString("Text"));
+    t->SetText("Drag Begin Buttons: " + QString::number(buttons));
 
-    t = (Text*)element->GetChild(String("Num Touch"));
-    t->SetText("Number of buttons: " + String(eventData[P_NUMBUTTONS].GetInt()));
+    t = (Text*)element->GetChild(QString("Num Touch"));
+    t->SetText("Number of buttons: " + QString::number(eventData[P_NUMBUTTONS].GetInt()));
 }
 
 void UIDrag::HandleDragMove(StringHash eventType, VariantMap& eventData)
@@ -171,8 +171,8 @@ void UIDrag::HandleDragMove(StringHash eventType, VariantMap& eventData)
     int Y = eventData[P_Y].GetInt() + d.y_;
     int BUTTONS = element->GetVar("BUTTONS").GetInt();
 
-    Text* t = (Text*)element->GetChild(String("Event Touch"));
-    t->SetText("Drag Move Buttons: " + String(buttons));
+    Text* t = (Text*)element->GetChild(QString("Event Touch"));
+    t->SetText("Drag Move Buttons: " + QString::number(buttons));
 
     if (buttons == BUTTONS)
         element->SetPosition(IntVector2(X, Y));
@@ -202,9 +202,9 @@ void UIDrag::HandleUpdate(StringHash eventType, VariantMap& eventData)
     unsigned n = input->GetNumTouches();
     for (unsigned i = 0; i < n; i++)
     {
-        Text* t = (Text*)root->GetChild("Touch " + String(i));
+        Text* t = (Text*)root->GetChild("Touch " + QString::number(i));
         TouchState* ts = input->GetTouch(i);
-        t->SetText("Touch " + String(ts->touchID_));
+        t->SetText("Touch " + QString::number(ts->touchID_));
 
         IntVector2 pos = ts->position_;
         pos.y_ -= 30;
@@ -215,7 +215,7 @@ void UIDrag::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
     for (unsigned i = n; i < 10; i++)
     {
-        Text* t = (Text*)root->GetChild("Touch " + String(i));
+        Text* t = (Text*)root->GetChild("Touch " + QString::number(i));
         t->SetVisible(false);
     }
 }

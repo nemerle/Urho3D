@@ -44,12 +44,12 @@ static void RegisterNetworkPriority(asIScriptEngine* engine)
     engine->RegisterObjectMethod("NetworkPriority", "bool get_alwaysUpdateOwner() const", asMETHOD(NetworkPriority, GetAlwaysUpdateOwner), asCALL_THISCALL);
 }
 
-void SendRemoteEvent(const String& eventType, bool inOrder, const VariantMap& eventData, Connection* ptr)
+void SendRemoteEvent(const QString& eventType, bool inOrder, const VariantMap& eventData, Connection* ptr)
 {
     ptr->SendRemoteEvent(eventType, inOrder, eventData);
 }
 
-void SendRemoteNodeEvent(Node* receiver, const String& eventType, bool inOrder, const VariantMap& eventData, Connection* ptr)
+void SendRemoteNodeEvent(Node* receiver, const QString& eventType, bool inOrder, const VariantMap& eventData, Connection* ptr)
 {
     ptr->SendRemoteEvent(receiver, eventType, inOrder, eventData);
 }
@@ -118,39 +118,39 @@ static CScriptArray* NetworkGetClientConnections(Network* ptr)
     return VectorToHandleArray(connections, "Array<Connection@>");
 }
 
-static void NetworkBroadcastRemoteEvent(const String& eventType, bool inOrder, const VariantMap& eventData, Network* ptr)
+static void NetworkBroadcastRemoteEvent(const QString& eventType, bool inOrder, const VariantMap& eventData, Network* ptr)
 {
     ptr->BroadcastRemoteEvent(eventType, inOrder, eventData);
 }
 
-static void NetworkBroadcastRemoteSceneEvent(Scene* scene, const String& eventType, bool inOrder, const VariantMap& eventData, Network* ptr)
+static void NetworkBroadcastRemoteSceneEvent(Scene* scene, const QString& eventType, bool inOrder, const VariantMap& eventData, Network* ptr)
 {
     ptr->BroadcastRemoteEvent(scene, eventType, inOrder, eventData);
 }
 
-static void NetworkBroadcastRemoteNodeEvent(Node* node, const String& eventType, bool inOrder, const VariantMap& eventData, Network* ptr)
+static void NetworkBroadcastRemoteNodeEvent(Node* node, const QString& eventType, bool inOrder, const VariantMap& eventData, Network* ptr)
 {
     ptr->BroadcastRemoteEvent(node, eventType, inOrder, eventData);
 }
 
-static void NetworkRegisterRemoteEvent(const String& eventType, Network* ptr)
+static void NetworkRegisterRemoteEvent(const QString& eventType, Network* ptr)
 {
     ptr->RegisterRemoteEvent(eventType);
 }
 
-static void NetworkUnregisterRemoteEvent(const String& eventType, Network* ptr)
+static void NetworkUnregisterRemoteEvent(const QString& eventType, Network* ptr)
 {
     ptr->UnregisterRemoteEvent(eventType);
 }
 
-static bool NetworkCheckRemoteEvent(const String& eventType, Network* ptr)
+static bool NetworkCheckRemoteEvent(const QString& eventType, Network* ptr)
 {
     return ptr->CheckRemoteEvent(eventType);
 }
 
-static HttpRequest* NetworkMakeHttpRequest(const String& url, const String& verb, CScriptArray* headers, const String& postData, Network* ptr)
+static HttpRequest* NetworkMakeHttpRequest(const QString& url, const QString& verb, CScriptArray* headers, const QString& postData, Network* ptr)
 {
-    SharedPtr<HttpRequest> request = ptr->MakeHttpRequest(url, verb, ArrayToVector<String>(headers), postData);
+    SharedPtr<HttpRequest> request = ptr->MakeHttpRequest(url, verb, ArrayToVector<QString>(headers), postData);
     // The shared pointer will go out of scope, so have to increment the reference count
     // (here an auto handle can not be used)
     if (request)

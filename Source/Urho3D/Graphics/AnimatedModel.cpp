@@ -429,7 +429,7 @@ void AnimatedModel::RemoveAnimationState(Animation* animation)
     }
 }
 
-void AnimatedModel::RemoveAnimationState(const String& animationName)
+void AnimatedModel::RemoveAnimationState(const QString& animationName)
 {
     RemoveAnimationState(StringHash(animationName));
 }
@@ -531,7 +531,7 @@ void AnimatedModel::SetMorphWeight(unsigned index, float weight)
     }
 }
 
-void AnimatedModel::SetMorphWeight(const String& name, float weight)
+void AnimatedModel::SetMorphWeight(const QString& name, float weight)
 {
     for (unsigned i = 0; i < morphs_.size(); ++i)
     {
@@ -582,7 +582,7 @@ float AnimatedModel::GetMorphWeight(unsigned index) const
     return index < morphs_.size() ? morphs_[index].weight_ : 0.0f;
 }
 
-float AnimatedModel::GetMorphWeight(const String& name) const
+float AnimatedModel::GetMorphWeight(const QString& name) const
 {
     for (const ModelMorph & morph : morphs_)
         if (morph.name_ == name)
@@ -611,7 +611,7 @@ AnimationState* AnimatedModel::GetAnimationState(Animation* animation) const
     return nullptr;
 }
 
-AnimationState* AnimatedModel::GetAnimationState(const String& animationName) const
+AnimationState* AnimatedModel::GetAnimationState(const QString& animationName) const
 {
     return GetAnimationState(StringHash(animationName));
 }
@@ -835,7 +835,7 @@ VariantVector AnimatedModel::GetAnimationStatesAttr() const
         Animation* animation = state->GetAnimation();
         Bone* startBone = state->GetStartBone();
         ret.push_back(GetResourceRef(animation, Animation::GetTypeStatic()));
-        ret.push_back(startBone ? startBone->name_ : String::EMPTY);
+        ret.push_back(startBone ? startBone->name_ : QString::null);
         ret.push_back(state->IsLooped());
         ret.push_back(state->GetWeight());
         ret.push_back(state->GetTime());

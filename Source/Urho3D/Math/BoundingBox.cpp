@@ -258,7 +258,7 @@ Intersection BoundingBox::IsInsideFast(const Sphere& sphere) const
         return INSIDE;
 }
 
-String BoundingBox::ToString() const
+QString BoundingBox::ToString() const
 {
     return min_.ToString() + " - " + max_.ToString();
 }

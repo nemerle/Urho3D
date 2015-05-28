@@ -106,17 +106,17 @@ public:
     virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) override;
 
     /// Define a shape.
-    void DefineShape(const String& shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot);
+    void DefineShape(const QString& shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot);
     /// Define a shape.
     void DefineShape(CursorShape shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot);
     /// Set current shape.
-    void SetShape(const String& shape);
+    void SetShape(const QString& shape);
     /// Set current shape.
     void SetShape(CursorShape shape);
     /// Set whether to use system default shapes. Is only possible when the OS mouse cursor has been set visible from the Input subsystem.
     void SetUseSystemShapes(bool enable);
     /// Get current shape.
-    const String& GetShape() const { return shape_; }
+    const QString& GetShape() const { return shape_; }
     /// Return whether is using system default shapes.
     bool GetUseSystemShapes() const { return useSystemShapes_; }
 
@@ -132,9 +132,9 @@ protected:
     void HandleMouseVisibleChanged(StringHash eventType, VariantMap& eventData);
 
     /// Current shape definition.
-    String shape_;
+    QString shape_;
     /// Shape definitions.
-    HashMap<String, CursorShapeInfo> shapeInfos_;
+    HashMap<QString, CursorShapeInfo> shapeInfos_;
     /// Use system default shapes flag.
     bool useSystemShapes_;
     /// OS cursor shape needs update flag.

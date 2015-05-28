@@ -107,13 +107,13 @@ public:
     /// Load from XML element.
     void Load(const XMLElement& element);
     /// Return has property.
-    bool HasProperty(const String& name) const;
+    bool HasProperty(const QString& name) const;
     /// Return property value.
-    const String& GetProperty(const String& name) const;
+    const QString& GetProperty(const QString& name) const;
 
 protected:
     /// Property name to property value mapping.
-    HashMap<String, String> nameToValueMapping_;
+    HashMap<QString, QString> nameToValueMapping_;
 };
 
 /// Tile define.
@@ -128,9 +128,9 @@ public:
     /// Return sprite.
     Sprite2D* GetSprite() const;
     /// Return has property.
-    bool HasProperty(const String& name) const;
+    bool HasProperty(const QString& name) const;
     /// Return property.
-    const String& GetProperty(const String& name) const;
+    const QString& GetProperty(const QString& name) const;
 
 private:
     friend class TmxTileLayer2D;
@@ -152,9 +152,9 @@ public:
     /// Return type.
     TileMapObjectType2D GetObjectType() const { return objectType_; }
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return type.
-    const String& GetType() const { return type_; }
+    const QString& GetType() const { return type_; }
     /// Return position.
     const Vector2& GetPosition() const { return position_; }
     /// Return size (for rectangle and ellipse).
@@ -168,9 +168,9 @@ public:
     /// Return tile sprite.
     Sprite2D* GetTileSprite() const;
     /// Return has property.
-    bool HasProperty(const String& name) const;
+    bool HasProperty(const QString& name) const;
     /// Return property value.
-    const String& GetProperty(const String& name) const;
+    const QString& GetProperty(const QString& name) const;
 
 private:
     friend class TmxObjectGroup2D;
@@ -178,9 +178,9 @@ private:
     /// Object type.
     TileMapObjectType2D objectType_;
     /// Name.
-    String name_;
+    QString name_;
     /// Type.
-    String type_;
+    QString type_;
     /// Position.
     Vector2 position_;
     /// Size (for rectangle and ellipse).

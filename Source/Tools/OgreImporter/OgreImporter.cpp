@@ -25,6 +25,7 @@
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/IO/File.h>
 #include <Urho3D/IO/FileSystem.h>
+#include <Urho3D/Container/HashMap.h>
 #include <QtCore/QSet>
 #include <Urho3D/Core/StringUtils.h>
 #include <Urho3D/Core/ProcessUtils.h>
@@ -53,24 +54,24 @@ Vector<Vector<ModelSubGeometryLodLevel> > subGeometries_;
 Vector<Vector3> subGeometryCenters_;
 Vector<ModelBone> bones_;
 Vector<ModelMorph> morphs_;
-Vector<String> materialNames_;
+QStringList materialNames_;
 BoundingBox boundingBox_;
 unsigned maxBones_ = 64;
 unsigned numSubMeshes_ = 0;
 bool useOneBuffer_ = true;
 
 int main(int argc, char** argv);
-void Run(const Vector<String>& arguments);
-void LoadSkeleton(const String& skeletonFileName);
-void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubMeshes, bool exportMorphs);
-void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotationsOnly, bool saveMaterialList);
+void Run(const QStringList& arguments);
+void LoadSkeleton(const QString& skeletonFileName);
+void LoadMesh(const QString& inputFileName, bool generateTangents, bool splitSubMeshes, bool exportMorphs);
+void WriteOutput(const QString& outputFileName, bool exportAnimations, bool rotationsOnly, bool saveMaterialList);
 void OptimizeIndices(ModelSubGeometryLodLevel* subGeom, ModelVertexBuffer* vb, ModelIndexBuffer* ib);
 void CalculateScore(ModelVertex& vertex);
-String SanitateAssetName(const String& name);
+QString SanitateAssetName(const QString& name);
 
 int main(int argc, char** argv)
 {
-    Vector<String> arguments;
+    QStringList arguments;
 
     #ifdef WIN32
     arguments = ParseArguments(GetCommandLineW());
@@ -82,7 +83,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void Run(const Vector<String>& arguments)
+void Run(const QStringList& arguments)
 {
     if (arguments.size() < 2)
     {
@@ -112,7 +113,7 @@ void Run(const Vector<String>& arguments)
         {
             if (arguments[i].length() > 1 && arguments[i][0] == '-')
             {
-                String argument = arguments[i].Substring(1).toLower();
+                QString argument = arguments[i].mid(1).toLower();
                 if (argument == "l")
                     saveMaterialList = true;
                 else if (argument == "r")
@@ -123,7 +124,7 @@ void Run(const Vector<String>& arguments)
                     generateTangents = true;
                 else if (argument.length() == 2 && argument[0] == 'n')
                 {
-                    switch (tolower(argument[1]))
+                    switch (argument[1].toLower().toLatin1())
                     {
                     case 'a':
                         exportAnimations = false;
@@ -152,7 +153,7 @@ void Run(const Vector<String>& arguments)
     PrintLine("Finished");
 }
 
-void LoadSkeleton(const String& skeletonFileName)
+void LoadSkeleton(const QString& skeletonFileName)
 {
     // Process skeleton first (if found)
     XMLElement skeletonRoot;
@@ -169,7 +170,7 @@ void LoadSkeleton(const String& skeletonFileName)
         while (bone)
         {
             unsigned index = bone.GetInt("id");
-            String name = bone.GetAttribute("name");
+            QString name = bone.GetAttribute("name");
             if (index >= bones_.size())
                 bones_.resize(index + 1);
 
@@ -205,8 +206,8 @@ void LoadSkeleton(const String& skeletonFileName)
         XMLElement boneParent = boneHierarchy.GetChild("boneparent");
         while (boneParent)
         {
-            String bone = boneParent.GetAttribute("bone");
-            String parent = boneParent.GetAttribute("parent");
+            QString bone = boneParent.GetAttribute("bone");
+            QString parent = boneParent.GetAttribute("parent");
             unsigned i = 0, j = 0;
             for (i = 0; i < bones_.size() && bones_[i].name_ != bone; ++i);
             for (j = 0; j < bones_.size() && bones_[j].name_ != parent; ++j);
@@ -251,7 +252,7 @@ void LoadSkeleton(const String& skeletonFileName)
     }
 }
 
-void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubMeshes, bool exportMorphs)
+void LoadMesh(const QString& inputFileName, bool generateTangents, bool splitSubMeshes, bool exportMorphs)
 {
     File meshFileSource(context_);
     meshFileSource.Open(inputFileName);
@@ -264,7 +265,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     if (root.IsNull())
         ErrorExit("Could not load input file " + inputFileName);
 
-    String skeletonName = skeletonLink.GetAttribute("name");
+    QString skeletonName = skeletonLink.GetAttribute("name");
     if (!skeletonName.isEmpty())
         LoadSkeleton(GetPath(inputFileName) + GetFileName(skeletonName) + ".skeleton.xml");
 
@@ -534,7 +535,8 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
 
                     // If still too many bones in one subgeometry, error
                     if (usedBoneMap.size() > maxBones_)
-                        ErrorExit("Too many bones (limit " + String(maxBones_) + ") in submesh " + String(subMeshIndex + 1));
+                        ErrorExit("Too many bones (limit " + QString::number(maxBones_) +
+                                  ") in submesh " + QString::number(subMeshIndex + 1));
 
                     // Write mapping of vertex buffer bone indices to original bone indices
                     subGeometryLodLevel.boneMapping_.resize(usedBoneMap.size());
@@ -598,8 +600,8 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
 
         OptimizeIndices(&subGeometryLodLevel, vBuf, iBuf);
 
-        PrintLine("Processed submesh " + String(subMeshIndex + 1) + ": " + String(vertices) + " vertices " +
-            String(triangles) + " triangles");
+        PrintLine(QString("Processed submesh %1: %2 vertices %3 triangles")
+                  .arg(subMeshIndex + 1).arg(vertices).arg(triangles));
         Vector<ModelSubGeometryLodLevel> thisSubGeometry;
         thisSubGeometry.push_back(subGeometryLodLevel);
         subGeometries_.push_back(thisSubGeometry);
@@ -673,7 +675,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                     OptimizeIndices(&newLodLevel, vBuf, iBuf);
 
                     subGeometries_[subMeshIndex].push_back(newLodLevel);
-                    PrintLine("Processed LOD level for submesh " + String(subMeshIndex + 1) + ": distance " + String(distance));
+                    PrintLine("Processed LOD level for submesh " + QString::number(subMeshIndex + 1) + ": distance " + QString::number(distance));
 
                     lodSubMesh = lodSubMesh.GetNext("lodfacelist");
                 }
@@ -708,7 +710,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                 XMLElement anim = animsRoot.GetChild("animation");
                 while (anim)
                 {
-                    String name = anim.GetAttribute("name");
+                    QString name = anim.GetAttribute("name");
                     float length = anim.GetFloat("length");
                     QSet<unsigned> usedPoses;
                     XMLElement tracks = anim.GetChild("tracks");
@@ -799,7 +801,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
                                 ++bufIndex;
                         }
                         morphs_.push_back(newMorph);
-                        PrintLine("Processed morph " + name + " with " + String(usedPoses.size()) + " sub-poses");
+                        PrintLine(QString("Processed morph %1 with %2 sub-poses").arg(name).arg(usedPoses.size()));
                     }
 
                     anim = anim.GetNext("animation");
@@ -852,7 +854,7 @@ void LoadMesh(const String& inputFileName, bool generateTangents, bool splitSubM
     }
 }
 
-void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotationsOnly, bool saveMaterialList)
+void WriteOutput(const QString& outputFileName, bool exportAnimations, bool rotationsOnly, bool saveMaterialList)
 {
     // Begin serialization
     {
@@ -931,7 +933,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
 
     if (saveMaterialList)
     {
-        String materialListName = ReplaceExtension(outputFileName, ".txt");
+        QString materialListName = ReplaceExtension(outputFileName, ".txt");
         File listFile(context_);
         if (listFile.Open(materialListName, FILE_WRITE))
         {
@@ -963,7 +965,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 XMLElement track = tracksRoot.GetChild("track");
                 while (track)
                 {
-                    String trackName = track.GetAttribute("bone");
+                    QString trackName = track.GetAttribute("bone");
                     ModelBone* bone = nullptr;
                     for (auto & elem : bones_)
                     {
@@ -1028,7 +1030,7 @@ void WriteOutput(const String& outputFileName, bool exportAnimations, bool rotat
                 }
 
                 // Write each animation into a separate file
-                String animationFileName = outputFileName.replaced(".mdl", "");
+                QString animationFileName = QString(outputFileName).replace(".mdl", "");
                 animationFileName += "_" + newAnimation.name_ + ".ani";
 
                 File dest(context_);
@@ -1228,9 +1230,9 @@ void CalculateScore(ModelVertex& vertex)
     vertex.score_ = score;
 }
 
-String SanitateAssetName(const String& name)
+QString SanitateAssetName(const QString& name)
 {
-    String fixedName = name;
+    QString fixedName = name;
     fixedName.replace("<", "");
     fixedName.replace(">", "");
     fixedName.replace("?", "");

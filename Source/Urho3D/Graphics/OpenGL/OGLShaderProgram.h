@@ -80,7 +80,7 @@ public:
     /// Return the info for a shader parameter, or null if does not exist.
     const ShaderParameter* GetParameter(StringHash param) const;
     /// Return linker output.
-    const String& GetLinkerOutput() const { return linkerOutput_; }
+    const QString& GetLinkerOutput() const { return linkerOutput_; }
     /// Return all constant buffers.
     const SharedPtr<ConstantBuffer>* GetConstantBuffers() const { return &constantBuffers_[0]; }
     
@@ -108,7 +108,7 @@ private:
     /// Remembered shader parameter sources for individual uniform mode.
     const void* parameterSources_[MAX_SHADER_PARAMETER_GROUPS];
     /// Shader link error string.
-    String linkerOutput_;
+    QString linkerOutput_;
     /// Shader parameter source framenumber.
     unsigned frameNumber_;
 

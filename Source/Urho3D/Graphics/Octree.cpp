@@ -452,7 +452,7 @@ void Octree::Update(const FrameInfo& frame)
     {
         PROFILE(ReinsertToOctree);
 
-        for (auto drawable : drawableUpdates_)
+        for (Drawable* drawable : drawableUpdates_)
         {
 
             drawable->updateQueued_ = false;

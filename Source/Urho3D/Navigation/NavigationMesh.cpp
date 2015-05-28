@@ -228,7 +228,7 @@ void NavigationMesh::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
     }
 }
 
-void NavigationMesh::SetMeshName(const String& newName)
+void NavigationMesh::SetMeshName(const QString& newName)
 {
     meshName_ = newName;
 }
@@ -413,7 +413,7 @@ bool NavigationMesh::Build()
             }
         }
 
-        LOGDEBUG("Built navigation mesh with " + String(numTiles) + " tiles");
+        LOGDEBUG(QString("Built navigation mesh with %1 tiles").arg(numTiles));
         // Send a notification event to concerned parties that we've been fully rebuilt
         {
             using namespace NavigationMeshRebuilt;
@@ -465,7 +465,7 @@ bool NavigationMesh::Build(const BoundingBox& boundingBox)
         }
     }
 
-    LOGDEBUG("Rebuilt " + String(numTiles) + " tiles of the navigation mesh");
+    LOGDEBUG(QString("Rebuilt %1 tiles of the navigation mesh").arg(numTiles));
     return true;
 }
 
@@ -731,8 +731,7 @@ void NavigationMesh::SetNavigationDataAttr(const PODVector<unsigned char>& value
         else
             ++numTiles;
     }
-
-    LOGDEBUG("Created navigation mesh with " + String(numTiles) + " tiles from serialized data");
+    LOGDEBUG(QString("Created navigation mesh with %1 tiles from serialized data").arg(numTiles));
 }
 
 PODVector<unsigned char> NavigationMesh::GetNavigationDataAttr() const

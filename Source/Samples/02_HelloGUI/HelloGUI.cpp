@@ -80,16 +80,16 @@ void HelloGUI::Start()
 void HelloGUI::InitControls()
 {
     // Create a CheckBox
-    auto  checkBox = new CheckBox(context_);
+    CheckBox* checkBox = new CheckBox(context_);
     checkBox->SetName("CheckBox");
 
     // Create a Button
-    auto  button = new Button(context_);
+    Button* button = new Button(context_);
     button->SetName("Button");
     button->SetMinHeight(24);
 
     // Create a LineEdit
-    auto  lineEdit = new LineEdit(context_);
+    LineEdit* lineEdit = new LineEdit(context_);
     lineEdit->SetName("LineEdit");
     lineEdit->SetMinHeight(24);
 
@@ -117,18 +117,18 @@ void HelloGUI::InitWindow()
     window_->SetName("Window");
 
     // Create Window 'titlebar' container
-    auto  titleBar = new UIElement(context_);
+    UIElement* titleBar = new UIElement(context_);
     titleBar->SetMinSize(0, 24);
     titleBar->SetVerticalAlignment(VA_TOP);
     titleBar->SetLayoutMode(LM_HORIZONTAL);
 
     // Create the Window title Text
-    auto  windowTitle = new Text(context_);
+    Text* windowTitle = new Text(context_);
     windowTitle->SetName("WindowTitle");
     windowTitle->SetText("Hello GUI!");
 
     // Create the Window's close button
-    auto  buttonClose = new Button(context_);
+    Button* buttonClose = new Button(context_);
     buttonClose->SetName("CloseButton");
 
     // Add the controls to the title bar
@@ -156,7 +156,7 @@ void HelloGUI::CreateDraggableFish()
     Graphics* graphics = GetSubsystem<Graphics>();
 
     // Create a draggable Fish button
-    auto  draggableFish = new Button(context_);
+    Button* draggableFish = new Button(context_);
     draggableFish->SetTexture(cache->GetResource<Texture2D>("Textures/UrhoDecal.dds")); // Set texture
     draggableFish->SetBlendMode(BLEND_ADD);
     draggableFish->SetSize(128, 128);
@@ -165,13 +165,13 @@ void HelloGUI::CreateDraggableFish()
     uiRoot_->AddChild(draggableFish);
 
     // Add a tooltip to Fish button
-    auto  toolTip = new ToolTip(context_);
+    ToolTip* toolTip = new ToolTip(context_);
     draggableFish->AddChild(toolTip);
     toolTip->SetPosition(IntVector2(draggableFish->GetWidth() + 5, draggableFish->GetWidth() / 2)); // slightly offset from close button
-    auto  textHolder = new BorderImage(context_);
+    BorderImage* textHolder = new BorderImage(context_);
     toolTip->AddChild(textHolder);
     textHolder->SetStyle("ToolTipBorderImage");
-    auto  toolTipText = new Text(context_);
+    Text* toolTipText = new Text(context_);
     textHolder->AddChild(toolTipText);
     toolTipText->SetStyle("ToolTipText");
     toolTipText->SetText("Please drag me!");
@@ -213,7 +213,7 @@ void HelloGUI::HandleControlClicked(StringHash eventType, VariantMap& eventData)
     // Get control that was clicked
     UIElement* clicked = static_cast<UIElement*>(eventData[UIMouseClick::P_ELEMENT].GetPtr());
 
-    String name = "...?";
+    QString name = "...?";
     if (clicked)
     {
         // Get the name of the control that was clicked

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "../Container/Str.h"
 #include "../Resource/Resource.h"
 
 namespace Urho3D
@@ -45,6 +46,8 @@ class PListValue;
 class PListValueMap;
 typedef Vector<PListValue> PListValueVector;
 
+
+/// PList value.
 class URHO3D_API PListValue
 {
 public:
@@ -57,7 +60,7 @@ public:
     // Construct from float.
     PListValue(float value);
     // Construct from string.
-    PListValue(const String& value);
+    PListValue(const QString& value);
     // Construct from value map.
     PListValue(PListValueMap& valueMap);
     // Construct from value vector.
@@ -79,7 +82,7 @@ public:
     /// Set float.
     void SetFloat(float value);
     /// Set string.
-    void SetString(const String& value);
+    void SetString(const QString& value);
     /// Set value map.
     void SetValueMap(const PListValueMap& valueMap);
     /// Set value vector.
@@ -94,7 +97,7 @@ public:
     /// Return float.
     float GetFloat() const;
     /// Return string.
-    const String& GetString() const;
+    const QString& GetString() const;
     /// Return IntRect, for string type.
     IntRect GetIntRect() const;
     /// Return IntVector2, for string type.
@@ -121,16 +124,17 @@ private:
         int int_;
         bool bool_;
         float float_;
-        String* string_;
+        QString* string_;
         PListValueMap* valueMap_;
         PListValueVector* valueVector_;
     };
 };
-class PListValueMap : public HashMap<String, class PListValue>
+/// PList value map.
+class PListValueMap : public HashMap<QString, PListValue>
 {
 public:
-    PListValue& operator [](const String& key);
-    const PListValue& operator [](const String& key) const;
+    PListValue& operator [](const QString& key);
+    const PListValue& operator [](const QString& key) const;
 };
 /// Property list (plist).
 class URHO3D_API PListFile : public Resource

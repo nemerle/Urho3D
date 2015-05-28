@@ -55,6 +55,25 @@ static const unsigned STITCH_SOUTH = 2;
 static const unsigned STITCH_WEST = 4;
 static const unsigned STITCH_EAST = 8;
 
+inline void GrowUpdateRegion(IntRect& updateRegion, int x, int y)
+{
+    if (updateRegion.left_ < 0)
+    {
+        updateRegion.left_ = updateRegion.right_ = x;
+        updateRegion.top_ = updateRegion.bottom_ = y;
+    }
+    else
+    {
+        if (x < updateRegion.left_)
+            updateRegion.left_ = x;
+        if (x > updateRegion.right_)
+            updateRegion.right_ = x;
+        if (y < updateRegion.top_)
+            updateRegion.top_ = y;
+        if (y > updateRegion.bottom_)
+            updateRegion.bottom_ = y;
+    }
+}
 Terrain::Terrain(Context* context) :
     Component(context),
     indexBuffer_(new IndexBuffer(context)),
@@ -657,7 +676,7 @@ void Terrain::CreateGeometry()
         for (auto & oldPatchNode : oldPatchNodes)
         {
             bool nodeOk = false;
-            Vector<String> coords = (oldPatchNode)->GetName().Substring(6).split('_');
+            QStringList coords = (oldPatchNode)->GetName().mid(6).split('_');
             if (coords.size() == 2)
             {
                 int x = ToInt(coords[0]);
@@ -685,6 +704,7 @@ void Terrain::CreateGeometry()
         float* dest = smoothing_ ? sourceHeightData_ : heightData_;
         unsigned imgComps = heightMap_->GetComponents();
         unsigned imgRow = heightMap_->GetWidth() * imgComps;
+        IntRect updateRegion(-1, -1, -1, -1);
 
         if (imgComps == 1)
         {
@@ -702,16 +722,9 @@ void Terrain::CreateGeometry()
                     {
                         if (*dest != newHeight)
                         {
-                            if (!smoothing_)
-                                MarkPatchesDirty(dirtyPatches, x, z);
-                            else
-                            {
-                                for (int z1 = z - 1; z1 <= z + 1; ++z1)
-                                    for (int x1 = x - 1; x1 <= z + 1; ++x1)
-                                        MarkPatchesDirty(dirtyPatches, x1, z1);
-                            }
 
                             *dest = newHeight;
+                            GrowUpdateRegion(updateRegion, x, z);
                         }
                     }
 
@@ -737,16 +750,9 @@ void Terrain::CreateGeometry()
                     {
                         if (*dest != newHeight)
                         {
-                            if (!smoothing_)
-                                MarkPatchesDirty(dirtyPatches, x, z);
-                            else
-                            {
-                                for (int z1 = z - 1; z1 <= z + 1; ++z1)
-                                    for (int x1 = x - 1; x1 <= z + 1; ++x1)
-                                        MarkPatchesDirty(dirtyPatches, x1, z1);
-                            }
 
                             *dest = newHeight;
+                            GrowUpdateRegion(updateRegion, x, z);
                         }
                     }
 
@@ -755,6 +761,26 @@ void Terrain::CreateGeometry()
             }
         }
 
+        // If updating a region of the heightmap, check which patches change
+        if (!updateAll)
+        {
+            int lodExpand = 1 << (numLodLevels_ - 1);
+            // Expand the right & bottom 1 pixel more, as patches share vertices at the edge
+            updateRegion.left_ -= lodExpand;
+            updateRegion.right_ += lodExpand + 1;
+            updateRegion.top_ -= lodExpand;
+            updateRegion.bottom_ += lodExpand + 1;
+
+            int sX = Max(updateRegion.left_ / patchSize_, 0);
+            int eX = Min(updateRegion.right_ / patchSize_, numPatches_.x_ - 1);
+            int sY = Max(updateRegion.top_ / patchSize_, 0);
+            int eY = Min(updateRegion.bottom_ / patchSize_, numPatches_.y_ - 1);
+            for (int y = sY; y <= eY; ++y)
+            {
+                for (int x = sX; x <= eX; ++x)
+                    dirtyPatches[y * numPatches_.x_ + x] = true;
+            }
+        }
         patches_.reserve(numPatches_.x_ * numPatches_.y_);
 
         bool enabled = IsEnabledEffective();
@@ -767,7 +793,7 @@ void Terrain::CreateGeometry()
             {
                 for (int x = 0; x < numPatches_.x_; ++x)
                 {
-                    String nodeName = "Patch_" + String(x) + "_" + String(z);
+                    QString nodeName = "Patch_" + QString::number(x) + "_" + QString::number(z);
                     Node* patchNode = node_->GetChild(nodeName);
 
                     if (!patchNode)
@@ -1175,26 +1201,6 @@ bool Terrain::SetHeightMapInternal(Image* image, bool recreateNow)
 void Terrain::HandleHeightMapReloadFinished(StringHash eventType, VariantMap& eventData)
 {
     CreateGeometry();
-}
-
-void Terrain::MarkPatchesDirty(PODVector<bool>& dirtyPatches, int x, int z)
-{
-    x = Clamp(x, 0, numVertices_.x_);
-    z = Clamp(z, 0, numVertices_.y_);
-
-    // A point on the heightmap can potentially belong to multiple patches; dirty all that are applicable
-    int pZ = z / patchSize_;
-    int vZ = z % patchSize_;
-    int pX = x / patchSize_;
-    int vX = x % patchSize_;
-    if (pZ < numPatches_.y_ && pX < numPatches_.x_)
-        dirtyPatches[pZ * numPatches_.x_ + pX] = true;
-    if (vX == 0 && pX > 0 && pZ < numPatches_.y_)
-        dirtyPatches[pZ * numPatches_.x_ + pX - 1] = true;
-    if (vZ == 0 && pZ > 0 && pX < numPatches_.y_)
-        dirtyPatches[(pZ - 1) * numPatches_.x_ + pX] = true;
-    if (vX == 0 && vZ == 0 && pX > 0 && pZ > 0)
-        dirtyPatches[(pZ - 1) * numPatches_.x_ + pX - 1] = true;
 }
 
 }

@@ -75,7 +75,7 @@ Connection::Connection(Context* context, bool isClient, kNet::SharedPtr<kNet::Me
     // in which case we would log a zero address:port on disconnect)
     kNet::EndPoint endPoint = connection_->RemoteEndPoint();
     ///\todo Not IPv6-capable.
-    address_ = Urho3D::ToString("%d.%d.%d.%d", endPoint.ip[0], endPoint.ip[1], endPoint.ip[2], endPoint.ip[3]);
+    address_ = QString("%1.%2.%3.%4").arg(endPoint.ip[0]).arg(endPoint.ip[1]).arg(endPoint.ip[2]).arg(endPoint.ip[3]);
     port_ = endPoint.port;
 }
 
@@ -377,7 +377,7 @@ void Connection::ProcessPendingLatestData()
         {
             MemoryBuffer msg(MAP_VALUE(i));
             msg.ReadNetID(); // Skip the component ID
-            component->ReadLatestDataUpdate(msg);
+            if (component->ReadLatestDataUpdate(msg))
             component->ApplyAttributes();
             i=componentLatestData_.erase(i);
         }
@@ -470,7 +470,7 @@ void Connection::ProcessLoadScene(int msgID, MemoryBuffer& msg)
     // In case we have joined other scenes in this session, remove first all downloaded package files from the resource system
     // to prevent resource conflicts
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    const String& packageCacheDir = GetSubsystem<Network>()->GetPackageCacheDir();
+    const QString& packageCacheDir = GetSubsystem<Network>()->GetPackageCacheDir();
 
     Vector<SharedPtr<PackageFile> > packages = cache->GetPackageFiles();
     for (unsigned i = 0; i < packages.size(); ++i)
@@ -598,7 +598,7 @@ void Connection::ProcessSceneUpdate(int msgID, MemoryBuffer& msg)
                 }
             }
             else
-                LOGWARNING("NodeDeltaUpdate message received for missing node " + String(nodeID));
+                LOGWARNING("NodeDeltaUpdate message received for missing node " + QString::number(nodeID));
         }
         break;
 
@@ -662,7 +662,7 @@ void Connection::ProcessSceneUpdate(int msgID, MemoryBuffer& msg)
                 component->ApplyAttributes();
             }
             else
-                LOGWARNING("CreateComponent message received for missing node " + String(nodeID));
+                LOGWARNING("CreateComponent message received for missing node " + QString::number(nodeID));
         }
         break;
 
@@ -676,7 +676,7 @@ void Connection::ProcessSceneUpdate(int msgID, MemoryBuffer& msg)
                 component->ApplyAttributes();
             }
             else
-                LOGWARNING("ComponentDeltaUpdate message received for missing component " + String(componentID));
+                LOGWARNING("ComponentDeltaUpdate message received for missing component " + QString::number(componentID));
         }
         break;
 
@@ -686,7 +686,7 @@ void Connection::ProcessSceneUpdate(int msgID, MemoryBuffer& msg)
             Component* component = scene_->GetComponent(componentID);
             if (component)
             {
-                component->ReadLatestDataUpdate(msg);
+                if (component->ReadLatestDataUpdate(msg))
                 component->ApplyAttributes();
             }
             else
@@ -723,7 +723,7 @@ void Connection::ProcessPackageDownload(int msgID, MemoryBuffer& msg)
         }
         else
         {
-            String name = msg.ReadString();
+            QString name = msg.ReadString();
 
             if (!scene_)
             {
@@ -736,8 +736,8 @@ void Connection::ProcessPackageDownload(int msgID, MemoryBuffer& msg)
             for (unsigned i = 0; i < packages.size(); ++i)
             {
                 PackageFile* package = packages[i];
-                String packageFullName = package->GetName();
-                if (!GetFileNameAndExtension(packageFullName).Compare(name, false))
+                QString packageFullName = package->GetName();
+                if (!GetFileNameAndExtension(packageFullName).compare(name, Qt::CaseInsensitive))
                 {
                     StringHash nameHash(name);
 
@@ -988,9 +988,9 @@ bool Connection::IsConnected() const
     return connection_->GetConnectionState() == kNet::ConnectionOK;
 }
 
-String Connection::ToString() const
+QString Connection::ToString() const
 {
-    return GetAddress() + ":" + String(GetPort());
+    return GetAddress() + ":" + QString::number(GetPort());
 }
 
 unsigned Connection::GetNumDownloads() const
@@ -998,14 +998,14 @@ unsigned Connection::GetNumDownloads() const
     return downloads_.size();
 }
 
-const String& Connection::GetDownloadName() const
+QString Connection::GetDownloadName() const
 {
     for (const auto & elem : downloads_)
     {
         if (ELEMENT_VALUE(elem).initiated_)
             return ELEMENT_VALUE(elem).name_;
     }
-    return String::EMPTY;
+    return QString::null;
 }
 
 float Connection::GetDownloadProgress() const
@@ -1036,7 +1036,7 @@ void Connection::SendPackageToClient(PackageFile* package)
 
     msg_.clear();
 
-    String filename = GetFileNameAndExtension(package->GetName());
+    QString filename = GetFileNameAndExtension(package->GetName());
     msg_.WriteString(filename);
     msg_.WriteUInt(package->GetTotalSize());
     msg_.WriteUInt(package->GetChecksum());
@@ -1339,25 +1339,25 @@ void Connection::ProcessExistingNode(Node* node, NodeReplicationState& nodeState
 bool Connection::RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    const String& packageCacheDir = GetSubsystem<Network>()->GetPackageCacheDir();
+    const QString& packageCacheDir = GetSubsystem<Network>()->GetPackageCacheDir();
 
     Vector<SharedPtr<PackageFile> > packages = cache->GetPackageFiles();
-    Vector<String> downloadedPackages;
+    QStringList downloadedPackages;
     bool packagesScanned = false;
 
     for (unsigned i = 0; i < numPackages; ++i)
     {
-        String name = msg.ReadString();
+        QString name = msg.ReadString();
         unsigned fileSize = msg.ReadUInt();
         unsigned checksum = msg.ReadUInt();
-        String checksumString = ToStringHex(checksum);
+        QString checksumString = ToStringHex(checksum);
         bool found = false;
 
         // Check first the resource cache
         for (unsigned j = 0; j < packages.size(); ++j)
         {
             PackageFile* package = packages[j];
-            if (!GetFileNameAndExtension(package->GetName()).Compare(name, false) && package->GetTotalSize() == fileSize &&
+            if (!GetFileNameAndExtension(package->GetName()).compare(name, Qt::CaseInsensitive) && package->GetTotalSize() == fileSize &&
                 package->GetChecksum() == checksum)
             {
                 found = true;
@@ -1381,10 +1381,10 @@ bool Connection::RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg)
         }
 
         // Then the download cache
-        for (const String& fileName : downloadedPackages)
+        for (const QString& fileName : downloadedPackages)
         {
             // In download cache, package file name format is checksum_packagename
-            if (!fileName.indexOf(checksumString) && !fileName.Substring(9).Compare(name, false))
+            if (!fileName.indexOf(checksumString) && !fileName.midRef(9).compare(name, Qt::CaseInsensitive))
             {
                 // Name matches. Check filesize and actual checksum to be sure
                 SharedPtr<PackageFile> newPackage(new PackageFile(context_, packageCacheDir + fileName));
@@ -1406,7 +1406,7 @@ bool Connection::RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg)
     return true;
 }
 
-void Connection::RequestPackage(const String& name, unsigned fileSize, unsigned checksum)
+void Connection::RequestPackage(const QString& name, unsigned fileSize, unsigned checksum)
 {
     StringHash nameHash(name);
     if (downloads_.contains(nameHash))
@@ -1428,7 +1428,7 @@ void Connection::RequestPackage(const String& name, unsigned fileSize, unsigned 
     }
 }
 
-void Connection::SendPackageError(const String& name)
+void Connection::SendPackageError(const QString& name)
 {
     msg_.clear();
     msg_.WriteStringHash(name);
@@ -1446,7 +1446,7 @@ void Connection::OnSceneLoadFailed()
     SendEvent(E_NETWORKSCENELOADFAILED, eventData);
 }
 
-void Connection::OnPackageDownloadFailed(const String& name)
+void Connection::OnPackageDownloadFailed(const QString& name)
 {
     LOGERROR("Download of package " + name + " failed");
     // As one package failed, we can not join the scene in any case. Clear the downloads
@@ -1477,7 +1477,7 @@ void Connection::OnPackagesReady()
     else
     {
         // Otherwise start the async loading process
-        String extension = GetExtension(sceneFileName_);
+        QString extension = GetExtension(sceneFileName_);
         SharedPtr<File> file = GetSubsystem<ResourceCache>()->GetFile(sceneFileName_);
         bool success;
 

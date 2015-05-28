@@ -79,7 +79,6 @@ Drawable::Drawable(Context* context, unsigned char drawableFlags) :
     maxLights_(0),
     firstLight_(nullptr)
 {
-    lights_.reserve(1);
 }
 
 Drawable::~Drawable()
@@ -307,6 +306,14 @@ void Drawable::MarkInView(unsigned frameNumber, Camera* camera)
     vertexLights_.clear();
 }
 
+void Drawable::MarkInView(unsigned frameNumber)
+{
+    if (frameNumber != viewFrameNumber_)
+    {
+        viewFrameNumber_ = frameNumber;
+        viewCameras_.clear();
+    }
+}
 void Drawable::LimitLights()
 {
     // Maximum lights value 0 means unlimited

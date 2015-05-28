@@ -34,61 +34,17 @@ unsigned CountElements(const char* buffer, char separator)
 {
     if (!buffer)
         return 0;
-
-    const char* endPos = buffer + String::CStringLength(buffer);
-    const char* pos = buffer;
-    unsigned ret = 0;
-
-    while (pos < endPos)
-    {
-        if (*pos != separator)
-            break;
-        ++pos;
-    }
-
-    while (pos < endPos)
-    {
-        const char* start = pos;
-
-        while (start < endPos)
-        {
-            if (*start == separator)
-                break;
-
-            ++start;
-        }
-
-        if (start == endPos)
-        {
-            ++ret;
-            break;
-        }
-
-        const char* end = start;
-
-        while (end < endPos)
-        {
-            if (*end != separator)
-                break;
-
-            ++end;
-        }
-
-        ++ret;
-        pos = end;
-    }
-
-    return ret;
+    return QString::fromLatin1(buffer).split(separator).size();
 }
 
-bool ToBool(const String& source)
+bool ToBool(const QString& source)
 {
-    return ToBool(source.CString());
+    return ToBool(qPrintable(source));
 }
 
 bool ToBool(const char* source)
 {
-    unsigned length = String::CStringLength(source);
+    unsigned length = source ? strlen(source) : 0;
 
     for (unsigned i = 0; i < length; ++i)
     {
@@ -102,9 +58,9 @@ bool ToBool(const char* source)
     return false;
 }
 
-int ToInt(const String& source)
+int ToInt(const QString& source)
 {
-    return ToInt(source.CString());
+    return source.toInt();
 }
 
 int ToInt(const char* source)
@@ -116,9 +72,9 @@ int ToInt(const char* source)
     return strtol(source, nullptr, 10);
 }
 
-unsigned ToUInt(const String& source)
+unsigned ToUInt(const QString& source)
 {
-    return ToUInt(source.CString());
+    return source.toUInt();
 }
 
 unsigned ToUInt(const char* source)
@@ -129,9 +85,9 @@ unsigned ToUInt(const char* source)
     return strtoul(source, nullptr, 10);
 }
 
-float ToFloat(const String& source)
+float ToFloat(const QString& source)
 {
-    return ToFloat(source.CString());
+    return source.toFloat();
 }
 
 float ToFloat(const char* source)
@@ -142,9 +98,9 @@ float ToFloat(const char* source)
     return (float)strtod(source, nullptr);
 }
 
-Color ToColor(const String& source)
+Color ToColor(const QString& source)
 {
-    return ToColor(source.CString());
+    return ToColor(qPrintable(source));
 }
 
 Color ToColor(const char* source)
@@ -165,9 +121,9 @@ Color ToColor(const char* source)
     return ret;
 }
 
-IntRect ToIntRect(const String& source)
+IntRect ToIntRect(const QString& source)
 {
-    return ToIntRect(source.CString());
+    return ToIntRect(qPrintable(source));
 }
 
 IntRect ToIntRect(const char* source)
@@ -187,9 +143,9 @@ IntRect ToIntRect(const char* source)
     return ret;
 }
 
-IntVector2 ToIntVector2(const String& source)
+IntVector2 ToIntVector2(const QString& source)
 {
-    return ToIntVector2(source.CString());
+    return ToIntVector2(qPrintable(source));
 }
 
 IntVector2 ToIntVector2(const char* source)
@@ -207,9 +163,9 @@ IntVector2 ToIntVector2(const char* source)
     return ret;
 }
 
-Rect ToRect(const String& source)
+Rect ToRect(const QString& source)
 {
-    return ToRect(source.CString());
+    return ToRect(qPrintable(source));
 }
 
 Rect ToRect(const char* source)
@@ -229,9 +185,9 @@ Rect ToRect(const char* source)
     return ret;
 }
 
-Quaternion ToQuaternion(const String& source)
+Quaternion ToQuaternion(const QString& source)
 {
-    return ToQuaternion(source.CString());
+    return ToQuaternion(qPrintable(source));
 }
 
 Quaternion ToQuaternion(const char* source)
@@ -264,9 +220,9 @@ Quaternion ToQuaternion(const char* source)
     }
 }
 
-Vector2 ToVector2(const String& source)
+Vector2 ToVector2(const QString& source)
 {
-    return ToVector2(source.CString());
+    return ToVector2(qPrintable(source));
 }
 
 Vector2 ToVector2(const char* source)
@@ -284,9 +240,9 @@ Vector2 ToVector2(const char* source)
     return ret;
 }
 
-Vector3 ToVector3(const String& source)
+Vector3 ToVector3(const QString& source)
 {
-    return ToVector3(source.CString());
+    return ToVector3(qPrintable(source));
 }
 
 Vector3 ToVector3(const char* source)
@@ -305,9 +261,9 @@ Vector3 ToVector3(const char* source)
     return ret;
 }
 
-Vector4 ToVector4(const String& source, bool allowMissingCoords)
+Vector4 ToVector4(const QString& source, bool allowMissingCoords)
 {
-    return ToVector4(source.CString(), allowMissingCoords);
+    return ToVector4(qPrintable(source), allowMissingCoords);
 }
 
 Vector4 ToVector4(const char* source, bool allowMissingCoords)
@@ -344,9 +300,9 @@ Vector4 ToVector4(const char* source, bool allowMissingCoords)
     }
 }
 
-Variant ToVectorVariant(const String& source)
+Variant ToVectorVariant(const QString& source)
 {
-    return ToVectorVariant(source.CString());
+    return ToVectorVariant(qPrintable(source));
 }
 
 Variant ToVectorVariant(const char* source)
@@ -388,9 +344,9 @@ Variant ToVectorVariant(const char* source)
     return ret;
 }
 
-Matrix3 ToMatrix3(const String& source)
+Matrix3 ToMatrix3(const QString& source)
 {
-    return ToMatrix3(source.CString());
+    return ToMatrix3(qPrintable(source));
 }
 
 Matrix3 ToMatrix3(const char* source)
@@ -415,9 +371,9 @@ Matrix3 ToMatrix3(const char* source)
     return ret;
 }
 
-Matrix3x4 ToMatrix3x4(const String& source)
+Matrix3x4 ToMatrix3x4(const QString& source)
 {
-    return ToMatrix3x4(source.CString());
+    return ToMatrix3x4(qPrintable(source));
 }
 
 Matrix3x4 ToMatrix3x4(const char* source)
@@ -445,9 +401,9 @@ Matrix3x4 ToMatrix3x4(const char* source)
     return ret;
 }
 
-Matrix4 ToMatrix4(const String& source)
+Matrix4 ToMatrix4(const QString& source)
 {
-    return ToMatrix4(source.CString());
+    return ToMatrix4(qPrintable(source));
 }
 
 Matrix4 ToMatrix4(const char* source)
@@ -479,19 +435,19 @@ Matrix4 ToMatrix4(const char* source)
     return ret;
 }
 
-String ToString(void* value)
+QString ToString(void* value)
 {
     return ToStringHex((unsigned)(size_t)value);
 }
 
-String ToStringHex(unsigned value)
+QString ToStringHex(unsigned value)
 {
     char tempBuffer[CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%08x", value);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
-void BufferToString(String& dest, const void* data, unsigned size)
+void BufferToString(QString& dest, const void* data, unsigned size)
 {
     // Precalculate needed string size
     const unsigned char* bytes = (const unsigned char*)data;
@@ -538,9 +494,9 @@ void BufferToString(String& dest, const void* data, unsigned size)
     }
 }
 
-void StringToBuffer(PODVector<unsigned char>& dest, const String& source)
+void StringToBuffer(PODVector<unsigned char>& dest, const QString& source)
 {
-    StringToBuffer(dest, source.CString());
+    StringToBuffer(dest, qPrintable(source));
 }
 
 void StringToBuffer(PODVector<unsigned char>& dest, const char* source)
@@ -586,18 +542,18 @@ void StringToBuffer(PODVector<unsigned char>& dest, const char* source)
         dest[index] = value;
 }
 
-unsigned GetStringListIndex(const String& value, const String* strings, unsigned defaultIndex, bool caseSensitive)
+unsigned GetStringListIndex(const QString& value, const QString* strings, unsigned defaultIndex, bool caseSensitive)
 {
-    return GetStringListIndex(value.CString(), strings, defaultIndex, caseSensitive);
+    return GetStringListIndex(qPrintable(value), strings, defaultIndex, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive);
 }
 
-unsigned GetStringListIndex(const char* value, const String* strings, unsigned defaultIndex, bool caseSensitive)
+unsigned GetStringListIndex(const char* value, const QString* strings, unsigned defaultIndex, bool caseSensitive)
 {
     unsigned i = 0;
 
     while (!strings[i].isEmpty())
     {
-        if (!strings[i].Compare(value, caseSensitive))
+        if (!strings[i].compare(value, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive))
             return i;
         ++i;
     }
@@ -605,28 +561,18 @@ unsigned GetStringListIndex(const char* value, const String* strings, unsigned d
     return defaultIndex;
 }
 
-unsigned GetStringListIndex(const char* value, const char** strings, unsigned defaultIndex, bool caseSensitive)
+unsigned GetStringListIndex(const QString & value, const char** strings, unsigned defaultIndex, bool caseSensitive)
 {
     unsigned i = 0;
 
     while (strings[i])
     {
-        if (!String::Compare(value, strings[i], caseSensitive))
+        if (!value.compare(strings[i], caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive))
             return i;
         ++i;
     }
 
     return defaultIndex;
-}
-
-String ToString(const char* formatString, ...)
-{
-    String ret;
-    va_list args;
-    va_start(args, formatString);
-    ret.AppendWithFormatArgs(formatString, args);
-    va_end(args);
-    return ret;
 }
 
 bool IsAlpha(unsigned ch)

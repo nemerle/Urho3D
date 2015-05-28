@@ -33,15 +33,15 @@
 namespace Urho3D
 {
 
-static HashMap<StringHash, String> unknownTypeToName;
-static String letters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+static HashMap<StringHash, QString> unknownTypeToName;
+static QString letters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-static String GenerateNameFromType(StringHash typeHash)
+static QString GenerateNameFromType(StringHash typeHash)
 {
     if (unknownTypeToName.contains(typeHash))
         return unknownTypeToName[typeHash];
 
-    String test;
+    QString test;
 
     // Begin brute-force search
     unsigned numLetters = letters.length();
@@ -119,8 +119,8 @@ bool UnknownComponent::LoadXML(const XMLElement& source, bool setInstanceDefault
 
         if (!attr.name_.isEmpty())
         {
-            String attrValue = attrElem.GetAttribute("value");
-            attr.defaultValue_ = String::EMPTY;
+            QString attrValue = attrElem.GetAttribute("value");
+            attr.defaultValue_ = QString::null;
             xmlAttributeInfos_.push_back(attr);
             xmlAttributes_.push_back(attrValue);
         }
@@ -179,7 +179,7 @@ bool UnknownComponent::SaveXML(XMLElement& dest) const
     return true;
 }
 
-void UnknownComponent::SetTypeName(const String& typeName)
+void UnknownComponent::SetTypeName(const QString& typeName)
 {
     typeName_ = typeName;
     typeHash_ = typeName;

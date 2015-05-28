@@ -233,7 +233,7 @@ bool ScrollBar::FilterImplicitAttributes(XMLElement& dest) const
         return false;
     if (!RemoveChildXML(childElem, "Name", "SB_Slider"))
         return false;
-    if (!RemoveChildXML(childElem, "Repeat Rate", String(DEFAULT_REPEAT_RATE)))
+    if (!RemoveChildXML(childElem, "Repeat Rate", QString::number(DEFAULT_REPEAT_RATE)))
         return false;
     if (!RemoveChildXML(childElem, "Orientation"))
         return false;
@@ -249,15 +249,15 @@ bool ScrollBar::FilterImplicitAttributes(XMLElement& dest) const
     return true;
 }
 
-bool ScrollBar::FilterButtonImplicitAttributes(XMLElement& dest, const String& name) const
+bool ScrollBar::FilterButtonImplicitAttributes(XMLElement& dest, const QString& name) const
 {
     if (!dest)
         return false;
     if (!RemoveChildXML(dest, "Name", name))
         return false;
-    if (!RemoveChildXML(dest, "Repeat Delay", String(DEFAULT_REPEAT_DELAY)))
+    if (!RemoveChildXML(dest, "Repeat Delay", QString::number(DEFAULT_REPEAT_DELAY)))
         return false;
-    if (!RemoveChildXML(dest, "Repeat Rate", String(DEFAULT_REPEAT_RATE)))
+    if (!RemoveChildXML(dest, "Repeat Rate", QString::number(DEFAULT_REPEAT_RATE)))
         return false;
     if (!RemoveChildXML(dest, "Image Rect"))
         return false;

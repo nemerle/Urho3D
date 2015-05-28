@@ -493,7 +493,7 @@ void Batch::Prepare(View* view, bool setModelTransform, bool allowDepthWrite) co
             graphics->NeedParameterUpdate(SP_LIGHT, lightQueue_))
         {
             Vector4 vertexLights[MAX_VERTEX_LIGHTS * 3];
-            const PODVectorN<Light*,4>& lights = lightQueue_->vertexLights_;
+            const PODVector<Light*>& lights = lightQueue_->vertexLights_;
 
             for (unsigned i = 0; i < lights.size(); ++i)
             {
@@ -667,8 +667,8 @@ void BatchQueue::Clear(int maxSortedInstances)
     batches_.clear();
     sortedBatches_.clear();
     batchGroupStorage_.clear();
+    batchGroups_.clear();
     maxSortedInstances_ = maxSortedInstances;
-    zoneLightGroups_.clear();
 }
 
 void BatchQueue::SortBackToFront()
@@ -690,12 +690,10 @@ void BatchQueue::SortBackToFront()
 
 void BatchQueue::SortFrontToBack()
 {
-    sortedBatches_.resize(batches_.size());
-
-    unsigned index = 0;
+    sortedBatches_.clear();
 
     for (Batch &b : batches_)
-        sortedBatches_[index++] = &b;
+        sortedBatches_.push_back(&b);
 
     SortFrontToBack2Pass(sortedBatches_);
 
@@ -719,7 +717,7 @@ void BatchQueue::SortFrontToBack()
 
     sortedBatchGroups_.resize(batchGroupStorage_.size());
 
-    index = 0;
+    unsigned index = 0;
     for (BatchGroup & elem : batchGroupStorage_)
         sortedBatchGroups_[index++] = &elem;
 
@@ -740,7 +738,7 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
     unsigned short freeMaterialID = 0;
     unsigned short freeGeometryID = 0;
 
-    for (auto batch : batches)
+    for (Batch* batch : batches)
     {
 
 

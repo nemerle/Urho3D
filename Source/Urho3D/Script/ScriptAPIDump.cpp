@@ -46,9 +46,9 @@ struct PropertyInfo
     }
 
     /// Property name.
-    String name_;
+    QString name_;
     /// Property data type.
-    String type_;
+    QString type_;
     /// Reading supported flag.
     bool read_;
     /// Writing supported flag.
@@ -61,18 +61,18 @@ struct PropertyInfo
 struct HeaderFile
 {
     /// Full path to header file.
-    String fileName;
+    QString fileName;
     /// Event section name.
-    String sectionName;
+    QString sectionName;
 };
 
 bool CompareHeaderFiles(const HeaderFile& lhs, const HeaderFile& rhs)
 {
     return lhs.sectionName < rhs.sectionName;
 }
-void ExtractPropertyInfo(const String& functionName, const String& declaration, Vector<PropertyInfo>& propertyInfos)
+void ExtractPropertyInfo(const QString& functionName, const QString& declaration, Vector<PropertyInfo>& propertyInfos)
 {
-    String propertyName = functionName.Substring(4);
+    QString propertyName = functionName.mid(4);
     PropertyInfo* info = nullptr;
     for (unsigned k = 0; k < propertyInfos.size(); ++k)
     {
@@ -92,7 +92,7 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
     {
         info->read_ = true;
         // Extract type from the return value
-        Vector<String> parts = declaration.split(' ');
+        QStringList parts = declaration.split(' ');
         if (parts.size())
         {
             if (parts[0] != "const")
@@ -117,18 +117,18 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
         {
             // Extract type from parameters
             unsigned begin = declaration.indexOf(',');
-            if (begin == String::NPOS)
+            if (begin == -1)
                 begin = declaration.indexOf('(');
             else
                 info->indexed_ = true;
 
-            if (begin != String::NPOS)
+            if (begin != -1)
             {
                 ++begin;
                 unsigned end = declaration.indexOf(')');
-                if (end != String::NPOS)
+                if (end != -1)
                 {
-                    info->type_ = declaration.Substring(begin, end - begin);
+                    info->type_ = declaration.mid(begin, end - begin);
                     // Sanitate const & reference operator away
                     info->type_.replace("const ", "");
                     info->type_.replace("&in", "");
@@ -139,24 +139,24 @@ void ExtractPropertyInfo(const String& functionName, const String& declaration, 
     }
 }
 
-bool ComparePropertyStrings(const String& lhs, const String& rhs)
+bool ComparePropertyStrings(const QString& lhs, const QString& rhs)
 {
     int spaceLhs = lhs.indexOf(' ');
     int spaceRhs = rhs.indexOf(' ');
-    if (spaceLhs != String::NPOS && spaceRhs != String::NPOS)
-        return String::Compare(lhs.CString() + spaceLhs, rhs.CString() + spaceRhs, true) < 0;
+    if (spaceLhs != -1 && spaceRhs != -1)
+        return lhs.midRef(spaceLhs).compare(rhs.midRef(spaceRhs)) < 0;
     else
-        return String::Compare(lhs.CString(), rhs.CString(), true) < 0;
+        return lhs.compare(rhs) < 0;
 }
 
 bool ComparePropertyInfos(const PropertyInfo& lhs, const PropertyInfo& rhs)
 {
-    return String::Compare(lhs.name_.CString(), rhs.name_.CString(), true) < 0;
+    return lhs.name_.compare(rhs.name_) < 0;
 }
 
-void Script::OutputAPIRow(DumpMode mode, const String& row, bool removeReference, String separator)
+void Script::OutputAPIRow(DumpMode mode, const QString& row, bool removeReference, QString separator)
 {
-    String out(row);
+    QString out(row);
     ///\todo We need C++11 <regex> in String class to handle REGEX whole-word replacement correctly. Can't do that since we still support VS2008.
     // Commenting out to temporary fix property name like 'doubleClickInterval' from being wrongly replaced.
     // Fortunately, there is no occurence of type 'double' in the API at the moment.
@@ -174,25 +174,25 @@ void Script::OutputAPIRow(DumpMode mode, const String& row, bool removeReference
         out.replace("?&", "void*");
 
         // s/(\w+)\[\]/Array<\1>/g
-        unsigned posBegin = String::NPOS;
+        unsigned posBegin = -1;
         while (1)   // Loop to cater for array of array of T
         {
             unsigned posEnd = out.indexOf("[]");
-            if (posEnd == String::NPOS)
+            if (posEnd == -1)
                 break;
             if (posBegin > posEnd)
                 posBegin = posEnd - 1;
-            while (posBegin < posEnd && isalnum(out[posBegin]))
+            while (posBegin < posEnd && out[posBegin].isLetterOrNumber())
                 --posBegin;
             ++posBegin;
-            out.replace(posBegin, posEnd - posBegin + 2, "Array<" + out.Substring(posBegin, posEnd - posBegin) + ">");
+            out.replace(posBegin, posEnd - posBegin + 2, "Array<" + out.mid(posBegin, posEnd - posBegin) + ">");
         }
 
         Log::WriteRaw(out + separator + "\n");
     }
 }
 
-void Script::DumpAPI(DumpMode mode, const String& sourceTree)
+void Script::DumpAPI(DumpMode mode, const QString& sourceTree)
 {
     // Does not use LOGRAW macro here to ensure the messages are always dumped regardless of URHO3D_LOGGING compiler directive
     // and of Log subsystem availability
@@ -206,8 +206,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         Log::WriteRaw("namespace Urho3D\n{\n\n/**\n");
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
-        Vector<String> headerFileNames;
-        String path = AddTrailingSlash(sourceTree);
+        QStringList headerFileNames;
+        QString path = AddTrailingSlash(sourceTree);
         if (!path.isEmpty())
             path.append("Source/Urho3D/");
 
@@ -218,7 +218,7 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         {
             HeaderFile entry;
             entry.fileName = headerFileNames[i];
-            entry.sectionName = GetFileNameAndExtension(entry.fileName).replaced("Events2D", "2DEvents");
+            entry.sectionName = GetFileNameAndExtension(entry.fileName).replace("Events2D", "2DEvents");
             if (entry.sectionName.endsWith("Events.h"))
                 headerFiles.push_back(entry);
         }
@@ -233,27 +233,27 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
                     if (!file->IsOpen())
                         continue;
 
-                const String& sectionName = headerFiles[i].sectionName;
+                const QString& sectionName = headerFiles[i].sectionName;
                     unsigned start = sectionName.indexOf('/') + 1;
                     unsigned end = sectionName.indexOf("Events.h");
-                    Log::WriteRaw("\n## %" + sectionName.Substring(start, end - start) + " events\n");
+                    Log::WriteRaw("\n## %" + sectionName.mid(start, end - start) + " events\n");
 
                     while (!file->IsEof())
                     {
-                        String line = file->ReadLine();
+                        QString line = file->ReadLine();
                         if (line.startsWith("EVENT"))
                         {
-                            Vector<String> parts = line.split(',');
+                            QStringList parts = line.split(',');
                             if (parts.size() == 2)
-                                Log::WriteRaw("\n### " + parts[1].Substring(0, parts[1].length() - 1).trimmed() + "\n");
+                                Log::WriteRaw("\n### " + parts[1].mid(0, parts[1].length() - 1).trimmed() + "\n");
                         }
                         if (line.contains("PARAM"))
                         {
-                            Vector<String> parts = line.split(',');
+                            QStringList parts = line.split(',');
                             if (parts.size() == 2)
                             {
-                                String paramName = parts[1].Substring(0, parts[1].indexOf(')')).trimmed();
-                                String paramType = parts[1].Substring(parts[1].indexOf("// ") + 3);
+                                QString paramName = parts[1].mid(0, parts[1].indexOf(')')).trimmed();
+                                QString paramType = parts[1].mid(parts[1].indexOf("// ") + 3);
                                 if (!paramName.isEmpty() && !paramType.isEmpty())
                                     Log::WriteRaw("- %" + paramName + " : " + paramType + "\n");
                         }
@@ -268,7 +268,7 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
 
         const HashMap<StringHash, Vector<AttributeInfo> >& attributes(context_->GetAllAttributes());
 
-        Vector<String> objectTypes;
+        QStringList objectTypes;
 #ifdef USE_QT_HASHMAP
         for (const auto & attribute : attributes.keys())
             objectTypes.push_back(context_->GetTypeName(attribute));
@@ -278,9 +278,9 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
 #endif
         std::sort(objectTypes.begin(), objectTypes.end());
 
-        for (unsigned i = 0; i < objectTypes.size(); ++i)
+        for (const QString &obType : objectTypes)
         {
-            const Vector<AttributeInfo>& attrs = MAP_VALUE(attributes.find(objectTypes[i]));
+            const Vector<AttributeInfo>& attrs(MAP_VALUE(attributes.find(obType)));
             unsigned usableAttrs = 0;
             for (unsigned j = 0; j < attrs.size(); ++j)
             {
@@ -294,25 +294,25 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
             if (!usableAttrs)
                 continue;
 
-            Log::WriteRaw("\n### " + objectTypes[i] + "\n");
+            Log::WriteRaw("\n### " + obType + "\n");
 
             for (unsigned j = 0; j < attrs.size(); ++j)
             {
                 if (attrs[j].mode_ & AM_NOEDIT)
                     continue;
                 // Prepend each word in the attribute name with % to prevent unintended links
-                Vector<String> nameParts = attrs[j].name_.split(' ');
+                QStringList nameParts = attrs[j].name_.split(' ');
                 for (unsigned k = 0; k < nameParts.size(); ++k)
                 {
-                    if (nameParts[k].length() > 1 && IsAlpha(nameParts[k][0]))
+                    if (nameParts[k].length() > 1 && nameParts[k][0].isLetter())
                         nameParts[k] = "%" + nameParts[k];
                 }
-                String name;
-                name.Join(nameParts, " ");
-                String type = Variant::GetTypeName(attrs[j].type_);
+                QString name;
+                name = nameParts.join(" ");
+                QString type = Variant::GetTypeName(attrs[j].type_);
                 // Variant typenames are all uppercase. Convert primitive types to the proper lowercase form for the documentation
                 if (type == "Int" || type == "Bool" || type == "Float")
-                    type[0] = ToLower(type[0]);
+                    type[0] = type[0].toLower();
 
                 Log::WriteRaw("- " + name + " : " + type + "\n");
             }
@@ -334,13 +334,13 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
             "#define null 0\n");
 
     unsigned types = scriptEngine_->GetObjectTypeCount();
-    Vector<Pair<String, unsigned> > sortedTypes;
+    Vector<Pair<QString, unsigned> > sortedTypes;
     for (unsigned i = 0; i < types; ++i)
     {
         asIObjectType* type = scriptEngine_->GetObjectTypeByIndex(i);
         if (type)
         {
-            String typeName(type->GetName());
+            QString typeName(type->GetName());
             sortedTypes.push_back(MakePair(typeName, i));
         }
     }
@@ -363,7 +363,7 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
             asIObjectType* type = scriptEngine_->GetObjectTypeByIndex(sortedTypes[i].second_);
             if (type)
             {
-                String typeName(type->GetName());
+                QString typeName(type->GetName());
                 Log::WriteRaw("<a href=\"#Class_" + typeName + "\"><b>" + typeName + "</b></a>\n");
             }
         }
@@ -378,8 +378,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         asIObjectType* type = scriptEngine_->GetObjectTypeByIndex(sortedTypes[i].second_);
         if (type)
         {
-            String typeName(type->GetName());
-            Vector<String> methodDeclarations;
+            QString typeName(type->GetName());
+            QStringList methodDeclarations;
             Vector<PropertyInfo> propertyInfos;
 
             if (mode == DOXYGEN)
@@ -400,8 +400,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
             for (unsigned j = 0; j < methods; ++j)
             {
                 asIScriptFunction* method = type->GetMethodByIndex(j);
-                String methodName(method->GetName());
-                String declaration(method->GetDeclaration());
+                QString methodName(method->GetName());
+                QString declaration(method->GetDeclaration());
                 // Recreate tab escape sequences
                 declaration.replace("\t", "\\t");
                 if (methodName.contains("get_") || methodName.contains("set_"))
@@ -411,19 +411,19 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
                     // Sanitate the method name. \todo For now, skip the operators
                     if (!declaration.contains("::op"))
                     {
-                        String prefix(typeName + "::");
+                        QString prefix(typeName + "::");
                         declaration.replace(prefix, "");
                         ///\todo Is there a better way to mark deprecated API bindings for AngelScript?
                         unsigned posBegin = declaration.lastIndexOf("const String&in = \"deprecated:");
-                        if (posBegin != String::NPOS)
+                        if (posBegin != -1)
                         {
                             // Assume this 'mark' is added as the last parameter
                             unsigned posEnd = declaration.indexOf(')', posBegin);
-                            if (posBegin != String::NPOS)
+                            if (posBegin != -1)
                             {
                                 declaration.replace(posBegin, posEnd - posBegin, "");
                                 posBegin = declaration.indexOf(", ", posBegin - 2);
-                                if (posBegin != String::NPOS)
+                                if (posBegin != -1)
                                     declaration.replace(posBegin, 2, "");
                                 if (mode == DOXYGEN)
                                     declaration += " // deprecated";
@@ -448,8 +448,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
                 propertyDeclaration = scriptEngine_->GetTypeDeclaration(typeId);
 
                 PropertyInfo newInfo;
-                newInfo.name_ = String(propertyName);
-                newInfo.type_ = String(propertyDeclaration);
+                newInfo.name_ = QString(propertyName);
+                newInfo.type_ = QString(propertyDeclaration);
                 newInfo.read_ = newInfo.write_ = true;
                 propertyInfos.push_back(newInfo);
             }
@@ -475,8 +475,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
                     Log::WriteRaw("\n// Properties:\n");
                 for (unsigned j = 0; j < propertyInfos.size(); ++j)
                 {
-                    String remark;
-                    String cppdoc;
+                    QString remark;
+                    QString cppdoc;
                     if (!propertyInfos[j].write_)
                         remark = "readonly";
                     else if (!propertyInfos[j].read_)
@@ -506,14 +506,14 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
     }
 
     Vector<PropertyInfo> globalPropertyInfos;
-    Vector<String> globalFunctions;
+    QStringList globalFunctions;
 
     unsigned functions = scriptEngine_->GetGlobalFunctionCount();
     for (unsigned i = 0; i < functions; ++i)
     {
         asIScriptFunction* function = scriptEngine_->GetGlobalFunctionByIndex(i);
-        String functionName(function->GetName());
-        String declaration(function->GetDeclaration());
+        QString functionName(function->GetName());
+        QString declaration(function->GetDeclaration());
         // Recreate tab escape sequences
         declaration.replace("\t", "\\t");
 
@@ -532,11 +532,11 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         Log::WriteRaw("\n// Enumerations\n");
 
     unsigned enums = scriptEngine_->GetEnumCount();
-    Vector<Pair<String, unsigned> > sortedEnums;
+    Vector<Pair<QString, unsigned> > sortedEnums;
     for (unsigned i = 0; i < enums; ++i)
     {
         int typeId;
-        sortedEnums.push_back(MakePair(String(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
+        sortedEnums.push_back(MakePair(QString(scriptEngine_->GetEnumByIndex(i, &typeId)), i));
     }
     std::sort(sortedEnums.begin(), sortedEnums.end());
 
@@ -544,15 +544,15 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
     {
         int typeId = 0;
         if (mode == DOXYGEN)
-            Log::WriteRaw("\n### " + String(scriptEngine_->GetEnumByIndex(sortedEnums[i].second_, &typeId)) + "\n\n");
+            Log::WriteRaw("\n### " + QString(scriptEngine_->GetEnumByIndex(sortedEnums[i].second_, &typeId)) + "\n\n");
         else if (mode == C_HEADER)
-            Log::WriteRaw("\nenum " + String(scriptEngine_->GetEnumByIndex(sortedEnums[i].second_, &typeId)) + "\n{\n");
+            Log::WriteRaw("\nenum " + QString(scriptEngine_->GetEnumByIndex(sortedEnums[i].second_, &typeId)) + "\n{\n");
 
         for (unsigned j = 0; j < (unsigned)scriptEngine_->GetEnumValueCount(typeId); ++j)
         {
             int value = 0;
             const char* name = scriptEngine_->GetEnumValueByIndex(typeId, j, &value);
-            OutputAPIRow(mode, String(name), false, ",");
+            OutputAPIRow(mode, QString(name), false, ",");
         }
 
         if (mode == DOXYGEN)
@@ -582,7 +582,7 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
     else if (mode == C_HEADER)
         Log::WriteRaw("\n// Global constants\n");
 
-    Vector<String> globalConstants;
+    QStringList globalConstants;
     unsigned properties = scriptEngine_->GetGlobalPropertyCount();
     for (unsigned i = 0; i < properties; ++i)
     {
@@ -592,8 +592,8 @@ void Script::DumpAPI(DumpMode mode, const String& sourceTree)
         scriptEngine_->GetGlobalPropertyByIndex(i, &propertyName, nullptr, &typeId);
         propertyDeclaration = scriptEngine_->GetTypeDeclaration(typeId);
 
-        String type(propertyDeclaration);
-        globalConstants.push_back(type + " " + String(propertyName));
+        QString type(propertyDeclaration);
+        globalConstants.push_back(type + " " + QString(propertyName));
     }
 
     std::sort(globalConstants.begin(), globalConstants.end(), ComparePropertyStrings);

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "../Urho3D.h"
 #include "../Math/StringHash.h"
 
 namespace Urho3D
@@ -273,55 +274,55 @@ enum FaceCameraMode
 };
 
 // Inbuilt shader parameters.
-extern const StringHash VSP_AMBIENTSTARTCOLOR;
-extern const StringHash VSP_AMBIENTENDCOLOR;
-extern const StringHash VSP_BILLBOARDROT;
-extern const StringHash VSP_CAMERAPOS;
-extern const StringHash VSP_CAMERAROT;
-extern const StringHash VSP_CLIPPLANE;
-extern const StringHash VSP_NEARCLIP;
-extern const StringHash VSP_FARCLIP;
-extern const StringHash VSP_DEPTHMODE;
-extern const StringHash VSP_DELTATIME;
-extern const StringHash VSP_ELAPSEDTIME;
-extern const StringHash VSP_FRUSTUMSIZE;
-extern const StringHash VSP_GBUFFEROFFSETS;
-extern const StringHash VSP_LIGHTDIR;
-extern const StringHash VSP_LIGHTPOS;
-extern const StringHash VSP_MODEL;
-extern const StringHash VSP_VIEWPROJ;
-extern const StringHash VSP_UOFFSET;
-extern const StringHash VSP_VOFFSET;
-extern const StringHash VSP_ZONE;
-extern const StringHash VSP_LIGHTMATRICES;
-extern const StringHash VSP_SKINMATRICES;
-extern const StringHash VSP_VERTEXLIGHTS;
-extern const StringHash PSP_AMBIENTCOLOR;
-extern const StringHash PSP_CAMERAPOS;
-extern const StringHash PSP_DELTATIME;
-extern const StringHash PSP_DEPTHRECONSTRUCT;
-extern const StringHash PSP_ELAPSEDTIME;
-extern const StringHash PSP_FOGCOLOR;
-extern const StringHash PSP_FOGPARAMS;
-extern const StringHash PSP_GBUFFERINVSIZE;
-extern const StringHash PSP_LIGHTCOLOR;
-extern const StringHash PSP_LIGHTDIR;
-extern const StringHash PSP_LIGHTPOS;
-extern const StringHash PSP_MATDIFFCOLOR;
-extern const StringHash PSP_MATEMISSIVECOLOR;
-extern const StringHash PSP_MATENVMAPCOLOR;
-extern const StringHash PSP_MATSPECCOLOR;
-extern const StringHash PSP_NEARCLIP;
-extern const StringHash PSP_FARCLIP;
-extern const StringHash PSP_SHADOWCUBEADJUST;
-extern const StringHash PSP_SHADOWDEPTHFADE;
-extern const StringHash PSP_SHADOWINTENSITY;
-extern const StringHash PSP_SHADOWMAPINVSIZE;
-extern const StringHash PSP_SHADOWSPLITS;
-extern const StringHash PSP_LIGHTMATRICES;
+extern URHO3D_API const StringHash VSP_AMBIENTSTARTCOLOR;
+extern URHO3D_API const StringHash VSP_AMBIENTENDCOLOR;
+extern URHO3D_API const StringHash VSP_BILLBOARDROT;
+extern URHO3D_API const StringHash VSP_CAMERAPOS;
+extern URHO3D_API const StringHash VSP_CAMERAROT;
+extern URHO3D_API const StringHash VSP_CLIPPLANE;
+extern URHO3D_API const StringHash VSP_NEARCLIP;
+extern URHO3D_API const StringHash VSP_FARCLIP;
+extern URHO3D_API const StringHash VSP_DEPTHMODE;
+extern URHO3D_API const StringHash VSP_DELTATIME;
+extern URHO3D_API const StringHash VSP_ELAPSEDTIME;
+extern URHO3D_API const StringHash VSP_FRUSTUMSIZE;
+extern URHO3D_API const StringHash VSP_GBUFFEROFFSETS;
+extern URHO3D_API const StringHash VSP_LIGHTDIR;
+extern URHO3D_API const StringHash VSP_LIGHTPOS;
+extern URHO3D_API const StringHash VSP_MODEL;
+extern URHO3D_API const StringHash VSP_VIEWPROJ;
+extern URHO3D_API const StringHash VSP_UOFFSET;
+extern URHO3D_API const StringHash VSP_VOFFSET;
+extern URHO3D_API const StringHash VSP_ZONE;
+extern URHO3D_API const StringHash VSP_LIGHTMATRICES;
+extern URHO3D_API const StringHash VSP_SKINMATRICES;
+extern URHO3D_API const StringHash VSP_VERTEXLIGHTS;
+extern URHO3D_API const StringHash PSP_AMBIENTCOLOR;
+extern URHO3D_API const StringHash PSP_CAMERAPOS;
+extern URHO3D_API const StringHash PSP_DELTATIME;
+extern URHO3D_API const StringHash PSP_DEPTHRECONSTRUCT;
+extern URHO3D_API const StringHash PSP_ELAPSEDTIME;
+extern URHO3D_API const StringHash PSP_FOGCOLOR;
+extern URHO3D_API const StringHash PSP_FOGPARAMS;
+extern URHO3D_API const StringHash PSP_GBUFFERINVSIZE;
+extern URHO3D_API const StringHash PSP_LIGHTCOLOR;
+extern URHO3D_API const StringHash PSP_LIGHTDIR;
+extern URHO3D_API const StringHash PSP_LIGHTPOS;
+extern URHO3D_API const StringHash PSP_MATDIFFCOLOR;
+extern URHO3D_API const StringHash PSP_MATEMISSIVECOLOR;
+extern URHO3D_API const StringHash PSP_MATENVMAPCOLOR;
+extern URHO3D_API const StringHash PSP_MATSPECCOLOR;
+extern URHO3D_API const StringHash PSP_NEARCLIP;
+extern URHO3D_API const StringHash PSP_FARCLIP;
+extern URHO3D_API const StringHash PSP_SHADOWCUBEADJUST;
+extern URHO3D_API const StringHash PSP_SHADOWDEPTHFADE;
+extern URHO3D_API const StringHash PSP_SHADOWINTENSITY;
+extern URHO3D_API const StringHash PSP_SHADOWMAPINVSIZE;
+extern URHO3D_API const StringHash PSP_SHADOWSPLITS;
+extern URHO3D_API const StringHash PSP_LIGHTMATRICES;
 
 // Scale calculation from bounding box diagonal.
-extern const Vector3 DOT_SCALE;
+extern URHO3D_API const Vector3 DOT_SCALE;
 
 static const int QUALITY_LOW = 0;
 static const int QUALITY_MEDIUM = 1;

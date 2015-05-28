@@ -245,7 +245,7 @@ void WorkQueue::Complete(unsigned priority)
         // Wait for threaded work to complete
         while (!IsCompleted(priority))
         {
-            Time::Sleep(0);
+            Time::Sleep(0); // TODO: check this Sleep
         }
 
         // If no work at all remaining, pause worker threads by leaving the mutex locked
@@ -332,23 +332,7 @@ void WorkQueue::PurgeCompleted(unsigned priority)
                 SendEvent(E_WORKITEMCOMPLETED, eventData);
             }
 
-            // Check if this was a pooled item and set it to usable
-            if (workitem->pooled_)
-            {
-                // Reset the values to their defaults. This should
-                // be safe to do here as the completed event has
-                // already been handled and this is part of the
-                // internal pool.
-                workitem->start_ = nullptr;
-                workitem->end_ = nullptr;
-                workitem->aux_ = nullptr;
-                workitem->workFunction_ = nullptr;
-                workitem->priority_ = M_MAX_UNSIGNED;
-                workitem->sendEvent_ = false;
-                workitem->completed_ = false;
-
-                poolItems_.push_back(workitem);
-            }
+            ReturnToPool(workitem);
 
             i = workItems_.erase(i);
         }
@@ -398,7 +382,7 @@ void WorkQueue::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 
         HiresTimer timer;
 
-        while (!queue_.empty() && timer.GetUSec() < maxNonThreadedWorkMs_ * 1000)
+        while (!queue_.empty() && timer.GetUSecS() < maxNonThreadedWorkMs_ * 1000)
         {
             WorkItem* item = (*queue_.begin());
             queue_.erase(queue_.begin());

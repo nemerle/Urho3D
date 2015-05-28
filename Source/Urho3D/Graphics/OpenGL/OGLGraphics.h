@@ -92,7 +92,7 @@ public:
     /// Set window icon.
     void SetWindowIcon(Image* windowIcon);
     /// Set window title.
-    void SetWindowTitle(const String& windowTitle);
+    void SetWindowTitle(const QString& windowTitle);
     /// Set window position.
     void SetWindowPosition(const IntVector2& position);
     /// Set window position.
@@ -108,7 +108,7 @@ public:
     /// Set forced use of OpenGL 2 even if OpenGL 3 is available. Must be called before setting the screen mode for the first time. Default false.
     void SetForceGL2(bool enable);
     /// Set allowed screen orientations as a space-separated list of "LandscapeLeft", "LandscapeRight", "Portrait" and "PortraitUpsideDown". Affects currently only iOS platform.
-    void SetOrientations(const String& orientations);
+    void SetOrientations(const QString& orientations);
     /// Toggle between full screen and windowed mode. Return true if successful.
     bool ToggleFullscreen();
     /// Close the window.
@@ -220,7 +220,7 @@ public:
     /// Set a custom clipping plane. The plane is specified in world space, but is dependent on the view and projection matrices.
     void SetClipPlane(bool enable, const Plane& clipPlane = Plane::UP, const Matrix3x4& view = Matrix3x4::IDENTITY, const Matrix4& projection = Matrix4::IDENTITY);
     /// Begin dumping shader variation names to an XML file for precaching.
-    void BeginDumpShaders(const String& fileName);
+    void BeginDumpShaders(const QString& fileName);
     /// End dumping shader variations names.
     void EndDumpShaders();
     /// Precache shader variations from an XML file generated with BeginDumpShaders().
@@ -233,9 +233,9 @@ public:
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
     /// Return window title.
-    const String& GetWindowTitle() const { return windowTitle_; }
+    const QString& GetWindowTitle() const { return windowTitle_; }
     /// Return graphics API name.
-    const String& GetApiName() const { return apiName_; }
+    const QString& GetApiName() const { return apiName_; }
     /// Return window position.
     IntVector2 GetWindowPosition() const;
     /// Return window width.
@@ -261,7 +261,7 @@ public:
     /// Return whether OpenGL 2 use is forced.
     bool GetForceGL2() const { return forceGL2_; }
     /// Return allowed screen orientations.
-    const String& GetOrientations() const { return orientations_; }
+    const QString& GetOrientations() const { return orientations_; }
     /// Return whether device is lost, and can not yet render.
     bool IsDeviceLost() const;
     /// Return number of primitives drawn this frame.
@@ -299,7 +299,7 @@ public:
     /// Return hardware format for a compressed image format, or 0 if unsupported.
     unsigned GetFormat(CompressedFormat format) const;
     /// Return a shader variation by name and defines.
-    ShaderVariation* GetShader(ShaderType type, const String& name, const String& defines = String::EMPTY) const;
+    ShaderVariation* GetShader(ShaderType type, const QString& name, const QString& defines = QString::null) const;
     /// Return a shader variation by name and defines.
     ShaderVariation* GetShader(ShaderType type, const char* name, const char* defines) const;
     /// Return current vertex buffer by index.
@@ -313,9 +313,9 @@ public:
     /// Return shader program.
     ShaderProgram* GetShaderProgram() const { return shaderProgram_; }
     /// Return texture unit index by name.
-    TextureUnit GetTextureUnit(const String& name);
+    TextureUnit GetTextureUnit(const QString& name);
     /// Return texture unit name by index.
-    const String& GetTextureUnitName(TextureUnit unit);
+    const QString& GetTextureUnitName(TextureUnit unit);
     /// Return texture by texture unit index.
     Texture* GetTexture(unsigned index) const;
     /// Return default texture filtering mode.
@@ -439,7 +439,7 @@ public:
     /// Return the API-specific readable hardware depth format, or 0 if not supported.
     static unsigned GetReadableDepthFormat();
     /// Return the API-specific texture format from a textual description, for example "rgb".
-    static unsigned GetFormat(const String& formatName);
+    static unsigned GetFormat(const QString& formatName);
     /// Return UV offset required for pixel perfect rendering.
     static const Vector2& GetPixelUVOffset() { return pixelUVOffset; }
     /// Return maximum number of supported bones for skinning.
@@ -482,7 +482,7 @@ private:
     /// Implementation.
     GraphicsImpl* impl_;
     /// Window title.
-    String windowTitle_;
+    QString windowTitle_;
     /// Window Icon File Name
     Image* windowIcon_;
     /// External window, null if not in use (default.)
@@ -562,7 +562,7 @@ private:
     /// OpenGL texture types in use.
     unsigned textureTypes_[MAX_TEXTURE_UNITS];
     /// Texture unit mappings.
-    HashMap<String, TextureUnit> textureUnits_;
+    HashMap<QString, TextureUnit> textureUnits_;
     /// All constant buffers.
     HashMap<unsigned, SharedPtr<ConstantBuffer> > constantBuffers_;
     /// Currently bound constant buffers.
@@ -624,19 +624,19 @@ private:
     /// Map for additional depth textures, to emulate Direct3D9 ability to mix render texture and backbuffer rendering.
     HashMap<int, SharedPtr<Texture2D> > depthTextures_;
     /// Base directory for shaders.
-    String shaderPath_;
+    QString shaderPath_;
     /// File extension for shaders.
-    String shaderExtension_;
+    QString shaderExtension_;
     /// Last used shader in shader variation query.
     mutable WeakPtr<Shader> lastShader_;
     /// Last used shader name in shader variation query.
-    mutable String lastShaderName_;
+    mutable QString lastShaderName_;
     /// Shader precache utility.
     SharedPtr<ShaderPrecache> shaderPrecache_;
     /// Allowed screen orientations.
-    String orientations_;
+    QString orientations_;
     /// Graphics API name.
-    String apiName_;
+    QString apiName_;
 
     /// Pixel perfect UV offset.
     static const Vector2 pixelUVOffset;

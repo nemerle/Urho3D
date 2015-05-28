@@ -29,7 +29,8 @@
 #include "../Container/Ptr.h"
 #include "../Math/Rect.h"
 #include "../Math/StringHash.h"
-
+#include "../Container/Str.h"
+#include <QtCore/QVariant>
 
 namespace Urho3D
 {
@@ -95,7 +96,7 @@ struct VariantValue
     };
     union
     {
-        void* ptr5_;
+        void* ptr5_[4];
     };
 #ifdef _GLIBCXX_DEBUG
     union
@@ -119,7 +120,7 @@ struct URHO3D_API ResourceRef
     }
 
     /// Construct with type and resource name.
-    ResourceRef(StringHash type, const String& name) :
+    ResourceRef(StringHash type, const QString& name) :
         type_(type),
         name_(name)
     {
@@ -135,7 +136,7 @@ struct URHO3D_API ResourceRef
     /// Object type.
     StringHash type_;
     /// Object name.
-    String name_;
+    QString name_;
 
     /// Test for equality with another reference.
     bool operator == (const ResourceRef& rhs) const { return type_ == rhs.type_ && name_ == rhs.name_; }
@@ -157,7 +158,7 @@ struct URHO3D_API ResourceRefList
     {
     }
     /// Construct with type and id list.
-    ResourceRefList(StringHash type, const Vector<String>& names) :
+    ResourceRefList(StringHash type, const PODVector<QString>& names) :
         type_(type),
         names_(names)
     {
@@ -166,7 +167,7 @@ struct URHO3D_API ResourceRefList
     /// Object type.
     StringHash type_;
     /// List of object names.
-    Vector<String> names_;
+    PODVector<QString> names_;
     ResourceRefList &operator=(const ResourceRefList &rhs) = default;
     /// Test for equality with another reference list.
     bool operator == (const ResourceRefList& rhs) const { return type_ == rhs.type_ && names_ == rhs.names_; }
@@ -271,7 +272,7 @@ public:
     }
 
     /// Construct from a string.
-    Variant(const String& value) :
+    Variant(const QString& value) :
         type_(VAR_NONE)
     {
         *this = value;
@@ -369,14 +370,14 @@ public:
     }
 
     /// Construct from type and value.
-    Variant(const String& type, const String& value) :
+    Variant(const QString& type, const QString& value) :
         type_(VAR_NONE)
     {
         FromString(type, value);
     }
 
     /// Construct from type and value.
-    Variant(VariantType type, const String& value) :
+    Variant(VariantType type, const QString& value) :
         type_(VAR_NONE)
     {
         FromString(type, value);
@@ -499,10 +500,10 @@ public:
     }
 
     /// Assign from a string.
-    Variant& operator = (const String& rhs)
+    Variant& operator = (const QString& rhs)
     {
         SetType(VAR_STRING);
-        *(reinterpret_cast<String*>(&value_)) = rhs;
+        *(reinterpret_cast<QString*>(&value_)) = rhs;
         return *this;
     }
 
@@ -510,7 +511,7 @@ public:
     Variant& operator = (const char* rhs)
     {
         SetType(VAR_STRING);
-        *(reinterpret_cast<String*>(&value_)) = String(rhs);
+        *(reinterpret_cast<QString*>(&value_)) = QString(rhs);
         return *this;
     }
 
@@ -631,7 +632,7 @@ public:
     /// Test for equality with a color. To return true, both the type and value must match.
     bool operator == (const Color& rhs) const { return type_ == VAR_COLOR ? *(reinterpret_cast<const Color*>(&value_)) == rhs : false; }
     /// Test for equality with a string. To return true, both the type and value must match.
-    bool operator == (const String& rhs) const { return type_ == VAR_STRING ? *(reinterpret_cast<const String*>(&value_)) == rhs : false; }
+    bool operator == (const QString& rhs) const { return type_ == VAR_STRING ? *(reinterpret_cast<const QString*>(&value_)) == rhs : false; }
     /// Test for equality with a buffer. To return true, both the type and value must match.
     bool operator == (const PODVector<unsigned char>& rhs) const { return type_ == VAR_BUFFER ? *(reinterpret_cast<const PODVector<unsigned char>*>(&value_)) == rhs : false; }
 
@@ -653,7 +654,7 @@ public:
     /// Test for equality with a variant vector. To return true, both the type and value must match.
     bool operator == (const VariantVector& rhs) const { return type_ == VAR_VARIANTVECTOR ? *(reinterpret_cast<const VariantVector*>(&value_)) == rhs : false; }
     /// Test for equality with a variant map. To return true, both the type and value must match.
-    bool operator == (const VariantMap& rhs) const { return type_ == VAR_VARIANTMAP ? *(reinterpret_cast<const VariantMap*>(value_.ptr_)) == rhs : false; }
+    bool operator == (const VariantMap& rhs) const { return type_ == VAR_VARIANTMAP ? *(reinterpret_cast<const VariantMap*>(&value_)) == rhs : false; }
     /// Test for equality with an integer rect. To return true, both the type and value must match.
     bool operator == (const IntRect& rhs) const { return type_ == VAR_INTRECT ? *(reinterpret_cast<const IntRect*>(&value_)) == rhs : false; }
     /// Test for equality with an IntVector2. To return true, both the type and value must match.
@@ -698,7 +699,7 @@ public:
     /// Test for inequality with a Quaternion.
     bool operator != (const Quaternion& rhs) const { return !(*this == rhs); }
     /// Test for inequality with a string.
-    bool operator != (const String& rhs) const { return !(*this == rhs); }
+    bool operator != (const QString& rhs) const { return !(*this == rhs); }
     /// Test for inequality with a buffer.
     bool operator != (const PODVector<unsigned char>& rhs) const { return !(*this == rhs); }
     /// Test for inequality with a pointer.
@@ -727,11 +728,11 @@ public:
     bool operator != (const Matrix4& rhs) const { return !(*this == rhs); }
 
     /// Set from typename and value strings. Pointers will be set to null, and VariantBuffer or VariantMap types are not supported.
-    void FromString(const String& type, const String& value);
+    void FromString(const QString& type, const QString& value);
     /// Set from typename and value strings. Pointers will be set to null, and VariantBuffer or VariantMap types are not supported.
     void FromString(const char* type, const char* value);
     /// Set from type and value string. Pointers will be set to null, and VariantBuffer or VariantMap types are not supported.
-    void FromString(VariantType type, const String& value);
+    void FromString(VariantType type, const QString& value);
     /// Set from type and value string. Pointers will be set to null, and VariantBuffer or VariantMap types are not supported.
     void FromString(VariantType type, const char* value);
     /// Set buffer type from a memory area.
@@ -740,7 +741,7 @@ public:
     /// Return int or zero on type mismatch.
     int GetInt() const { return type_ == VAR_INT ? value_.int_ : 0; }
     /// Return unsigned int or zero on type mismatch.
-    int GetUInt() const { return type_ == VAR_INT ? (unsigned)value_.int_ : 0; }
+    unsigned GetUInt() const { return type_ == VAR_INT ? (unsigned)value_.int_ : 0; }
     /// Return StringHash or zero on type mismatch.
     StringHash GetStringHash() const { return StringHash(GetUInt()); }
     /// Return bool or false on type mismatch.
@@ -758,7 +759,8 @@ public:
     /// Return color or default on type mismatch.
     const Color& GetColor() const { return type_ == VAR_COLOR ? *reinterpret_cast<const Color*>(&value_) : Color::WHITE; }
     /// Return string or empty on type mismatch.
-    const String& GetString() const { return type_ == VAR_STRING ? *reinterpret_cast<const String*>(&value_) : String::EMPTY; }
+    const QString &GetString() const {
+        return type_ == VAR_STRING ? *reinterpret_cast<const QString*>(&value_) : s_dummy; }
     /// Return buffer or empty on type mismatch.
     const PODVector<unsigned char>& GetBuffer() const { return type_ == VAR_BUFFER ? *reinterpret_cast<const PODVector<unsigned char>*>(&value_) : emptyBuffer; }
 
@@ -796,9 +798,9 @@ public:
     /// Return value's type.
     VariantType GetType() const { return type_; }
     /// Return value's type name.
-    String GetTypeName() const;
+    QString GetTypeName() const;
     /// Convert value to string. Pointers are returned as null, and VariantBuffer or VariantMap are not supported and return empty.
-    String ToString() const;
+    QString ToString() const;
     /// Return true when the variant value is considered zero according to its actual type.
     bool IsZero() const;
     /// Return true when the variant is empty (i.e. not initialized yet).
@@ -811,12 +813,12 @@ public:
     /// Return a pointer to a modifiable variant vector or null on type mismatch.
     VariantVector* GetVariantVectorPtr() { return type_ == VAR_VARIANTVECTOR ? reinterpret_cast<VariantVector*>(&value_) : nullptr; }
     /// Return a pointer to a modifiable variant map or null on type mismatch.
-    VariantMap* GetVariantMapPtr() { return type_ == VAR_VARIANTMAP ? reinterpret_cast<VariantMap*>(value_.ptr_) : nullptr; }
+    VariantMap* GetVariantMapPtr() { return type_ == VAR_VARIANTMAP ? reinterpret_cast<VariantMap*>(&value_) : nullptr; }
 
     /// Return name for variant type.
-    static String GetTypeName(VariantType type);
+    static QString GetTypeName(VariantType type);
     /// Return variant type from type name.
-    static VariantType GetTypeFromName(const String& typeName);
+    static VariantType GetTypeFromName(const QString& typeName);
     /// Return variant type from type name.
     static VariantType GetTypeFromName(const char* typeName);
 
@@ -842,6 +844,8 @@ private:
     /// Variant value.
     VariantValue value_;
 };
+static_assert(sizeof(VariantValue)>=sizeof(VariantMap),"Variant value must be large enough to hold VariantVector");
+static_assert(sizeof(VariantValue)>=sizeof(VariantVector),"Variant value must be large enough to hold VariantVector");
 
 /// Return variant type from type.
 template<typename T> VariantType GetVariantType();
@@ -856,7 +860,7 @@ template<> inline VariantType GetVariantType<Vector3>() { return VAR_VECTOR3; }
 template<> inline VariantType GetVariantType<Vector4>() { return VAR_VECTOR4; }
 template<> inline VariantType GetVariantType<Quaternion>() { return VAR_QUATERNION; }
 template<> inline VariantType GetVariantType<Color>() { return VAR_COLOR; }
-template<> inline VariantType GetVariantType<String>() { return VAR_STRING; }
+template<> inline VariantType GetVariantType<QString>() { return VAR_STRING; }
 template<> inline VariantType GetVariantType<StringHash>() { return VAR_INT; }
 template<> inline VariantType GetVariantType<PODVector<unsigned char> >() { return VAR_BUFFER; }
 template<> inline VariantType GetVariantType<ResourceRef>() { return VAR_RESOURCEREF; }
@@ -869,5 +873,5 @@ template<> inline VariantType GetVariantType<Matrix3>() { return VAR_MATRIX3; }
 template<> inline VariantType GetVariantType<Matrix3x4>() { return VAR_MATRIX3X4; }
 template<> inline VariantType GetVariantType<Matrix4>() { return VAR_MATRIX4; }
 
-static_assert(sizeof(VariantValue)>=sizeof(String),"Variant value must be large enough to hold VariantMap");
+static_assert(sizeof(VariantValue)>=sizeof(QString),"Variant value must be large enough to hold VariantMap");
 }

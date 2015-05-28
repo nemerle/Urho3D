@@ -55,7 +55,7 @@ URHO3D_API int WriteMiniDump(const char* applicationName, void* exceptionPointer
     static time_t sysTime;
     time(&sysTime);
     const char* dateTime = ctime(&sysTime);
-    String dateTimeStr = String(dateTime);
+    QString dateTimeStr = QString(dateTime);
     dateTimeStr.Replace("\n", "");
     dateTimeStr.Replace(":", "");
     dateTimeStr.Replace("/", "");

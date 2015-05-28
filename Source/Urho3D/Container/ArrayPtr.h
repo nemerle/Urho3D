@@ -143,7 +143,7 @@ public:
     int WeakRefs() const { return refCount_ ? refCount_->weakRefs_ : 0; }
     /// Return pointer to the RefCount structure.
     RefCount* RefCountPtr() const { return refCount_; }
-    /// Return hash value for QSet & QMap.
+    /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const { return ((unsigned)(size_t)ptr_) / sizeof(T); }
 
 private:
@@ -354,7 +354,7 @@ public:
     bool Expired() const { return refCount_ ? refCount_->refs_ < 0 : true; }
     /// Return pointer to RefCount structure.
     RefCount* RefCountPtr() const { return refCount_; }
-    /// Return hash value for QSet & HashMap.
+    /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const { return ((unsigned)(size_t)ptr_) / sizeof(T); }
 
 private:

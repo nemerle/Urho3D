@@ -24,6 +24,8 @@
 
 #include <Urho3D/Engine/Application.h>
 
+#include <QString>
+
 namespace Urho3D
 {
 
@@ -66,7 +68,7 @@ public:
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const { return String::EMPTY; }
+    virtual QString GetScreenJoystickPatchString() const { return QString::null; }
     /// Initialize touch input on mobile platform.
     void InitTouchInput();
     /// Control logo visibility.

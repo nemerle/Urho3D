@@ -27,6 +27,7 @@
 #include "../Graphics/Drawable.h"
 #include "../Core/Mutex.h"
 #include "../Graphics/Viewport.h"
+#include "../Container/HashMap.h"
 #include "../Container/Pair.h"
 #include <QtCore/QSet>
 namespace Urho3D
@@ -310,7 +311,7 @@ public:
     /// Choose shaders for a forward rendering batch.
     void SetBatchShaders(Batch& batch, const Technique* tech, bool allowShadows = true);
     /// Choose shaders for a deferred light volume batch.
-    void SetLightVolumeBatchShaders(Batch& batch, const String& vsName, const String& psName, const String& vsDefines, const String& psDefines);
+    void SetLightVolumeBatchShaders(Batch& batch, const QString& vsName, const QString& psName, const QString& vsDefines, const QString& psDefines);
     /// Set cull mode while taking possible projection flipping into account.
     void SetCullMode(CullMode mode, Camera* camera);
     /// Ensure sufficient size of the instancing vertex buffer. Return true if successful.
@@ -415,7 +416,7 @@ private:
     /// Mutex for shadow camera allocation.
     Mutex rendererMutex_;
     /// Current variation names for deferred light volume shaders.
-    Vector<String> deferredLightPSVariations_;
+    QStringList deferredLightPSVariations_;
     /// Frame info for rendering.
     FrameInfo frame_;
     /// Texture anisotropy level.

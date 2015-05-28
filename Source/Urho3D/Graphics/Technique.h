@@ -23,7 +23,6 @@
 #pragma once
 
 #include "../Graphics/GraphicsDefs.h"
-#include "../Container/HashTable.h"
 #include "../Resource/Resource.h"
 
 namespace Urho3D
@@ -44,7 +43,7 @@ class URHO3D_API Pass : public RefCounted
 {
 public:
     /// Construct.
-    Pass(const String& passName);
+    Pass(const QString& passName);
     /// Destruct.
     ~Pass();
 
@@ -61,20 +60,20 @@ public:
     /// Set whether requires desktop level hardware.
     void SetIsDesktop(bool enable);
     /// Set vertex shader name.
-    void SetVertexShader(const String& name);
+    void SetVertexShader(const QString& name);
     /// Set pixel shader name.
-    void SetPixelShader(const String& name);
+    void SetPixelShader(const QString& name);
     /// Set vertex shader defines.
-    void SetVertexShaderDefines(const String& defines);
+    void SetVertexShaderDefines(const QString& defines);
     /// Set pixel shader defines.
-    void SetPixelShaderDefines(const String& defines);
+    void SetPixelShaderDefines(const QString& defines);
     /// Reset shader pointers.
     void ReleaseShaders();
     /// Mark shaders loaded this frame.
     void MarkShadersLoaded(unsigned frameNumber);
 
     /// Return pass name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return pass index. This is used for optimal render-time pass queries that avoid map lookups.
     unsigned GetIndex() const { return index_; }
     /// Return blend mode.
@@ -92,13 +91,13 @@ public:
     /// Return whether requires desktop level hardware.
     bool IsDesktop() const { return isDesktop_; }
     /// Return vertex shader name.
-    const String& GetVertexShader() const { return vertexShaderName_; }
+    const QString& GetVertexShader() const { return vertexShaderName_; }
     /// Return pixel shader name.
-    const String& GetPixelShader() const { return pixelShaderName_; }
+    const QString& GetPixelShader() const { return pixelShaderName_; }
     /// Return vertex shader defines.
-    const String& GetVertexShaderDefines() const { return vertexShaderDefines_; }
+    const QString& GetVertexShaderDefines() const { return vertexShaderDefines_; }
     /// Return pixel shader defines.
-    const String& GetPixelShaderDefines() const { return pixelShaderDefines_; }
+    const QString& GetPixelShaderDefines() const { return pixelShaderDefines_; }
     /// Return vertex shaders.
     Vector<SharedPtr<ShaderVariation> >& GetVertexShaders() { return vertexShaders_; }
     /// Return pixel shaders.
@@ -122,19 +121,19 @@ private:
     /// Require desktop level hardware flag.
     bool isDesktop_;
     /// Vertex shader name.
-    String vertexShaderName_;
+    QString vertexShaderName_;
     /// Pixel shader name.
-    String pixelShaderName_;
+    QString pixelShaderName_;
     /// Vertex shader defines.
-    String vertexShaderDefines_;
+    QString vertexShaderDefines_;
     /// Pixel shader defines.
-    String pixelShaderDefines_;
+    QString pixelShaderDefines_;
     /// Vertex shaders.
     Vector<SharedPtr<ShaderVariation> > vertexShaders_;
     /// Pixel shaders.
     Vector<SharedPtr<ShaderVariation> > pixelShaders_;
     /// Pass name.
-    String name_;
+    QString name_;
 };
 
 /// %Material technique. Consists of several passes.
@@ -158,9 +157,9 @@ public:
     /// Set whether requires desktop level hardware.
     void SetIsDesktop(bool enable);
     /// Create a new pass.
-    Pass* CreatePass(const String& passName);
+    Pass* CreatePass(const QString& passName);
     /// Remove a pass.
-    void RemovePass(const String& passName);
+    void RemovePass(const QString& passName);
     /// Reset shader pointers in all passes.
     void ReleaseShaders();
 
@@ -171,12 +170,12 @@ public:
     /// Return whether has a pass.
     bool HasPass(unsigned passIndex) const { return passIndex < passes_.size() && passes_[passIndex].Get() != nullptr; }
     /// Return whether has a pass by name. This overload should not be called in time-critical rendering loops; use a pre-acquired pass index instead.
-    bool HasPass(const String& passName) const;
+    bool HasPass(const QString& passName) const;
 
     /// Return a pass, or null if not found.
     Pass* GetPass(unsigned passIndex) const { return passIndex < passes_.size() ? passes_[passIndex].Get() : nullptr; }
     /// Return a pass by name, or null if not found. This overload should not be called in time-critical rendering loops; use a pre-acquired pass index instead.
-    Pass* GetPass(const String& passName) const;
+    Pass* GetPass(const QString& passName) const;
 
     /// Return a pass that is supported for rendering, or null if not found.
     Pass* GetSupportedPass(unsigned passIndex) const
@@ -185,16 +184,16 @@ public:
         return pass && (!pass->IsDesktop() || desktopSupport_) ? pass : nullptr;
     }
     /// Return a supported pass by name. This overload should not be called in time-critical rendering loops; use a pre-acquired pass index instead.
-    Pass* GetSupportedPass(const String& passName) const;
+    Pass* GetSupportedPass(const QString& passName) const;
 
     /// Return number of passes.
     unsigned GetNumPasses() const;
     /// Return all pass names.
-    Vector<String> GetPassNames() const;
+    PODVector<QString> GetPassNames() const;
     /// Return all passes.
     PODVector<Pass*> GetPasses() const;
     /// Return a pass type index by name. Allocate new if not used yet.
-    static unsigned GetPassIndex(const String& passName);
+    static unsigned GetPassIndex(const QString& passName);
 
     /// Index for base pass. Initialized once GetPassIndex() has been called for the first time.
     static unsigned basePassIndex;
@@ -222,7 +221,7 @@ private:
     Vector<SharedPtr<Pass> > passes_;
 
     /// Pass index assignments.
-    static HashMap<String, unsigned> passIndices;
+    static HashMap<QString, unsigned> passIndices;
 };
 
 }

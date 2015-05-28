@@ -23,12 +23,14 @@
 #pragma once
 
 #include "../Graphics/Batch.h"
+#include "../Container/HashMap.h"
 #include "../Graphics/Light.h"
 #include "../Container/List.h"
 #include "../Core/Object.h"
 #include "../Math/Polyhedron.h"
 #include "../Graphics/Zone.h"
 #include <array>
+#include <deque>
 namespace Urho3D
 {
 
@@ -36,14 +38,17 @@ class Camera;
 class DebugRenderer;
 class Light;
 class Drawable;
+class Graphics;
 class OcclusionBuffer;
 class Octree;
+class Renderer;
 class RenderPath;
 class RenderSurface;
 class Technique;
+class Texture;
 class Texture2D;
 class Viewport;
-class Renderer;
+class Zone;
 struct RenderPathCommand;
 struct WorkItem;
 
@@ -116,7 +121,7 @@ class URHO3D_API View : public Object
 {
     friend void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex);
     friend void ProcessLightWork(const WorkItem* item, unsigned threadIndex);
-    typedef FasterHashMap<uint32_t, uint32_t> BatchQueueMap;
+    typedef HashMap<uint32_t, uint32_t> BatchQueueMap;
     OBJECT(View)
 
 public:
@@ -177,7 +182,7 @@ private:
     /// Update geometries and sort batches.
     void UpdateGeometries();
     /// Get pixel lit batches for a certain light and drawable.
-    void GetLitBatches(Drawable *drawable, Zone *zone, LightBatchQueue &lightQueue, BatchQueue *availableQueues[], BatchQueue::BatchGroupMap *groupMaps[], Technique *default_tech);
+    void GetLitBatches(Drawable *drawable, Zone *zone, LightBatchQueue &lightQueue, BatchQueue *availableQueues[], Technique *default_tech);
     /// Execute render commands.
     void ExecuteRenderPathCommands();
     /// Set rendertargets for current render command.
@@ -227,7 +232,7 @@ private:
     /// Check if material should render an auxiliary view (if it has a camera attached.)
     void CheckMaterialForAuxView(Material* material);
     /// Choose shaders for a batch and add it to queue.
-    void AddBatchToQueue(BatchQueue& queue, BatchQueue::BatchGroupMap &batchGroupMap, Batch batch, const Urho3D::Technique *tech, bool allowInstancing = true, bool allowShadows = true);
+    void AddBatchToQueue(BatchQueue& queue, Batch batch, const Technique* tech, bool allowInstancing = true, bool allowShadows = true);
     /// Prepare instancing buffer by filling it with all instance transforms.
     void PrepareInstancingBuffer();
     /// Set up a light volume rendering batch.
@@ -239,7 +244,7 @@ private:
     /// Helper function to get the render surface from a texture. 2D textures will always return the first face only.
     RenderSurface* GetRenderSurfaceFromTexture(Texture* texture, CubeMapFace face = FACE_POSITIVE_X);
     /// Get a named texture from the rendertarget list or from the resource cache, to be either used as a rendertarget or texture binding.
-    Texture* FindNamedTexture(const String& name, bool isRenderTarget, bool isVolumeMap = false);
+    Texture* FindNamedTexture(const QString& name, bool isRenderTarget, bool isVolumeMap = false);
 
     /// Return the drawable's zone, or camera zone if it has override mode enabled.
     Zone* GetZone(Drawable* drawable)
@@ -263,7 +268,7 @@ private:
     }
 
     /// Return hash code for a vertex light queue.
-    unsigned long long GetVertexLightQueueHash(const PODVectorN<Light*,4>& vertexLights)
+    uint64_t GetVertexLightQueueHash(const PODVector<Light*>& vertexLights)
     {
         unsigned long long hash = 0;
         for (Light * light : vertexLights)
@@ -370,6 +375,7 @@ private:
     /// Batch queues by pass index.
     BatchQueueMap batchQueues_;
     std::deque<BatchQueue> batchQueueStorage_;
+    int alphaPassQueueIdx_;
     /// Index of the GBuffer pass.
     unsigned gBufferPassIndex_;
     /// Index of the opaque forward base pass.

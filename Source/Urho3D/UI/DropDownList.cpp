@@ -187,7 +187,7 @@ void DropDownList::SetSelection(unsigned index)
     placeholder_->GetChild(0)->SetVisible(index == M_MAX_UNSIGNED);
 }
 
-void DropDownList::SetPlaceholderText(const String& text)
+void DropDownList::SetPlaceholderText(const QString& text)
 {
     static_cast<Text*>(placeholder_->GetChild(0))->SetText(text);
 }
@@ -222,7 +222,7 @@ UIElement* DropDownList::GetSelectedItem() const
     return listView_->GetSelectedItem();
 }
 
-const String& DropDownList::GetPlaceholderText() const
+const QString& DropDownList::GetPlaceholderText() const
 {
     return static_cast<Text*>(placeholder_->GetChild(0))->GetText();
 }

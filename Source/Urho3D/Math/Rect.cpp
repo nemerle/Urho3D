@@ -34,18 +34,18 @@ const Rect Rect::ZERO(0.0f, 0.0f, 0.0f, 0.0f);
 
 const IntRect IntRect::ZERO(0, 0, 0, 0);
 
-String Rect::ToString() const
+QString Rect::ToString() const
 {
     char tempBuffer[CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%g %g %g %g", min_.x_, min_.y_, max_.x_, max_.y_);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
-String IntRect::ToString() const
+QString IntRect::ToString() const
 {
     char tempBuffer[CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%d %d %d %d", left_, top_, right_, bottom_);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
 void Rect::Clip(const Rect& rect)
@@ -58,11 +58,11 @@ void Rect::Clip(const Rect& rect)
         min_.y_ = rect.min_.y_;
     if (rect.max_.y_ < max_.y_)
         max_.y_ = rect.max_.y_;
-    
+
     if (min_.x_ > max_.x_)
-        Swap(min_.x_, max_.x_);
+        std::swap(min_.x_, max_.x_);
     if (min_.y_ > max_.y_)
-        Swap(min_.y_, max_.y_);
+        std::swap(min_.y_, max_.y_);
 }
 
 }

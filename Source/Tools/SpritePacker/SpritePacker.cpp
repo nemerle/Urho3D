@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 //
 
+#include <QString>
 #include <limits.h>
 
 #define STBRP_LARGE_RECTS
@@ -55,13 +56,13 @@ const int PACKER_NUM_NODES = 4096;
 const int MAX_TEXTURE_SIZE = 2048;
 
 int main(int argc, char** argv);
-void Run(Vector<String>& arguments);
+void Run(QStringList& arguments);
 
 class PackerInfo : public RefCounted
 {
 public:
-    String path;
-    String name;
+    QString path;
+    QString name;
     int x;
     int y;
     int offsetX;
@@ -73,7 +74,7 @@ public:
     int frameX;
     int frameY;
 
-    PackerInfo(String path_, String name_) :
+    PackerInfo(QString path_, QString name_) :
         path(path_),
         name(name_),
         x(0),
@@ -107,7 +108,7 @@ void Help()
 
 int main(int argc, char** argv)
 {
-    Vector<String> arguments;
+    QStringList arguments;
 
 #ifdef WIN32
     arguments = ParseArguments(GetCommandLineW());
@@ -119,7 +120,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void Run(Vector<String>& arguments)
+void Run(QStringList & arguments)
 {
     if (arguments.size() < 2)
         Help();
@@ -129,9 +130,9 @@ void Run(Vector<String>& arguments)
     context->RegisterSubsystem(new Log(context));
     FileSystem* fileSystem = context->GetSubsystem<FileSystem>();
 
-    Vector<String> inputFiles;
-    String outputFile;
-    String spriteSheetFileName;
+    QStringList inputFiles;
+    QString outputFile;
+    QString spriteSheetFileName;
     bool debug = false;
     unsigned padX = 0;
     unsigned padY = 0;
@@ -144,7 +145,7 @@ void Run(Vector<String>& arguments)
 
     while (arguments.size() > 0)
     {
-        String arg = arguments[0];
+        QString arg = arguments[0];
         arguments.erase(arguments.begin());
 
         if (arg.isEmpty())
@@ -207,8 +208,8 @@ void Run(Vector<String>& arguments)
 
     for (auto & inputFile : inputFiles)
     {
-        String path = inputFile;
-        String name = ReplaceExtension(GetFileName(path), "");
+        QString path = inputFile;
+        QString name = ReplaceExtension(GetFileName(path), "");
         File file(context, path);
         Image image(context);
 
@@ -282,7 +283,7 @@ void Run(Vector<String>& arguments)
         }
 
         // load rectangles
-        auto  packerRects = new stbrp_rect[packerInfos.size()];
+        stbrp_rect* packerRects = new stbrp_rect[packerInfos.size()];
         for (unsigned i = 0; i < packerInfos.size(); ++i)
         {
             PackerInfo* packerInfo = packerInfos[i];
@@ -335,7 +336,8 @@ void Run(Vector<String>& arguments)
         }
         delete packerRects;
         if (!success)
-            ErrorExit("Could not allocate for all images.  The max sprite sheet texture size is " + String(MAX_TEXTURE_SIZE) + "x" + String(MAX_TEXTURE_SIZE) + ".");
+            ErrorExit(QString("Could not allocate for all images.  The max sprite sheet texture size is %1x%2.")
+                      .arg(MAX_TEXTURE_SIZE).arg(MAX_TEXTURE_SIZE));
     }
 
 

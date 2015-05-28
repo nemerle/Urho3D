@@ -118,7 +118,7 @@ void Serializable::OnSetAttribute(const AttributeInfo& attr, const Variant& src)
         break;
 
     case VAR_STRING:
-        *(reinterpret_cast<String*>(dest)) = src.GetString();
+        *(reinterpret_cast<QString*>(dest)) = src.GetString();
         break;
 
     case VAR_BUFFER:
@@ -210,7 +210,7 @@ void Serializable::OnGetAttribute(const AttributeInfo& attr, Variant& dest) cons
         break;
 
     case VAR_STRING:
-        dest = *(reinterpret_cast<const String*>(src));
+        dest = *(reinterpret_cast<const QString*>(src));
         break;
 
     case VAR_BUFFER:
@@ -328,27 +328,27 @@ bool Serializable::LoadXML(const XMLElement& source, bool setInstanceDefault)
 
     while (attrElem)
     {
-        String name = attrElem.GetAttribute("name");
+        QString name = attrElem.GetAttribute("name");
         unsigned i = startIndex;
         unsigned attempts = attributes->size();
 
         while (attempts)
         {
             const AttributeInfo& attr = attributes->at(i);
-            if ((attr.mode_ & AM_FILE) && !attr.name_.Compare(name, true))
+            if ((attr.mode_ & AM_FILE) && !attr.name_.compare(name, Qt::CaseInsensitive))
             {
                 Variant varValue;
 
                 // If enums specified, do enum lookup and int assignment. Otherwise assign the variant directly
                 if (attr.enumNames_)
                 {
-                    String value = attrElem.GetAttribute("value");
+                    QString value = attrElem.GetAttribute("value");
                     bool enumFound = false;
                     int enumValue = 0;
                     const char** enumPtr = attr.enumNames_;
                     while (*enumPtr)
                     {
-                        if (!value.Compare(*enumPtr, false))
+                        if (!value.compare(*enumPtr))
                         {
                             enumFound = true;
                             break;
@@ -463,7 +463,7 @@ bool Serializable::SetAttribute(unsigned index, const Variant& value)
     }
 }
 
-bool Serializable::SetAttribute(const String& name, const Variant& value)
+bool Serializable::SetAttribute(const QString& name, const Variant& value)
 {
     const Vector<AttributeInfo>* attributes = GetAttributes();
     if (!attributes)
@@ -474,7 +474,7 @@ bool Serializable::SetAttribute(const String& name, const Variant& value)
 
     for (Vector<AttributeInfo>::const_iterator i = attributes->begin(); i != attributes->end(); ++i)
     {
-        if (!i->name_.Compare(name, true))
+        if (!i->name_.compare(name, Qt::CaseInsensitive))
         {
             // Check that the new value's type matches the attribute type
             if (value.GetType() == i->type_)
@@ -536,7 +536,7 @@ void Serializable::SetTemporary(bool enable)
     }
 }
 
-void Serializable::SetInterceptNetworkUpdate(const String& attributeName, bool enable)
+void Serializable::SetInterceptNetworkUpdate(const QString& attributeName, bool enable)
 {
     const Vector<AttributeInfo>* attributes = GetNetworkAttributes();
     if (!attributes)
@@ -547,7 +547,7 @@ void Serializable::SetInterceptNetworkUpdate(const String& attributeName, bool e
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->at(i);
-        if (!attr.name_.Compare(attributeName, true))
+        if (!attr.name_.compare(attributeName, Qt::CaseInsensitive))
         {
             if (enable)
                 networkState_->interceptMask_ |= 1ULL << i;
@@ -752,7 +752,7 @@ Variant Serializable::GetAttribute(unsigned index) const
     return ret;
 }
 
-Variant Serializable::GetAttribute(const String& name) const
+Variant Serializable::GetAttribute(const QString& name) const
 {
     Variant ret;
 
@@ -765,7 +765,7 @@ Variant Serializable::GetAttribute(const String& name) const
 
     for (const AttributeInfo & attribute : *attributes)
     {
-        if (!attribute.name_.Compare(name, true))
+        if (!attribute.name_.compare(name, Qt::CaseInsensitive))
         {
             OnGetAttribute(attribute, ret);
             return ret;
@@ -795,7 +795,7 @@ Variant Serializable::GetAttributeDefault(unsigned index) const
     return defaultValue.IsEmpty() ? attr.defaultValue_ : defaultValue;
 }
 
-Variant Serializable::GetAttributeDefault(const String& name) const
+Variant Serializable::GetAttributeDefault(const QString& name) const
 {
     Variant defaultValue = GetInstanceDefault(name);
     if (!defaultValue.IsEmpty())
@@ -810,7 +810,7 @@ Variant Serializable::GetAttributeDefault(const String& name) const
 
     for (const AttributeInfo & attribute : *attributes)
     {
-        if (!attribute.name_.Compare(name, true))
+        if (!attribute.name_.compare(name, Qt::CaseInsensitive))
             return attribute.defaultValue_;
     }
 
@@ -831,7 +831,7 @@ unsigned Serializable::GetNumNetworkAttributes() const
     return attributes ? attributes->size() : 0;
 }
 
-bool Serializable::GetInterceptNetworkUpdate(const String& attributeName) const
+bool Serializable::GetInterceptNetworkUpdate(const QString& attributeName) const
 {
     const Vector<AttributeInfo>* attributes = GetNetworkAttributes();
     if (!attributes)
@@ -842,14 +842,14 @@ bool Serializable::GetInterceptNetworkUpdate(const String& attributeName) const
     for (unsigned i = 0; i < attributes->size(); ++i)
     {
         const AttributeInfo& attr = attributes->at(i);
-        if (!attr.name_.Compare(attributeName, true))
+        if (!attr.name_.compare(attributeName, Qt::CaseInsensitive))
             return interceptMask & (1ULL << i) ? true : false;
     }
 
     return false;
 }
 
-void Serializable::SetInstanceDefault(const String& name, const Variant& defaultValue)
+void Serializable::SetInstanceDefault(const QString& name, const Variant& defaultValue)
 {
     // Allocate the instance level default value
     if (!instanceDefaultValues_)
@@ -857,7 +857,7 @@ void Serializable::SetInstanceDefault(const String& name, const Variant& default
     instanceDefaultValues_->operator[] (name) = defaultValue;
 }
 
-Variant Serializable::GetInstanceDefault(const String& name) const
+Variant Serializable::GetInstanceDefault(const QString& name) const
 {
     if (instanceDefaultValues_)
     {

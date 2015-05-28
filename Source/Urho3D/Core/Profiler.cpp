@@ -80,16 +80,16 @@ void Profiler::BeginInterval()
     intervalFrames_ = 0;
 }
 
-String Profiler::GetData(bool showUnused, bool showTotal, unsigned maxDepth) const
+QString Profiler::GetData(bool showUnused, bool showTotal, unsigned maxDepth) const
 {
-    String output;
+    QString output;
 
     if (!showTotal)
-        output += String("Block                            Cnt     Avg      Max     Frame     Total\n\n");
+        output += QString("Block                            Cnt     Avg      Max     Frame     Total\n\n");
     else
     {
-        output += String("Block                                       Last frame                       Whole execution time\n\n");
-        output += String("                                 Cnt     Avg      Max      Total      Cnt      Avg       Max        Total\n\n");
+        output += QString("Block                                       Last frame                       Whole execution time\n\n");
+        output += QString("                                 Cnt     Avg      Max      Total      Cnt      Avg       Max        Total\n\n");
     }
 
     if (!maxDepth)
@@ -100,7 +100,7 @@ String Profiler::GetData(bool showUnused, bool showTotal, unsigned maxDepth) con
     return output;
 }
 
-void Profiler::GetData(ProfilerBlock* block, String& output, unsigned depth, unsigned maxDepth, bool showUnused, bool showTotal) const
+void Profiler::GetData(ProfilerBlock* block, QString& output, unsigned depth, unsigned maxDepth, bool showUnused, bool showTotal) const
 {
     char line[LINE_MAX_LENGTH];
     char indentedName[LINE_MAX_LENGTH];
@@ -145,7 +145,7 @@ void Profiler::GetData(ProfilerBlock* block, String& output, unsigned depth, uns
                     avg, max, all, Min(block->totalCount_, 99999), totalAvg, totalMax, totalAll);
             }
 
-            output += String(line);
+            output += QString(line);
         }
 
         ++depth;

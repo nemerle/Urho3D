@@ -109,7 +109,7 @@ protected:
     /// Filter implicit attributes in serialization process.
     virtual bool FilterImplicitAttributes(XMLElement& dest) const;
     /// Filter implicit attributes in serialization process for internal scroll bar.
-    bool FilterScrollBarImplicitAttributes(XMLElement& dest, const String& name) const;
+    bool FilterScrollBarImplicitAttributes(XMLElement& dest, const QString& name) const;
     /// Resize panel based on scrollbar visibility.
     void UpdatePanelSize();
     /// Recalculate view size, validate view position and update scrollbars.

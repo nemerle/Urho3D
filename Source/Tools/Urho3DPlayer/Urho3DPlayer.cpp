@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 //
 
+#include <Urho3D/Urho3D.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/IO/FileSystem.h>
 #include <Urho3D/IO/Log.h>
@@ -27,6 +28,7 @@
 #include <Urho3D/Core/ProcessUtils.h>
 #include <Urho3D/Resource/ResourceCache.h>
 #include <Urho3D/Resource/ResourceEvents.h>
+#include <QString>
 
 #ifdef URHO3D_ANGELSCRIPT
 #include <Urho3D/Script/ScriptFile.h>
@@ -55,11 +57,11 @@ void Urho3DPlayer::Setup()
     // Read command line from a file if no arguments given. This is primarily intended for mobile platforms.
     // Note that the command file name uses a hardcoded path that does not utilize the resource system
     // properly (including resource path prefix), as the resource system is not yet initialized at this point
-    const String commandFileName = filesystem->GetProgramDir() + "Data/CommandLine.txt";
+    const QString commandFileName = filesystem->GetProgramDir() + "Data/CommandLine.txt";
     if (GetArguments().empty() && filesystem->FileExists(commandFileName))
     {
         SharedPtr<File> commandFile(new File(context_, commandFileName));
-    String commandLine = commandFile->ReadLine();
+    QString commandLine = commandFile->ReadLine();
     commandFile->Close();
     ParseArguments(commandLine, false);
     // Reparse engine startup parameters now
@@ -67,8 +69,8 @@ void Urho3DPlayer::Setup()
     }
 
     // Check for script file name
-    const Vector<String>& arguments = GetArguments();
-    String scriptFileName;
+    const QStringList& arguments = GetArguments();
+    QString scriptFileName;
     if (arguments.size() && arguments[0][0] != '-')
         scriptFileName_ = GetInternalPath(arguments[0]);
 
@@ -126,7 +128,7 @@ void Urho3DPlayer::Setup()
 
 void Urho3DPlayer::Start()
 {
-    String extension = GetExtension(scriptFileName_);
+    QString extension = GetExtension(scriptFileName_);
     if (extension != ".lua" && extension != ".luc")
     {
 #ifdef URHO3D_ANGELSCRIPT

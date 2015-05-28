@@ -54,7 +54,7 @@ class ValueAnimationInfo;
 struct MaterialShaderParameter
 {
     /// Name.
-    String name_;
+    QString name_;
     /// Value.
     Variant value_;
 };
@@ -82,14 +82,14 @@ class ShaderParameterAnimationInfo : public ValueAnimationInfo
 {
 public:
     /// Construct.
-    ShaderParameterAnimationInfo(Material* material, const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed);
+    ShaderParameterAnimationInfo(Material* material, const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed);
     /// Copy construct.
     ShaderParameterAnimationInfo(const ShaderParameterAnimationInfo& other);
     /// Destruct.
     ~ShaderParameterAnimationInfo();
 
     /// Return shader parameter name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
 
 protected:
     /// Apply new animation value to the target object. Called by Update().
@@ -97,7 +97,7 @@ protected:
 
 private:
     /// Shader parameter name.
-    String name_;
+    QString name_;
 };
 
 /// Describes how to render 3D geometries.
@@ -129,13 +129,13 @@ public:
     /// Set technique.
     void SetTechnique(unsigned index, Technique* tech, unsigned qualityLevel = 0, float lodDistance = 0.0f);
     /// Set shader parameter.
-    void SetShaderParameter(const String& name, const Variant& value);
+    void SetShaderParameter(const QString& name, const Variant& value);
     /// Set shader parameter animation.
-    void SetShaderParameterAnimation(const String& name, ValueAnimation* animation, WrapMode wrapMode = WM_LOOP, float speed = 1.0f);
+    void SetShaderParameterAnimation(const QString& name, ValueAnimation* animation, WrapMode wrapMode = WM_LOOP, float speed = 1.0f);
     /// Set shader parameter animation wrap mode.
-    void SetShaderParameterAnimationWrapMode(const String& name, WrapMode wrapMode);
+    void SetShaderParameterAnimationWrapMode(const QString& name, WrapMode wrapMode);
     /// Set shader parameter animation speed.
-    void SetShaderParameterAnimationSpeed(const String& name, float speed);
+    void SetShaderParameterAnimationSpeed(const QString& name, float speed);
     /// Set texture.
     void SetTexture(TextureUnit unit, Texture* texture);
     /// Set texture coordinate transform.
@@ -153,11 +153,11 @@ public:
     /// Associate the material with a scene to ensure that shader parameter animation happens in sync with scene update, respecting the scene time scale. If no scene is set, the global update events will be used.
     void SetScene(Scene* scene);
     /// Remove shader parameter.
-    void RemoveShaderParameter(const String& name);
+    void RemoveShaderParameter(const QString& name);
     /// Reset all shader pointers.
     void ReleaseShaders();
     /// Clone the material.
-    SharedPtr<Material> Clone(const String& cloneName = String::EMPTY) const;
+    SharedPtr<Material> Clone(const QString& cloneName = QString::null) const;
     /// Ensure that material techniques are listed in correct order.
     void SortTechniques();
     /// Mark material for auxiliary view rendering.
@@ -172,19 +172,19 @@ public:
     /// Return technique by index.
     Technique* GetTechnique(unsigned index) const;
     /// Return pass by technique index and pass name.
-    Pass* GetPass(unsigned index, const String& passName) const;
+    Pass* GetPass(unsigned index, const QString& passName) const;
     /// Return texture by unit.
     Texture* GetTexture(TextureUnit unit) const;
    /// Return all textures.
     const HashMap<TextureUnit, SharedPtr<Texture> >& GetTextures() const { return textures_; }
     /// Return shader parameter.
-    const Variant& GetShaderParameter(const String& name) const;
+    const Variant& GetShaderParameter(const QString& name) const;
     /// Return shader parameter animation.
-    ValueAnimation* GetShaderParameterAnimation(const String& name) const;
+    ValueAnimation* GetShaderParameterAnimation(const QString& name) const;
     /// Return shader parameter animation wrap mode.
-    WrapMode GetShaderParameterAnimationWrapMode(const String& name) const;
+    WrapMode GetShaderParameterAnimationWrapMode(const QString& name) const;
     /// Return shader parameter animation speed.
-    float GetShaderParameterAnimationSpeed(const String& name) const;
+    float GetShaderParameterAnimationSpeed(const QString& name) const;
     /// Return all shader parameters.
     const HashMap<StringHash, MaterialShaderParameter>& GetShaderParameters() const { return shaderParameters_; }
     /// Return normal culling mode.
@@ -207,9 +207,9 @@ public:
     unsigned GetShaderParameterHash() const { return shaderParameterHash_; }
 
     /// Return name for texture unit.
-    static String GetTextureUnitName(TextureUnit unit);
+    static QString GetTextureUnitName(TextureUnit unit);
     /// Parse a shader parameter value from a string. Retunrs either a bool, a float, or a 2 to 4-component vector.
-    static Variant ParseShaderParameterValue(const String& value);
+    static Variant ParseShaderParameterValue(const QString& value);
 
 private:
     /// Re-evaluate occlusion rendering.
@@ -221,7 +221,7 @@ private:
     /// Recalculate the memory used by the material.
     void RefreshMemoryUse();
     /// Return shader parameter animation info.
-    ShaderParameterAnimationInfo* GetShaderParameterAnimationInfo(const String& name) const;
+    ShaderParameterAnimationInfo* GetShaderParameterAnimationInfo(const QString& name) const;
     /// Update whether should be subscribed to scene or global update events for shader parameter animation.
     void UpdateEventSubscription();
     /// Update shader parameter animations.

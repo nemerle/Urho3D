@@ -95,8 +95,8 @@ bool OcclusionBuffer::SetSize(int width, int height)
             break;
     }
 
-    LOGDEBUG("Set occlusion buffer size " + String(width_) + "x" + String(height_) + " with " +
-        String(mipBuffers_.size()) + " mip levels");
+    LOGDEBUG(QString("Set occlusion buffer size %1x%2 with %3 mip levels")
+             .arg(width_).arg(height_).arg(mipBuffers_.size()));
 
     CalculateViewport();
     return true;

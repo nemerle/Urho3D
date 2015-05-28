@@ -80,7 +80,7 @@ void Text::RegisterObject(Context* context)
     UPDATE_ATTRIBUTE_DEFAULT_VALUE("Use Derived Opacity", false);
     MIXED_ACCESSOR_ATTRIBUTE("Font", GetFontAttr, SetFontAttr, ResourceRef, ResourceRef(Font::GetTypeStatic()), AM_FILE);
     ATTRIBUTE("Font Size", int, fontSize_, DEFAULT_FONT_SIZE, AM_FILE);
-    ATTRIBUTE("Text", String, text_, String::EMPTY, AM_FILE);
+    ATTRIBUTE("Text", QString, text_, QString(), AM_FILE);
     ENUM_ATTRIBUTE("Text Alignment", textAlignment_, horizontalAlignments, HA_LEFT, AM_FILE);
     ATTRIBUTE("Row Spacing", float, rowSpacing_, 1.0f, AM_FILE);
     ATTRIBUTE("Word Wrap", bool, wordWrap_, false, AM_FILE);
@@ -99,8 +99,8 @@ void Text::ApplyAttributes()
 
     // Decode to Unicode now
     unicodeText_.clear();
-    for (unsigned i = 0; i < text_.length();)
-        unicodeText_.push_back(text_.NextUTF8Char(i));
+    for (unsigned i = 0; i < text_.length(); ++i)
+        unicodeText_.push_back(text_[i]);
 
     fontSize_ = Max(fontSize_, 1);
     ValidateSelection();
@@ -123,7 +123,7 @@ void Text::GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData,
     else if (face->HasMutableGlyphs())
     {
         for (unsigned i = 0; i < printText_.size(); ++i)
-            face->GetGlyph(printText_[i]);
+            face->GetGlyph(printText_[i].unicode());
     }
 
     // Hovering and/or whole selection batch
@@ -227,7 +227,7 @@ void Text::OnIndentSet()
     charLocationsDirty_ = true;
 }
 
-bool Text::SetFont(const String& fontName, int size)
+bool Text::SetFont(const QString& fontName, int size)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     return SetFont(cache->GetResource<Font>(fontName), size);
@@ -251,14 +251,14 @@ bool Text::SetFont(Font* font, int size)
     return true;
 }
 
-void Text::SetText(const String& text)
+void Text::SetText(const QString& text)
 {
     text_ = text;
 
     // Decode to Unicode now
     unicodeText_.clear();
-    for (unsigned i = 0; i < text_.length();)
-        unicodeText_.push_back(text_.NextUTF8Char(i));
+    for (unsigned i = 0; i < text_.length(); ++i)
+        unicodeText_.push_back(text_[i]);
 
     ValidateSelection();
     UpdateText();
@@ -428,7 +428,7 @@ void Text::UpdateText(bool onResize)
             for (unsigned i = 0; i < unicodeText_.size(); ++i)
             {
                 unsigned j;
-                unsigned c = unicodeText_[i];
+                QChar c = unicodeText_[i];
 
                 if (c != '\n')
                 {
@@ -439,18 +439,18 @@ void Text::UpdateText(bool onResize)
                         int futureRowWidth = rowWidth;
                         for (j = i; j < unicodeText_.size(); ++j)
                         {
-                            unsigned d = unicodeText_[j];
+                            QChar d = unicodeText_[j];
                             if (d == ' ' || d == '\n')
                             {
                                 nextBreak = j;
                                 break;
                             }
-                            const FontGlyph* glyph = face->GetGlyph(d);
+                            const FontGlyph* glyph = face->GetGlyph(d.unicode());
                             if (glyph)
                             {
                                 futureRowWidth += glyph->advanceX_;
                                 if (j < unicodeText_.size() - 1)
-                                    futureRowWidth += face->GetKerning(d, unicodeText_[j + 1]);
+                                    futureRowWidth += face->GetKerning(d.unicode(), unicodeText_[j + 1].unicode());
                             }
                             if (d == '-' && futureRowWidth <= maxWidth)
                             {
@@ -493,12 +493,12 @@ void Text::UpdateText(bool onResize)
                     {
                         // When copying a space, position is allowed to be over row width
                         c = unicodeText_[i];
-                        const FontGlyph* glyph = face->GetGlyph(c);
+                        const FontGlyph* glyph = face->GetGlyph(c.unicode());
                         if (glyph)
                         {
                             rowWidth += glyph->advanceX_;
                             if (i < unicodeText_.size() - 1)
-                                rowWidth += face->GetKerning(c, unicodeText_[i + 1]);
+                                rowWidth += face->GetKerning(c.unicode(), unicodeText_[i + 1].unicode());
                         }
                         if (rowWidth <= maxWidth)
                         {
@@ -521,7 +521,7 @@ void Text::UpdateText(bool onResize)
 
         for (unsigned i = 0; i < printText_.size(); ++i)
         {
-            unsigned c = printText_[i];
+            unsigned c = printText_[i].unicode();
 
             if (c != '\n')
             {
@@ -530,7 +530,7 @@ void Text::UpdateText(bool onResize)
                 {
                     rowWidth += glyph->advanceX_;
                     if (i < printText_.size() - 1)
-                        rowWidth += face->GetKerning(c, printText_[i + 1]);
+                        rowWidth += face->GetKerning(c, printText_[i + 1].unicode());
                 }
             }
             else
@@ -608,10 +608,10 @@ void Text::UpdateCharLocations()
         CharLocation loc;
         loc.position_ = IntVector2(x, y);
 
-        unsigned c = printText_[i];
+        QChar c = printText_[i];
         if (c != '\n')
         {
-            const FontGlyph* glyph = face->GetGlyph(c);
+            const FontGlyph* glyph = face->GetGlyph(c.unicode());
             loc.size_ = IntVector2(glyph ? glyph->advanceX_ : 0, rowHeight_);
             if (glyph)
             {
@@ -620,7 +620,7 @@ void Text::UpdateCharLocations()
                     pageGlyphLocations_[glyph->page_].push_back(GlyphLocation(x, y, glyph));
                 x += glyph->advanceX_;
                 if (i < printText_.size() - 1)
-                    x += face->GetKerning(c, printText_[i + 1]);
+                    x += face->GetKerning(c.unicode(), printText_[i + 1].unicode());
             }
         }
         else

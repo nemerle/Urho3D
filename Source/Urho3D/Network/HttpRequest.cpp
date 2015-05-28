@@ -36,7 +36,7 @@ namespace Urho3D
 static const unsigned ERROR_BUFFER_SIZE = 256;
 static const unsigned READ_BUFFER_SIZE = 65536; // Must be a power of two
 
-HttpRequest::HttpRequest(const String& url, const String& verb, const Vector<String>& headers, const String& postData) :
+HttpRequest::HttpRequest(const QString& url, const QString& verb, const PODVector<QString> & headers, const QString& postData) :
     url_(url.trimmed()),
     verb_(!verb.isEmpty() ? verb : "GET"),
     headers_(headers),
@@ -64,42 +64,42 @@ HttpRequest::~HttpRequest()
 
 void HttpRequest::ThreadFunction()
 {
-    String protocol = "http";
-    String host;
-    String path = "/";
+    QString protocol = "http";
+    QString host;
+    QString path = "/";
     int port = 80;
 
-    unsigned protocolEnd = url_.indexOf("://");
-    if (protocolEnd != String::NPOS)
+    int protocolEnd = url_.indexOf("://");
+    if (protocolEnd != -1)
     {
-        protocol = url_.Substring(0, protocolEnd);
-        host = url_.Substring(protocolEnd + 3);
+        protocol = url_.mid(0, protocolEnd);
+        host = url_.mid(protocolEnd + 3);
     }
     else
         host = url_;
 
-    unsigned pathStart = host.indexOf('/');
-    if (pathStart != String::NPOS)
+    int pathStart = host.indexOf('/');
+    if (pathStart != -1)
     {
-        path = host.Substring(pathStart);
-        host = host.Substring(0, pathStart);
+        path = host.mid(pathStart);
+        host = host.mid(0, pathStart);
     }
 
-    unsigned portStart = host.indexOf(':');
-    if (portStart != String::NPOS)
+    int portStart = host.indexOf(':');
+    if (portStart != -1)
     {
-        port = ToInt(host.Substring(portStart + 1));
-        host = host.Substring(0, portStart);
+        port = ToInt(host.mid(portStart + 1));
+        host = host.mid(0, portStart);
     }
 
     char errorBuffer[ERROR_BUFFER_SIZE];
     memset(errorBuffer, 0, sizeof(errorBuffer));
 
-    String headersStr;
+    QString headersStr;
     for (unsigned i = 0; i < headers_.size(); ++i)
     {
         // Trim and only add non-empty header strings
-        String header = headers_[i].trimmed();
+        QString header = headers_[i].trimmed();
         if (header.length())
             headersStr += header + "\r\n";
     }
@@ -109,21 +109,21 @@ void HttpRequest::ThreadFunction()
     mg_connection* connection = nullptr;
     if (postData_.isEmpty())
     {
-        connection = mg_download(host.CString(), port, protocol.Compare("https", false) ? 0 : 1, errorBuffer, sizeof(errorBuffer),
+        connection = mg_download(qPrintable(host), port, protocol.compare("https", Qt::CaseInsensitive) ? 0 : 1, errorBuffer, sizeof(errorBuffer),
             "%s %s HTTP/1.0\r\n"
             "Host: %s\r\n"
             "%s"
-            "\r\n", verb_.CString(), path.CString(), host.CString(), headersStr.CString());
+            "\r\n", qPrintable(verb_), qPrintable(path), qPrintable(host), qPrintable(headersStr));
     }
     else
     {
-        connection = mg_download(host.CString(), port, protocol.Compare("https", false) ? 0 : 1, errorBuffer, sizeof(errorBuffer),
+        connection = mg_download(qPrintable(host), port, protocol.compare("https", Qt::CaseInsensitive) ? 0 : 1, errorBuffer, sizeof(errorBuffer),
             "%s %s HTTP/1.0\r\n"
             "Host: %s\r\n"
             "%s"
             "Content-Length: %d\r\n"
             "\r\n"
-            "%s", verb_.CString(), path.CString(), host.CString(), headersStr.CString(), postData_.length(), postData_.CString());
+            "%s", qPrintable(verb_),qPrintable(path), qPrintable(host), qPrintable(headersStr), postData_.length(), qPrintable(postData_));
     }
 
     {
@@ -133,7 +133,7 @@ void HttpRequest::ThreadFunction()
         // If no connection could be made, store the error and exit
         if (state_ == HTTP_ERROR)
         {
-            error_ = String(&errorBuffer[0]);
+            error_ = QString(&errorBuffer[0]);
             return;
         }
     }
@@ -253,7 +253,7 @@ unsigned HttpRequest::Seek(unsigned position)
     return position_;
 }
 
-String HttpRequest::GetError() const
+QString HttpRequest::GetError() const
 {
     MutexLock lock(mutex_);
     const_cast<HttpRequest*>(this)->CheckEofAndAvailableSize();

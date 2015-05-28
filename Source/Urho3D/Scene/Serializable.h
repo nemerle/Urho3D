@@ -76,7 +76,7 @@ public:
     /// Set attribute by index. Return true if successfully set.
     bool SetAttribute(unsigned index, const Variant& value);
     /// Set attribute by name. Return true if successfully set.
-    bool SetAttribute(const String& name, const Variant& value);
+    bool SetAttribute(const QString& name, const Variant& value);
     /// Reset all editable attributes to their default values.
     void ResetToDefault();
     /// Remove instance's default values if they are set previously.
@@ -84,7 +84,7 @@ public:
     /// Set temporary flag. Temporary objects will not be saved.
     void SetTemporary(bool enable);
     /// Enable interception of an attribute from network updates. Intercepted attributes are sent as events instead of applying directly. This can be used to implement client side prediction.
-    void SetInterceptNetworkUpdate(const String& attributeName, bool enable);
+    void SetInterceptNetworkUpdate(const QString& attributeName, bool enable);
     /// Allocate network attribute state.
     void AllocateNetworkState();
     /// Write initial delta network update.
@@ -101,11 +101,11 @@ public:
     /// Return attribute value by index. Return empty if illegal index.
     Variant GetAttribute(unsigned index) const;
     /// Return attribute value by name. Return empty if not found.
-    Variant GetAttribute(const String& name) const;
+    Variant GetAttribute(const QString& name) const;
     /// Return attribute default value by index. Return empty if illegal index.
     Variant GetAttributeDefault(unsigned index) const;
     /// Return attribute default value by name. Return empty if not found.
-    Variant GetAttributeDefault(const String& name) const;
+    Variant GetAttributeDefault(const QString& name) const;
     /// Return number of attributes.
     unsigned GetNumAttributes() const;
     /// Return number of network replication attributes.
@@ -113,7 +113,7 @@ public:
     /// Return whether is temporary.
     bool IsTemporary() const { return temporary_; }
     /// Return whether an attribute's network updates are being intercepted.
-    bool GetInterceptNetworkUpdate(const String& attributeName) const;
+    bool GetInterceptNetworkUpdate(const QString& attributeName) const;
     /// Return the network attribute state, if allocated.
     NetworkState* GetNetworkState() const { return networkState_; }
 
@@ -123,9 +123,9 @@ protected:
 
 private:
     /// Set instance-level default value. Allocate the internal data structure as necessary.
-    void SetInstanceDefault(const String& name, const Variant& defaultValue);
+    void SetInstanceDefault(const QString& name, const Variant& defaultValue);
     /// Get instance-level default value.
-    Variant GetInstanceDefault(const String& name) const;
+    Variant GetInstanceDefault(const QString& name) const;
 
     /// Attribute default value at each instance level.
     VariantMap* instanceDefaultValues_;

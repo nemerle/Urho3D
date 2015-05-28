@@ -45,13 +45,13 @@
 static const StringHash VAR_SOUNDRESOURCE("SoundResource");
 static const unsigned NUM_SOUNDS = 3;
 
-static String soundNames[] = {
+static QString soundNames[] = {
     "Fist",
     "Explosion",
     "Power-up"
 };
 
-static String soundResourceNames[] = {
+static QString soundResourceNames[] = {
     "Sounds/PlayerFistHit.wav",
     "Sounds/BigExplosion.wav",
     "Sounds/Powerup.wav"
@@ -115,7 +115,7 @@ void SoundEffects::CreateUI()
     SubscribeToEvent(slider, E_SLIDERCHANGED, HANDLER(SoundEffects, HandleMusicVolume));
 }
 
-Button* SoundEffects::CreateButton(int x, int y, int xSize, int ySize, const String& text)
+Button* SoundEffects::CreateButton(int x, int y, int xSize, int ySize, const QString & text)
 {
     UIElement* root = GetSubsystem<UI>()->GetRoot();
     ResourceCache* cache = GetSubsystem<ResourceCache>();
@@ -135,7 +135,7 @@ Button* SoundEffects::CreateButton(int x, int y, int xSize, int ySize, const Str
     return button;
 }
 
-Slider* SoundEffects::CreateSlider(int x, int y, int xSize, int ySize, const String& text)
+Slider* SoundEffects::CreateSlider(int x, int y, int xSize, int ySize, const QString & text)
 {
     UIElement* root = GetSubsystem<UI>()->GetRoot();
     ResourceCache* cache = GetSubsystem<ResourceCache>();
@@ -160,7 +160,7 @@ Slider* SoundEffects::CreateSlider(int x, int y, int xSize, int ySize, const Str
 void SoundEffects::HandlePlaySound(StringHash eventType, VariantMap& eventData)
 {
     Button* button = static_cast<Button*>(GetEventSender());
-    const String& soundResourceName = button->GetVar(VAR_SOUNDRESOURCE).GetString();
+    const QString& soundResourceName = button->GetVar(VAR_SOUNDRESOURCE).GetString();
     
     // Get the sound resource
     ResourceCache* cache = GetSubsystem<ResourceCache>();

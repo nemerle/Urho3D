@@ -33,7 +33,7 @@
 namespace Urho3D
 {
 
-ShaderPrecache::ShaderPrecache(Context* context, const String& fileName) :
+ShaderPrecache::ShaderPrecache(Context* context, const QString& fileName) :
     Object(context),
     fileName_(fileName),
     xmlFile_(context)
@@ -47,7 +47,7 @@ ShaderPrecache::ShaderPrecache(Context* context, const String& fileName) :
         XMLElement shader = xmlFile_.GetRoot().GetChild("shader");
         while (shader)
         {
-            String oldCombination = shader.GetAttribute("vs") + " " + shader.GetAttribute("vsdefines") + " " +
+            QString oldCombination = shader.GetAttribute("vs") + " " + shader.GetAttribute("vsdefines") + " " +
                 shader.GetAttribute("ps") + " " + shader.GetAttribute("psdefines");
             usedCombinations_.insert(oldCombination);
 
@@ -66,7 +66,7 @@ ShaderPrecache::~ShaderPrecache()
 {
     LOGINFO("End dumping shaders");
 
-    if (usedCombinations_.isEmpty())
+    if (usedCombinations_.empty())
         return;
 
     File dest(context_, fileName_, FILE_WRITE);
@@ -84,13 +84,13 @@ void ShaderPrecache::StoreShaders(ShaderVariation* vs, ShaderVariation* ps)
         return;
     usedPtrCombinations_.insert(shaderPair);
 
-    String vsName = vs->GetName();
-    String psName = ps->GetName();
-    const String& vsDefines = vs->GetDefines();
-    const String& psDefines = ps->GetDefines();
+    QString vsName = vs->GetName();
+    QString psName = ps->GetName();
+    const QString& vsDefines = vs->GetDefines();
+    const QString& psDefines = ps->GetDefines();
 
     // Check for duplicate using strings (needed for combinations loaded from existing file)
-    String newCombination = vsName + " " + vsDefines + " " + psName + " " + psDefines;
+    QString newCombination = vsName + " " + vsDefines + " " + psName + " " + psDefines;
     if (usedCombinations_.contains(newCombination))
         return;
     usedCombinations_.insert(newCombination);
@@ -112,8 +112,8 @@ void ShaderPrecache::LoadShaders(Graphics* graphics, Deserializer& source)
     XMLElement shader = xmlFile.GetRoot().GetChild("shader");
     while (shader)
     {
-        String vsDefines = shader.GetAttribute("vsdefines");
-        String psDefines = shader.GetAttribute("psdefines");
+        QString vsDefines = shader.GetAttribute("vsdefines");
+        QString psDefines = shader.GetAttribute("psdefines");
 
         // Check for illegal variations on OpenGL ES and skip them
         #ifdef GL_ES_VERSION_2_0

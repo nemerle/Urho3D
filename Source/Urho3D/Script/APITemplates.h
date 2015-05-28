@@ -28,6 +28,7 @@
 #include "../Core/Context.h"
 #include "../Graphics/Drawable.h"
 #include "../IO/File.h"
+#include "../Container/HashMap.h"
 #include "../IO/Log.h"
 #include "../IO/VectorBuffer.h"
 #include "../Scene/Node.h"
@@ -41,6 +42,7 @@
 
 #include <AngelScript/angelscript.h>
 #include <cstring>
+#include <deque>
 #include <QtCore/QSet>
 #include <QtCore/QList>
 
@@ -81,6 +83,7 @@ CScriptArray* VectorToArray(const Vector<T>& vector, const char* arrayName)
     else
         return nullptr;
 }
+/// Template function for PODVector to array conversion.
 template <class T>
 CScriptArray* VectorToArray(const std::deque<T>& vector, const char* arrayName)
 {
@@ -92,6 +95,22 @@ CScriptArray* VectorToArray(const std::deque<T>& vector, const char* arrayName)
 
         for (unsigned i = 0; i < arr->GetSize(); ++i)
             *(static_cast<T*>(arr->At(i))) = vector[i];
+
+        return arr;
+    }
+    else
+        return nullptr;
+}
+static inline CScriptArray* StringListToArray(const QStringList & vector, const char* arrayName)
+{
+    asIScriptContext *context = asGetActiveContext();
+    if (context)
+    {
+        asIObjectType* type = GetScriptContext()->GetSubsystem<Script>()->GetObjectType(arrayName);
+        CScriptArray* arr = CScriptArray::Create(type, vector.size());
+
+        for (unsigned i = 0; i < arr->GetSize(); ++i)
+            *(static_cast<QString*>(arr->At(i))) = vector[i];
 
         return arr;
     }
@@ -166,7 +185,8 @@ template <class T> CScriptArray* VectorToHandleArray(const Vector<SharedPtr<T> >
 }
 
 /// Template function for array to Vector conversion.
-template <class T> Vector<T> ArrayToVector(CScriptArray* arr)
+template <class T>
+Vector<T> ArrayToVector(CScriptArray* arr)
 {
     Vector<T> dest(arr ? arr->GetSize() : 0);
     if (arr)
@@ -195,11 +215,11 @@ template <class T, class U> void RegisterSubclass(asIScriptEngine* engine, const
     if (!strcmp(classNameT, classNameU))
         return;
 
-    String declReturnT(String(classNameT) + "@+ f()");
-    String declReturnU(String(classNameU) + "@+ f()");
+    QString declReturnT(QString(classNameT) + "@+ f()");
+    QString declReturnU(QString(classNameU) + "@+ f()");
 
-    engine->RegisterObjectBehaviour(classNameT, asBEHAVE_IMPLICIT_REF_CAST, declReturnU.CString(), asFUNCTION((RefCast<T, U>)), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectBehaviour(classNameU, asBEHAVE_IMPLICIT_REF_CAST, declReturnT.CString(), asFUNCTION((RefCast<U, T>)), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour(classNameT, asBEHAVE_IMPLICIT_REF_CAST, qPrintable(declReturnU), asFUNCTION((RefCast<T, U>)), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour(classNameU, asBEHAVE_IMPLICIT_REF_CAST, qPrintable(declReturnT), asFUNCTION((RefCast<U, T>)), asCALL_CDECL_OBJLAST);
 }
 
 /// Template function for writing to a serializer from an array.
@@ -240,15 +260,15 @@ template <class T> void RegisterSerializer(asIScriptEngine* engine, const char* 
     engine->RegisterObjectMethod(className, "bool WriteMatrix4(const Matrix4&in)", asMETHODPR(T, WriteMatrix4, (const Matrix4&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteColor(const Color&in)", asMETHODPR(T, WriteColor, (const Color&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteBoundingBox(const BoundingBox&in)", asMETHODPR(T, WriteBoundingBox, (const BoundingBox&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "bool WriteString(const String&in)", asMETHODPR(T, WriteString, (const String&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "bool WriteFileID(const String&in)", asMETHODPR(T, WriteFileID, (const String&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool WriteString(const String&in)", asMETHODPR(T, WriteString, (const QString&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool WriteFileID(const String&in)", asMETHODPR(T, WriteFileID, (const QString&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteStringHash(const StringHash&in)", asMETHODPR(T, WriteStringHash, (const StringHash&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteVariant(const Variant&in)", asMETHODPR(T, WriteVariant, (const Variant&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteVariantMap(const VariantMap&in)", asMETHODPR(T, WriteVariantMap, (const VariantMap&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteVectorBuffer(const VectorBuffer&in)", asFUNCTION(SerializerWriteVectorBuffer<T>), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "bool WriteVLE(uint)", asMETHODPR(T, WriteVLE, (unsigned), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool WriteNetID(uint)", asMETHODPR(T, WriteNetID, (unsigned), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "bool WriteLine(const String&in)", asMETHODPR(T, WriteLine, (const String&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool WriteLine(const String&in)", asMETHODPR(T, WriteLine, (const QString&), bool), asCALL_THISCALL);
 }
 
 /// Template function for reading from a deserializer into an array.
@@ -291,17 +311,17 @@ template <class T> void RegisterDeserializer(asIScriptEngine* engine, const char
     engine->RegisterObjectMethod(className, "Matrix4 ReadMatrix4()", asMETHODPR(T, ReadMatrix4, (), Matrix4), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "Color ReadColor()", asMETHODPR(T, ReadColor, (), Color), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "BoundingBox ReadBoundingBox()", asMETHODPR(T, ReadBoundingBox, (), BoundingBox), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "String ReadString()", asMETHODPR(T, ReadString, (), String), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "String ReadFileID()", asMETHODPR(T, ReadFileID, (), String), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "String ReadString()", asMETHODPR(T, ReadString, (), QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "String ReadFileID()", asMETHODPR(T, ReadFileID, (), QString), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "StringHash ReadStringHash()", asMETHODPR(T, ReadStringHash, (), StringHash), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "Variant ReadVariant()", asMETHODPR(T, ReadVariant, (), Variant), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "VariantMap ReadVariantMap()", asMETHODPR(T, ReadVariantMap, (), VariantMap), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "VectorBuffer ReadVectorBuffer(uint)", asFUNCTION(DeserializerReadVectorBuffer<T>), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "uint ReadVLE()", asMETHODPR(T, ReadVLE, (), unsigned), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint ReadNetID()", asMETHODPR(T, ReadNetID, (), unsigned), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "String ReadLine()", asMETHODPR(T, ReadLine, (), String), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "String ReadLine()", asMETHODPR(T, ReadLine, (), QString), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint Seek(uint)", asMETHODPR(T, Seek, (unsigned), unsigned), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "const String& get_name() const", asMETHODPR(T, GetName, () const, const String&), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "const String& get_name() const", asMETHODPR(T, GetName, () const, const QString&), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint get_checksum()", asMETHODPR(T, GetChecksum, (), unsigned), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint get_position() const", asMETHODPR(T, GetPosition, () const, unsigned), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint get_size() const", asMETHODPR(T, GetSize, () const, unsigned), asCALL_THISCALL);
@@ -319,7 +339,7 @@ template <class T> void RegisterRefCounted(asIScriptEngine* engine, const char* 
     RegisterSubclass<RefCounted, T>(engine, "RefCounted", className);
 }
 
-template <class T> void ObjectSendEvent(const String& eventType, VariantMap& eventData, T* ptr)
+template <class T> void ObjectSendEvent(const QString& eventType, VariantMap& eventData, T* ptr)
 {
     if (ptr)
         ptr->SendEvent(StringHash(eventType), eventData);
@@ -331,8 +351,8 @@ template <class T> void RegisterObject(asIScriptEngine* engine, const char* clas
     RegisterRefCounted<T>(engine, className);
     engine->RegisterObjectMethod(className, "StringHash get_type() const", asMETHODPR(T, GetType, () const, StringHash), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "StringHash get_baseType() const", asMETHODPR(T, GetBaseType, () const, StringHash), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "const String& get_typeName() const", asMETHODPR(T, GetTypeName, () const, const String&), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "const String& get_category() const", asMETHODPR(T, GetCategory, () const, const String&), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "const String& get_typeName() const", asMETHODPR(T, GetTypeName, () const, const QString&), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "const String& get_category() const", asMETHODPR(T, GetCategory, () const, const QString&), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SendEvent(const String&in, VariantMap& eventData = VariantMap())", asFUNCTION(ObjectSendEvent<T>), asCALL_CDECL_OBJLAST);
     RegisterSubclass<Object, T>(engine, "Object", className);
 }
@@ -342,7 +362,7 @@ template <class T> T* ConstructObject()
     return new T(GetScriptContext());
 }
 
-template <class T> T* ConstructNamedObject(const String& name)
+template <class T> T* ConstructNamedObject(const QString& name)
 {
     T* object = new T(GetScriptContext());
     object->SetName(name);
@@ -352,15 +372,15 @@ template <class T> T* ConstructNamedObject(const String& name)
 /// Template function for registering a default constructor for a class derived from Object.
 template <class T> void RegisterObjectConstructor(asIScriptEngine* engine, const char* className)
 {
-    String declFactory(String(className) + "@+ f()");
-    engine->RegisterObjectBehaviour(className, asBEHAVE_FACTORY, declFactory.CString(), asFUNCTION(ConstructObject<T>), asCALL_CDECL);
+    QString declFactory(QString(className) + "@+ f()");
+    engine->RegisterObjectBehaviour(className, asBEHAVE_FACTORY, qPrintable(declFactory), asFUNCTION(ConstructObject<T>), asCALL_CDECL);
 }
 
 /// Template function for registering a named constructor for a class derived from Object.
 template <class T> void RegisterNamedObjectConstructor(asIScriptEngine* engine, const char* className)
 {
-    String declFactoryWithName(String(className) + "@+ f(const String&in)");
-    engine->RegisterObjectBehaviour(className, asBEHAVE_FACTORY, declFactoryWithName.CString(), asFUNCTION(ConstructNamedObject<T>), asCALL_CDECL);
+    QString declFactoryWithName(QString(className) + "@+ f(const String&in)");
+    engine->RegisterObjectBehaviour(className, asBEHAVE_FACTORY, qPrintable(declFactoryWithName), asFUNCTION(ConstructNamedObject<T>), asCALL_CDECL);
 }
 
 static const AttributeInfo noAttributeInfo;
@@ -415,13 +435,13 @@ template <class T> void RegisterSerializable(asIScriptEngine* engine, const char
     engine->RegisterObjectMethod(className, "bool SaveXML(XMLElement&) const", asMETHODPR(T, SaveXML, (XMLElement&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void MarkNetworkUpdate() const", asMETHODPR(T, MarkNetworkUpdate, (), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void ApplyAttributes()", asMETHODPR(T, ApplyAttributes, (), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "bool SetAttribute(const String&in, const Variant&in)", asMETHODPR(T, SetAttribute, (const String&, const Variant&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool SetAttribute(const String&in, const Variant&in)", asMETHODPR(T, SetAttribute, (const QString&, const Variant&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void ResetToDefault()", asMETHOD(T, ResetToDefault), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void RemoveInstanceDefault()", asMETHOD(T, RemoveInstanceDefault), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "Variant GetAttribute(const String&in) const", asMETHODPR(T, GetAttribute, (const String&) const, Variant), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "Variant GetAttributeDefault(const String&in) const", asMETHODPR(T, GetAttributeDefault, (const String&) const, Variant), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "void SetInterceptNetworkUpdate(const String&in, bool)", asMETHODPR(T, SetInterceptNetworkUpdate, (const String&, bool), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "bool GetInterceptNetworkUpdate(const String&in) const", asMETHODPR(T, GetInterceptNetworkUpdate, (const String&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "Variant GetAttribute(const String&in) const", asMETHODPR(T, GetAttribute, (const QString&) const, Variant), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "Variant GetAttributeDefault(const String&in) const", asMETHODPR(T, GetAttributeDefault, (const QString&) const, Variant), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void SetInterceptNetworkUpdate(const String&in, bool)", asMETHODPR(T, SetInterceptNetworkUpdate, (const QString&, bool), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool GetInterceptNetworkUpdate(const String&in) const", asMETHODPR(T, GetInterceptNetworkUpdate, (const QString&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint get_numAttributes() const", asMETHODPR(T, GetNumAttributes, () const, unsigned), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool set_attributes(uint, const Variant&in) const", asMETHODPR(T, SetAttribute, (unsigned, const Variant&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "Variant get_attributes(uint) const", asMETHODPR(T, GetAttribute, (unsigned) const, Variant), asCALL_THISCALL);
@@ -442,12 +462,12 @@ template <class T> void RegisterAnimatable(asIScriptEngine* engine, const char* 
     engine->RegisterObjectMethod(className, "bool get_animationEnabled() const", asMETHODPR(T, GetAnimationEnabled, () const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void set_objectAnimation(ObjectAnimation@+)", asMETHODPR(T, SetObjectAnimation, (ObjectAnimation*), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "ObjectAnimation@+ get_objectAnimation() const", asMETHODPR(T, GetObjectAnimation, () const, ObjectAnimation*), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "void SetAttributeAnimation(const String&in, ValueAnimation@+, WrapMode wrapMode=WM_LOOP, float speed=1.0f)", asMETHODPR(T, SetAttributeAnimation, (const String&, ValueAnimation*, WrapMode, float), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "ValueAnimation@+ GetAttributeAnimation(const String&in) const", asMETHODPR(T, GetAttributeAnimation, (const String&) const, ValueAnimation*), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "void SetAttributeAnimationWrapMode(const String&in, WrapMode)", asMETHODPR(T, SetAttributeAnimationWrapMode, (const String&, WrapMode), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "WrapMode GetAttributeAnimationWrapMode(const String&in) const", asMETHODPR(T, GetAttributeAnimationWrapMode, (const String&) const, WrapMode), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "void SetAttributeAnimationSpeed(const String&in, float)", asMETHODPR(T, SetAttributeAnimationSpeed, (const String&, float), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "float GetAttributeAnimationSpeed(const String&in) const", asMETHODPR(T, GetAttributeAnimationSpeed, (const String&) const, float), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void SetAttributeAnimation(const String&in, ValueAnimation@+, WrapMode wrapMode=WM_LOOP, float speed=1.0f)", asMETHODPR(T, SetAttributeAnimation, (const QString&, ValueAnimation*, WrapMode, float), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "ValueAnimation@+ GetAttributeAnimation(const String&in) const", asMETHODPR(T, GetAttributeAnimation, (const QString&) const, ValueAnimation*), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void SetAttributeAnimationWrapMode(const String&in, WrapMode)", asMETHODPR(T, SetAttributeAnimationWrapMode, (const QString&, WrapMode), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "WrapMode GetAttributeAnimationWrapMode(const String&in) const", asMETHODPR(T, GetAttributeAnimationWrapMode, (const QString&) const, WrapMode), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void SetAttributeAnimationSpeed(const String&in, float)", asMETHODPR(T, SetAttributeAnimationSpeed, (const QString&, float), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "float GetAttributeAnimationSpeed(const String&in) const", asMETHODPR(T, GetAttributeAnimationSpeed, (const QString&) const, float), asCALL_THISCALL);
 }
 
 /// Template function for registering a class derived from Component.
@@ -466,17 +486,17 @@ template <class T> void RegisterComponent(asIScriptEngine* engine, const char* c
         engine->RegisterObjectMethod(className, "void DrawDebugGeometry(DebugRenderer@+, bool)", asMETHODPR(T, DrawDebugGeometry, (DebugRenderer*, bool), void), asCALL_THISCALL);
 }
 
-static Component* NodeCreateComponent(const String& typeName, CreateMode mode, unsigned id, Node* ptr)
+static Component* NodeCreateComponent(const QString& typeName, CreateMode mode, unsigned id, Node* ptr)
 {
     return ptr->CreateComponent(typeName, mode, id);
 }
 
-static Component* NodeGetOrCreateComponent(const String& typeName, CreateMode mode, unsigned id, Node* ptr)
+static Component* NodeGetOrCreateComponent(const QString& typeName, CreateMode mode, unsigned id, Node* ptr)
 {
     return ptr->GetOrCreateComponent(typeName, mode, id);
 }
 
-static void NodeRemoveComponent(const String& typeName, Node* ptr)
+static void NodeRemoveComponent(const QString& typeName, Node* ptr)
 {
     ptr->RemoveComponent(typeName);
 }
@@ -493,7 +513,7 @@ static Component* NodeGetComponent(unsigned index, Node* ptr)
         return components[index];
 }
 
-static Component* NodeGetComponentWithType(const String& typeName, Node* ptr)
+static Component* NodeGetComponentWithType(const QString& typeName, Node* ptr)
 {
     return ptr->GetComponent(typeName);
 }
@@ -503,14 +523,14 @@ static CScriptArray* NodeGetComponents(Node* ptr)
     return VectorToHandleArray<Component>(ptr->GetComponents(), "Array<Component@>");
 }
 
-static CScriptArray* NodeGetComponentsWithType(const String& typeName, bool recursive, Node* ptr)
+static CScriptArray* NodeGetComponentsWithType(const QString& typeName, bool recursive, Node* ptr)
 {
     PODVector<Component*> components;
     ptr->GetComponents(components, typeName, recursive);
     return VectorToHandleArray<Component>(components, "Array<Component@>");
 }
 
-static bool NodeHasComponent(const String& typeName, Node* ptr)
+static bool NodeHasComponent(const QString& typeName, Node* ptr)
 {
     return ptr->HasComponent(typeName);
 }
@@ -522,7 +542,7 @@ static CScriptArray* NodeGetChildren(bool recursive, Node* ptr)
     return VectorToHandleArray<Node>(nodes, "Array<Node@>");
 }
 
-static CScriptArray* NodeGetChildrenWithComponent(const String& typeName, bool recursive, Node* ptr)
+static CScriptArray* NodeGetChildrenWithComponent(const QString& typeName, bool recursive, Node* ptr)
 {
     PODVector<Node*> nodes;
     ptr->GetChildrenWithComponent(nodes, typeName, recursive);
@@ -558,7 +578,7 @@ static CScriptArray* NodeGetChildrenWithScript(bool recursive, Node* ptr)
     return VectorToHandleArray<Node>(nodes, "Array<Node@>");
 }
 
-static CScriptArray* NodeGetChildrenWithClassName(const String& className, bool recursive, Node* ptr)
+static CScriptArray* NodeGetChildrenWithClassName(const QString& className, bool recursive, Node* ptr)
 {
     PODVector<Node*> nodes;
     PODVector<Node*> result;
@@ -622,7 +642,7 @@ template <class T> void RegisterNode(asIScriptEngine* engine, const char* classN
     engine->RegisterObjectMethod(className, "void Scale(float)", asMETHODPR(T, Scale, (float), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void Scale(const Vector3&in)", asMETHODPR(T, Scale, (const Vector3&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void Scale2D(const Vector2&in)", asMETHODPR(T, Scale2D, (const Vector2&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "Node@+ CreateChild(const String&in name = String(), CreateMode mode = REPLICATED, uint id = 0)", asMETHODPR(T, CreateChild, (const String&, CreateMode, unsigned), Node*), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "Node@+ CreateChild(const String&in name = String(), CreateMode mode = REPLICATED, uint id = 0)", asMETHODPR(T, CreateChild, (const QString&, CreateMode, unsigned), Node*), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void AddChild(Node@+, uint index = M_MAX_UNSIGNED)", asMETHOD(T, AddChild), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void RemoveChild(Node@+)", asMETHODPR(T, RemoveChild, (Node*), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void RemoveAllChildren()", asMETHOD(T, RemoveAllChildren), asCALL_THISCALL);
@@ -640,7 +660,7 @@ template <class T> void RegisterNode(asIScriptEngine* engine, const char* classN
     engine->RegisterObjectMethod(className, "Array<Node@>@ GetChildrenWithComponent(const String&in, bool recursive = false) const", asFUNCTION(NodeGetChildrenWithComponent), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "Array<Node@>@ GetChildrenWithScript(bool recursive = false) const", asFUNCTION(NodeGetChildrenWithScript), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "Array<Node@>@ GetChildrenWithScript(const String&in, bool recursive = false) const", asFUNCTION(NodeGetChildrenWithClassName), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod(className, "Node@+ GetChild(const String&in, bool recursive = false) const", asMETHODPR(T, GetChild, (const String&, bool) const, Node*), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "Node@+ GetChild(const String&in, bool recursive = false) const", asMETHODPR(T, GetChild, (const QString&, bool) const, Node*), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "Array<Component@>@ GetComponents() const", asFUNCTION(NodeGetComponents), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "Array<Component@>@ GetComponents(const String&in, bool recursive = false) const", asFUNCTION(NodeGetComponentsWithType), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "Component@+ GetComponent(const String&in) const", asFUNCTION(NodeGetComponentWithType), asCALL_CDECL_OBJLAST);
@@ -733,8 +753,8 @@ template <class T> void RegisterResource(asIScriptEngine* engine, const char* cl
     engine->RegisterObjectMethod(className, "bool Load(VectorBuffer&)", asFUNCTION(ResourceLoadVectorBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "bool Save(File@+) const", asFUNCTION(ResourceSave), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "bool Save(VectorBuffer&) const", asFUNCTION(ResourceSaveVectorBuffer), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod(className, "void set_name(const String&in) const", asMETHODPR(T, SetName, (const String&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "const String& get_name() const", asMETHODPR(T, GetName, () const, const String&), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "void set_name(const String&in) const", asMETHODPR(T, SetName, (const QString&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "const String& get_name() const", asMETHODPR(T, GetName, () const, const QString&), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint get_memoryUse() const", asMETHODPR(T, GetMemoryUse, () const, unsigned), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint get_useTimer()" ,asMETHODPR(T, GetUseTimer, (), unsigned), asCALL_THISCALL);
 }
@@ -876,17 +896,17 @@ static bool UIElementLoadChildXML(XMLFile* file, XMLFile* styleFile, UIElement* 
         return false;
 }
 
-static bool UIElementSaveXML(File* file, const String& indentation, UIElement* ptr)
+static bool UIElementSaveXML(File* file, const QString& indentation, UIElement* ptr)
 {
     return file && ptr->SaveXML(*file);
 }
 
-static bool UIElementSaveXMLVectorBuffer(VectorBuffer& buffer, const String& indentation, UIElement* ptr)
+static bool UIElementSaveXMLVectorBuffer(VectorBuffer& buffer, const QString& indentation, UIElement* ptr)
 {
     return ptr->SaveXML(buffer);
 }
 
-static UIElement* UIElementCreateChild(const String& typeName, const String& name, unsigned index, UIElement* ptr)
+static UIElement* UIElementCreateChild(const QString& typeName, const QString& name, unsigned index, UIElement* ptr)
 {
     return ptr->CreateChild(typeName, name, index);
 }
@@ -928,7 +948,7 @@ static VariantMap& UIElementGetVars(UIElement* ptr)
     return const_cast<VariantMap&>(ptr->GetVars());
 }
 
-static void UIElementSetStyle(const String& styleName, UIElement* ptr)
+static void UIElementSetStyle(const QString& styleName, UIElement* ptr)
 {
     if (styleName.isEmpty())
         ptr->SetStyleAuto();
@@ -961,7 +981,7 @@ template <class T> void RegisterUIElement(asIScriptEngine* engine, const char* c
     engine->RegisterObjectMethod(className, "bool SaveXML(File@+, const String&in indentation = \"\t\")", asFUNCTION(UIElementSaveXML), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "bool SaveXML(VectorBuffer&, const String&in indentation = \"\t\")", asFUNCTION(UIElementSaveXMLVectorBuffer), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "bool SetStyle(const XMLElement&in)", asMETHODPR(T, SetStyle, (const XMLElement&), bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "bool SetStyle(const String&in, XMLFile@+ arg1 = null)", asMETHODPR(T, SetStyle, (const String&, XMLFile*), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "bool SetStyle(const String&in, XMLFile@+ arg1 = null)", asMETHODPR(T, SetStyle, (const QString&, XMLFile*), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "bool SetStyleAuto(XMLFile@+ arg0 = null)", asMETHOD(T, SetStyleAuto), asCALL_THISCALL);
     if (!isSprite)
         engine->RegisterObjectMethod(className, "void SetPosition(int, int)", asMETHODPR(UIElement, SetPosition, (int, int), void), asCALL_THISCALL);
@@ -989,7 +1009,7 @@ template <class T> void RegisterUIElement(asIScriptEngine* engine, const char* c
     engine->RegisterObjectMethod(className, "void Remove()", asMETHOD(T, Remove), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "uint FindChild(UIElement@+) const", asMETHOD(T, FindChild), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "void SetParent(UIElement@+, uint index = M_MAX_UNSIGNED)", asMETHOD(T, SetParent), asCALL_THISCALL);
-    engine->RegisterObjectMethod(className, "UIElement@+ GetChild(const String&in, bool recursive = false) const", asMETHODPR(T, GetChild, (const String&, bool) const, UIElement*), asCALL_THISCALL);
+    engine->RegisterObjectMethod(className, "UIElement@+ GetChild(const String&in, bool recursive = false) const", asMETHODPR(T, GetChild, (const QString&, bool) const, UIElement*), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "UIElement@+ GetChild(const StringHash&in, const Variant&in value = Variant(), bool recursive = false) const", asMETHODPR(T, GetChild, (const StringHash&, const Variant&, bool) const, UIElement*), asCALL_THISCALL);
     engine->RegisterObjectMethod(className, "Array<UIElement@>@ GetChildren(bool recursive = false) const", asFUNCTION(UIElementGetChildren), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(className, "UIElement@+ GetElementEventSender() const", asMETHOD(T, GetElementEventSender), asCALL_THISCALL);

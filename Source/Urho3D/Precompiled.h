@@ -21,6 +21,9 @@
 //
 
 #pragma once
+#ifdef __cplusplus
 
 #include "Urho3D.h"
+#include "Container/HashMap.h"
 #include "Container/Str.h"
+#endif

@@ -42,7 +42,7 @@ class XMLFile;
 struct FileSelectorEntry
 {
     /// Name.
-    String name_;
+    QString name_;
     /// Directory flag.
     bool directory_;
 };
@@ -63,15 +63,15 @@ public:
     /// Set fileselector UI style.
     void SetDefaultStyle(XMLFile* style);
     /// Set title text.
-    void SetTitle(const String& text);
+    void SetTitle(const QString& text);
     /// Set button texts.
-    void SetButtonTexts(const String& okText, const String& cancelText);
+    void SetButtonTexts(const QString& okText, const QString& cancelText);
     /// Set current path.
-    void SetPath(const String& path);
+    void SetPath(const QString& path);
     /// Set current filename.
-    void SetFileName(const String& fileName);
+    void SetFileName(const QString& fileName);
     /// Set filters.
-    void SetFilters(const Vector<String>& filters, unsigned defaultIndex);
+    void SetFilters(const QStringList& filters, unsigned defaultIndex);
     /// Set directory selection mode. Default false.
     void SetDirectoryMode(bool enable);
     /// Update elements to layout properly. Call this after manually adjusting the sub-elements.
@@ -98,13 +98,13 @@ public:
     /// Return close button.
     Button* GetCloseButton() const { return closeButton_; }
     /// Return window title.
-    const String& GetTitle() const;
+    const QString& GetTitle() const;
     /// Return current path.
-    const String& GetPath() const { return path_; }
+    const QString& GetPath() const { return path_; }
     /// Return current filename.
-    const String& GetFileName() const;
+    const QString& GetFileName() const;
     /// Return current filter.
-    const String& GetFilter() const;
+    const QString& GetFilter() const;
     /// Return current filter index.
     unsigned GetFilterIndex() const;
     /// Return directory mode flag.
@@ -112,7 +112,7 @@ public:
 
 private:
     /// Set the text of an edit field and ignore the resulting event.
-    void SetLineEditText(LineEdit* edit, const String& text);
+    void SetLineEditText(LineEdit* edit, const QString& text);
     /// Refresh the directory listing.
     void RefreshFiles();
     /// Enter a directory or confirm a file. Return true if a directory entered.
@@ -163,13 +163,13 @@ private:
     /// Button layout.
     UIElement* buttonLayout_;
     /// Current directory.
-    String path_;
+    QString path_;
     /// Filters.
-    Vector<String> filters_;
+    QStringList filters_;
     /// File entries.
     Vector<FileSelectorEntry> fileEntries_;
     /// Filter used to get the file list.
-    String lastUsedFilter_;
+    QString lastUsedFilter_;
     /// Directory mode flag.
     bool directoryMode_;
     /// Ignore events flag, used when changing line edits manually.

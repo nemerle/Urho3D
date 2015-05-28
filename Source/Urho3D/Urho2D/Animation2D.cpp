@@ -116,7 +116,7 @@ Animation2D::~Animation2D()
 {
 }
 
-void Animation2D::SetName(const String& name)
+void Animation2D::SetName(const QString& name)
 {
     name_ = name;
 }

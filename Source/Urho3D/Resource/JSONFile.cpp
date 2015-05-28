@@ -86,11 +86,11 @@ bool JSONFile::Save(Serializer& dest) const
     return Save(dest, "\t");
 }
 
-bool JSONFile::Save(Serializer& dest, const String& indendation) const
+bool JSONFile::Save(Serializer& dest, const QString& indendation) const
 {
     StringBuffer buffer;
     PrettyWriter<StringBuffer> writer(buffer, &(document_->GetAllocator()));
-    writer.SetIndent(!indendation.isEmpty() ?  indendation.Front() : '\0', indendation.length());
+    writer.SetIndent(!indendation.isEmpty() ?  indendation[0].toLatin1() : '\0', indendation.length());
 
     document_->Accept(writer);
     unsigned size = (unsigned)buffer.GetSize();

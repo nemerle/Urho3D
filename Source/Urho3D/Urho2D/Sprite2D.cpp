@@ -205,12 +205,12 @@ Sprite2D* Sprite2D::LoadFromResourceRef(Object* object, const ResourceRef& value
     if (value.type_ == SpriteSheet2D::GetTypeStatic())
     {
         // value.name_ include sprite sheet name and sprite name.
-        Vector<String> names = value.name_.split('@');
+        QStringList names = value.name_.split('@');
         if (names.size() != 2)
             return nullptr;
 
-        const String& spriteSheetName = names[0];
-        const String& spriteName = names[1];
+        const QString& spriteSheetName = names[0];
+        const QString& spriteName = names[1];
 
         SpriteSheet2D* spriteSheet = cache->GetResource<SpriteSheet2D>(spriteSheetName);
         if (!spriteSheet)

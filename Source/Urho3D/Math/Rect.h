@@ -189,7 +189,7 @@ public:
     /// Return as a vector.
     Vector4 ToVector4() const { return Vector4(min_.x_, min_.y_, max_.x_, max_.y_); }
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
 
     /// Minimum vector.
     Vector2 min_;
@@ -236,7 +236,6 @@ public:
         bottom_(data[3])
     {
     }
-    IntRect & operator=(const IntRect &) = default;
     /// Test for equality with another rect.
     bool operator == (const IntRect& rhs) const { return left_ == rhs.left_ && top_ == rhs.top_ && right_ == rhs.right_ && bottom_ == rhs.bottom_; }
     /// Test for inequality with another rect.
@@ -261,7 +260,7 @@ public:
     /// Return integer data.
     const int* Data() const { return &left_; }
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
 
     /// Left coordinate.
     int left_;

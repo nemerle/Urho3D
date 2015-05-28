@@ -75,14 +75,13 @@ struct RenderTargetInfo
         persistent_(false)
     {
     }
-    RenderTargetInfo &operator=(const RenderTargetInfo &o) = default;
     /// Read from an XML element.
     void Load(const XMLElement& element);
 
     /// Name.
-    String name_;
+    QString name_;
     /// Tag name.
-    String tag_;
+    QString tag_;
     /// Texture format.
     unsigned format_;
     /// Absolute size or multiplier.
@@ -107,6 +106,7 @@ struct RenderPathCommand
     /// Construct.
     RenderPathCommand() :
         clearFlags_(0),
+        blendMode_(BLEND_REPLACE),
         enabled_(true),
         useFogColor_(false),
         markToStencil_(false),
@@ -118,73 +118,74 @@ struct RenderPathCommand
     /// Read from an XML element.
     void Load(const XMLElement& element);
     /// Set a texture resource name. Can also refer to a rendertarget defined in the rendering path.
-    void SetTextureName(TextureUnit unit, const String& name);
+    void SetTextureName(TextureUnit unit, const QString& name);
     /// Set a shader parameter.
-    void SetShaderParameter(const String& name, const Variant& value);
+    void SetShaderParameter(const QString& name, const Variant& value);
     /// Remove a shader parameter.
-    void RemoveShaderParameter(const String& name);
+    void RemoveShaderParameter(const QString& name);
     /// Set number of output rendertargets.
     void SetNumOutputs(unsigned num);
     /// Set output rendertarget name and face index for cube maps.
-    void SetOutput(unsigned index, const String& name, CubeMapFace face = FACE_POSITIVE_X);
+    void SetOutput(unsigned index, const QString& name, CubeMapFace face = FACE_POSITIVE_X);
     /// Set output rendertarget name.
-    void SetOutputName(unsigned index, const String& name);
+    void SetOutputName(unsigned index, const QString& name);
     /// Set output rendertarget face index for cube maps.
     void SetOutputFace(unsigned index, CubeMapFace face);
     /// Set depth-stencil output name. When empty, will assign a depth-stencil buffer automatically.
-    void SetDepthStencilName(const String& name);
+    void SetDepthStencilName(const QString& name);
 
     /// Return texture resource name.
-    const String& GetTextureName(TextureUnit unit) const;
+    const QString& GetTextureName(TextureUnit unit) const;
     /// Return shader parameter.
-    const Variant& GetShaderParameter(const String& name) const;
+    const Variant& GetShaderParameter(const QString& name) const;
     /// Return number of output rendertargets.
     unsigned GetNumOutputs() const { return outputs_.size(); }
     /// Return output rendertarget name.
-    const String& GetOutputName(unsigned index) const;
+    const QString& GetOutputName(unsigned index) const;
     /// Return output rendertarget face index.
     CubeMapFace GetOutputFace(unsigned index) const;
     /// Return depth-stencil output name.
-    const String& GetDepthStencilName() const { return depthStencilName_; }
+    const QString& GetDepthStencilName() const { return depthStencilName_; }
 
-    RenderPathCommand& operator=(const RenderPathCommand& rhs) = default;
 
     /// Tag name.
-    String tag_;
+    QString tag_;
     /// Command type.
     RenderCommandType type_;
     /// Sorting mode.
     RenderCommandSortMode sortMode_;
     /// Scene pass name.
-    String pass_;
+    QString pass_;
     /// Scene pass index. Filled by View.
     unsigned passIndex_;
     /// Command/pass metadata.
-    String metadata_;
+    QString metadata_;
     /// Vertex shader name.
-    String vertexShaderName_;
+    QString vertexShaderName_;
     /// Pixel shader name.
-    String pixelShaderName_;
+    QString pixelShaderName_;
     /// Vertex shader defines.
-    String vertexShaderDefines_;
+    QString vertexShaderDefines_;
     /// Pixel shader defines.
-    String pixelShaderDefines_;
+    QString pixelShaderDefines_;
     /// Textures.
-    String textureNames_[MAX_TEXTURE_UNITS];
+    QString textureNames_[MAX_TEXTURE_UNITS];
     /// %Shader parameters.
     HashMap<StringHash, Variant> shaderParameters_;
     /// Output rendertarget names and faces.
-    Vector<Pair<String, CubeMapFace> > outputs_;
+    Vector<Pair<QString, CubeMapFace> > outputs_;
     /// Depth-stencil output name.
-    String depthStencilName_;
-    /// Clear flags.
+    QString depthStencilName_;
+    /// Clear flags. Affects clear command only.
     unsigned clearFlags_;
-    /// Clear color.
+    /// Clear color. Affects clear command only.
     Color clearColor_;
-    /// Clear depth.
+    /// Clear depth. Affects clear command only.
     float clearDepth_;
-    /// Clear stencil value.
+    /// Clear stencil value. Affects clear command only.
     unsigned clearStencil_;
+    /// Blend mode. Affects quad command only.
+    BlendMode blendMode_;
     /// Enabled flag.
     bool enabled_;
     /// Use fog color for clearing.
@@ -213,9 +214,9 @@ public:
     /// Append data from an XML file. Return true if successful.
     bool Append(XMLFile* file);
     /// Enable/disable commands and rendertargets by tag.
-    void SetEnabled(const String& tag, bool active);
+    void SetEnabled(const QString& tag, bool active);
     /// Toggle enabled state of commands and rendertargets by tag.
-    void ToggleEnabled(const String& tag);
+    void ToggleEnabled(const QString& tag);
     /// Assign rendertarget at index.
     void SetRenderTarget(unsigned index, const RenderTargetInfo& info);
     /// Add a rendertarget.
@@ -223,9 +224,9 @@ public:
     /// Remove a rendertarget by index.
     void RemoveRenderTarget(unsigned index);
     /// Remove a rendertarget by name.
-    void RemoveRenderTarget(const String& name);
+    void RemoveRenderTarget(const QString& name);
     /// Remove rendertargets by tag name.
-    void RemoveRenderTargets(const String& tag);
+    void RemoveRenderTargets(const QString& tag);
     /// Assign command at index.
     void SetCommand(unsigned index, const RenderPathCommand& command);
     /// Add a command to the end of the list.
@@ -235,9 +236,9 @@ public:
     /// Remove a command by index.
     void RemoveCommand(unsigned index);
     /// Remove commands by tag name.
-    void RemoveCommands(const String& tag);
+    void RemoveCommands(const QString& tag);
     /// Set a shader parameter in all commands that define it.
-    void SetShaderParameter(const String& name, const Variant& value);
+    void SetShaderParameter(const QString& name, const Variant& value);
 
     /// Return number of rendertargets.
     unsigned GetNumRenderTargets() const { return renderTargets_.size(); }
@@ -246,7 +247,7 @@ public:
     /// Return command at index, or null if does not exist.
     RenderPathCommand* GetCommand(unsigned index) { return index < commands_.size() ? &commands_[index] : (RenderPathCommand*)nullptr; }
     /// Return a shader parameter (first appearance in any command.)
-    const Variant& GetShaderParameter(const String& name) const;
+    const Variant& GetShaderParameter(const QString& name) const;
 
     /// Rendertargets.
     Vector<RenderTargetInfo> renderTargets_;

@@ -214,14 +214,14 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
             unsigned length = text_->GetSelectionLength();
 
             if (text_->GetSelectionLength())
-                GetSubsystem<UI>()->SetClipboardText(line_.SubstringUTF8(start, length));
+                GetSubsystem<UI>()->SetClipboardText(line_.mid(start, length));
 
             if (key == 'X' && editable_)
             {
-                if (start + length < line_.LengthUTF8())
-                    line_ = line_.SubstringUTF8(0, start) + line_.SubstringUTF8(start + length);
+                if (start + length < line_.length())
+                    line_ = line_.mid(0, start) + line_.mid(start + length);
                 else
-                    line_ = line_.SubstringUTF8(0, start);
+                    line_ = line_.mid(0, start);
                 text_->ClearSelection();
                 cursorPosition_ = start;
                 changed = true;
@@ -232,7 +232,7 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
     case 'V':
         if (editable_ && textCopyable_ && qualifiers & QUAL_CTRL)
         {
-            const String& clipBoard = GetSubsystem<UI>()->GetClipboardText();
+            const QString& clipBoard = GetSubsystem<UI>()->GetClipboardText();
             if (!clipBoard.isEmpty())
             {
                 // Remove selected text first
@@ -240,18 +240,18 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
                 {
                     unsigned start = text_->GetSelectionStart();
                     unsigned length = text_->GetSelectionLength();
-                    if (start + length < line_.LengthUTF8())
-                        line_ = line_.SubstringUTF8(0, start) + line_.SubstringUTF8(start + length);
+                    if (start + length < line_.length())
+                        line_ = line_.mid(0, start) + line_.mid(start + length);
                     else
-                        line_ = line_.SubstringUTF8(0, start);
+                        line_ = line_.mid(0, start);
                     text_->ClearSelection();
                     cursorPosition_ = start;
                 }
-                if (cursorPosition_ < line_.LengthUTF8())
-                    line_ = line_.SubstringUTF8(0, cursorPosition_) + clipBoard + line_.SubstringUTF8(cursorPosition_);
+                if (cursorPosition_ < line_.length())
+                    line_ = line_.mid(0, cursorPosition_) + clipBoard + line_.mid(cursorPosition_);
                 else
                     line_ += clipBoard;
-                cursorPosition_ += clipBoard.LengthUTF8();
+                cursorPosition_ += clipBoard.length();
                 changed = true;
             }
         }
@@ -294,13 +294,13 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
         // Fallthru
 
     case KEY_RIGHT:
-        if (cursorMovable_ && cursorPosition_ < line_.LengthUTF8())
+        if (cursorMovable_ && cursorPosition_ < line_.length())
         {
             if (textSelectable_ && qualifiers & QUAL_SHIFT && !text_->GetSelectionLength())
                 dragBeginCursor_ = cursorPosition_;
 
             if (qualifiers & QUAL_CTRL)
-                cursorPosition_ = line_.LengthUTF8();
+                cursorPosition_ = line_.length();
             else if (text_->GetSelectionLength() && !(qualifiers & QUAL_SHIFT))
                 cursorPosition_ = text_->GetSelectionStart() + text_->GetSelectionLength();
             else
@@ -326,9 +326,9 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
         {
             if (!text_->GetSelectionLength())
             {
-                if (cursorPosition_ < line_.LengthUTF8())
+                if (cursorPosition_ < line_.length())
                 {
-                    line_ = line_.SubstringUTF8(0, cursorPosition_) + line_.SubstringUTF8(cursorPosition_ + 1);
+                    line_ = line_.mid(0, cursorPosition_) + line_.mid(cursorPosition_ + 1);
                     changed = true;
                 }
             }
@@ -337,10 +337,10 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
                 // If a selection exists, erase it
                 unsigned start = text_->GetSelectionStart();
                 unsigned length = text_->GetSelectionLength();
-                if (start + length < line_.LengthUTF8())
-                    line_ = line_.SubstringUTF8(0, start) + line_.SubstringUTF8(start + length);
+                if (start + length < line_.length())
+                    line_ = line_.mid(0, start) + line_.mid(start + length);
                 else
-                    line_ = line_.SubstringUTF8(0, start);
+                    line_ = line_.mid(0, start);
                 text_->ClearSelection();
                 cursorPosition_ = start;
                 changed = true;
@@ -369,12 +369,12 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
         {
             if (!text_->GetSelectionLength())
             {
-                if (line_.LengthUTF8() && cursorPosition_)
+                if (line_.length() && cursorPosition_)
                 {
-                    if (cursorPosition_ < line_.LengthUTF8())
-                        line_ = line_.SubstringUTF8(0, cursorPosition_ - 1) + line_.SubstringUTF8(cursorPosition_);
+                    if (cursorPosition_ < line_.length())
+                        line_ = line_.mid(0, cursorPosition_ - 1) + line_.mid(cursorPosition_);
                     else
-                        line_ = line_.SubstringUTF8(0, cursorPosition_ - 1);
+                        line_ = line_.mid(0, cursorPosition_ - 1);
                     --cursorPosition_;
                     changed = true;
                 }
@@ -384,10 +384,10 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
                 // If a selection exists, erase it
                 unsigned start = text_->GetSelectionStart();
                 unsigned length = text_->GetSelectionLength();
-                if (start + length < line_.LengthUTF8())
-                    line_ = line_.SubstringUTF8(0, start) + line_.SubstringUTF8(start + length);
+                if (start + length < line_.length())
+                    line_ = line_.mid(0, start) + line_.mid(start + length);
                 else
-                    line_ = line_.SubstringUTF8(0, start);
+                    line_ = line_.mid(0, start);
                 text_->ClearSelection();
                 cursorPosition_ = start;
                 changed = true;
@@ -423,7 +423,7 @@ void LineEdit::OnKey(int key, int buttons, int qualifiers)
         UpdateCursor();
 }
 
-void LineEdit::OnTextInput(const String& text, int buttons, int qualifiers)
+void LineEdit::OnTextInput(const QString& text, int buttons, int qualifiers)
 {
     if (!editable_)
         return;
@@ -444,27 +444,27 @@ void LineEdit::OnTextInput(const String& text, int buttons, int qualifiers)
     eventData[P_QUALIFIERS] = qualifiers;
     SendEvent(E_TEXTENTRY, eventData);
 
-    const String newText = eventData[P_TEXT].GetString().SubstringUTF8(0);
-    if (!newText.isEmpty() && (!maxLength_ || line_.LengthUTF8() + newText.LengthUTF8() <= maxLength_))
+    const QString newText = eventData[P_TEXT].GetString().mid(0);
+    if (!newText.isEmpty() && (!maxLength_ || line_.length() + newText.length() <= maxLength_))
     {
         if (!text_->GetSelectionLength())
         {
-            if (cursorPosition_ == line_.LengthUTF8())
+            if (cursorPosition_ == line_.length())
                 line_ += newText;
             else
-                line_ = line_.SubstringUTF8(0, cursorPosition_) + newText + line_.SubstringUTF8(cursorPosition_);
-            cursorPosition_ += newText.LengthUTF8();
+                line_ = line_.mid(0, cursorPosition_) + newText + line_.mid(cursorPosition_);
+            cursorPosition_ += newText.length();
         }
         else
         {
             // If a selection exists, erase it first
             unsigned start = text_->GetSelectionStart();
             unsigned length = text_->GetSelectionLength();
-            if (start + length < line_.LengthUTF8())
-                line_ = line_.SubstringUTF8(0, start) + newText + line_.SubstringUTF8(start + length);
+            if (start + length < line_.length())
+                line_ = line_.mid(0, start) + newText + line_.mid(start + length);
             else
-                line_ = line_.SubstringUTF8(0, start) + newText;
-            cursorPosition_ = start + newText.LengthUTF8();
+                line_ = line_.mid(0, start) + newText;
+            cursorPosition_ = start + newText.length();
         }
         changed = true;
     }
@@ -477,12 +477,12 @@ void LineEdit::OnTextInput(const String& text, int buttons, int qualifiers)
     }
 }
 
-void LineEdit::SetText(const String& text)
+void LineEdit::SetText(const QString& text)
 {
     if (text != line_)
     {
         line_ = text;
-        cursorPosition_ = line_.LengthUTF8();
+        cursorPosition_ = line_.length();
         UpdateText();
         UpdateCursor();
     }
@@ -490,8 +490,8 @@ void LineEdit::SetText(const String& text)
 
 void LineEdit::SetCursorPosition(unsigned position)
 {
-    if (position > line_.LengthUTF8() || !cursorMovable_)
-        position = line_.LengthUTF8();
+    if (position > line_.length() || !cursorMovable_)
+        position = line_.length();
 
     if (position != cursorPosition_)
     {
@@ -564,15 +564,15 @@ bool LineEdit::FilterImplicitAttributes(XMLElement& dest) const
 
 void LineEdit::UpdateText()
 {
-    unsigned utf8Length = line_.LengthUTF8();
+    unsigned utf8Length = line_.length();
 
     if (!echoCharacter_)
         text_->SetText(line_);
     else
     {
-        String echoText;
+        QString echoText;
         for (unsigned i = 0; i < utf8Length; ++i)
-            echoText.AppendUTF8(echoCharacter_);
+            echoText += QChar(echoCharacter_);
         text_->SetText(echoText);
     }
     if (cursorPosition_ > utf8Length)
@@ -635,7 +635,7 @@ void LineEdit::HandleFocused(StringHash eventType, VariantMap& eventData)
 {
     if (eventData[Focused::P_BYKEY].GetBool())
     {
-        cursorPosition_ = line_.LengthUTF8();
+        cursorPosition_ = line_.length();
         text_->SetSelection(0);
     }
     UpdateCursor();

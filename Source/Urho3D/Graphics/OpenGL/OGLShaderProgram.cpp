@@ -140,10 +140,11 @@ bool ShaderProgram::Link()
     if (!linked)
     {
         glGetProgramiv(object_, GL_INFO_LOG_LENGTH, &length);
-        linkerOutput_.resize(length);
+        QByteArray linkerMessage(length,0);
         int outLength;
-        glGetProgramInfoLog(object_, length, &outLength, &linkerOutput_[0]);
+        glGetProgramInfoLog(object_, length, &outLength, linkerMessage.data());
         glDeleteProgram(object_);
+        linkerOutput_ = linkerMessage;
         object_ = 0;
     }
     else
@@ -173,15 +174,15 @@ bool ShaderProgram::Link()
             int nameLength;
             glGetActiveUniformBlockName(object_, i, MAX_PARAMETER_NAME_LENGTH, &nameLength, uniformName);
 
-            String name(uniformName, nameLength);
+            QString name = QString::fromLatin1(uniformName, nameLength);
 
-            unsigned blockIndex = glGetUniformBlockIndex(object_, name.CString());
+            unsigned blockIndex = glGetUniformBlockIndex(object_, qPrintable(name));
             unsigned group = M_MAX_UNSIGNED;
 
             // Try to recognize the use of the buffer from its name
             for (unsigned j = 0; j < MAX_SHADER_PARAMETER_GROUPS; ++j)
             {
-                if (name.contains(shaderParameterGroups[j], false))
+                if (name.contains(shaderParameterGroups[j], Qt::CaseInsensitive))
                 {
                     group = j;
                     break;
@@ -195,7 +196,7 @@ bool ShaderProgram::Link()
                 {
                     if (name[j] >= '0' && name[j] <= '5')
                     {
-                        group = name[j] - '0';
+                        group = name[j].toLatin1() - '0';
                         break;
                     }
                 }
@@ -217,7 +218,7 @@ bool ShaderProgram::Link()
             unsigned bindingIndex = group;
             // Vertex shader constant buffer bindings occupy slots starting from zero to maximum supported, pixel shader bindings
             // from that point onward
-            if (name.contains("PS", false))
+            if (name.contains("PS", Qt::CaseInsensitive))
                 bindingIndex += MAX_SHADER_PARAMETER_GROUPS;
 
             glUniformBlockBinding(object_, blockIndex, bindingIndex);
@@ -238,21 +239,21 @@ bool ShaderProgram::Link()
 
 
         // Check for array index included in the name and strip it
-        String name(uniformName);
+        QString name(uniformName);
         unsigned index = name.indexOf('[');
-        if (index != String::NPOS)
+        if (index != -1)
         {
             // If not the first index, skip
-            if (name.indexOf("[0]", index) == String::NPOS)
+            if (name.indexOf("[0]", index) == -1)
                 continue;
 
-            name = name.Substring(0, index);
+            name = name.mid(0, index);
         }
 
         if (name[0] == 'c')
         {
             // Store constant uniform
-            String paramName = name.Substring(1);
+            QString paramName = name.mid(1);
             ShaderParameter newParam;
             newParam.type_ = type;
             newParam.location_ = location;
@@ -278,7 +279,7 @@ bool ShaderProgram::Link()
         else if (location >= 0 && name[0] == 's')
         {
             // Set the samplers here so that they do not have to be set later
-            int unit = graphics_->GetTextureUnit(name.Substring(1));
+            int unit = graphics_->GetTextureUnit(name.mid(1));
             if (unit >= MAX_TEXTURE_UNITS)
             {
                 // If texture unit name is not recognized, search for a digit in the name and use that as the unit index
@@ -286,7 +287,7 @@ bool ShaderProgram::Link()
                 {
                     if (name[j] >= '0' && name[j] <= '9')
                     {
-                        unit = name[j] - '0';
+                        unit = name[j].toLatin1() - '0';
                         break;
                     }
                 }
@@ -301,7 +302,8 @@ bool ShaderProgram::Link()
     }
 
     // Rehash the parameter map to ensure minimal load factor
-    shaderParameters_.reserve(NextPowerOfTwo(shaderParameters_.size()));
+    // load factor is automatically maintained by unordered_map
+    // shaderParameters_.reserve(NextPowerOfTwo(shaderParameters_.size()));
 
     return true;
 }

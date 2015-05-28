@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ template<> int ToluaIsVector<String>(lua_State* L, int lo, const char* type, int
 {
     if (lua_istable(L, lo))
     {
-        int length = lua_objlen(L, lo);
+        size_t length = lua_objlen(L, lo);
         for (int i = 1; i <= length; ++i)
         {
             lua_pushinteger(L, i);
@@ -101,7 +101,7 @@ template<> void* ToluaToVector<String>(lua_State* L, int narg, void* def)
     static Vector<String> result;
     result.Clear();
 
-    int length = lua_objlen(L, narg);
+    size_t length = lua_objlen(L, narg);
     for (int i = 1; i <= length; ++i)
     {
         lua_pushinteger(L, i);
@@ -150,7 +150,7 @@ template<> int ToluaIsPODVector<unsigned>(lua_State* L, int lo, const char* type
 {
     if (lua_istable(L, lo))
     {
-        int length = lua_objlen(L, lo);
+        size_t length = lua_objlen(L, lo);
         for (int i = 1; i <= length; ++i)
         {
             lua_pushinteger(L, i);
@@ -182,7 +182,7 @@ template<> int ToluaIsPODVector<Vector2>(lua_State* L, int lo, const char* type,
 {
     if (lua_istable(L, lo))
     {
-        int length = lua_objlen(L, lo);
+        size_t length = lua_objlen(L, lo);
         for (int i = 1; i <= length; ++i)
         {
             lua_pushinteger(L, i);
@@ -213,7 +213,7 @@ template<> void* ToluaToPODVector<unsigned>(lua_State* L, int narg, void* def)
     static PODVector<unsigned> result;
     result.Clear();
 
-    int length = lua_objlen(L, narg);
+    size_t length = lua_objlen(L, narg);
     for (int i = 1; i <= length; ++i)
     {
         lua_pushinteger(L, i);
@@ -244,7 +244,7 @@ template<> void* ToluaToPODVector<Vector2>(lua_State* L, int narg, void* def)
 
     tolua_Error tolua_err;
 
-    int length = lua_objlen(L, narg);
+    size_t length = lua_objlen(L, narg);
     for (int i = 1; i <= length; ++i)
     {
         lua_pushinteger(L, i);
@@ -291,6 +291,29 @@ template<> int ToluaPushPODVector<unsigned>(lua_State* L, void* data, const char
     return 1;
 }
 
+template<> int ToluaPushPODVector<Component*>(lua_State* L, void* data, const char*)
+{
+    const PODVector<Component*>& vector = *((const PODVector<Component*>*)data);
+    lua_newtable(L);
+    for (unsigned i = 0; i < vector.Size(); ++i)
+    {
+        tolua_pushusertype(L, vector[i], "Component");
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+}
+
+template<> int ToluaPushPODVector<Node*>(lua_State* L, void* data, const char*)
+{
+    const PODVector<Node*>& vector = *((const PODVector<Node*>*)data);
+    lua_newtable(L);
+    for (unsigned i = 0; i < vector.Size(); ++i)
+    {
+        tolua_pushusertype(L, vector[i], "Node");
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+}
 template<> int ToluaPushPODVector<SoundSource*>(lua_State* L, void* data, const char*)
 {
     const PODVector<SoundSource*>& vector = *((const PODVector<SoundSource*>*)data);
@@ -314,6 +337,19 @@ template<> int ToluaPushPODVector<UIElement*>(lua_State* L, void* data, const ch
     }
     return 1;
 }
+#ifdef URHO3D_NAVIGATION
+template<> int ToluaPushPODVector<CrowdAgent*>(lua_State* L, void* data, const char*)
+{
+    const PODVector<CrowdAgent*>& vector = *((const PODVector<CrowdAgent*>*)data);
+    lua_newtable(L);
+    for (unsigned i = 0; i < vector.Size(); ++i)
+    {
+        tolua_pushusertype(L, vector[i], "CrowdAgent");
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+}
+#endif
 
 #ifdef URHO3D_PHYSICS
 template<> int ToluaPushPODVector<RigidBody*>(lua_State* L, void* data, const char*)

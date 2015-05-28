@@ -55,7 +55,7 @@ bool AnimationSet2D::BeginLoad(Deserializer& source)
     if (GetName().isEmpty())
         SetName(source.GetName());
 
-    String extension = GetExtension(source.GetName());
+    QString extension = GetExtension(source.GetName());
     if (extension == ".scml")
         return BeginLoadSpriter(source);
 
@@ -84,7 +84,7 @@ Animation2D* AnimationSet2D::GetAnimation(unsigned index) const
     return nullptr;
 }
 
-Animation2D* AnimationSet2D::GetAnimation(const String& name) const
+Animation2D* AnimationSet2D::GetAnimation(const QString& name) const
 {
     for (unsigned i = 0; i < animations_.size(); ++i)
     {
@@ -169,9 +169,9 @@ bool AnimationSet2D::LoadSpriterFolders(const XMLElement& rootElem)
 
     bool async = GetAsyncLoadState() == ASYNC_LOADING;
 
-    String parentPath = GetParentPath(GetName());
-    String spriteSheetFilePathPList = parentPath + GetFileName(GetName()) + ".plist";
-    String spriteSheetFilePathXML = parentPath + GetFileName(GetName()) + ".xml";
+    QString parentPath = GetParentPath(GetName());
+    QString spriteSheetFilePathPList = parentPath + GetFileName(GetName()) + ".plist";
+    QString spriteSheetFilePathXML = parentPath + GetFileName(GetName()) + ".xml";
     SpriteSheet2D* spriteSheet = nullptr;
     bool hasSpriteSheet = false;
 
@@ -202,7 +202,7 @@ bool AnimationSet2D::LoadSpriterFolders(const XMLElement& rootElem)
         for (XMLElement fileElem = folderElem.GetChild("file"); fileElem; fileElem = fileElem.GetNext("file"))
         {
             unsigned fileId = fileElem.GetUInt("id");
-            String fileName = fileElem.GetAttribute("name");
+            QString fileName = fileElem.GetAttribute("name");
 
             // When async loading, request the sprites for background loading but do not actually get them
             if (!async)
@@ -293,7 +293,7 @@ struct SpriterTimeline2D
     {
     }
 
-    String name_;
+    QString name_;
     int parent_;
     SpriterObjectType2D type_;
     Vector<SpriterTimelineKey2D> timelineKeys_;
@@ -325,12 +325,13 @@ struct SpriterMainlineKey2D
 
 bool AnimationSet2D::LoadSpriterAnimation(const XMLElement& animationElem)
 {
-    String name = animationElem.GetAttribute("name");
+    QString name = animationElem.GetAttribute("name");
     float length = animationElem.GetFloat("length") * 0.001f;
     bool looped = true;
     if (animationElem.HasAttribute("looping"))
         looped = animationElem.GetBool("looping");
 
+    float highestKeyTime = 0.0f;
     // Load timelines
     Vector<SpriterTimeline2D> timelines;
     for (XMLElement timelineElem = animationElem.GetChild("timeline"); timelineElem; timelineElem = timelineElem.GetNext("timeline"))
@@ -346,6 +347,7 @@ bool AnimationSet2D::LoadSpriterAnimation(const XMLElement& animationElem)
         {
             SpriterTimelineKey2D key;
             key.time_ = keyElem.GetFloat("time") * 0.001f;
+            highestKeyTime = Max(highestKeyTime, key.time_);
             if (keyElem.HasAttribute("spin"))
                 key.spin_ = keyElem.GetInt("spin");
 
@@ -436,6 +438,10 @@ bool AnimationSet2D::LoadSpriterAnimation(const XMLElement& animationElem)
 
     // Create animation
     SharedPtr<Animation2D> animation(new Animation2D(this));
+    // Crop animation length if longer than the last keyframe, prevents sprites vanishing in clamp mode, or occasional flashes
+    // when looped
+    if (length > highestKeyTime)
+        length = highestKeyTime;
     animation->SetName(name);
     animation->SetLength(length);
     animation->SetLooped(looped);
@@ -462,7 +468,7 @@ bool AnimationSet2D::LoadSpriterAnimation(const XMLElement& animationElem)
 
             keyFrame.time_ = timelineKey.time_;
 
-            // Set diabled
+            // Set disabled
             keyFrame.enabled_ = false;
             keyFrame.parent_ = timeline.parent_;
             keyFrame.transform_ = Transform2D(timelineKey.position_, timelineKey.angle_, timelineKey.scale_);

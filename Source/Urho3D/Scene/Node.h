@@ -85,9 +85,9 @@ public:
     virtual void AddReplicationState(NodeReplicationState* state);
 
     /// Save to an XML file. Return true if successful.
-    bool SaveXML(Serializer& dest, const String& indentation = "\t") const;
+    bool SaveXML(Serializer& dest, const QString& indentation = "\t") const;
     /// Set name of the scene node. Names are not required to be unique.
-    void SetName(const String& name);
+    void SetName(const QString& name);
     /// Set position in parent space. If the scene node is on the root level (is child of the scene itself), this is same as world space.
     void SetPosition(const Vector3& position);
     /// Set position in parent space (for Urho2D).
@@ -191,7 +191,7 @@ public:
     /// Mark node and child nodes to need world transform recalculation. Notify listener components.
     void MarkDirty();
     /// Create a child scene node (with specified ID if provided).
-    Node* CreateChild(const String& name = String::EMPTY, CreateMode mode = REPLICATED, unsigned id = 0);
+    Node* CreateChild(const QString& name = QString::null, CreateMode mode = REPLICATED, unsigned id = 0);
     /// Add a child scene node at a specific index. If index is not explicitly specified or is greater than current children size, append the new child at the end.
     void AddChild(Node* node, unsigned index = M_MAX_UNSIGNED);
     /// Remove a child scene node.
@@ -238,7 +238,7 @@ public:
     /// Return ID.
     unsigned GetID() const { return id_; }
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return name hash.
     StringHash GetNameHash() const { return nameHash_; }
     /// Return parent scene node.
@@ -381,7 +381,7 @@ public:
     /// Return child scene node by index.
     Node* GetChild(unsigned index) const;
     /// Return child scene node by name.
-    Node* GetChild(const String& name, bool recursive = false) const;
+    Node* GetChild(const QString& name, bool recursive = false) const;
     /// Return child scene node by name.
     Node* GetChild(const char* name, bool recursive = false) const;
     /// Return child scene node by name hash.
@@ -470,7 +470,7 @@ protected:
     /// Handle attribute animation removed.
     virtual void OnAttributeAnimationRemoved() override;
     /// Set object attribute animation internal.
-    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) override;
+    virtual void SetObjectAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) override;
 
     /// Network update queued flag.
     bool networkUpdate_;
@@ -481,7 +481,7 @@ private:
     /// Set enabled/disabled state with optional recursion. Optionally affect the remembered enable state.
     void SetEnabled(bool enable, bool recursive, bool storeSelf);
     /// Create component, allowing UnknownComponent if actual type is not supported. Leave typeName empty if not known.
-    Component* SafeCreateComponent(const String& typeName, StringHash type, CreateMode mode, unsigned id);
+    Component* SafeCreateComponent(const QString& typeName, StringHash type, CreateMode mode, unsigned id);
     /// Recalculate the world transform.
     void UpdateWorldTransform() const;
     /// Remove child node by iterator.
@@ -532,7 +532,7 @@ private:
     /// Network owner connection.
     Connection* owner_;
     /// Name.
-    String name_;
+    QString name_;
     /// Name hash.
     StringHash nameHash_;
     /// Attribute buffer for network updates.

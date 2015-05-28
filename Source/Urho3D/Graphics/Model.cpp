@@ -30,8 +30,8 @@
 #include "../Graphics/Graphics.h"
 #include "../IO/Serializer.h"
 #include "../Graphics/VertexBuffer.h"
-
 #include "../DebugNew.h"
+
 #include <cstring>
 #include <vector>
 
@@ -558,7 +558,7 @@ void Model::SetMorphs(const Vector<ModelMorph>& morphs)
     morphs_ = morphs;
 }
 
-SharedPtr<Model> Model::Clone(const String& cloneName) const
+SharedPtr<Model> Model::Clone(const QString& cloneName) const
 {
     SharedPtr<Model> ret(new Model(context_));
 
@@ -697,7 +697,7 @@ const ModelMorph* Model::GetMorph(unsigned index) const
     return index < morphs_.size() ? &morphs_[index] : nullptr;
 }
 
-const ModelMorph* Model::GetMorph(const String& name) const
+const ModelMorph* Model::GetMorph(const QString& name) const
 {
     return GetMorph(StringHash(name));
 }

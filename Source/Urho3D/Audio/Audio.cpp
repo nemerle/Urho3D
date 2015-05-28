@@ -127,7 +127,7 @@ bool Audio::SetMode(int bufferLengthMSec, int mixRate, bool stereo, bool interpo
     interpolation_ = interpolation;
     clipBuffer_ = new int[stereo ? fragmentSize_ << 1 : fragmentSize_];
 
-    LOGINFO("Set audio mode " + String(mixRate_) + " Hz " + (stereo_ ? "stereo" : "mono") + " " +
+    LOGINFO("Set audio mode " + QString::number(mixRate_) + " Hz " + (stereo_ ? "stereo" : "mono") + " " +
         (interpolation_ ? "interpolated" : ""));
 
     return Play();
@@ -167,7 +167,7 @@ void Audio::Stop()
         SDL_PauseAudioDevice(deviceID_, 1);
 }
 
-void Audio::SetMasterGain(const String& type, float gain)
+void Audio::SetMasterGain(const QString& type, float gain)
 {
     masterGain_[type] = Clamp(gain, 0.0f, 1.0f);
 
@@ -189,7 +189,7 @@ void Audio::StopSound(Sound* soundClip)
     }
 }
 
-float Audio::GetMasterGain(const String& type) const
+float Audio::GetMasterGain(const QString& type) const
 {
     // By definition previously unknown types return full volume
     HashMap<StringHash, Variant>::const_iterator findIt = masterGain_.find(type);

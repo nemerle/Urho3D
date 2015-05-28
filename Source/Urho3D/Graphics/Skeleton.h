@@ -52,7 +52,7 @@ struct Bone
     }
 
     /// Bone name.
-    String name_;
+    QString name_;
     /// Bone name hash.
     StringHash nameHash_;
     /// Parent bone index.
@@ -110,7 +110,7 @@ public:
     /// Return bone by index.
     Bone* GetBone(unsigned index);
     /// Return bone by name.
-    Bone* GetBone(const String& boneName);
+    Bone* GetBone(const QString& boneName);
     /// Return bone by name.
     Bone* GetBone(const char* boneName);
     /// Return bone by name hash.

@@ -88,7 +88,7 @@ JSONValue::operator bool() const
     return NotNull();
 }
 
-JSONValue JSONValue::CreateChild(const String& name, JSONValueType valueType)
+JSONValue JSONValue::CreateChild(const QString& name, JSONValueType valueType)
 {
     assert(IsObject());
     if (!IsObject())
@@ -105,11 +105,11 @@ JSONValue JSONValue::CreateChild(const String& name, JSONValueType valueType)
     return GetChild(name, valueType);
 }
 
-JSONValue JSONValue::GetChild(const String& name, JSONValueType valueType) const
+JSONValue JSONValue::GetChild(const QString& name, JSONValueType valueType) const
 {
     assert(IsObject());
 
-    if (!value_->HasMember(name.CString()))
+    if (!value_->HasMember(qPrintable(name)))
         return JSONValue::EMPTY;
 
     Value& value = GetMember(name);
@@ -119,43 +119,43 @@ JSONValue JSONValue::GetChild(const String& name, JSONValueType valueType) const
     return JSONValue(file_, &value);
 }
 
-void JSONValue::SetInt(const String& name, int value)
+void JSONValue::SetInt(const QString& name, int value)
 {
     Value jsonValue;
     jsonValue.SetInt(value);
     AddMember(name, jsonValue);
 }
 
-void JSONValue::SetBool(const String& name, bool value)
+void JSONValue::SetBool(const QString& name, bool value)
 {
     Value jsonValue;
     jsonValue.SetBool(value);
     AddMember(name, jsonValue);
 }
 
-void JSONValue::SetFloat(const String& name, float value)
+void JSONValue::SetFloat(const QString& name, float value)
 {
     Value jsonValue;
     jsonValue.SetDouble((double)value);
     AddMember(name, jsonValue);
 }
 
-void JSONValue::SetVector2(const String& name, const Vector2& value)
+void JSONValue::SetVector2(const QString& name, const Vector2& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetVector3(const String& name, const Vector3& value)
+void JSONValue::SetVector3(const QString& name, const Vector3& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetVector4(const String& name, const Vector4& value)
+void JSONValue::SetVector4(const QString& name, const Vector4& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetVectorVariant(const String& name, const Variant& value)
+void JSONValue::SetVectorVariant(const QString& name, const Variant& value)
 {
     VariantType type = value.GetType();
     if (type == VAR_FLOAT || type == VAR_VECTOR2 || type == VAR_VECTOR3 || type == VAR_VECTOR4 || type == VAR_MATRIX3 ||
@@ -163,48 +163,48 @@ void JSONValue::SetVectorVariant(const String& name, const Variant& value)
         SetString(name, value.ToString());
 }
 
-void JSONValue::SetQuaternion(const String& name, const Quaternion& value)
+void JSONValue::SetQuaternion(const QString& name, const Quaternion& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetColor(const String& name, const Color& value)
+void JSONValue::SetColor(const QString& name, const Color& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetString(const String& name, const String& value)
+void JSONValue::SetString(const QString& name, const QString& value)
 {
     Value jsonValue;
-    jsonValue.SetString(value.CString(), value.length(), file_->GetDocument()->GetAllocator());
+    jsonValue.SetString(qPrintable(value), value.length(), file_->GetDocument()->GetAllocator());
     AddMember(name, jsonValue);
 }
 
-void JSONValue::SetBuffer(const String& name, const void* data, unsigned size)
+void JSONValue::SetBuffer(const QString& name, const void* data, unsigned size)
 {
-    String dataStr;
+    QString dataStr;
     BufferToString(dataStr, data, size);
     SetString(name, dataStr);
 }
 
-void JSONValue::SetBuffer(const String& name, const PODVector<unsigned char>& value)
+void JSONValue::SetBuffer(const QString& name, const PODVector<unsigned char>& value)
 {
     if (!value.size())
-        SetString(name, String::EMPTY);
+        SetString(name, QString::null);
     else
         SetBuffer(name, &value[0], value.size());
 }
 
-void JSONValue::SetResourceRef(const String& name, const ResourceRef& value)
+void JSONValue::SetResourceRef(const QString& name, const ResourceRef& value)
 {
     Context* context = file_->GetContext();
-    SetString(name, String(context->GetTypeName(value.type_)) + ";" + value.name_);
+    SetString(name, QString(context->GetTypeName(value.type_)) + ";" + value.name_);
 }
 
-void JSONValue::SetResourceRefList(const String& name, const ResourceRefList& value)
+void JSONValue::SetResourceRefList(const QString& name, const ResourceRefList& value)
 {
     Context* context = file_->GetContext();
-    String str(context->GetTypeName(value.type_));
+    QString str(context->GetTypeName(value.type_));
     for (unsigned i = 0; i < value.names_.size(); ++i)
     {
         str += ";";
@@ -213,32 +213,32 @@ void JSONValue::SetResourceRefList(const String& name, const ResourceRefList& va
     SetString(name, str);
 }
 
-void JSONValue::SetIntRect(const String& name, const IntRect& value)
+void JSONValue::SetIntRect(const QString& name, const IntRect& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetIntVector2(const String& name, const IntVector2& value)
+void JSONValue::SetIntVector2(const QString& name, const IntVector2& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetMatrix3(const String& name, const Matrix3& value)
+void JSONValue::SetMatrix3(const QString& name, const Matrix3& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetMatrix3x4(const String& name, const Matrix3x4& value)
+void JSONValue::SetMatrix3x4(const QString& name, const Matrix3x4& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetMatrix4(const String& name, const Matrix4& value)
+void JSONValue::SetMatrix4(const QString& name, const Matrix4& value)
 {
     SetString(name, value.ToString());
 }
 
-void JSONValue::SetVariant(const String& name, const Variant& value)
+void JSONValue::SetVariant(const QString& name, const Variant& value)
 {
     // Create child object for variant
     JSONValue child = CreateChild(name, JSON_OBJECT);
@@ -248,7 +248,7 @@ void JSONValue::SetVariant(const String& name, const Variant& value)
     child.SetVariantValue("value", value);
 }
 
-void JSONValue::SetVariantValue(const String& name, const Variant& value)
+void JSONValue::SetVariantValue(const QString& name, const Variant& value)
 {
     switch (value.GetType())
     {
@@ -275,9 +275,9 @@ bool JSONValue::IsObject() const
     return value_ && value_->IsObject();
 }
 
-Vector<String> JSONValue::GetChildNames() const
+QStringList JSONValue::GetChildNames() const
 {
-    Vector<String> ret;
+    QStringList ret;
     if (!IsObject())
         return ret;
 
@@ -291,9 +291,9 @@ Vector<String> JSONValue::GetChildNames() const
     return ret;
 }
 
-Vector<String> JSONValue::GetValueNames() const
+QStringList JSONValue::GetValueNames() const
 {
-    Vector<String> ret;
+    QStringList ret;
     if (!IsObject())
         return ret;
 
@@ -306,71 +306,71 @@ Vector<String> JSONValue::GetValueNames() const
     return ret;
 }
 
-int JSONValue::GetInt(const String& name) const
+int JSONValue::GetInt(const QString& name) const
 {
     return GetMember(name).GetInt();
 }
 
-bool JSONValue::GetBool(const String& name) const
+bool JSONValue::GetBool(const QString& name) const
 {
     return GetMember(name).GetBool();
 }
 
-float JSONValue::GetFloat(const String& name) const
+float JSONValue::GetFloat(const QString& name) const
 {
     return (float)GetMember(name).GetDouble();
 }
 
-Vector2 JSONValue::GetVector2(const String& name) const
+Vector2 JSONValue::GetVector2(const QString& name) const
 {
     return ToVector2(GetCString(name));
 }
 
-Vector3 JSONValue::GetVector3(const String& name) const
+Vector3 JSONValue::GetVector3(const QString& name) const
 {
     return ToVector3(GetCString(name));
 }
 
-Vector4 JSONValue::GetVector4(const String& name) const
+Vector4 JSONValue::GetVector4(const QString& name) const
 {
     return ToVector4(GetCString(name));
 }
 
-Variant JSONValue::GetVectorVariant(const String& name) const
+Variant JSONValue::GetVectorVariant(const QString& name) const
 {
     return ToVectorVariant(GetCString(name));
 }
 
-Quaternion JSONValue::GetQuaternion(const String& name) const
+Quaternion JSONValue::GetQuaternion(const QString& name) const
 {
     return ToQuaternion(GetCString(name));
 }
 
-Color JSONValue::GetColor(const String& name) const
+Color JSONValue::GetColor(const QString& name) const
 {
     return ToColor(GetCString(name));
 }
 
-String JSONValue::GetString(const String& name) const
+QString JSONValue::GetString(const QString& name) const
 {
     return GetMember(name).GetString();
 }
 
-const char* JSONValue::GetCString(const String& name) const
+const char* JSONValue::GetCString(const QString& name) const
 {
     return GetMember(name).GetString();
 }
 
-PODVector<unsigned char> JSONValue::GetBuffer(const String& name) const
+PODVector<unsigned char> JSONValue::GetBuffer(const QString& name) const
 {
     PODVector<unsigned char> buffer;
     StringToBuffer(buffer, GetCString(name));
     return buffer;
 }
 
-bool JSONValue::GetBuffer(const String& name, void* dest, unsigned size) const
+bool JSONValue::GetBuffer(const QString& name, void* dest, unsigned size) const
 {
-    Vector<String> bytes = GetString(name).split(' ');
+    QStringList bytes = GetString(name).split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
     if (size < bytes.size())
         return false;
@@ -381,11 +381,11 @@ bool JSONValue::GetBuffer(const String& name, void* dest, unsigned size) const
 }
 
 
-ResourceRef JSONValue::GetResourceRef(const String& name) const
+ResourceRef JSONValue::GetResourceRef(const QString& name) const
 {
     ResourceRef ret;
 
-    Vector<String> values = GetString(name).split(';');
+    QStringList values = GetString(name).split(';');
     if (values.size() == 2)
     {
         ret.type_ = values[0];
@@ -395,11 +395,11 @@ ResourceRef JSONValue::GetResourceRef(const String& name) const
     return ret;
 }
 
-ResourceRefList JSONValue::GetResourceRefList(const String& name) const
+ResourceRefList JSONValue::GetResourceRefList(const QString& name) const
 {
     ResourceRefList ret;
 
-    Vector<String> values = GetString(name).split(';');
+    QStringList values = GetString(name).split(';');
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
@@ -411,32 +411,32 @@ ResourceRefList JSONValue::GetResourceRefList(const String& name) const
     return ret;
 }
 
-IntRect JSONValue::GetIntRect(const String& name) const
+IntRect JSONValue::GetIntRect(const QString& name) const
 {
     return ToIntRect(GetCString(name));
 }
 
-IntVector2 JSONValue::GetIntVector2(const String& name) const
+IntVector2 JSONValue::GetIntVector2(const QString& name) const
 {
     return ToIntVector2(GetCString(name));
 }
 
-Matrix3 JSONValue::GetMatrix3(const String& name) const
+Matrix3 JSONValue::GetMatrix3(const QString& name) const
 {
     return ToMatrix3(GetCString(name));
 }
 
-Matrix3x4 JSONValue::GetMatrix3x4(const String& name) const
+Matrix3x4 JSONValue::GetMatrix3x4(const QString& name) const
 {
     return ToMatrix3x4(GetCString(name));
 }
 
-Matrix4 JSONValue::GetMatrix4(const String& name) const
+Matrix4 JSONValue::GetMatrix4(const QString& name) const
 {
     return ToMatrix4(GetCString(name));
 }
 
-Variant JSONValue::GetVariant(const String& name) const
+Variant JSONValue::GetVariant(const QString& name) const
 {
     // Get child for variant
     JSONValue child = GetChild(name, JSON_OBJECT);
@@ -449,7 +449,7 @@ Variant JSONValue::GetVariant(const String& name) const
     return child.GetVariantValue("value", type);
 }
 
-Variant JSONValue::GetVariantValue(const String& name, VariantType type) const
+Variant JSONValue::GetVariantValue(const QString& name, VariantType type) const
 {
     Variant ret;
 
@@ -543,24 +543,24 @@ void JSONValue::AddColor(const Color& value)
     AddString(value.ToString());
 }
 
-void JSONValue::AddString(const String& value)
+void JSONValue::AddString(const QString& value)
 {
     Value jsonValue;
-    jsonValue.SetString(value.CString(), value.length(), file_->GetDocument()->GetAllocator());
+    jsonValue.SetString(qPrintable(value), value.length(), file_->GetDocument()->GetAllocator());
     AddMember(jsonValue);
 }
 
 void JSONValue::AddBuffer(const PODVector<unsigned char>& value)
 {
     if (!value.size())
-        AddString(String::EMPTY);
+        AddString(QString::null);
     else
         AddBuffer(&value[0], value.size());
 }
 
 void JSONValue::AddBuffer(const void* data, unsigned size)
 {
-    String dataStr;
+    QString dataStr;
     BufferToString(dataStr, data, size);
     AddString(dataStr);
 }
@@ -568,13 +568,13 @@ void JSONValue::AddBuffer(const void* data, unsigned size)
 void JSONValue::AddResourceRef(const ResourceRef& value)
 {
     Context* context = file_->GetContext();
-    AddString(String(context->GetTypeName(value.type_)) + ";" + value.name_);
+    AddString(QString(context->GetTypeName(value.type_)) + ";" + value.name_);
 }
 
 void JSONValue::AddResourceRefList(const ResourceRefList& value)
 {
     Context* context = file_->GetContext();
-    String str(context->GetTypeName(value.type_));
+    QString str(context->GetTypeName(value.type_));
     for (unsigned i = 0; i < value.names_.size(); ++i)
     {
         str += ";";
@@ -698,7 +698,7 @@ Color JSONValue::GetColor(unsigned index) const
     return ToColor(GetCString(index));
 }
 
-String JSONValue::GetString(unsigned index) const
+QString JSONValue::GetString(unsigned index) const
 {
     return GetMember(index).GetString();
 }
@@ -717,7 +717,7 @@ PODVector<unsigned char> JSONValue::GetBuffer(unsigned index) const
 
 bool JSONValue::GetBuffer(unsigned index, void* dest, unsigned size) const
 {
-    Vector<String> bytes = GetString(index).split(' ');
+    QStringList bytes = GetString(index).split(' ');
     unsigned char* destBytes = (unsigned char*)dest;
     if (size < bytes.size())
         return false;
@@ -731,7 +731,7 @@ ResourceRef JSONValue::GetResourceRef(unsigned index) const
 {
     ResourceRef ret;
 
-    Vector<String> values = GetString(index).split(';');
+    QStringList values = GetString(index).split(';');
     if (values.size() == 2)
     {
         ret.type_ = values[0];
@@ -745,7 +745,7 @@ ResourceRefList JSONValue::GetResourceRefList(unsigned index) const
 {
     ResourceRefList ret;
 
-    Vector<String> values = GetString(index).split(';');
+    QStringList values = GetString(index).split(';');
     if (values.size() >= 1)
     {
         ret.type_ = values[0];
@@ -811,21 +811,21 @@ Variant JSONValue::GetVariantValue(unsigned index, VariantType type) const
     return ret;
 }
 
-void JSONValue::AddMember(const String& name, rapidjson::Value& jsonValue)
+void JSONValue::AddMember(const QString& name, rapidjson::Value& jsonValue)
 {
     if (!IsObject())
         return;
 
     Value jsonName;
-    jsonName.SetString(name.CString(), name.length(), file_->GetDocument()->GetAllocator());
+    jsonName.SetString(qPrintable(name), name.length(), file_->GetDocument()->GetAllocator());
     value_->AddMember(jsonName, jsonValue, file_->GetDocument()->GetAllocator());
 }
 
-rapidjson::Value& JSONValue::GetMember(const String& name) const
+rapidjson::Value& JSONValue::GetMember(const QString& name) const
 {
     assert(IsObject());
 
-    return (*value_)[name.CString()];
+    return (*value_)[qPrintable(name)];
 }
 
 void JSONValue::AddMember(rapidjson::Value& jsonValue)

@@ -106,7 +106,7 @@ public:
     /// Point to the object.
     T* operator -> () const { assert(ptr_); return ptr_; }
     /// Dereference the object.
-    T& operator * () const { assert(ptr_); return *ptr_; }
+    constexpr T& operator * () const { assert(ptr_); return *ptr_; }
     /// Subscript the object if applicable.
     T& operator [] (const int index) { assert(ptr_); return ptr_[index]; }
     /// Test for less than with another shared pointer.
@@ -116,7 +116,7 @@ public:
     /// Test for inequality with another shared pointer.
     bool operator != (const SharedPtr<T>& rhs) const { return ptr_ != rhs.ptr_; }
     /// Convert to a raw pointer.
-    operator T* () const { return ptr_; }
+    constexpr operator T* () const { return ptr_; }
 
     /// Reset to null and release the object reference.
     void Reset() { ReleaseRef(); }
@@ -161,7 +161,7 @@ public:
     int WeakRefs() const { return ptr_ ? ptr_->WeakRefs() : 0; }
     /// Return pointer to the RefCount structure.
     RefCount* RefCountPtr() const { return ptr_ ? ptr_->RefCountPtr() : 0; }
-    /// Return hash value for QSet & HashMap.
+    /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const { return ((unsigned)(size_t)ptr_) / sizeof(T); }
 
 private:
@@ -388,7 +388,7 @@ public:
     bool Expired() const { return refCount_ ? refCount_->refs_ < 0 : true; }
     /// Return pointer to the RefCount structure.
     RefCount* RefCountPtr() const { return refCount_; }
-    /// Return hash value for QSet & HashMap.
+    /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const { return ((unsigned)(size_t)ptr_) / sizeof(T); }
 
 private:

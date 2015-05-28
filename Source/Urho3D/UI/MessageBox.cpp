@@ -36,7 +36,7 @@
 namespace Urho3D
 {
 
-MessageBox::MessageBox(Context* context, const String& messageString, const String& titleString, XMLFile* layoutFile, XMLFile* styleFile) :
+MessageBox::MessageBox(Context* context, const QString& messageString, const QString& titleString, XMLFile* layoutFile, XMLFile* styleFile) :
     Object(context),
     titleText_(nullptr),
     messageText_(nullptr),
@@ -108,26 +108,26 @@ void MessageBox::RegisterObject(Context* context)
     context->RegisterFactory<MessageBox>();
 }
 
-void MessageBox::SetTitle(const String& text)
+void MessageBox::SetTitle(const QString& text)
 {
     if (titleText_)
         titleText_->SetText(text);
 }
 
-void MessageBox::SetMessage(const String& text)
+void MessageBox::SetMessage(const QString& text)
 {
     if (messageText_)
         messageText_->SetText(text);
 }
 
-const String& MessageBox::GetTitle() const
+const QString& MessageBox::GetTitle() const
 {
-    return titleText_ ? titleText_->GetText() : String::EMPTY;
+    return titleText_ ? titleText_->GetText() : s_dummy;
 }
 
-const String& MessageBox::GetMessage() const
+const QString& MessageBox::GetMessage() const
 {
-    return messageText_ ? messageText_->GetText() : String::EMPTY;
+    return messageText_ ? messageText_->GetText() : s_dummy;
 }
 
 void MessageBox::HandleMessageAcknowledged(StringHash eventType, VariantMap& eventData)

@@ -25,12 +25,15 @@
 #include "../Graphics/Drawable.h"
 #include "../Math/MathDefs.h"
 #include "../Math/Matrix3x4.h"
+#include "../Container/Ptr.h"
 #include "../Math/Rect.h"
 #include "../Container/HashMap.h"
+
 #include "Light.h"
 #include <functional>
 #include <cstdio>
 #include <stdint.h>
+
 namespace Urho3D
 {
 
@@ -73,14 +76,23 @@ struct Batch
     {
     }
     Batch(const SourceBatch& rhs, Camera *cam,Zone *z, LightBatchQueue *l, Pass *p,
-          unsigned char lmask=DEFAULT_LIGHTMASK,bool is_base=false) :
-        Batch(rhs,is_base)
+          uint8_t lmask=uint8_t(DEFAULT_LIGHTMASK),bool is_base=false) :
+        sortKey_(0),
+        distance_(rhs.distance_),
+        geometry_(rhs.geometry_),
+        material_(rhs.material_),
+        worldTransform_(rhs.worldTransform_),
+        numWorldTransforms_(rhs.numWorldTransforms_),
+        geometryType_(rhs.geometryType_),
+        camera_(cam),
+        zone_(z),
+        lightQueue_(l),
+        pass_(p),
+        vertexShader_(nullptr),
+        pixelShader_(nullptr),
+        isBase_(is_base),
+        lightMask_(lmask)
     {
-        camera_=cam;
-        zone_=z;
-        lightQueue_=l;
-        pass_=p;
-        //lightMask_ = lmask;
     }
 
     /// Calculate state sorting key, which consists of base pass flag, light, pass and geometry.
@@ -119,7 +131,7 @@ struct Batch
     /// Base batch flag. This tells to draw the object fully without light optimizations.
     bool isBase_;
     /// 8-bit light mask for stencil marking in deferred rendering.
-    unsigned char lightMask_;
+    uint8_t lightMask_;
 };
 
 /// Data for one geometry instance.
@@ -151,7 +163,8 @@ struct BatchGroup : public Batch
     }
 
     /// Construct from a batch.
-    BatchGroup(Batch batch) : Batch(batch),
+    BatchGroup(const Batch &batch) :
+        Batch(batch),
         startIndex_(M_MAX_UNSIGNED)
     {
     }
@@ -164,11 +177,9 @@ struct BatchGroup : public Batch
     /// Add world transform(s) from a batch.
     void AddTransforms(float distance,unsigned int numTransforms,const Matrix3x4 *transforms)
     {
-        InstanceData instance {nullptr,distance};
         for (unsigned i = 0; i < numTransforms; ++i)
         {
-            instance.worldTransform_ = transforms + i;
-            instances_.push_back( instance );
+            instances_.emplace_back(transforms + i,distance);
         }
     }
 
@@ -186,7 +197,35 @@ struct BatchGroup : public Batch
 /// Instanced draw call grouping key.
 struct BatchGroupKey
 {
+    /// Construct undefined.
+    BatchGroupKey() = default;
+
+    /// Construct from a batch.
+    BatchGroupKey(const Batch& batch) :
+        zone_(batch.zone_),
+        lightQueue_(batch.lightQueue_),
+        pass_(batch.pass_),
+        material_(batch.material_),
+        geometry_(batch.geometry_),
+        hashCode_ ( (uintptr_t(pass_) >>1) ^
+                    (uintptr_t(material_) >>3) ^
+                    (uintptr_t(geometry_) >>5) ^
+                    (uintptr_t(zone_)>>7) ^
+                    (uintptr_t(lightQueue_)>>9) )
+    {
+    }
+    /// Test for equality with another batch group key.
+    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
+    /// Test for inequality with another batch group key.
+    constexpr bool operator != (const BatchGroupKey& rhs) const { return hashCode_ != rhs.hashCode_ || zone_ != rhs.zone_ || lightQueue_ != rhs.lightQueue_ || pass_ != rhs.pass_ || material_ != rhs.material_ || geometry_ != rhs.geometry_; }
+
+    /// Return hash value.
+    constexpr unsigned ToHash() const { return  hashCode_; }
 private:
+    /// Zone.
+    Zone* zone_;
+    /// Light properties.
+    LightBatchQueue* lightQueue_;
     /// Material pass.
     Pass* pass_;
     /// Material.
@@ -194,86 +233,14 @@ private:
     /// Geometry.
     Geometry* geometry_;
     uintptr_t hashCode_;
-public:
-    /// Construct undefined.
-    BatchGroupKey() = default;
 
-    /// Construct from a batch.
-    BatchGroupKey(const Batch& batch) :
-        pass_(batch.pass_),
-        material_(batch.material_),
-        geometry_(batch.geometry_),
-        hashCode_ ( (uintptr_t(pass_) >>1) ^
-                    (uintptr_t(material_) >>3) ^
-                    (uintptr_t(geometry_))>>5)
-    {
-    }
-
-
-    /// Test for equality with another batch group key.
-    constexpr bool operator == (const BatchGroupKey& rhs) const { return hashCode_ == rhs.hashCode_ && pass_ == rhs.pass_ && material_ == rhs.material_ && geometry_ == rhs.geometry_; }
-    /// Test for inequality with another batch group key.
-    constexpr bool operator != (const BatchGroupKey& rhs) const {
-        return  hashCode_   != rhs.hashCode_ ||
-                pass_       != rhs.pass_ ||
-                material_   != rhs.material_ ||
-                geometry_   != rhs.geometry_;
-    }
-
-    /// Return hash value.
-    constexpr unsigned ToHash() const { return  hashCode_; }
-};
-struct ZoneLightKey {
-private:
-    /// Zone.
-    Zone* zone_;
-    /// Light properties.
-    LightBatchQueue* lightQueue_;
-    uintptr_t hashCode_;
-public:
-    /// Construct undefined.
-    ZoneLightKey() = default;
-
-    /// Construct from a batch.
-    ZoneLightKey(const Batch& batch) :
-        zone_(batch.zone_),
-        lightQueue_(batch.lightQueue_),
-        hashCode_ ( (uintptr_t(zone_) >> 1) ^
-                    (uintptr_t(lightQueue_) >>3))
-    {
-    }
-    ZoneLightKey(Zone *z, LightBatchQueue *q) :
-        zone_(z),
-        lightQueue_(q),
-        hashCode_ ( (uintptr_t(zone_) >> 1) ^
-                    (uintptr_t(lightQueue_) >>3))
-    {
-    }
-
-
-    /// Test for equality with another batch group key.
-    constexpr bool operator == (const ZoneLightKey& rhs) const { return hashCode_ == rhs.hashCode_ && zone_ == rhs.zone_ && lightQueue_ == rhs.lightQueue_; }
-    /// Test for inequality with another batch group key.
-    constexpr bool operator != (const ZoneLightKey& rhs) const {
-        return  hashCode_   != rhs.hashCode_ ||
-                zone_       != rhs.zone_ ||
-                lightQueue_ != rhs.lightQueue_;
-    }
-
-    /// Return hash value.
-    constexpr unsigned ToHash() const { return  hashCode_; }
 
 };
+
 }
 namespace std {
-template<> struct hash<Urho3D::ZoneLightKey> {
-    inline size_t operator()(const Urho3D::ZoneLightKey & key) const
-    {
-        return key.ToHash();
-    }
-};
 template<> struct hash<Urho3D::BatchGroupKey> {
-    inline size_t operator()(const Urho3D::BatchGroupKey & key) const
+    constexpr inline size_t operator()(const Urho3D::BatchGroupKey & key) const
     {
         return key.ToHash();
     }
@@ -286,9 +253,7 @@ namespace Urho3D {
 struct BatchQueue
 {
 public:
-    typedef std::unordered_map<BatchGroupKey, uint32_t> BatchGroupMap; //FasterHashMap<BatchGroupKey, int>
-    typedef std::unordered_map<ZoneLightKey, BatchGroupMap> ZoneLightToGroupMap; //typedef FasterHashMap<ZoneLightKey, BatchGroupMap> ZoneLightToGroupMap;
-
+    typedef FasterHashMap<BatchGroupKey, uint32_t> BatchGroupMap; //FasterHashMap<BatchGroupKey, int>
     /// Clear for new frame by clearing all groups and batches.
     void Clear(int maxSortedInstances);
     /// Sort non-instanced draw calls back to front.
@@ -308,8 +273,7 @@ public:
 
     /// Instanced draw calls.
     std::vector<BatchGroup> batchGroupStorage_;
-    //BatchGroupMap batchGroups_;
-    ZoneLightToGroupMap zoneLightGroups_;
+    BatchGroupMap batchGroups_;
     /// Shader remapping table for 2-pass state and distance sort.
     HashMap<unsigned, unsigned> shaderRemapping_;
     /// Material remapping table for 2-pass state and distance sort.
@@ -356,9 +320,9 @@ struct LightBatchQueue
     /// Lit geometry draw calls, non-base (additive)
     BatchQueue litBatches_;
     /// Shadow map split queues.
-    PODVectorN<ShadowBatchQueue,MAX_LIGHT_SPLITS> shadowSplits_;
+    PODVector<ShadowBatchQueue> shadowSplits_;
     /// Per-vertex lights.
-    PODVectorN<Light*,4> vertexLights_;
+    PODVector<Light*> vertexLights_;
     /// Light volume draw calls.
     PODVector<Batch> volumeBatches_;
 };

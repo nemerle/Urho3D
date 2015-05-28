@@ -46,29 +46,29 @@ static Log* GetLog()
 
 #ifdef URHO3D_LOGGING
 
-static void Print(const String& value, bool error)
+static void Print(const QString& value, bool error)
 {
     Log::WriteRaw(value + "\n", error);
 }
 
 static void Print(int value, bool error)
 {
-    Log::WriteRaw(String(value) + "\n", error);
+    Log::WriteRaw(QString::number(value) + "\n", error);
 }
 
 static void Print(unsigned value, bool error)
 {
-    Log::WriteRaw(String(value) + "\n", error);
+    Log::WriteRaw(QString::number(value) + "\n", error);
 }
 
 static void Print(float value, bool error)
 {
-    Log::WriteRaw(String(value) + "\n", error);
+    Log::WriteRaw(QString::number(value) + "\n", error);
 }
 
 static void Print(bool value, bool error)
 {
-    Log::WriteRaw(String(value) + "\n", error);
+    Log::WriteRaw(QString::number(value) + "\n", error);
 }
 
 static void Print(const Variant& value, bool error)
@@ -83,27 +83,27 @@ static void PrintCallStack(bool error)
         Log::WriteRaw(Script::GetCallStack(context), error);
 }
 
-static void LogWrite(const String& str, bool error, Log* ptr)
+static void LogWrite(const QString& str, bool error, Log* ptr)
 {
     Log::WriteRaw(str + "\n", error);
 }
 
-static void LogDebug(const String& str, Log* ptr)
+static void LogDebug(const QString& str, Log* ptr)
 {
     Log::Write(LOG_DEBUG, str);
 }
 
-static void LogInfo(const String& str, Log* ptr)
+static void LogInfo(const QString& str, Log* ptr)
 {
     Log::Write(LOG_INFO, str);
 }
 
-static void LogWarning(const String& str, Log* ptr)
+static void LogWarning(const QString& str, Log* ptr)
 {
     Log::Write(LOG_WARNING, str);
 }
 
-static void LogError(const String& str, Log* ptr)
+static void LogError(const QString& str, Log* ptr)
 {
     Log::Write(LOG_ERROR, str);
 }
@@ -151,7 +151,7 @@ static void RegisterLog(asIScriptEngine* engine)
     engine->RegisterGlobalFunction("Log@+ get_log()", asFUNCTION(GetLog), asCALL_CDECL);
 
     // Register also Print() functions for convenience
-    engine->RegisterGlobalFunction("void Print(const String&in, bool error = false)", asFUNCTIONPR(Print, (const String&, bool), void), asCALL_CDECL);
+    engine->RegisterGlobalFunction("void Print(const String&in, bool error = false)", asFUNCTIONPR(Print, (const QString&, bool), void), asCALL_CDECL);
     engine->RegisterGlobalFunction("void Print(int, bool error = false)", asFUNCTIONPR(Print, (int, bool), void), asCALL_CDECL);
     engine->RegisterGlobalFunction("void Print(uint, bool error = false)", asFUNCTIONPR(Print, (unsigned, bool), void), asCALL_CDECL);
     engine->RegisterGlobalFunction("void Print(float, bool error = false)", asFUNCTIONPR(Print, (float, bool), void), asCALL_CDECL);
@@ -165,7 +165,7 @@ static File* ConstructFile()
     return new File(GetScriptContext());
 }
 
-static File* ConstructFileAndOpen(const String& fileName, FileMode mode)
+static File* ConstructFileAndOpen(const QString& fileName, FileMode mode)
 {
     return new File(GetScriptContext(), fileName, mode);
 }
@@ -237,35 +237,35 @@ static FileSystem* GetFileSystem()
     return GetScriptContext()->GetSubsystem<FileSystem>();
 }
 
-static CScriptArray* FileSystemScanDir(const String& pathName, const String& filter, unsigned flags, bool recursive, FileSystem* ptr)
+static CScriptArray* FileSystemScanDir(const QString& pathName, const QString& filter, unsigned flags, bool recursive, FileSystem* ptr)
 {
-    Vector<String> result;
+    QStringList result;
     ptr->ScanDir(result, pathName, filter, flags, recursive);
-    return VectorToArray<String>(result, "Array<String>");
+    return StringListToArray(result, "Array<String>");
 }
 
-static int FileSystemSystemRun(const String& fileName, CScriptArray* srcArguments, FileSystem* ptr)
+static int FileSystemSystemRun(const QString& fileName, CScriptArray* srcArguments, FileSystem* ptr)
 {
     if (!srcArguments)
         return -1;
 
     unsigned numArguments = srcArguments->GetSize();
-    Vector<String> destArguments(numArguments);
+    QStringList destArguments;
     for (unsigned i = 0; i < numArguments; ++i)
-        destArguments[i] = *(static_cast<String*>(srcArguments->At(i)));
+        destArguments << *(static_cast<QString*>(srcArguments->At(i)));
 
     return ptr->SystemRun(fileName, destArguments);
 }
 
-static unsigned FileSystemSystemRunAsync(const String& fileName, CScriptArray* srcArguments, FileSystem* ptr)
+static unsigned FileSystemSystemRunAsync(const QString& fileName, CScriptArray* srcArguments, FileSystem* ptr)
 {
     if (!srcArguments)
         return M_MAX_UNSIGNED;
 
     unsigned numArguments = srcArguments->GetSize();
-    Vector<String> destArguments(numArguments);
+    QStringList destArguments;
     for (unsigned i = 0; i < numArguments; ++i)
-        destArguments[i] = *(static_cast<String*>(srcArguments->At(i)));
+        destArguments << *(static_cast<QString*>(srcArguments->At(i)));
 
     return ptr->SystemRunAsync(fileName, destArguments);
 }
@@ -295,7 +295,7 @@ static void RegisterSerialization(asIScriptEngine* engine)
     RegisterObject<File>(engine, "File");
     engine->RegisterObjectBehaviour("File", asBEHAVE_FACTORY, "File@+ f()", asFUNCTION(ConstructFile), asCALL_CDECL);
     engine->RegisterObjectBehaviour("File", asBEHAVE_FACTORY, "File@+ f(const String&in, FileMode mode = FILE_READ)", asFUNCTION(ConstructFileAndOpen), asCALL_CDECL);
-    engine->RegisterObjectMethod("File", "bool Open(const String&in, FileMode mode = FILE_READ)", asMETHODPR(File, Open, (const String&, FileMode), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("File", "bool Open(const String&in, FileMode mode = FILE_READ)", asMETHODPR(File, Open, (const QString&, FileMode), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("File", "void Close()", asMETHOD(File, Close), asCALL_THISCALL);
     engine->RegisterObjectMethod("File", "FileMode get_mode() const", asMETHOD(File, GetMode), asCALL_THISCALL);
     engine->RegisterObjectMethod("File", "bool get_open()", asMETHOD(File, IsOpen), asCALL_THISCALL);
@@ -370,14 +370,14 @@ static PackageFile* ConstructPackageFile()
     return new PackageFile(GetScriptContext());
 }
 
-static PackageFile* ConstructAndOpenPackageFile(const String& fileName, unsigned startOffset)
+static PackageFile* ConstructAndOpenPackageFile(const QString& fileName, unsigned startOffset)
 {
     return new PackageFile(GetScriptContext(), fileName, startOffset);
 }
 
 static const CScriptArray* PackageFileGetEntryNames(PackageFile* packageFile)
 {
-    return VectorToArray<String>(packageFile->GetEntryNames(), "Array<String>");
+    return VectorToArray<QString>(packageFile->GetEntryNames(), "Array<String>");
 }
 
 static void RegisterPackageFile(asIScriptEngine* engine)

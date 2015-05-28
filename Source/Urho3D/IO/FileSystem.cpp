@@ -32,7 +32,7 @@
 #include "../Core/Thread.h"
 
 #include <SDL/SDL_filesystem.h>
-
+#include <QtCore/QProcess>
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
@@ -73,18 +73,18 @@ extern "C" const char* SDL_IOS_GetDocumentsDir();
 namespace Urho3D
 {
 
-int DoSystemCommand(const String& commandLine, bool redirectToLog, Context* context)
+int DoSystemCommand(const QString& commandLine, bool redirectToLog, Context* context)
 {
     if (!redirectToLog)
-        return system(commandLine.CString());
+        return system(qPrintable(commandLine));
 
     // Get a platform-agnostic temporary file name for stderr redirection
-    String stderrFilename;
-    String adjustedCommandLine(commandLine);
+    QString stderrFilename;
+    QString adjustedCommandLine(commandLine);
     char* prefPath = SDL_GetPrefPath("urho3d", "temp");
     if (prefPath)
     {
-        stderrFilename = String(prefPath) + "command-stderr";
+        stderrFilename = QString(prefPath) + "command-stderr";
         adjustedCommandLine += " 2>" + stderrFilename;
         SDL_free(prefPath);
     }
@@ -95,7 +95,7 @@ int DoSystemCommand(const String& commandLine, bool redirectToLog, Context* cont
     #endif
 
     // Use popen/pclose to capture the stdout and stderr of the command
-    FILE *file = popen(adjustedCommandLine.CString(), "r");
+    FILE *file = popen(qPrintable(adjustedCommandLine), "r");
     if (!file)
         return -1;
 
@@ -104,7 +104,7 @@ int DoSystemCommand(const String& commandLine, bool redirectToLog, Context* cont
     while (!feof(file))
     {
         if (fgets(buffer, sizeof(buffer), file))
-            LOGRAW(String(buffer));
+            LOGRAW(QString(buffer));
     }
     int exitCode = pclose(file);
 
@@ -116,65 +116,16 @@ int DoSystemCommand(const String& commandLine, bool redirectToLog, Context* cont
         {
             unsigned numRead = errFile->Read(buffer, sizeof(buffer));
             if (numRead)
-                Log::WriteRaw(String(buffer, numRead), true);
+                Log::WriteRaw(QString::fromLatin1(buffer, numRead), true);
         }
     }
 
     return exitCode;
 }
 
-int DoSystemRun(const String& fileName, const Vector<String>& arguments)
+int DoSystemRun(const QString& fileName, const QStringList& arguments)
 {
-    String fixedFileName = GetNativePath(fileName);
-
-    #ifdef WIN32
-    // Add .exe extension if no extension defined
-    if (GetExtension(fixedFileName).Empty())
-        fixedFileName += ".exe";
-
-    String commandLine = "\"" + fixedFileName + "\"";
-    for (unsigned i = 0; i < arguments.Size(); ++i)
-        commandLine += " " + arguments[i];
-
-    STARTUPINFOW startupInfo;
-    PROCESS_INFORMATION processInfo;
-    memset(&startupInfo, 0, sizeof startupInfo);
-    memset(&processInfo, 0, sizeof processInfo);
-
-    WString commandLineW(commandLine);
-    if (!CreateProcessW(NULL, (wchar_t*)commandLineW.CString(), 0, 0, 0, CREATE_NO_WINDOW, 0, 0, &startupInfo, &processInfo))
-        return -1;
-
-    WaitForSingleObject(processInfo.hProcess, INFINITE);
-    DWORD exitCode;
-    GetExitCodeProcess(processInfo.hProcess, &exitCode);
-
-    CloseHandle(processInfo.hProcess);
-    CloseHandle(processInfo.hThread);
-
-    return exitCode;
-    #else
-    pid_t pid = fork();
-    if (!pid)
-    {
-        PODVector<const char*> argPtrs;
-        argPtrs.push_back(fixedFileName.CString());
-        for (unsigned i = 0; i < arguments.size(); ++i)
-            argPtrs.push_back(arguments[i].CString());
-        argPtrs.push_back(nullptr);
-
-        execvp(argPtrs[0], (char**)&argPtrs[0]);
-        return -1; // Return -1 if we could not spawn the process
-    }
-    else if (pid > 0)
-    {
-        int exitCode;
-        wait(&exitCode);
-        return exitCode;
-    }
-    else
-        return -1;
-    #endif
+    return QProcess::execute(fileName,arguments);
 }
 
 /// Base class for async execution requests.
@@ -213,7 +164,7 @@ class AsyncSystemCommand : public AsyncExecRequest
 {
 public:
     /// Construct and run.
-    AsyncSystemCommand(unsigned requestID, const String& commandLine) :
+    AsyncSystemCommand(unsigned requestID, const QString& commandLine) :
         AsyncExecRequest(requestID),
         commandLine_(commandLine)
     {
@@ -229,7 +180,7 @@ public:
 
 private:
     /// Command line.
-    String commandLine_;
+    QString commandLine_;
 };
 
 /// Async system run operation.
@@ -237,7 +188,7 @@ class AsyncSystemRun : public AsyncExecRequest
 {
 public:
     /// Construct and run.
-    AsyncSystemRun(unsigned requestID, const String& fileName, const Vector<String>& arguments) :
+    AsyncSystemRun(unsigned requestID, const QString& fileName, const QStringList& arguments) :
         AsyncExecRequest(requestID),
         fileName_(fileName),
         arguments_(arguments)
@@ -254,9 +205,9 @@ public:
 
 private:
     /// File to run.
-    String fileName_;
+    QString fileName_;
     /// Command line split in arguments.
-    const Vector<String>& arguments_;
+    const QStringList& arguments_;
 };
 
 FileSystem::FileSystem(Context* context) :
@@ -282,7 +233,7 @@ FileSystem::~FileSystem()
     }
 }
 
-bool FileSystem::SetCurrentDir(const String& pathName)
+bool FileSystem::SetCurrentDir(const QString& pathName)
 {
     if (!CheckAccess(pathName))
     {
@@ -296,7 +247,7 @@ bool FileSystem::SetCurrentDir(const String& pathName)
         return false;
     }
     #else
-    if (chdir(GetNativePath(pathName).CString()) != 0)
+    if (chdir(qPrintable(GetNativePath(pathName))) != 0)
     {
         LOGERROR("Failed to change directory to " + pathName);
         return false;
@@ -306,7 +257,7 @@ bool FileSystem::SetCurrentDir(const String& pathName)
     return true;
 }
 
-bool FileSystem::CreateDir(const String& pathName)
+bool FileSystem::CreateDir(const QString& pathName)
 {
     if (!CheckAccess(pathName))
     {
@@ -318,7 +269,7 @@ bool FileSystem::CreateDir(const String& pathName)
     bool success = (CreateDirectoryW(GetWideNativePath(RemoveTrailingSlash(pathName)).CString(), 0) == TRUE) ||
         (GetLastError() == ERROR_ALREADY_EXISTS);
     #else
-    bool success = mkdir(GetNativePath(RemoveTrailingSlash(pathName)).CString(), S_IRWXU) == 0 || errno == EEXIST;
+    bool success = mkdir(qPrintable(GetNativePath(RemoveTrailingSlash(pathName))), S_IRWXU) == 0 || errno == EEXIST;
     #endif
 
     if (success)
@@ -341,7 +292,7 @@ void FileSystem::SetExecuteConsoleCommands(bool enable)
         UnsubscribeFromEvent(E_CONSOLECOMMAND);
 }
 
-int FileSystem::SystemCommand(const String& commandLine, bool redirectStdOutToLog)
+int FileSystem::SystemCommand(const QString& commandLine, bool redirectStdOutToLog)
 {
     if (allowedPaths_.isEmpty())
         return DoSystemCommand(commandLine, redirectStdOutToLog, context_);
@@ -352,7 +303,7 @@ int FileSystem::SystemCommand(const String& commandLine, bool redirectStdOutToLo
     }
 }
 
-int FileSystem::SystemRun(const String& fileName, const Vector<String>& arguments)
+int FileSystem::SystemRun(const QString& fileName, const QStringList& arguments)
 {
     if (allowedPaths_.isEmpty())
         return DoSystemRun(fileName, arguments);
@@ -363,7 +314,7 @@ int FileSystem::SystemRun(const String& fileName, const Vector<String>& argument
     }
 }
 
-unsigned FileSystem::SystemCommandAsync(const String& commandLine)
+unsigned FileSystem::SystemCommandAsync(const QString& commandLine)
 {
     if (allowedPaths_.isEmpty())
     {
@@ -379,7 +330,7 @@ unsigned FileSystem::SystemCommandAsync(const String& commandLine)
     }
 }
 
-unsigned FileSystem::SystemRunAsync(const String& fileName, const Vector<String>& arguments)
+unsigned FileSystem::SystemRunAsync(const QString& fileName, const QStringList& arguments)
 {
     if (allowedPaths_.isEmpty())
     {
@@ -395,7 +346,7 @@ unsigned FileSystem::SystemRunAsync(const String& fileName, const Vector<String>
     }
 }
 
-bool FileSystem::SystemOpen(const String& fileName, const String& mode)
+bool FileSystem::SystemOpen(const QString& fileName, const QString& mode)
 {
     if (allowedPaths_.isEmpty())
     {
@@ -409,7 +360,7 @@ bool FileSystem::SystemOpen(const String& fileName, const String& mode)
         bool success = (size_t)ShellExecuteW(0, !mode.Empty() ? WString(mode).CString() : 0,
             GetWideNativePath(fileName).CString(), 0, 0, SW_SHOW) > 32;
         #else
-        Vector<String> arguments;
+        QStringList arguments;
         arguments.push_back(fileName);
         bool success = SystemRun(
         #if defined(__APPLE__)
@@ -430,7 +381,7 @@ bool FileSystem::SystemOpen(const String& fileName, const String& mode)
     }
 }
 
-bool FileSystem::Copy(const String& srcFileName, const String& destFileName)
+bool FileSystem::Copy(const QString& srcFileName, const QString& destFileName)
 {
     if (!CheckAccess(GetPath(srcFileName)))
     {
@@ -458,7 +409,7 @@ bool FileSystem::Copy(const String& srcFileName, const String& destFileName)
     return bytesRead == fileSize && bytesWritten == fileSize;
 }
 
-bool FileSystem::Rename(const String& srcFileName, const String& destFileName)
+bool FileSystem::Rename(const QString& srcFileName, const QString& destFileName)
 {
     if (!CheckAccess(GetPath(srcFileName)))
     {
@@ -474,11 +425,11 @@ bool FileSystem::Rename(const String& srcFileName, const String& destFileName)
     #ifdef WIN32
     return MoveFileW(GetWideNativePath(srcFileName).CString(), GetWideNativePath(destFileName).CString()) != 0;
     #else
-    return rename(GetNativePath(srcFileName).CString(), GetNativePath(destFileName).CString()) == 0;
+    return rename(qPrintable(GetNativePath(srcFileName)), qPrintable(GetNativePath(destFileName))) == 0;
     #endif
 }
 
-bool FileSystem::Delete(const String& fileName)
+bool FileSystem::Delete(const QString& fileName)
 {
     if (!CheckAccess(GetPath(fileName)))
     {
@@ -489,11 +440,11 @@ bool FileSystem::Delete(const String& fileName)
     #ifdef WIN32
     return DeleteFileW(GetWideNativePath(fileName).CString()) != 0;
     #else
-    return remove(GetNativePath(fileName).CString()) == 0;
+    return remove(qPrintable(GetNativePath(fileName))) == 0;
     #endif
 }
 
-String FileSystem::GetCurrentDir() const
+QString FileSystem::GetCurrentDir() const
 {
     #ifdef WIN32
     wchar_t path[MAX_PATH];
@@ -504,13 +455,13 @@ String FileSystem::GetCurrentDir() const
     char path[MAX_PATH];
     path[0] = 0;
     getcwd(path, MAX_PATH);
-    return AddTrailingSlash(String(path));
+    return AddTrailingSlash(QString(path));
     #endif
 }
 
-bool FileSystem::CheckAccess(const String& pathName) const
+bool FileSystem::CheckAccess(const QString& pathName) const
 {
-    String fixedPath = AddTrailingSlash(pathName);
+    QString fixedPath = AddTrailingSlash(pathName);
 
     // If no allowed directories defined, succeed always
     if (allowedPaths_.isEmpty())
@@ -521,7 +472,7 @@ bool FileSystem::CheckAccess(const String& pathName) const
         return false;
 
     // Check if the path is a partial match of any of the allowed directories
-    for (const String &i : allowedPaths_)
+    for (const QString &i : allowedPaths_)
     {
         if (fixedPath.indexOf(i) == 0)
             return true;
@@ -531,7 +482,7 @@ bool FileSystem::CheckAccess(const String& pathName) const
     return false;
 }
 
-unsigned FileSystem::GetLastModifiedTime(const String& fileName) const
+unsigned FileSystem::GetLastModifiedTime(const QString& fileName) const
 {
     if (fileName.isEmpty() || !CheckAccess(fileName))
         return 0;
@@ -544,24 +495,24 @@ unsigned FileSystem::GetLastModifiedTime(const String& fileName) const
         return 0;
     #else
     struct stat st;
-    if (!stat(fileName.CString(), &st))
+    if (!stat(qPrintable(fileName), &st))
         return (unsigned)st.st_mtime;
     else
         return 0;
     #endif
 }
 
-bool FileSystem::FileExists(const String& fileName) const
+bool FileSystem::FileExists(const QString& fileName) const
 {
     if (!CheckAccess(GetPath(fileName)))
         return false;
 
-    String fixedName = GetNativePath(RemoveTrailingSlash(fileName));
+    QString fixedName = GetNativePath(RemoveTrailingSlash(fileName));
 
     #ifdef ANDROID
     if (fixedName.StartsWith("/apk/"))
     {
-        SDL_RWops* rwOps = SDL_RWFromFile(fileName.Substring(5).CString(), "rb");
+        SDL_RWops* rwOps = SDL_RWFromFile(fileName.mid(5).CString(), "rb");
         if (rwOps)
         {
             SDL_RWclose(rwOps);
@@ -578,14 +529,14 @@ bool FileSystem::FileExists(const String& fileName) const
         return false;
     #else
     struct stat st;
-    if (stat(fixedName.CString(), &st) || st.st_mode & S_IFDIR)
+    if (stat(qPrintable(fixedName), &st) || st.st_mode & S_IFDIR)
         return false;
     #endif
 
     return true;
 }
 
-bool FileSystem::DirExists(const String& pathName) const
+bool FileSystem::DirExists(const QString& pathName) const
 {
     if (!CheckAccess(pathName))
         return false;
@@ -596,7 +547,7 @@ bool FileSystem::DirExists(const String& pathName) const
         return true;
     #endif
 
-    String fixedName = GetNativePath(RemoveTrailingSlash(pathName));
+    QString fixedName = GetNativePath(RemoveTrailingSlash(pathName));
 
     #ifdef ANDROID
     /// \todo Actually check for existence, now true is always returned for directories within the APK
@@ -610,25 +561,25 @@ bool FileSystem::DirExists(const String& pathName) const
         return false;
     #else
     struct stat st;
-    if (stat(fixedName.CString(), &st) || !(st.st_mode & S_IFDIR))
+    if (stat(qPrintable(fixedName), &st) || !(st.st_mode & S_IFDIR))
         return false;
     #endif
 
     return true;
 }
 
-void FileSystem::ScanDir(Vector<String>& result, const String& pathName, const String& filter, unsigned flags, bool recursive) const
+void FileSystem::ScanDir(QStringList& result, const QString& pathName, const QString& filter, unsigned flags, bool recursive) const
 {
     result.clear();
 
     if (CheckAccess(pathName))
     {
-        String initialPath = AddTrailingSlash(pathName);
+        QString initialPath = AddTrailingSlash(pathName);
         ScanDirInternal(result, initialPath, initialPath, filter, flags, recursive);
     }
 }
 
-String FileSystem::GetProgramDir() const
+QString FileSystem::GetProgramDir() const
 {
     // Return cached value if possible
     if (!programDir_.isEmpty())
@@ -657,15 +608,15 @@ String FileSystem::GetProgramDir() const
     char exeName[MAX_PATH];
     memset(exeName, 0, MAX_PATH);
     pid_t pid = getpid();
-    String link = "/proc/" + String(pid) + "/exe";
-    readlink(link.CString(), exeName, MAX_PATH);
-    programDir_ = GetPath(String(exeName));
+    QString link = "/proc/" + QString::number(pid) + "/exe";
+    readlink(qPrintable(link), exeName, MAX_PATH);
+    programDir_ = GetPath(QString(exeName));
     #endif
 
     // If the executable directory does not contain CoreData & Data directories, but the current working directory does, use the
     // current working directory instead
     /// \todo Should not rely on such fixed convention
-    String currentDir = GetCurrentDir();
+    QString currentDir = GetCurrentDir();
     if (!DirExists(programDir_ + "CoreData") && !DirExists(programDir_ + "Data") && (DirExists(currentDir + "CoreData") ||
         DirExists(currentDir + "Data")))
         programDir_ = currentDir;
@@ -676,7 +627,7 @@ String FileSystem::GetProgramDir() const
     return programDir_;
 }
 
-String FileSystem::GetUserDocumentsDir() const
+QString FileSystem::GetUserDocumentsDir() const
 {
     #if defined(ANDROID)
     return AddTrailingSlash(SDL_Android_GetFilesDir());
@@ -691,17 +642,17 @@ String FileSystem::GetUserDocumentsDir() const
     char pathName[MAX_PATH];
     pathName[0] = 0;
     strcpy(pathName, getenv("HOME"));
-    return AddTrailingSlash(String(pathName));
+    return AddTrailingSlash(QString(pathName));
     #endif
 }
 
-String FileSystem::GetAppPreferencesDir(const String& org, const String& app) const
+QString FileSystem::GetAppPreferencesDir(const QString& org, const QString& app) const
 {
-    String dir;
-    char* prefPath = SDL_GetPrefPath(org.CString(), app.CString());
+    QString dir;
+    char* prefPath = SDL_GetPrefPath(qPrintable(org), qPrintable(app));
     if (prefPath)
     {
-        dir = GetInternalPath(String(prefPath));
+        dir = GetInternalPath(QString(prefPath));
         SDL_free(prefPath);
     }
     else
@@ -710,7 +661,7 @@ String FileSystem::GetAppPreferencesDir(const String& org, const String& app) co
     return dir;
 }
 
-void FileSystem::RegisterPath(const String& pathName)
+void FileSystem::RegisterPath(const QString& pathName)
 {
     if (pathName.isEmpty())
         return;
@@ -718,7 +669,7 @@ void FileSystem::RegisterPath(const String& pathName)
     allowedPaths_.insert(AddTrailingSlash(pathName));
 }
 
-bool FileSystem::SetLastModifiedTime(const String& fileName, unsigned newTime)
+bool FileSystem::SetLastModifiedTime(const QString& fileName, unsigned newTime)
 {
     if (fileName.isEmpty() || !CheckAccess(fileName))
         return false;
@@ -734,23 +685,23 @@ bool FileSystem::SetLastModifiedTime(const String& fileName, unsigned newTime)
     #else
     struct stat oldTime;
     struct utimbuf newTimes;
-    if (stat(fileName.CString(), &oldTime) != 0)
+    if (stat(qPrintable(fileName), &oldTime) != 0)
         return false;
     newTimes.actime = oldTime.st_atime;
     newTimes.modtime = newTime;
-    return utime(fileName.CString(), &newTimes) == 0;
+    return utime(qPrintable(fileName), &newTimes) == 0;
     #endif
 }
 
-void FileSystem::ScanDirInternal(Vector<String>& result, String path, const String& startPath,
-    const String& filter, unsigned flags, bool recursive) const
+void FileSystem::ScanDirInternal(QStringList& result, QString path, const QString& startPath,
+    const QString& filter, unsigned flags, bool recursive) const
 {
     path = AddTrailingSlash(path);
-    String deltaPath;
+    QString deltaPath;
     if (path.length() > startPath.length())
-        deltaPath = path.Substring(startPath.length());
+        deltaPath = path.mid(startPath.length());
 
-    String filterExtension = filter.Substring(filter.indexOf('.'));
+    QString filterExtension = filter.mid(filter.indexOf('.'));
     if (filterExtension.contains('*'))
         filterExtension.clear();
 
@@ -788,18 +739,18 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
     DIR *dir;
     struct dirent *de;
     struct stat st;
-    dir = opendir(GetNativePath(path).CString());
+    dir = opendir(qPrintable(GetNativePath(path)));
     if (dir)
     {
         while ((de = readdir(dir)))
         {
             /// \todo Filename may be unnormalized Unicode on Mac OS X. Re-normalize as necessary
-            String fileName(de->d_name);
+            QString fileName(de->d_name);
             bool normalEntry = fileName != "." && fileName != "..";
             if (normalEntry && !(flags & SCAN_HIDDEN) && fileName.startsWith("."))
                 continue;
-            String pathAndName = path + fileName;
-            if (!stat(pathAndName.CString(), &st))
+            QString pathAndName = path + fileName;
+            if (!stat(qPrintable(pathAndName), &st))
             {
                 if (st.st_mode & S_IFDIR)
                 {
@@ -850,28 +801,28 @@ void FileSystem::HandleConsoleCommand(StringHash eventType, VariantMap& eventDat
         SystemCommand(eventData[P_COMMAND].GetString(), true);
 }
 
-void SplitPath(const String& fullPath, String& pathName, String& fileName, String& extension, bool lowercaseExtension)
+void SplitPath(const QString& fullPath, QString& pathName, QString& fileName, QString& extension, bool lowercaseExtension)
 {
-    String fullPathCopy = GetInternalPath(fullPath);
+    QString fullPathCopy = GetInternalPath(fullPath);
 
     unsigned extPos = fullPathCopy.lastIndexOf('.');
     unsigned pathPos = fullPathCopy.lastIndexOf('/');
 
-    if (extPos != String::NPOS && (pathPos == String::NPOS || extPos > pathPos))
+    if (extPos != -1 && (pathPos == -1 || extPos > pathPos))
     {
-        extension = fullPathCopy.Substring(extPos);
+        extension = fullPathCopy.mid(extPos);
         if (lowercaseExtension)
             extension = extension.toLower();
-        fullPathCopy = fullPathCopy.Substring(0, extPos);
+        fullPathCopy = fullPathCopy.mid(0, extPos);
     }
     else
         extension.clear();
 
     pathPos = fullPathCopy.lastIndexOf('/');
-    if (pathPos != String::NPOS)
+    if (pathPos != -1)
     {
-        fileName = fullPathCopy.Substring(pathPos + 1);
-        pathName = fullPathCopy.Substring(0, pathPos + 1);
+        fileName = fullPathCopy.mid(pathPos + 1);
+        pathName = fullPathCopy.mid(0, pathPos + 1);
     }
     else
     {
@@ -880,74 +831,74 @@ void SplitPath(const String& fullPath, String& pathName, String& fileName, Strin
     }
 }
 
-String GetPath(const String& fullPath)
+QString GetPath(const QString& fullPath)
 {
-    String path, file, extension;
+    QString path, file, extension;
     SplitPath(fullPath, path, file, extension);
     return path;
 }
 
-String GetFileName(const String& fullPath)
+QString GetFileName(const QString& fullPath)
 {
-    String path, file, extension;
+    QString path, file, extension;
     SplitPath(fullPath, path, file, extension);
     return file;
 }
 
-String GetExtension(const String& fullPath, bool lowercaseExtension)
+QString GetExtension(const QString& fullPath, bool lowercaseExtension)
 {
-    String path, file, extension;
+    QString path, file, extension;
     SplitPath(fullPath, path, file, extension, lowercaseExtension);
     return extension;
 }
 
-String GetFileNameAndExtension(const String& fileName, bool lowercaseExtension)
+QString GetFileNameAndExtension(const QString& fileName, bool lowercaseExtension)
 {
-    String path, file, extension;
+    QString path, file, extension;
     SplitPath(fileName, path, file, extension, lowercaseExtension);
     return file + extension;
 }
 
-String ReplaceExtension(const String& fullPath, const String& newExtension)
+QString ReplaceExtension(const QString& fullPath, const QString& newExtension)
 {
-    String path, file, extension;
+    QString path, file, extension;
     SplitPath(fullPath, path, file, extension);
     return path + file + newExtension;
 }
 
-String AddTrailingSlash(const String& pathName)
+QString AddTrailingSlash(const QString& pathName)
 {
-    String ret = pathName.trimmed();
+    QString ret = pathName.trimmed();
     ret.replace('\\', '/');
-    if (!ret.isEmpty() && ret.Back() != '/')
+    if (!ret.isEmpty() && !ret.endsWith('/') )
         ret += '/';
     return ret;
 }
 
-String RemoveTrailingSlash(const String& pathName)
+QString RemoveTrailingSlash(const QString& pathName)
 {
-    String ret = pathName.trimmed();
+    QString ret = pathName.trimmed();
     ret.replace('\\', '/');
-    if (!ret.isEmpty() && ret.Back() == '/')
+    if (!ret.isEmpty() && ret.endsWith('/') )
         ret.resize(ret.length() - 1);
     return ret;
 }
 
-String GetParentPath(const String& path)
+QString GetParentPath(const QString& path)
 {
     unsigned pos = RemoveTrailingSlash(path).lastIndexOf('/');
-    if (pos != String::NPOS)
-        return path.Substring(0, pos + 1);
+    if (pos != -1)
+        return path.mid(0, pos + 1);
     else
-        return String();
+        return QString();
 }
 
-String GetInternalPath(const String& pathName)
+QString GetInternalPath(const QString& pathName)
 {
-    return pathName.replaced('\\', '/');
+    return QString(pathName).replace('\\', '/');
 }
 
-String GetNativePath(const String& pathName)
+QString GetNativePath(const QString& pathName)
 {
 #ifdef WIN32
     return pathName.replaced('/', '\\');
@@ -956,21 +907,12 @@ String GetNativePath(const String& pathName)
 #endif
 }
 
-WString GetWideNativePath(const String& pathName)
-{
-#ifdef WIN32
-    return WString(pathName.replaced('/', '\\'));
-#else
-    return WString(pathName);
-#endif
-}
-
-bool IsAbsolutePath(const String& pathName)
+bool IsAbsolutePath(const QString& pathName)
 {
     if (pathName.isEmpty())
         return false;
 
-    String path = GetInternalPath(pathName);
+    QString path = GetInternalPath(pathName);
 
     if (path[0] == '/')
         return true;

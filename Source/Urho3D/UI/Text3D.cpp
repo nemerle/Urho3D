@@ -70,7 +70,7 @@ void Text3D::RegisterObject(Context* context)
     MIXED_ACCESSOR_ATTRIBUTE("Font", GetFontAttr, SetFontAttr, ResourceRef, ResourceRef(Font::GetTypeStatic()), AM_DEFAULT);
     MIXED_ACCESSOR_ATTRIBUTE("Material", GetMaterialAttr, SetMaterialAttr, ResourceRef, ResourceRef(Material::GetTypeStatic()), AM_DEFAULT);
     ATTRIBUTE("Font Size", int, text_.fontSize_, DEFAULT_FONT_SIZE, AM_DEFAULT);
-    ATTRIBUTE("Text", String, text_.text_, String::EMPTY, AM_DEFAULT);
+    ATTRIBUTE("Text", QString, text_.text_, QString(), AM_DEFAULT);
     ENUM_ATTRIBUTE("Text Alignment", text_.textAlignment_, horizontalAlignments, HA_LEFT, AM_DEFAULT);
     ATTRIBUTE("Row Spacing", float, text_.rowSpacing_, 1.0f, AM_DEFAULT);
     ATTRIBUTE("Word Wrap", bool, text_.wordWrap_, false, AM_DEFAULT);
@@ -156,7 +156,7 @@ void Text3D::SetMaterial(Material* material)
     UpdateTextMaterials(true);
 }
 
-bool Text3D::SetFont(const String& fontName, int size)
+bool Text3D::SetFont(const QString& fontName, int size)
 {
     bool success = text_.SetFont(fontName, size);
 
@@ -180,7 +180,7 @@ bool Text3D::SetFont(Font* font, int size)
     return success;
 }
 
-void Text3D::SetText(const String& text)
+void Text3D::SetText(const QString& text)
 {
     text_.SetText(text);
 
@@ -310,7 +310,7 @@ int Text3D::GetFontSize() const
     return text_.GetFontSize();
 }
 
-const String& Text3D::GetText() const
+const QString& Text3D::GetText() const
 {
     return text_.GetText();
 }

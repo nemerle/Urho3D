@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 //
 
+#include <Urho3D/Urho3D.h>
 
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/Core/Context.h>

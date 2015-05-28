@@ -247,7 +247,7 @@ public:
     /// Return float data.
     const float* Data() const { return &w_; }
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
     
     /// W coordinate.
     float w_;

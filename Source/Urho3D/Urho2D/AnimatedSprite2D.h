@@ -60,9 +60,9 @@ public:
     /// Set speed.
     void SetSpeed(float speed);
     /// Set animation by animation set, name and loop mode.
-    void SetAnimation(AnimationSet2D* animationSet, const String& name, LoopMode2D loopMode = LM_DEFAULT);
+    void SetAnimation(AnimationSet2D* animationSet, const QString& name, LoopMode2D loopMode = LM_DEFAULT);
     /// Set animation by name and loop mode.
-    void SetAnimation(const String& name, LoopMode2D loopMode = LM_DEFAULT);
+    void SetAnimation(const QString& name, LoopMode2D loopMode = LM_DEFAULT);
     /// Set animation set.
     void SetAnimationSet(AnimationSet2D* animationSet);
     /// Set loop mode.
@@ -71,7 +71,7 @@ public:
     /// Return speed.
     float GetSpeed() const { return speed_; }
     /// Return animation name.
-    const String& GetAnimation() const { return animationName_; }
+    const QString& GetAnimation() const { return animationName_; }
     /// Return animation.
     AnimationSet2D* GetAnimationSet() const;
     /// Return loop mode.
@@ -84,7 +84,7 @@ public:
     /// Return animation set attribute.
     ResourceRef GetAnimationSetAttr() const;
     /// Set anmiation by name.
-    void SetAnimationAttr(const String& name);
+    void SetAnimationAttr(const QString& name);
 
 protected:
     /// Handle node being assigned.
@@ -111,7 +111,7 @@ protected:
     /// Animation set.
     SharedPtr<AnimationSet2D> animationSet_;
     /// Animation name.
-    String animationName_;
+    QString animationName_;
     /// Animation.
     SharedPtr<Animation2D> animation_;
     /// Loop mode.

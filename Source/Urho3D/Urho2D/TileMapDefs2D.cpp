@@ -132,16 +132,16 @@ void PropertySet2D::Load(const XMLElement& element)
         nameToValueMapping_[propertyElem.GetAttribute("name")] = propertyElem.GetAttribute("value");
 }
 
-bool PropertySet2D::HasProperty(const String& name) const
+bool PropertySet2D::HasProperty(const QString& name) const
 {
     return nameToValueMapping_.contains(name);
 }
 
-const String& PropertySet2D::GetProperty(const String& name) const
+const QString& PropertySet2D::GetProperty(const QString& name) const
 {
-    HashMap<String, String>::const_iterator i = nameToValueMapping_.find(name);
+    HashMap<QString, QString>::const_iterator i = nameToValueMapping_.find(name);
     if (i == nameToValueMapping_.end())
-        return String::EMPTY;
+        return s_dummy;
 
     return MAP_VALUE(i);
 }
@@ -156,17 +156,17 @@ Sprite2D* Tile2D::GetSprite() const
     return sprite_;
 }
 
-bool Tile2D::HasProperty(const String& name) const
+bool Tile2D::HasProperty(const QString& name) const
 {
     if (!propertySet_)
         return false;
     return propertySet_->HasProperty(name);
 }
 
-const String& Tile2D::GetProperty(const String& name) const
+const QString& Tile2D::GetProperty(const QString& name) const
 {
     if (!propertySet_)
-        return String::EMPTY;
+        return s_dummy;
 
     return propertySet_->GetProperty(name);
 }
@@ -193,17 +193,17 @@ Sprite2D* TileMapObject2D::GetTileSprite() const
     return sprite_;
 }
 
-bool TileMapObject2D::HasProperty(const String& name) const
+bool TileMapObject2D::HasProperty(const QString& name) const
 {
     if (!propertySet_)
         return false;
     return propertySet_->HasProperty(name);
 }
 
-const String& TileMapObject2D::GetProperty(const String& name) const
+const QString& TileMapObject2D::GetProperty(const QString& name) const
 {
     if (!propertySet_)
-        return String::EMPTY;
+        return s_dummy;
     return propertySet_->GetProperty(name);
 }
 

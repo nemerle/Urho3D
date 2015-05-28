@@ -53,6 +53,7 @@ static const char* shapeNames[] =
 };
 
 /// OS cursor shape lookup table matching cursor shape enumeration
+#if !defined(ANDROID) && !defined(IOS)
 static const int osCursorLookup[CS_MAX_SHAPES] =
 {
     SDL_SYSTEM_CURSOR_ARROW,    // CS_NORMAL
@@ -68,6 +69,7 @@ static const int osCursorLookup[CS_MAX_SHAPES] =
     SDL_SYSTEM_CURSOR_WAIT,   // CS_BUSY
     SDL_SYSTEM_CURSOR_WAITARROW // CS_BUSY_ARROW
 };
+#endif
 
 extern const char* UI_CATEGORY;
 
@@ -134,7 +136,7 @@ void Cursor::DefineShape(CursorShape shape, Image* image, const IntRect& imageRe
     DefineShape(shapeNames[shape], image, imageRect, hotSpot);
 }
 
-void Cursor::DefineShape(const String& shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot)
+void Cursor::DefineShape(const QString& shape, Image* image, const IntRect& imageRect, const IntVector2& hotSpot)
 {
     if (!image)
         return;
@@ -169,15 +171,15 @@ void Cursor::DefineShape(const String& shape, Image* image, const IntRect& image
     // Reset current shape if it was edited
     if (shape_ == shape)
     {
-        shape_ = String::EMPTY;
+        shape_ = QString::null;
         SetShape(shape);
     }
 }
 
 
-void Cursor::SetShape(const String& shape)
+void Cursor::SetShape(const QString& shape)
 {
-    if (shape == String::EMPTY || shape.isEmpty() || shape_ == shape || !shapeInfos_.contains(shape))
+    if (shape == QString::null || shape.isEmpty() || shape_ == shape || !shapeInfos_.contains(shape))
         return;
 
     shape_ = shape;
@@ -224,7 +226,7 @@ void Cursor::SetShapesAttr(const VariantVector& value)
         VariantVector shapeVector = iter->GetVariantVector();
         if (shapeVector.size() >= 4)
         {
-            String shape = shapeVector[0].GetString();
+            QString shape = shapeVector[0].GetString();
             ResourceRef ref = shapeVector[1].GetResourceRef();
             IntRect imageRect = shapeVector[2].GetIntRect();
             IntVector2 hotSpot = shapeVector[3].GetIntVector2();
@@ -238,7 +240,6 @@ VariantVector Cursor::GetShapesAttr() const
 {
     VariantVector ret;
 
-    HashMap<String, CursorShapeInfo>::const_iterator iter = shapeInfos_.begin();
     for (auto & iter_pair : shapeInfos_)
     {
         auto & elem(iter_pair.second);
@@ -246,7 +247,7 @@ VariantVector Cursor::GetShapesAttr() const
         {
             // Could use a map but this simplifies the UI xml.
             VariantVector shape;
-            shape.push_back(MAP_KEY(iter));
+            shape.push_back(ELEMENT_KEY(iter_pair));
             shape.push_back(GetResourceRef(elem.texture_, Texture2D::GetTypeStatic()));
             shape.push_back(elem.imageRect_);
             shape.push_back(elem.hotSpot_);

@@ -45,7 +45,7 @@ class HttpRequest : public RefCounted, public Deserializer, public Thread
 {
 public:
     /// Construct with parameters.
-    HttpRequest(const String& url, const String& verb, const Vector<String>& headers, const String& postData);
+    HttpRequest(const QString& url, const QString& verb, const PODVector<QString>& headers, const QString& postData);
     /// Destruct. Release the connection object.
     ~HttpRequest();
     
@@ -58,11 +58,11 @@ public:
     virtual unsigned Seek(unsigned position);
     
     /// Return URL used in the request.
-    const String& GetURL() const { return url_; }
+    const QString& GetURL() const { return url_; }
     /// Return verb used in the request. Default GET if empty verb specified on construction.
-    const String& GetVerb() const { return verb_; }
+    const QString& GetVerb() const { return verb_; }
     /// Return error. Only non-empty in the error state.
-    String GetError() const;
+    QString GetError() const;
     /// Return connection state.
     HttpRequestState GetState() const;
     /// Return amount of bytes in the read buffer.
@@ -75,15 +75,15 @@ private:
     unsigned CheckEofAndAvailableSize();
     
     /// URL.
-    String url_;
+    QString url_;
     /// Verb.
-    String verb_;
+    QString verb_;
     /// Error string. Empty if no error.
-    String error_;
+    QString error_;
     /// Headers.
-    Vector<String> headers_;
+    PODVector<QString> headers_;
     /// POST data.
-    String postData_;
+    QString postData_;
     /// Connection state.
     HttpRequestState state_;
     /// Mutex for synchronizing the worker and the main thread.

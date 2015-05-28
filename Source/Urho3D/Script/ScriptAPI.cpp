@@ -28,7 +28,7 @@
 namespace Urho3D
 {
 
-static bool ScriptFileExecute(const String& declaration, CScriptArray* srcParams, ScriptFile* ptr)
+static bool ScriptFileExecute(const QString& declaration, CScriptArray* srcParams, ScriptFile* ptr)
 {
     VariantVector destParams(srcParams ? srcParams->GetSize() : 0);
 
@@ -43,7 +43,7 @@ static bool ScriptFileExecute(const String& declaration, CScriptArray* srcParams
     return ptr->Execute(declaration, destParams);
 }
 
-static void ScriptFileDelayedExecute(float delay, bool repeat, const String& declaration, CScriptArray* srcParams, ScriptFile* ptr)
+static void ScriptFileDelayedExecute(float delay, bool repeat, const QString& declaration, CScriptArray* srcParams, ScriptFile* ptr)
 {
     VariantVector destParams(srcParams ? srcParams->GetSize() : 0);
 
@@ -58,7 +58,7 @@ static void ScriptFileDelayedExecute(float delay, bool repeat, const String& dec
     ptr->DelayedExecute(delay, repeat, declaration, destParams);
 }
 
-static asIScriptObject* NodeCreateScriptObjectWithFile(ScriptFile* file, const String& className, CreateMode mode, Node* ptr)
+static asIScriptObject* NodeCreateScriptObjectWithFile(ScriptFile* file, const QString& className, CreateMode mode, Node* ptr)
 {
     if (!file)
         return nullptr;
@@ -94,7 +94,7 @@ static void RegisterScriptFile(asIScriptEngine* engine)
     engine->RegisterGlobalFunction("ScriptFile@+ get_scriptFile()", asFUNCTION(GetScriptContextFile), asCALL_CDECL);
 }
 
-static asIScriptObject* NodeCreateScriptObject(const String& scriptFileName, const String& className, CreateMode mode, Node* ptr)
+static asIScriptObject* NodeCreateScriptObject(const QString& scriptFileName, const QString& className, CreateMode mode, Node* ptr)
 {
     ResourceCache* cache = GetScriptContext()->GetSubsystem<ResourceCache>();
     return NodeCreateScriptObjectWithFile(cache->GetResource<ScriptFile>(scriptFileName), className, mode, ptr);
@@ -118,7 +118,7 @@ asIScriptObject* NodeGetScriptObject(Node* ptr)
     return nullptr;
 }
 
-asIScriptObject* NodeGetNamedScriptObject(const String& className, Node* ptr)
+asIScriptObject* NodeGetNamedScriptObject(const QString& className, Node* ptr)
 {
     const Vector<SharedPtr<Component> >& components = ptr->GetComponents();
     for (const SharedPtr<Component> & component : components)
@@ -138,7 +138,7 @@ asIScriptObject* NodeGetNamedScriptObject(const String& className, Node* ptr)
     return nullptr;
 }
 
-static bool ScriptInstanceExecute(const String& declaration, CScriptArray* srcParams, ScriptInstance* ptr)
+static bool ScriptInstanceExecute(const QString& declaration, CScriptArray* srcParams, ScriptInstance* ptr)
 {
     VariantVector destParams(srcParams ? srcParams->GetSize() : 0);
 
@@ -154,7 +154,7 @@ static bool ScriptInstanceExecute(const String& declaration, CScriptArray* srcPa
 }
 
 
-static void ScriptInstanceDelayedExecute(float delay, bool repeat, const String& declaration, CScriptArray* srcParams, ScriptInstance* ptr)
+static void ScriptInstanceDelayedExecute(float delay, bool repeat, const QString& declaration, CScriptArray* srcParams, ScriptInstance* ptr)
 {
     VariantVector destParams(srcParams ? srcParams->GetSize() : 0);
 
@@ -175,7 +175,7 @@ static ScriptInstance* GetSelf()
     return GetScriptContextInstance();
 }
 
-static void SelfDelayedExecute(float delay, bool repeat, const String& declaration, CScriptArray* srcParams)
+static void SelfDelayedExecute(float delay, bool repeat, const QString& declaration, CScriptArray* srcParams)
 {
     VariantVector destParams(srcParams ? srcParams->GetSize() : 0);
 
@@ -198,7 +198,7 @@ static void SelfDelayedExecute(float delay, bool repeat, const String& declarati
     }
 }
 
-static void SelfClearDelayedExecute(const String& declaration)
+static void SelfClearDelayedExecute(const QString& declaration)
 {
     ScriptInstance* ptr = GetScriptContextInstance();
     if (ptr)
@@ -240,10 +240,11 @@ static void RegisterScriptInstance(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Scene", "ScriptObject@+ get_scriptObject() const", asFUNCTION(NodeGetScriptObject), asCALL_CDECL_OBJLAST);
 
     RegisterComponent<ScriptInstance>(engine, "ScriptInstance");
-    engine->RegisterObjectMethod("ScriptInstance", "bool CreateObject(ScriptFile@+, const String&in)", asMETHODPR(ScriptInstance, CreateObject, (ScriptFile*, const String&), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ScriptInstance", "bool CreateObject(ScriptFile@+, const String&in)", asMETHODPR(ScriptInstance, CreateObject, (ScriptFile*, const QString&), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("ScriptInstance", "bool Execute(const String&in, const Array<Variant>@+ params = null)", asFUNCTION(ScriptInstanceExecute), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("ScriptInstance", "void DelayedExecute(float, bool, const String&in, const Array<Variant>@+ params = null)", asFUNCTION(ScriptInstanceDelayedExecute), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("ScriptInstance", "void ClearDelayedExecute(const String&in declaration = String())", asMETHOD(ScriptInstance, ClearDelayedExecute), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ScriptInstance", "bool HasMethod(const String&in declaration) const", asMETHOD(ScriptInstance, HasMethod), asCALL_THISCALL);
     engine->RegisterObjectMethod("ScriptInstance", "void set_scriptFile(ScriptFile@+)", asMETHOD(ScriptInstance, SetScriptFile), asCALL_THISCALL);
     engine->RegisterObjectMethod("ScriptInstance", "ScriptFile@+ get_scriptFile() const", asMETHOD(ScriptInstance, GetScriptFile), asCALL_THISCALL);
     engine->RegisterObjectMethod("ScriptInstance", "ScriptObject@+ get_scriptObject() const", asMETHOD(ScriptInstance, GetScriptObject), asCALL_THISCALL);

@@ -69,7 +69,7 @@ Variant& Variant::operator = (const Variant& rhs)
     switch (type_)
     {
     case VAR_STRING:
-        *(reinterpret_cast<String*>(&value_)) = *(reinterpret_cast<const String*>(&rhs.value_));
+        *(reinterpret_cast<QString*>(&value_)) = *(reinterpret_cast<const QString*>(&rhs.value_));
         break;
 
     case VAR_BUFFER:
@@ -147,7 +147,7 @@ bool Variant::operator == (const Variant& rhs) const
         return *(reinterpret_cast<const Vector4*>(&value_)) == *(reinterpret_cast<const Vector4*>(&rhs.value_));
 
     case VAR_STRING:
-        return *(reinterpret_cast<const String*>(&value_)) == *(reinterpret_cast<const String*>(&rhs.value_));
+        return *(reinterpret_cast<const QString*>(&value_)) == *(reinterpret_cast<const QString*>(&rhs.value_));
 
     case VAR_BUFFER:
         return *(reinterpret_cast<const PODVector<unsigned char>*>(&value_)) == *(reinterpret_cast<const PODVector<unsigned char>*>(&rhs.value_));
@@ -184,9 +184,9 @@ bool Variant::operator == (const Variant& rhs) const
     }
 }
 
-void Variant::FromString(const String& type, const String& value)
+void Variant::FromString(const QString& type, const QString& value)
 {
-    return FromString(GetTypeFromName(type), value.CString());
+    return FromString(GetTypeFromName(type), qPrintable(value));
 }
 
 void Variant::FromString(const char* type, const char* value)
@@ -194,9 +194,9 @@ void Variant::FromString(const char* type, const char* value)
     return FromString(GetTypeFromName(type), value);
 }
 
-void Variant::FromString(VariantType type, const String& value)
+void Variant::FromString(VariantType type, const QString& value)
 {
-    return FromString(type, value.CString());
+    return FromString(type, qPrintable(value));
 }
 
 void Variant::FromString(VariantType type, const char* value)
@@ -254,7 +254,7 @@ void Variant::FromString(VariantType type, const char* value)
 
     case VAR_RESOURCEREF:
         {
-            Vector<String> values = String::split(value, ';');
+            QStringList values = QString(value).split(';');
             if (values.size() == 2)
             {
                 SetType(VAR_RESOURCEREF);
@@ -267,7 +267,7 @@ void Variant::FromString(VariantType type, const char* value)
 
     case VAR_RESOURCEREFLIST:
         {
-            Vector<String> values = String::split(value, ';');
+            QStringList values = QString(value).split(';');
             if (values.size() >= 1)
             {
                 SetType(VAR_RESOURCEREFLIST);
@@ -322,23 +322,23 @@ void Variant::SetBuffer(const void* data, unsigned size)
         memcpy(&buffer[0], data, size);
 }
 
-String Variant::GetTypeName() const
+QString Variant::GetTypeName() const
 {
     return typeNames[type_];
 }
 
-String Variant::ToString() const
+QString Variant::ToString() const
 {
     switch (type_)
     {
     case VAR_INT:
-        return String(value_.int_);
+        return QString::number(value_.int_);
 
     case VAR_BOOL:
-        return String(value_.bool_);
+        return QString::number(value_.bool_);
 
     case VAR_FLOAT:
-        return String(value_.float_);
+        return QString::number(value_.float_);
 
     case VAR_VECTOR2:
         return (reinterpret_cast<const Vector2*>(&value_))->ToString();
@@ -356,12 +356,12 @@ String Variant::ToString() const
         return (reinterpret_cast<const Color*>(&value_))->ToString();
 
     case VAR_STRING:
-        return *(reinterpret_cast<const String*>(&value_));
+        return *(reinterpret_cast<const QString*>(&value_));
 
     case VAR_BUFFER:
         {
             const PODVector<unsigned char>& buffer = *(reinterpret_cast<const PODVector<unsigned char>*>(&value_));
-            String ret;
+            QString ret;
             BufferToString(ret, buffer.data(), buffer.size());
             return ret;
         }
@@ -369,7 +369,7 @@ String Variant::ToString() const
     case VAR_VOIDPTR:
     case VAR_PTR:
         // Pointer serialization not supported (convert to null)
-        return String(0);
+        return QString("null"); //TODO: use String::null ?
 
     case VAR_INTRECT:
         return (reinterpret_cast<const IntRect*>(&value_))->ToString();
@@ -381,7 +381,7 @@ String Variant::ToString() const
         // VAR_RESOURCEREF, VAR_RESOURCEREFLIST, VAR_VARIANTVECTOR, VAR_VARIANTMAP
         // Reference string serialization requires typehash-to-name mapping from the context. Can not support here
         // Also variant map or vector string serialization is not supported. XML or binary save should be used instead
-        return String::EMPTY;
+        return QString::null;
 
     case VAR_MATRIX3:
         return (reinterpret_cast<const Matrix3*>(value_.ptr_))->ToString();
@@ -424,7 +424,7 @@ bool Variant::IsZero() const
         return *reinterpret_cast<const Color*>(&value_) == Color::WHITE;
 
     case VAR_STRING:
-        return reinterpret_cast<const String*>(&value_)->isEmpty();
+        return reinterpret_cast<const QString*>(&value_)->isEmpty();
 
     case VAR_BUFFER:
         return reinterpret_cast<const PODVector<unsigned char>*>(&value_)->empty();
@@ -437,8 +437,8 @@ bool Variant::IsZero() const
 
     case VAR_RESOURCEREFLIST:
     {
-        const Vector<String>& names = reinterpret_cast<const ResourceRefList*>(&value_)->names_;
-        for (const String &name : names)
+        const PODVector<QString>& names = reinterpret_cast<const ResourceRefList*>(&value_)->names_;
+        for (const QString &name : names)
         {
             if (!name.isEmpty())
                 return false;
@@ -483,7 +483,7 @@ void Variant::SetType(VariantType newType)
     switch (type_)
     {
     case VAR_STRING:
-        (reinterpret_cast<String*>(&value_))->~String();
+        (reinterpret_cast<QString*>(&value_))->~QString();
         break;
 
     case VAR_BUFFER:
@@ -531,7 +531,7 @@ void Variant::SetType(VariantType newType)
     switch (type_)
     {
     case VAR_STRING:
-        new(reinterpret_cast<String*>(&value_)) String();
+        new(reinterpret_cast<QString*>(&value_)) QString();
         break;
 
     case VAR_BUFFER:
@@ -629,7 +629,7 @@ template<> const Color& Variant::Get<const Color&>() const
     return GetColor();
 }
 
-template<> const String& Variant::Get<const String&>() const
+template<> const QString& Variant::Get<const QString&>() const
 {
     return GetString();
 }
@@ -719,7 +719,7 @@ template<> Color Variant::Get<Color>() const
     return GetColor();
 }
 
-template<> String Variant::Get<String>() const
+template<> QString Variant::Get<QString>() const
 {
     return GetString();
 }
@@ -754,14 +754,14 @@ template<> Matrix4 Variant::Get<Matrix4>() const
     return GetMatrix4();
 }
 
-String Variant::GetTypeName(VariantType type)
+QString Variant::GetTypeName(VariantType type)
 {
     return typeNames[type];
 }
 
-VariantType Variant::GetTypeFromName(const String& typeName)
+VariantType Variant::GetTypeFromName(const QString& typeName)
 {
-    return GetTypeFromName(typeName.CString());
+    return GetTypeFromName(qPrintable(typeName));
 }
 
 VariantType Variant::GetTypeFromName(const char* typeName)

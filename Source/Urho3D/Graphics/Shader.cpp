@@ -37,11 +37,11 @@
 namespace Urho3D
 {
 
-void CommentOutFunction(String& code, const String& signature)
+void CommentOutFunction(QString& code, const QString& signature)
 {
     unsigned startPos = code.indexOf(signature);
     unsigned braceLevel = 0;
-    if (startPos == String::NPOS)
+    if (startPos == -1)
         return;
 
     code.insert(startPos, "/*");
@@ -90,7 +90,7 @@ bool Shader::BeginLoad(Deserializer& source)
 
     // Load the shader source code and resolve any includes
     timeStamp_ = 0;
-    String shaderCode;
+    QString shaderCode;
     if (!ProcessSource(shaderCode, source))
         return false;
 
@@ -122,9 +122,9 @@ bool Shader::EndLoad()
     return true;
 }
 
-ShaderVariation* Shader::GetVariation(ShaderType type, const String& defines)
+ShaderVariation* Shader::GetVariation(ShaderType type, const QString& defines)
 {
-    return GetVariation(type, defines.CString());
+    return GetVariation(type, qPrintable(defines));
 }
 
 ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
@@ -136,7 +136,7 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
     {
         // If shader not found, normalize the defines (to prevent duplicates) and check again. In that case make an alias
         // so that further queries are faster
-        String normalizedDefines = NormalizeDefines(defines);
+        QString normalizedDefines = NormalizeDefines(defines);
         StringHash normalizedHash(normalizedDefines);
 
         i = variations.find(normalizedHash);
@@ -159,7 +159,7 @@ ShaderVariation* Shader::GetVariation(ShaderType type, const char* defines)
     return MAP_VALUE(i);
 }
 
-bool Shader::ProcessSource(String& code, Deserializer& source)
+bool Shader::ProcessSource(QString& code, Deserializer& source)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
 
@@ -168,7 +168,7 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
     if (file && !file->IsPackaged())
     {
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
-        String fullName = cache->GetResourceFileName(file->GetName());
+        QString fullName = cache->GetResourceFileName(file->GetName());
         unsigned fileTimeStamp = fileSystem->GetLastModifiedTime(fullName);
         if (fileTimeStamp > timeStamp_)
             timeStamp_ = fileTimeStamp;
@@ -180,11 +180,11 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
 
     while (!source.IsEof())
     {
-        String line = source.ReadLine();
+        QString line = source.ReadLine();
 
         if (line.startsWith("#include"))
         {
-            String includeFileName = GetPath(source.GetName()) + line.Substring(9).replaced("\"", "").trimmed();
+            QString includeFileName = GetPath(source.GetName()) + line.mid(9).replace("\"", "").trimmed();
 
             SharedPtr<File> includeFile = cache->GetFile(includeFileName);
             if (!includeFile)
@@ -207,11 +207,11 @@ bool Shader::ProcessSource(String& code, Deserializer& source)
     return true;
 }
 
-String Shader::NormalizeDefines(const String& defines)
+QString Shader::NormalizeDefines(const QString& defines)
 {
-    Vector<String> definesVec = defines.toUpper().split(' ');
+    QStringList definesVec = defines.toUpper().trimmed().split(' ',QString::SkipEmptyParts);
     std::sort(definesVec.begin(), definesVec.end());
-    return String::Joined(definesVec, " ");
+    return definesVec.join(" ");
 }
 
 void Shader::RefreshMemoryUse()

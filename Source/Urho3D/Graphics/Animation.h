@@ -50,7 +50,7 @@ struct AnimationTrack
     void GetKeyFrameIndex(float time, unsigned& index) const;
 
     /// Bone name.
-    String name_;
+    QString name_;
     /// Bone name hash.
     StringHash nameHash_;
     /// Bitmask of included data (position, rotation, scale.)
@@ -97,7 +97,7 @@ public:
     virtual bool Save(Serializer& dest) const;
 
     /// Set animation name.
-    void SetAnimationName(const String& name);
+    void SetAnimationName(const QString& name);
     /// Set animation length.
     void SetLength(float length);
     /// Set all animation tracks.
@@ -112,7 +112,7 @@ public:
     void SetNumTriggers(unsigned num);
 
     /// Return animation name.
-    const String& GetAnimationName() const { return animationName_; }
+    const QString& GetAnimationName() const { return animationName_; }
     /// Return animation name hash.
     StringHash GetAnimationNameHash() const { return animationNameHash_; }
     /// Return animation length.
@@ -124,7 +124,7 @@ public:
     /// Return animation track by index.
     const AnimationTrack* GetTrack(unsigned index) const;
     /// Return animation track by bone name.
-    const AnimationTrack* GetTrack(const String& name) const;
+    const AnimationTrack* GetTrack(const QString& name) const;
     /// Return animation track by bone name hash.
     const AnimationTrack* GetTrack(StringHash nameHash) const;
     /// Return animation trigger points.
@@ -134,7 +134,7 @@ public:
 
 private:
     /// Animation name.
-    String animationName_;
+    QString animationName_;
     /// Animation name hash.
     StringHash animationNameHash_;
     /// Animation length.

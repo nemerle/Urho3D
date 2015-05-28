@@ -72,7 +72,7 @@ FileWatcher::~FileWatcher()
 #endif
 }
 
-bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
+bool FileWatcher::StartWatching(const QString& pathName, bool watchSubDirs)
 {
     if (!fileSystem_)
     {
@@ -112,7 +112,7 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
     }
 #elif defined(__linux__)
     int flags = IN_CREATE|IN_DELETE|IN_MODIFY|IN_MOVED_FROM|IN_MOVED_TO;
-    int handle = inotify_add_watch(watchHandle_, pathName.CString(), flags);
+    int handle = inotify_add_watch(watchHandle_, qPrintable(pathName), flags);
 
     if (handle < 0)
     {
@@ -128,17 +128,17 @@ bool FileWatcher::StartWatching(const String& pathName, bool watchSubDirs)
 
         if (watchSubDirs_)
         {
-            Vector<String> subDirs;
+            QStringList subDirs;
             fileSystem_->ScanDir(subDirs, pathName, "*", SCAN_DIRS, true);
 
             for (unsigned i = 0; i < subDirs.size(); ++i)
             {
-                String subDirFullPath = AddTrailingSlash(path_ + subDirs[i]);
+                QString subDirFullPath = AddTrailingSlash(path_ + subDirs[i]);
 
                 // Don't watch ./ or ../ sub-directories
                 if (!subDirFullPath.endsWith("./"))
                 {
-                    handle = inotify_add_watch(watchHandle_, subDirFullPath.CString(), flags);
+                    handle = inotify_add_watch(watchHandle_, qPrintable(subDirFullPath), flags);
                     if (handle < 0)
                         LOGERROR("Failed to start watching subdirectory path " + subDirFullPath);
                     else
@@ -193,7 +193,7 @@ void FileWatcher::StopWatching()
         shouldRun_ = false;
 
         // Create and delete a dummy file to make sure the watcher loop terminates
-        String dummyFileName = path_ + "dummy.tmp";
+        QString dummyFileName = path_ + "dummy.tmp";
         File file(context_, dummyFileName, FILE_WRITE);
         file.Close();
         if (fileSystem_)
@@ -284,7 +284,7 @@ void FileWatcher::ThreadFunction()
             {
                 if (event->mask & IN_MODIFY || event->mask & IN_MOVE)
                 {
-                    String fileName;
+                    QString fileName;
                     fileName = dirHandle_[event->wd] + event->name;
                     AddChange(fileName);
                 }
@@ -301,7 +301,7 @@ void FileWatcher::ThreadFunction()
         String changes = ReadFileWatcher(watcher_);
         if (!changes.Empty())
         {
-            Vector<String> fileNames = changes.Split(1);
+            StringList fileNames = changes.Split(1);
             for (unsigned i = 0; i < fileNames.Size(); ++i)
                 AddChange(fileNames[i]);
         }
@@ -310,7 +310,7 @@ void FileWatcher::ThreadFunction()
 #endif
 }
 
-void FileWatcher::AddChange(const String& fileName)
+void FileWatcher::AddChange(const QString& fileName)
 {
     MutexLock lock(changesMutex_);
 
@@ -318,7 +318,7 @@ void FileWatcher::AddChange(const String& fileName)
     changes_[fileName].Reset();
 }
 
-bool FileWatcher::GetNextChange(String& dest)
+bool FileWatcher::GetNextChange(QString& dest)
 {
     MutexLock lock(changesMutex_);
 

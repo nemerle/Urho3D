@@ -77,7 +77,7 @@ Log::~Log()
     logInstance = nullptr;
 }
 
-void Log::Open(const String& fileName)
+void Log::Open(const QString& fileName)
 {
     #if !defined(ANDROID) && !defined(IOS)
     if (fileName.isEmpty())
@@ -129,7 +129,7 @@ void Log::SetQuiet(bool quiet)
     quiet_ = quiet;
 }
 
-void Log::Write(int level, const String& message)
+void Log::Write(int level, const QString& message)
 {
     assert(level >= LOG_DEBUG && level < LOG_NONE);
 
@@ -149,7 +149,7 @@ void Log::Write(int level, const String& message)
     if (!logInstance || logInstance->level_ > level || logInstance->inWrite_)
         return;
 
-    String formattedMessage = logLevelPrefixes[level];
+    QString formattedMessage = logLevelPrefixes[level];
     formattedMessage += ": " + message;
     logInstance->lastMessage_ = message;
 
@@ -190,7 +190,7 @@ void Log::Write(int level, const String& message)
     logInstance->inWrite_ = false;
 }
 
-void Log::WriteRaw(const String& message, bool error)
+void Log::WriteRaw(const QString& message, bool error)
 {
     // If not in the main thread, store message for later processing
     if (!Thread::IsMainThread())
@@ -233,7 +233,7 @@ void Log::WriteRaw(const String& message, bool error)
 
     if (logInstance->logFile_)
     {
-        logInstance->logFile_->Write(message.CString(), message.length());
+        logInstance->logFile_->Write(qPrintable(message), message.length());
         logInstance->logFile_->Flush();
     }
 

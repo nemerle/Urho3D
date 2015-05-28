@@ -217,7 +217,7 @@ void PhysicsWorld::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
 
 void PhysicsWorld::reportErrorWarning(const char* warningString)
 {
-    LOGWARNING("Physics: " + String(warningString));
+    LOGWARNING("Physics: " + QString(warningString));
 }
 
 void PhysicsWorld::drawContactPoint(const btVector3& pointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
@@ -699,7 +699,7 @@ void PhysicsWorld::PostStep(float timeStep)
     SendCollisionEvents();
 
     // Send post-step event
-    using namespace PhysicsPreStep;
+    using namespace PhysicsPostStep;
 
     VariantMap& eventData = GetEventDataMap();
     eventData[P_WORLD] = this;

@@ -149,7 +149,7 @@ void AnimationController::Update(float timeStep)
         state->Apply();
 }
 
-bool AnimationController::Play(const String& name, unsigned char layer, bool looped, float fadeInTime)
+bool AnimationController::Play(const QString& name, unsigned char layer, bool looped, float fadeInTime)
 {
     // Check if already exists
     unsigned index;
@@ -183,13 +183,13 @@ bool AnimationController::Play(const String& name, unsigned char layer, bool loo
     return true;
 }
 
-bool AnimationController::PlayExclusive(const String& name, unsigned char layer, bool looped, float fadeTime)
+bool AnimationController::PlayExclusive(const QString& name, unsigned char layer, bool looped, float fadeTime)
 {
     FadeOthers(name, 0.0f, fadeTime);
     return Play(name, layer, looped, fadeTime);
 }
 
-bool AnimationController::Stop(const String& name, float fadeOutTime)
+bool AnimationController::Stop(const QString& name, float fadeOutTime)
 {
     unsigned index;
     AnimationState* state;
@@ -236,7 +236,7 @@ void AnimationController::StopAll(float fadeOutTime)
     }
 }
 
-bool AnimationController::Fade(const String& name, float targetWeight, float fadeTime)
+bool AnimationController::Fade(const QString& name, float targetWeight, float fadeTime)
 {
     unsigned index;
     AnimationState* state;
@@ -250,7 +250,7 @@ bool AnimationController::Fade(const String& name, float targetWeight, float fad
     return true;
 }
 
-bool AnimationController::FadeOthers(const String& name, float targetWeight, float fadeTime)
+bool AnimationController::FadeOthers(const QString& name, float targetWeight, float fadeTime)
 {
     unsigned index;
     AnimationState* state;
@@ -281,7 +281,7 @@ bool AnimationController::FadeOthers(const String& name, float targetWeight, flo
     return true;
 }
 
-bool AnimationController::SetLayer(const String& name, unsigned char layer)
+bool AnimationController::SetLayer(const QString& name, unsigned char layer)
 {
     AnimationState* state = GetAnimationState(name);
     if (!state)
@@ -292,7 +292,7 @@ bool AnimationController::SetLayer(const String& name, unsigned char layer)
     return true;
 }
 
-bool AnimationController::SetStartBone(const String& name, const String& startBoneName)
+bool AnimationController::SetStartBone(const QString& name, const QString& startBoneName)
 {
     // Start bone can only be set in model mode
     AnimatedModel* model = GetComponent<AnimatedModel>();
@@ -309,7 +309,7 @@ bool AnimationController::SetStartBone(const String& name, const String& startBo
     return true;
 }
 
-bool AnimationController::SetTime(const String& name, float time)
+bool AnimationController::SetTime(const QString& name, float time)
 {
     unsigned index;
     AnimationState* state;
@@ -327,7 +327,7 @@ bool AnimationController::SetTime(const String& name, float time)
     return true;
 }
 
-bool AnimationController::SetSpeed(const String& name, float speed)
+bool AnimationController::SetSpeed(const QString& name, float speed)
 {
     unsigned index;
     AnimationState* state;
@@ -340,7 +340,7 @@ bool AnimationController::SetSpeed(const String& name, float speed)
     return true;
 }
 
-bool AnimationController::SetWeight(const String& name, float weight)
+bool AnimationController::SetWeight(const QString& name, float weight)
 {
     unsigned index;
     AnimationState* state;
@@ -358,7 +358,7 @@ bool AnimationController::SetWeight(const String& name, float weight)
     return true;
 }
 
-bool AnimationController::SetLooped(const String& name, bool enable)
+bool AnimationController::SetLooped(const QString& name, bool enable)
 {
     AnimationState* state = GetAnimationState(name);
     if (!state)
@@ -369,7 +369,7 @@ bool AnimationController::SetLooped(const String& name, bool enable)
     return true;
 }
 
-bool AnimationController::SetAutoFade(const String& name, float fadeOutTime)
+bool AnimationController::SetAutoFade(const QString& name, float fadeOutTime)
 {
     unsigned index;
     AnimationState* state;
@@ -382,7 +382,7 @@ bool AnimationController::SetAutoFade(const String& name, float fadeOutTime)
     return true;
 }
 
-bool AnimationController::IsPlaying(const String& name) const
+bool AnimationController::IsPlaying(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -390,7 +390,7 @@ bool AnimationController::IsPlaying(const String& name) const
     return index != M_MAX_UNSIGNED;
 }
 
-bool AnimationController::IsFadingIn(const String& name) const
+bool AnimationController::IsFadingIn(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -401,7 +401,7 @@ bool AnimationController::IsFadingIn(const String& name) const
     return animations_[index].fadeTime_ && animations_[index].targetWeight_ > state->GetWeight();
 }
 
-bool AnimationController::IsFadingOut(const String& name) const
+bool AnimationController::IsFadingOut(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -413,49 +413,49 @@ bool AnimationController::IsFadingOut(const String& name) const
         || (!state->IsLooped() && state->GetTime() >= state->GetLength() && animations_[index].autoFadeTime_);
 }
 
-unsigned char AnimationController::GetLayer(const String& name) const
+unsigned char AnimationController::GetLayer(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);
     return state ? state->GetLayer() : 0;
 }
 
-Bone* AnimationController::GetStartBone(const String& name) const
+Bone* AnimationController::GetStartBone(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);
     return state ? state->GetStartBone() : nullptr;
 }
 
-const String& AnimationController::GetStartBoneName(const String& name) const
+const QString& AnimationController::GetStartBoneName(const QString& name) const
 {
     Bone* bone = GetStartBone(name);
-    return bone ? bone->name_ : String::EMPTY;
+    return bone ? bone->name_ : s_dummy;
 }
 
-float AnimationController::GetTime(const String& name) const
+float AnimationController::GetTime(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);
     return state ? state->GetTime() : 0.0f;
 }
 
-float AnimationController::GetWeight(const String& name) const
+float AnimationController::GetWeight(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);
     return state ? state->GetWeight() : 0.0f;
 }
 
-bool AnimationController::IsLooped(const String& name) const
+bool AnimationController::IsLooped(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);
     return state ? state->IsLooped() : false;
 }
 
-float AnimationController::GetLength(const String& name) const
+float AnimationController::GetLength(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);
     return state ? state->GetLength() : 0.0f;
 }
 
-float AnimationController::GetSpeed(const String& name) const
+float AnimationController::GetSpeed(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -463,7 +463,7 @@ float AnimationController::GetSpeed(const String& name) const
     return index != M_MAX_UNSIGNED ? animations_[index].speed_ : 0.0f;
 }
 
-float AnimationController::GetFadeTarget(const String& name) const
+float AnimationController::GetFadeTarget(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -471,7 +471,7 @@ float AnimationController::GetFadeTarget(const String& name) const
     return index != M_MAX_UNSIGNED ? animations_[index].targetWeight_ : 0.0f;
 }
 
-float AnimationController::GetFadeTime(const String& name) const
+float AnimationController::GetFadeTime(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -479,7 +479,7 @@ float AnimationController::GetFadeTime(const String& name) const
     return index != M_MAX_UNSIGNED ? animations_[index].targetWeight_ : 0.0f;
 }
 
-float AnimationController::GetAutoFade(const String& name) const
+float AnimationController::GetAutoFade(const QString& name) const
 {
     unsigned index;
     AnimationState* state;
@@ -487,7 +487,7 @@ float AnimationController::GetAutoFade(const String& name) const
     return index != M_MAX_UNSIGNED ? animations_[index].autoFadeTime_ : 0.0f;
 }
 
-AnimationState* AnimationController::GetAnimationState(const String& name) const
+AnimationState* AnimationController::GetAnimationState(const QString& name) const
 {
     return GetAnimationState(StringHash(name));
 }
@@ -540,7 +540,7 @@ void AnimationController::SetNetAnimationsAttr(const PODVector<unsigned char>& v
     unsigned numAnimations = buf.ReadVLE();
     while (numAnimations--)
     {
-        String animName = buf.ReadString();
+        QString animName = buf.ReadString();
         StringHash animHash(animName);
         processedAnimations.insert(animHash);
 
@@ -797,7 +797,7 @@ void AnimationController::RemoveAnimationState(AnimationState* state)
     }
 }
 
-void AnimationController::FindAnimation(const String& name, unsigned& index, AnimationState*& state) const
+void AnimationController::FindAnimation(const QString& name, unsigned& index, AnimationState*& state) const
 {
     StringHash nameHash(name);
 

@@ -62,10 +62,10 @@ public:
     /// React to a key press.
     virtual void OnKey(int key, int buttons, int qualifiers) override;
     /// React to text input event.
-    virtual void OnTextInput(const String& text, int buttons, int qualifiers) override;
+    virtual void OnTextInput(const QString& text, int buttons, int qualifiers) override;
 
     /// Set text.
-    void SetText(const String& text);
+    void SetText(const QString& text);
     /// Set cursor position.
     void SetCursorPosition(unsigned position);
     /// Set cursor blink rate. 0 disables blinking.
@@ -82,7 +82,7 @@ public:
     void SetTextCopyable(bool enable);
 
     /// Return text.
-    const String& GetText() const { return line_; }
+    const QString& GetText() const { return line_; }
     /// Return cursor position.
     unsigned GetCursorPosition() const { return cursorPosition_; }
     /// Return cursor blink rate.
@@ -117,7 +117,7 @@ protected:
     /// Cursor element.
     SharedPtr<BorderImage> cursor_;
     /// Text line.
-    String line_;
+    QString line_;
     /// Last used text font.
     Font* lastFont_;
     /// Last used text size.

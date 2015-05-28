@@ -148,7 +148,7 @@ void Vehicle::Init()
     GetWheelComponents();
 }
 
-void Vehicle::InitWheel(const String& name, const Vector3& offset, WeakPtr<Node>& wheelNode, unsigned& wheelNodeID)
+void Vehicle::InitWheel(const QString & name, const Vector3& offset, WeakPtr<Node>& wheelNode, unsigned& wheelNodeID)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     

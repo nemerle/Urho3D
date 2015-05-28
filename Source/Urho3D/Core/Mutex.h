@@ -22,11 +22,12 @@
 
 #pragma once
 
+#include "../Urho3D.h"
 namespace Urho3D
 {
 
 /// Operating system mutual exclusion primitive.
-class Mutex
+class URHO3D_API Mutex
 {
 public:
     /// Construct.
@@ -45,7 +46,7 @@ private:
 };
 
 /// Lock that automatically acquires and releases a mutex.
-class MutexLock
+class URHO3D_API MutexLock
 {
 public:
     /// Construct and acquire the mutex.

@@ -61,71 +61,71 @@ public:
     XMLElement& operator = (const XMLElement& rhs);
 
     /// Create a child element.
-    XMLElement CreateChild(const String& name);
+    XMLElement CreateChild(const QString& name);
     /// Create a child element.
     XMLElement CreateChild(const char* name);
     /// Remove a child element. Return true if successful.
     bool RemoveChild(const XMLElement& element);
     /// Remove a child element by name. Return true if successful.
-    bool RemoveChild(const String& name);
+    bool RemoveChild(const QString& name);
     /// Remove a child element by name. Return true if successful.
     bool RemoveChild(const char* name);
     /// Remove child elements of certain name, or all child elements if name is empty. Return true if successful.
-    bool RemoveChildren(const String& name = String::EMPTY);
+    bool RemoveChildren(const QString& name = QString::null);
     /// Remove child elements of certain name, or all child elements if name is empty. Return true if successful.
     bool RemoveChildren(const char* name);
     /// Remove an attribute by name. Return true if successful.
-    bool RemoveAttribute(const String& name = String::EMPTY);
+    bool RemoveAttribute(const QString& name = QString::null);
     /// Remove an attribute by name. Return true if successful.
     bool RemoveAttribute(const char* name);
 
     /// Select an element/attribute using XPath query.
-    XMLElement SelectSingle(const String& query, pugi::xpath_variable_set* variables = nullptr) const;
+    XMLElement SelectSingle(const QString& query, pugi::xpath_variable_set* variables = nullptr) const;
     /// Select an element/attribute using XPath query.
     XMLElement SelectSinglePrepared(const XPathQuery& query) const;
     /// Select elements/attributes using XPath query.
-    XPathResultSet Select(const String& query, pugi::xpath_variable_set* variables = nullptr) const;
+    XPathResultSet Select(const QString& query, pugi::xpath_variable_set* variables = nullptr) const;
     /// Select elements/attributes using XPath query.
     XPathResultSet SelectPrepared(const XPathQuery& query) const;
 
     /// Set the value for an inner node in the following format <node>value</node>.
-    bool SetValue(const String& value);
+    bool SetValue(const QString& value);
     /// Set the value for an inner node in the following format <node>value</node>. Must be used on the <node> element.
     bool SetValue(const char* value);
     /// Set an attribute.
-    bool SetAttribute(const String& name, const String& value);
+    bool SetAttribute(const QString& name, const QString& value);
     /// Set an attribute.
     bool SetAttribute(const char* name, const char* value);
     /// Set an attribute. Only valid if it is an attribute only XPath query result.
-    bool SetAttribute(const String& value);
+    bool SetAttribute(const QString& value);
     /// Set an attribute. Only valid if it is an attribute only XPath query result.
     bool SetAttribute(const char* value);
     /// Set a bool attribute.
-    bool SetBool(const String& name, bool value);
+    bool SetBool(const QString& name, bool value);
     /// Set a BoundingBox attribute.
     bool SetBoundingBox(const BoundingBox& value);
     /// Set a buffer attribute.
-    bool SetBuffer(const String& name, const void* data, unsigned size);
+    bool SetBuffer(const QString& name, const void* data, unsigned size);
     /// Set a buffer attribute.
-    bool SetBuffer(const String& name, const PODVector<unsigned char>& value);
+    bool SetBuffer(const QString& name, const PODVector<unsigned char>& value);
     /// Set a color attribute.
-    bool SetColor(const String& name, const Color& value);
+    bool SetColor(const QString& name, const Color& value);
     /// Set a float attribute.
-    bool SetFloat(const String& name, float value);
+    bool SetFloat(const QString& name, float value);
     /// Set an unsigned integer attribute.
-    bool SetUInt(const String& name, unsigned value);
+    bool SetUInt(const QString& name, unsigned value);
     /// Set an integer attribute.
-    bool SetInt(const String& name, int value);
+    bool SetInt(const QString& name, int value);
     /// Set an IntRect attribute.
-    bool SetIntRect(const String& name, const IntRect& value);
+    bool SetIntRect(const QString& name, const IntRect& value);
     /// Set an IntVector2 attribute.
-    bool SetIntVector2(const String& name, const IntVector2& value);
+    bool SetIntVector2(const QString& name, const IntVector2& value);
     /// Set a Rect attribute.
-    bool SetRect(const String& name, const Rect& value);
+    bool SetRect(const QString& name, const Rect& value);
     /// Set a quaternion attribute.
-    bool SetQuaternion(const String& name, const Quaternion& value);
+    bool SetQuaternion(const QString& name, const Quaternion& value);
     /// Set a string attribute.
-    bool SetString(const String& name, const String& value);
+    bool SetString(const QString& name, const QString& value);
     /// Set a variant attribute.
     bool SetVariant(const Variant& value);
     /// Set a variant attribute excluding the type.
@@ -139,19 +139,19 @@ public:
     /// Set a variant map attribute. Creates child elements as necessary.
     bool SetVariantMap(const VariantMap& value);
     /// Set a Vector2 attribute.
-    bool SetVector2(const String& name, const Vector2& value);
+    bool SetVector2(const QString& name, const Vector2& value);
     /// Set a Vector3 attribute.
-    bool SetVector3(const String& name, const Vector3& value);
+    bool SetVector3(const QString& name, const Vector3& value);
     /// Set a Vector4 attribute.
-    bool SetVector4(const String& name, const Vector4& value);
+    bool SetVector4(const QString& name, const Vector4& value);
     /// Set a float, Vector or Matrix attribute stored in a variant.
-    bool SetVectorVariant(const String& name, const Variant& value);
+    bool SetVectorVariant(const QString& name, const Variant& value);
     /// Set a Matrix3 attribute.
-    bool SetMatrix3(const String& name, const Matrix3& value);
+    bool SetMatrix3(const QString& name, const Matrix3& value);
     /// Set a Matrix3x4 attribute.
-    bool SetMatrix3x4(const String& name, const Matrix3x4& value);
+    bool SetMatrix3x4(const QString& name, const Matrix3x4& value);
     /// Set a Matrix4 attribute.
-    bool SetMatrix4(const String& name, const Matrix4& value);
+    bool SetMatrix4(const QString& name, const Matrix4& value);
     
     /// Return whether does not refer to an element or an XPath node.
     bool IsNull() const;
@@ -160,17 +160,17 @@ public:
     /// Return true if refers to an element or an XPath node.
     operator bool () const;
     /// Return element name (or attribute name if it is an attribute only XPath query result).
-    String GetName() const;
+    QString GetName() const;
     /// Return whether has a child element.
-    bool HasChild(const String& name) const;
+    bool HasChild(const QString& name) const;
     /// Return whether has a child element.
     bool HasChild(const char* name) const;
     /// Return child element, or null if missing.
-    XMLElement GetChild(const String& name = String::EMPTY) const;
+    XMLElement GetChild(const QString& name = QString::null) const;
     /// Return child element, or null if missing.
     XMLElement GetChild(const char* name) const;
     /// Return next sibling element.
-    XMLElement GetNext(const String& name = String::EMPTY) const;
+    XMLElement GetNext(const QString& name = QString::null) const;
     /// Return next sibling element.
     XMLElement GetNext(const char* name) const;
     /// Return parent element.
@@ -178,51 +178,51 @@ public:
     /// Return number of attributes.
     unsigned GetNumAttributes() const;
     /// Return whether has an attribute.
-    bool HasAttribute(const String& name) const;
+    bool HasAttribute(const QString& name) const;
     /// Return whether has an attribute.
     bool HasAttribute(const char* name) const;
     /// Return inner value, or empty if missing for nodes like <node>value</node>
-    String GetValue() const;
+    QString GetValue() const;
     /// Return attribute, or empty if missing.
-    String GetAttribute(const String& name = String::EMPTY) const;
+    QString GetAttribute(const QString& name = QString::null) const;
     /// Return attribute, or empty if missing.
-    String GetAttribute(const char* name) const;
+    QString GetAttribute(const char* name) const;
     /// Return attribute as C string, or null if missing.
     const char* GetAttributeCString(const char* name) const;
     /// Return attribute in lowercase, or empty if missing.
-    String GetAttributeLower(const String& name) const;
+    QString GetAttributeLower(const QString& name) const;
     /// Return attribute in lowercase, or empty if missing.
-    String GetAttributeLower(const char* name) const;
+    QString GetAttributeLower(const char* name) const;
     /// Return attribute in lowercase, or empty if missing.
-    String GetAttributeUpper(const String& name) const;
+    QString GetAttributeUpper(const QString& name) const;
     /// Return attribute in lowercase, or empty if missing.
-    String GetAttributeUpper(const char* name) const;
+    QString GetAttributeUpper(const char* name) const;
     /// Return names of all attributes.
-    Vector<String> GetAttributeNames() const;
+    QStringList GetAttributeNames() const;
     /// Return bool attribute, or false if missing.
-    bool GetBool(const String& name) const;
+    bool GetBool(const QString& name) const;
     /// Return buffer attribute, or empty if missing.
-    PODVector<unsigned char> GetBuffer(const String& name) const;
+    PODVector<unsigned char> GetBuffer(const QString& name) const;
     /// Copy buffer attribute into a supplied buffer. Return true if buffer was large enough.
-    bool GetBuffer(const String& name, void* dest, unsigned size) const;
+    bool GetBuffer(const QString& name, void* dest, unsigned size) const;
     /// Return bounding box attribute, or empty if missing.
     BoundingBox GetBoundingBox() const;
     /// Return a color attribute, or default if missing.
-    Color GetColor(const String& name) const;
+    Color GetColor(const QString& name) const;
     /// Return a float attribute, or zero if missing.
-    float GetFloat(const String& name) const;
+    float GetFloat(const QString& name) const;
     /// Return an unsigned integer attribute, or zero if missing.
-    unsigned GetUInt(const String& name) const;
+    unsigned GetUInt(const QString& name) const;
     /// Return an integer attribute, or zero if missing.
-    int GetInt(const String& name) const;
+    int GetInt(const QString& name) const;
     /// Return an IntRect attribute, or default if missing.
-    IntRect GetIntRect(const String& name) const;
+    IntRect GetIntRect(const QString& name) const;
     /// Return an IntVector2 attribute, or default if missing.
-    IntVector2 GetIntVector2(const String& name) const;
+    IntVector2 GetIntVector2(const QString& name) const;
     /// Return a Rect attribute, or default if missing.
-    Rect GetRect(const String& name) const;
+    Rect GetRect(const QString& name) const;
     /// Return a quaternion attribute, or default if missing.
-    Quaternion GetQuaternion(const String& name) const;
+    Quaternion GetQuaternion(const QString& name) const;
     /// Return a variant attribute, or empty if missing.
     Variant GetVariant() const;
     /// Return a variant attribute with static type.
@@ -236,21 +236,21 @@ public:
     /// Return a variant map attribute, or empty if missing.
     VariantMap GetVariantMap() const;
     /// Return a Vector2 attribute, or zero vector if missing.
-    Vector2 GetVector2(const String& name) const;
+    Vector2 GetVector2(const QString& name) const;
     /// Return a Vector3 attribute, or zero vector if missing.
-    Vector3 GetVector3(const String& name) const;
+    Vector3 GetVector3(const QString& name) const;
     /// Return a Vector4 attribute, or zero vector if missing.
-    Vector4 GetVector4(const String& name) const;
+    Vector4 GetVector4(const QString& name) const;
     /// Return any Vector attribute as Vector4. Missing coordinates will be zero.
-    Vector4 GetVector(const String& name) const;
+    Vector4 GetVector(const QString& name) const;
     /// Return a float, Vector or Matrix attribute as Variant.
-    Variant GetVectorVariant(const String& name) const;
+    Variant GetVectorVariant(const QString& name) const;
     /// Return a Matrix3 attribute, or zero matrix if missing.
-    Matrix3 GetMatrix3(const String& name) const;
+    Matrix3 GetMatrix3(const QString& name) const;
     /// Return a Matrix3x4 attribute, or zero matrix if missing.
-    Matrix3x4 GetMatrix3x4(const String& name) const;
+    Matrix3x4 GetMatrix3x4(const QString& name) const;
     /// Return a Matrix4 attribute, or zero matrix if missing.
-    Matrix4 GetMatrix4(const String& name) const;
+    Matrix4 GetMatrix4(const QString& name) const;
     /// Return XML file.
     XMLFile* GetFile() const;
     /// Return pugixml xml_node_struct.
@@ -321,23 +321,23 @@ public:
     /// Construct empty.
     XPathQuery();
     /// Construct XPath query object with query string and variable string. The variable string format is "name1:type1,name2:type2,..." where type is one of "Bool", "Float", "String", "ResultSet".
-    XPathQuery(const String& queryString, const String& variableString = String::EMPTY);
+    XPathQuery(const QString& queryString, const QString& variableString = QString::null);
     /// Destruct.
     ~XPathQuery();
     /// Bind query object with variable set.
     void Bind();
     /// Add/Set a bool variable. Return true if successful.
-    bool SetVariable(const String& name, bool value);
+    bool SetVariable(const QString& name, bool value);
     /// Add/Set a float variable. Return true if successful.
-    bool SetVariable(const String& name, float value);
+    bool SetVariable(const QString& name, float value);
     /// Add/Set a string variable. Return true if successful.
-    bool SetVariable(const String& name, const String& value);
+    bool SetVariable(const QString& name, const QString& value);
     /// Add/Set a string variable. Return true if successful.
     bool SetVariable(const char* name, const char* value);
     /// Add/Set an XPath query result set variable. Return true if successful.
-    bool SetVariable(const String& name, const XPathResultSet& value);
+    bool SetVariable(const QString& name, const XPathResultSet& value);
     /// Set XPath query string and variable string. The variable string format is "name1:type1,name2:type2,..." where type is one of "Bool", "Float", "String", "ResultSet".
-    bool SetQuery(const String& queryString, const String& variableString = String::EMPTY, bool bind = true);
+    bool SetQuery(const QString& queryString, const QString& variableString = QString::null, bool bind = true);
     /// Clear by removing all variables and XPath query object.
     void Clear();
     /// Evaluate XPath query and expecting a boolean return value.
@@ -345,12 +345,12 @@ public:
     /// Evaluate XPath query and expecting a float return value.
     float EvaluateToFloat(XMLElement element) const;
     /// Evaluate XPath query and expecting a string return value.
-    String EvaluateToString(XMLElement element) const;
+    QString EvaluateToString(XMLElement element) const;
     /// Evaluate XPath query and expecting an XPath query result set as return value.
     /// Note: The XPathResultSet return value must be stored in a lhs variable to ensure the underlying xpath_node_set* is still valid while performing XPathResultSet::FirstResult(), XPathResultSet::operator [], and XMLElement::NextResult().
     XPathResultSet Evaluate(XMLElement element) const;
     /// Return query string.
-    String GetQuery() const { return queryString_; }
+    QString GetQuery() const { return queryString_; }
     /// Return pugixml xpath_query.
     pugi::xpath_query* GetXPathQuery() const { return query_; }
     /// Return pugixml xpath_variable_set.
@@ -358,7 +358,7 @@ public:
 
 private:
     /// XPath query string.
-    String queryString_;
+    QString queryString_;
     /// Pugixml xpath_query.
     pugi::xpath_query* query_;
     /// Pugixml xpath_variable_set.

@@ -76,7 +76,7 @@ File::File(Context* context) :
 {
 }
 
-File::File(Context* context, const String& fileName, FileMode mode) :
+File::File(Context* context, const QString& fileName, FileMode mode) :
     Object(context),
     mode_(FILE_READ),
     handle_(nullptr),
@@ -94,7 +94,7 @@ File::File(Context* context, const String& fileName, FileMode mode) :
     Open(fileName, mode);
 }
 
-File::File(Context* context, PackageFile* package, const String& fileName) :
+File::File(Context* context, PackageFile* package, const QString& fileName) :
     Object(context),
     mode_(FILE_READ),
     handle_(nullptr),
@@ -117,14 +117,14 @@ File::~File()
     Close();
 }
 
-bool File::Open(const String& fileName, FileMode mode)
+bool File::Open(const QString& fileName, FileMode mode)
 {
     Close();
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
     if (fileSystem && !fileSystem->CheckAccess(GetPath(fileName)))
     {
-        LOGERROR("Access denied to " + fileName);
+        LOGERROR(QString("Access denied to %1").arg(fileName));
         return false;
     }
 
@@ -137,10 +137,10 @@ bool File::Open(const String& fileName, FileMode mode)
             return false;
         }
 
-        assetHandle_ = SDL_RWFromFile(fileName.Substring(5).CString(), "rb");
+        assetHandle_ = SDL_RWFromFile(fileName.mid(5).CString(), "rb");
         if (!assetHandle_)
         {
-            LOGERROR("Could not open asset file " + fileName);
+            LOGERRORF("Could not open asset file %s", fileName.CString());
             return false;
         }
         else
@@ -168,7 +168,7 @@ bool File::Open(const String& fileName, FileMode mode)
     #ifdef WIN32
     handle_ = _wfopen(GetWideNativePath(fileName).CString(), openMode[mode]);
     #else
-    handle_ = fopen(GetNativePath(fileName).CString(), openMode[mode]);
+    handle_ = fopen(qPrintable(GetNativePath(fileName)), openMode[mode]);
     #endif
 
     // If file did not exist in readwrite mode, retry with write-update mode
@@ -177,13 +177,13 @@ bool File::Open(const String& fileName, FileMode mode)
         #ifdef WIN32
         handle_ = _wfopen(GetWideNativePath(fileName).CString(), openMode[mode + 1]);
         #else
-        handle_ = fopen(GetNativePath(fileName).CString(), openMode[mode + 1]);
+        handle_ = fopen(qPrintable(GetNativePath(fileName)), openMode[mode + 1]);
         #endif
     }
 
     if (!handle_)
     {
-        LOGERROR("Could not open file " + fileName);
+        LOGERROR(QString("Could not open file ") + fileName);
         return false;
     }
 
@@ -197,12 +197,20 @@ bool File::Open(const String& fileName, FileMode mode)
     writeSyncNeeded_ = false;
 
     fseek((FILE*)handle_, 0, SEEK_END);
-    size_ = ftell((FILE*)handle_);
+    long size = ftell((FILE*)handle_);
     fseek((FILE*)handle_, 0, SEEK_SET);
+    if (size > M_MAX_UNSIGNED)
+    {
+        LOGERROR(QString("Could not open file %1 which is larger than 4GB").arg(fileName));
+        Close();
+        size_ = 0;
+        return false;
+    }
+    size_ = (unsigned)size;
     return true;
 }
 
-bool File::Open(PackageFile* package, const String& fileName)
+bool File::Open(PackageFile* package, const QString& fileName)
 {
     Close();
 
@@ -216,7 +224,7 @@ bool File::Open(PackageFile* package, const String& fileName)
     #ifdef WIN32
     handle_ = _wfopen(GetWideNativePath(package->GetName()).CString(), L"rb");
     #else
-    handle_ = fopen(GetNativePath(package->GetName()).CString(), "rb");
+    handle_ = fopen(qPrintable(GetNativePath(package->GetName())), "rb");
     #endif
     if (!handle_)
     {
@@ -504,7 +512,7 @@ void File::Flush()
         fflush((FILE*)handle_);
 }
 
-void File::SetName(const String& name)
+void File::SetName(const QString& name)
 {
     fileName_ = name;
 }

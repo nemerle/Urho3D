@@ -421,15 +421,16 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
 
     if (newDecal.vertices_.size() > maxVertices_)
     {
-        LOGWARNING("Can not add decal, vertex count " + String(newDecal.vertices_.size()) + " exceeds maximum " +
-            String(maxVertices_));
+        LOGWARNING(QString("Can not add decal, vertex count %1 exceeds maximum %2")
+                .arg(newDecal.vertices_.size())
+                .arg(maxVertices_));
         decals_.pop_back();
         return false;
     }
     if (newDecal.indices_.size() > maxIndices_)
     {
-        LOGWARNING("Can not add decal, index count " + String(newDecal.indices_.size()) + " exceeds maximum " +
-            String(maxIndices_));
+        LOGWARNING(QString("Can not add decal, index count %1 exceeds maximum %2")
+                   .arg(newDecal.indices_.size()).arg(maxIndices_));
         decals_.pop_back();
         return false;
     }
@@ -458,7 +459,7 @@ bool DecalSet::AddDecal(Drawable* target, const Vector3& worldPosition, const Qu
     while (decals_.size() && (numVertices_ > maxVertices_ || numIndices_ > maxIndices_))
         RemoveDecals(1);
 
-    LOGDEBUG("Added decal with " + String(newDecal.vertices_.size()) + " vertices");
+    LOGDEBUG("Added decal with " + QString::number(newDecal.vertices_.size()) + " vertices");
 
     // If new decal is time limited, subscribe to scene post-update
     if (newDecal.timeToLive_ > 0.0f && !subscribed_)

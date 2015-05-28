@@ -131,7 +131,7 @@ void SoundSource::RegisterObject(Context* context)
 
     ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     MIXED_ACCESSOR_ATTRIBUTE("Sound", GetSoundAttr, SetSoundAttr, ResourceRef, ResourceRef(Sound::GetTypeStatic()), AM_DEFAULT);
-    MIXED_ACCESSOR_ATTRIBUTE("Type", GetSoundType, SetSoundType, String, SOUND_EFFECT, AM_DEFAULT);
+    MIXED_ACCESSOR_ATTRIBUTE("Type", GetSoundType, SetSoundType, QString, SOUND_EFFECT, AM_DEFAULT);
     ATTRIBUTE("Frequency", float, frequency_, 0.0f, AM_DEFAULT);
     ATTRIBUTE("Gain", float, gain_, 1.0f, AM_DEFAULT);
     ATTRIBUTE("Attenuation", float, attenuation_, 1.0f, AM_DEFAULT);
@@ -228,7 +228,7 @@ void SoundSource::Stop()
     MarkNetworkUpdate();
 }
 
-void SoundSource::SetSoundType(const String& type)
+void SoundSource::SetSoundType(const QString& type)
 {
     if (type == SOUND_MASTER)
         return;

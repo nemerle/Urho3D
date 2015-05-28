@@ -66,7 +66,6 @@ public:
     /// Return the buffer.
     const PODVector<unsigned char>& GetBuffer() const { return buffer_; }
 
-    VectorBuffer& operator=(const VectorBuffer& rhs) = default;
 private:
     /// Dynamic data buffer.
     PODVector<unsigned char> buffer_;

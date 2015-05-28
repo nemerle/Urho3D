@@ -61,9 +61,9 @@ public:
     virtual bool EndLoad();
 
     /// Add a scripted event handler.
-    virtual void AddEventHandler(StringHash eventType, const String& handlerName);
+    virtual void AddEventHandler(StringHash eventType, const QString& handlerName);
     /// Add a scripted event handler for a specific sender.
-    virtual void AddEventHandler(Object* sender, StringHash eventType, const String& handlerName);
+    virtual void AddEventHandler(Object* sender, StringHash eventType, const QString& handlerName);
     /// Remove a scripted event handler.
     virtual void RemoveEventHandler(StringHash eventType);
     /// Remove a scripted event handler for a specific sender.
@@ -76,28 +76,28 @@ public:
     virtual void RemoveEventHandlersExcept(const PODVector<StringHash>& exceptions);
 
     /// Query for a function by declaration and execute if found.
-    bool Execute(const String& declaration, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
+    bool Execute(const QString& declaration, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
     /// Execute a function.
     bool Execute(asIScriptFunction* function, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
     /// Query for an object method by declaration and execute if found.
-    bool Execute(asIScriptObject* object, const String& declaration, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
+    bool Execute(asIScriptObject* object, const QString& declaration, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
     /// Execute an object method.
     bool Execute(asIScriptObject* object, asIScriptFunction* method, const VariantVector& parameters = Variant::emptyVariantVector, bool unprepare = true);
     /// Add a delay-executed function call, optionally repeating.
-    void DelayedExecute(float delay, bool repeat, const String& declaration, const VariantVector& parameters = Variant::emptyVariantVector);
+    void DelayedExecute(float delay, bool repeat, const QString& declaration, const VariantVector& parameters = Variant::emptyVariantVector);
     /// Clear pending delay-executed function calls. If empty declaration given, clears all.
-    void ClearDelayedExecute(const String& declaration = String::EMPTY);
+    void ClearDelayedExecute(const QString& declaration = QString::null);
     /// Create a script object. Optionally search for the first class in the module that implements the specified interface.
-    asIScriptObject* CreateObject(const String& className, bool useInterface = false);
+    asIScriptObject* CreateObject(const QString& className, bool useInterface = false);
     /// Save the script bytecode. Return true if successful.
     bool SaveByteCode(Serializer& dest);
 
     /// Return script module.
     asIScriptModule* GetScriptModule() const { return scriptModule_; }
     /// Return a function by declaration. Will be stored to a search cache so that further searches should be faster.
-    asIScriptFunction* GetFunction(const String& declaration);
+    asIScriptFunction* GetFunction(const QString& declaration);
     /// Return an object method by declaration.
-    asIScriptFunction* GetMethod(asIScriptObject* object, const String& declaration);
+    asIScriptFunction* GetMethod(asIScriptObject* object, const QString& declaration);
     /// Return whether script compiled successfully.
     bool IsCompiled() const { return compiled_; }
     /// Clean up an event invoker object when its associated script object no longer exists
@@ -105,7 +105,7 @@ public:
 
 private:
     /// Add an event handler and create the necessary proxy object.
-    void AddEventHandlerInternal(Object* sender, StringHash eventType, const String& handlerName);
+    void AddEventHandlerInternal(Object* sender, StringHash eventType, const QString& handlerName);
     /// Add a script section, checking for includes recursively. Return true if successful.
     bool AddScriptSection(asIScriptEngine* engine, Deserializer& source);
     /// Set parameters for a function or method.
@@ -124,13 +124,13 @@ private:
     /// Subscribed to application update event flag.
     bool subscribed_;
     /// Encountered include files during script file loading.
-    QSet<String> includeFiles_;
+    QSet<QString> includeFiles_;
     /// Search cache for checking whether script classes implement "ScriptObject" interface.
     HashMap<asIObjectType*, bool> validClasses_;
     /// Search cache for functions.
-    HashMap<String, asIScriptFunction*> functions_;
+    HashMap<QString, asIScriptFunction*> functions_;
     /// Search cache for methods.
-    HashMap<asIObjectType*, HashMap<String, asIScriptFunction*> > methods_;
+    HashMap<asIObjectType*, HashMap<QString, asIScriptFunction*> > methods_;
     /// Delayed function calls.
     Vector<DelayedCall> delayedCalls_;
     /// Event helper objects for handling procedural or non-ScriptInstance script events

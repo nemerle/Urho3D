@@ -39,7 +39,7 @@ macro (add_sample_subdirectory SOURCE_DIR)
         add_subdirectory (${SOURCE_DIR} ${ARGN})
     endif ()
 endmacro ()
-
+INCLUDE_DIRECTORIES(${INCLUDE_DIRS})
 # Add samples
 add_sample_subdirectory (01_HelloWorld)
 add_sample_subdirectory (02_HelloGUI)

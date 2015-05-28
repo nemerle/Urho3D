@@ -55,7 +55,7 @@ public:
     /// Suspend sound output.
     void Stop();
     /// Set master gain on a specific sound type such as sound effects, music or voice.
-    void SetMasterGain(const String& type, float gain);
+    void SetMasterGain(const QString& type, float gain);
     /// Set active sound listener for 3D sounds.
     void SetListener(SoundListener* listener);
     /// Stop any sound source playing a certain sound clip.
@@ -74,14 +74,14 @@ public:
     /// Return whether an audio stream has been reserved.
     bool IsInitialized() const { return deviceID_ != 0; }
     /// Return master gain for a specific sound source type. Unknown sound types will return full gain (1).
-    float GetMasterGain(const String& type) const;
+    float GetMasterGain(const QString& type) const;
     /// Return active sound listener.
     SoundListener* GetListener() const;
     /// Return all sound sources.
     const PODVector<SoundSource*>& GetSoundSources() const { return soundSources_; }
 
     /// Return whether the specified master gain has been defined.
-    bool HasMasterGain(const String& type) const { return masterGain_.contains(type); }
+    bool HasMasterGain(const QString& type) const { return masterGain_.contains(type); }
 
     /// Add a sound source to keep track of. Called by SoundSource.
     void AddSoundSource(SoundSource* soundSource);

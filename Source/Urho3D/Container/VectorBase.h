@@ -21,14 +21,16 @@
 //
 
 #pragma once
-//#include "Urho3D.h"
+#include "../Urho3D.h"
 #include "../Container/Swap.h"
 
+#include <iterator>
 namespace Urho3D
 {
 
 /// Random access iterator.
-template <class T> struct RandomAccessIterator
+template <class T>
+struct RandomAccessIterator : public std::iterator<std::random_access_iterator_tag, T>
 {
     /// Construct.
     RandomAccessIterator() :
@@ -147,7 +149,7 @@ template <class T> struct RandomAccessConstIterator
 /** Note that to prevent extra memory use due to vtable pointer, %VectorBase intentionally does not declare a virtual destructor
     and therefore %VectorBase pointers should never be used.
   */
-class VectorBase
+class URHO3D_API VectorBase
 {
 public:
     /// Construct.

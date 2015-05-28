@@ -51,7 +51,7 @@ public:
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const override { return
+    virtual QString GetScreenJoystickPatchString() const override { return
         "<patch>"
         "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Button2']]\">"
         "        <attribute name=\"Is Visible\" value=\"false\" />"
@@ -68,9 +68,9 @@ private:
     /// Subscribe to log message, UI and network events.
     void SubscribeToEvents();
     /// Create a button to the button container.
-    Button* CreateButton(const String& text, int width);
+    Button* CreateButton(const QString & text, int width);
     /// Print chat text.
-    void ShowChatText(const String& row);
+    void ShowChatText(const QString & row);
     /// Update visibility of buttons according to connection and server status.
     void UpdateButtons();
     /// Handle log message event; pipe it also to the chat display.
@@ -88,7 +88,7 @@ private:
     /// Handle connection status change (just update the buttons that should be shown.)
     void HandleConnectionStatus(StringHash eventType, VariantMap& eventData);
     /// Strings printed so far.
-    std::deque<String> chatHistory_;
+    std::deque<QString> chatHistory_;
     /// Chat text element.
     SharedPtr<Text> chatHistoryText_;
     /// Button container element.

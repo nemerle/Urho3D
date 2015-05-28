@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #include "../Math/Vector2.h"
 #include "../Container/Vector.h"
 #include "../Container/Str.h"
+
 namespace Urho3D
 {
 
@@ -92,7 +93,7 @@ struct AnimationKeyFrame2D
 struct AnimationTrack2D
 {
     /// Name.
-    String name_;
+    QString name_;
     /// Is sprite track.
     bool hasSprite_;
     /// Animation key frames.
@@ -109,7 +110,7 @@ public:
     virtual ~Animation2D();
 
     /// Set name.
-    void SetName(const String& name);
+    void SetName(const QString& name);
     /// Set length.
     void SetLength(float length);
     /// Set looped.
@@ -118,7 +119,7 @@ public:
     /// Return animation set.
     AnimationSet2D* GetAnimationSet() const;
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return length.
     float GetLength() const { return length_; }
     /// Return looped.
@@ -135,7 +136,7 @@ private:
     /// Animation set.
     WeakPtr<AnimationSet2D> animationSet_;
     /// Name.
-    String name_;
+    QString name_;
     /// Length.
     float length_;
     /// Looped.

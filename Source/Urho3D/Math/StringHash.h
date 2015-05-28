@@ -28,7 +28,7 @@ namespace Urho3D
 {
 
 /// 32-bit hash value for a string.
-class StringHash
+class URHO3D_API StringHash
 {
 public:
     /// Construct with zero value.
@@ -58,7 +58,7 @@ public:
     /// Construct from a C string case-insensitively.
     StringHash(const char* str);
     /// Construct from a string case-insensitively.
-    StringHash(const String& str);
+    StringHash(const QString& str);
 
     /// Assign from another hash.
     StringHash& operator = (const StringHash& rhs)
@@ -95,8 +95,8 @@ public:
     /// Return hash value.
     unsigned Value() const { return value_; }
     /// Return as string.
-    String ToString() const;
-    /// Return hash value for QSet & HashMap.
+    QString ToString() const;
+    /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const { return value_; }
 
     /// Calculate hash value case-insensitively from a C string.
@@ -110,7 +110,7 @@ private:
     unsigned value_;
 };
 typedef unsigned int uint;
-inline uint qHash(const Urho3D::StringHash &key, uint seed)
+inline uint qHash(const StringHash &key, uint seed)
 {
     return key.ToHash();
 }

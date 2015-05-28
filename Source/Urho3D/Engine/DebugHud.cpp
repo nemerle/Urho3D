@@ -120,20 +120,20 @@ void DebugHud::Update()
             batches = renderer->GetNumBatches();
         }
 
-        String stats;
-        stats.AppendWithFormat("Triangles %u\nBatches %u\nViews %u\nLights %u\nShadowmaps %u\nOccluders %u",
-            primitives,
-            batches,
-            renderer->GetNumViews(),
-            renderer->GetNumLights(true),
-            renderer->GetNumShadowMaps(true),
-            renderer->GetNumOccluders(true));
+        QString stats;
+        QString("Triangles %1\nBatches %2\nViews %3\nLights %4\nShadowmaps %5\nOccluders %6")
+            .arg(primitives)
+            .arg(batches)
+            .arg(renderer->GetNumViews())
+            .arg(renderer->GetNumLights(true))
+            .arg(renderer->GetNumShadowMaps(true))
+            .arg(renderer->GetNumOccluders(true));
 
         if (!appStats_.isEmpty())
         {
             stats.append("\n");
-            for (QMap<String, String>::const_iterator i = appStats_.cbegin(); i != appStats_.cend(); ++i)
-                stats.AppendWithFormat("\n%s %s", i.key().CString(), i->CString());
+            for (QMap<QString, QString>::const_iterator i = appStats_.cbegin(); i != appStats_.cend(); ++i)
+                stats += QString("\n%1 %2").arg(i.key()).arg(*i);
         }
 
         statsText_->SetText(stats);
@@ -141,17 +141,17 @@ void DebugHud::Update()
 
     if (modeText_->IsVisible())
     {
-        String mode;
-        mode.AppendWithFormat("Tex:%s Mat:%s Spec:%s Shadows:%s Size:%i Quality:%s Occlusion:%s Instancing:%s API:%s",
-            qualityTexts[renderer->GetTextureQuality()],
-            qualityTexts[renderer->GetMaterialQuality()],
-            renderer->GetSpecularLighting() ? "On" : "Off",
-            renderer->GetDrawShadows() ? "On" : "Off",
-            renderer->GetShadowMapSize(),
-            shadowQualityTexts[renderer->GetShadowQuality()],
-            renderer->GetMaxOccluderTriangles() > 0 ? "On" : "Off",
-            renderer->GetDynamicInstancing() ? "On" : "Off",
-            graphics->GetApiName().CString());
+        QString mode;
+        QString("Tex:%1 Mat:%2 Spec:%3 Shadows:%4 Size:%5 Quality:%6 Occlusion:%7 Instancing:%8 API:%9")
+            .arg(qualityTexts[renderer->GetTextureQuality()])
+            .arg(qualityTexts[renderer->GetMaterialQuality()])
+            .arg(renderer->GetSpecularLighting() ? "On" : "Off")
+            .arg(renderer->GetDrawShadows() ? "On" : "Off")
+            .arg(renderer->GetShadowMapSize())
+            .arg(shadowQualityTexts[renderer->GetShadowQuality()])
+            .arg(renderer->GetMaxOccluderTriangles() > 0 ? "On" : "Off")
+            .arg(renderer->GetDynamicInstancing() ? "On" : "Off")
+            .arg(graphics->GetApiName());
 
         modeText_->SetText(mode);
     }
@@ -165,7 +165,7 @@ void DebugHud::Update()
 
             if (profilerText_->IsVisible())
             {
-                String profilerOutput = profiler->GetData(false, false, profilerMaxDepth_);
+                QString profilerOutput = profiler->GetData(false, false, profilerMaxDepth_);
                 profilerText_->SetText(profilerOutput);
             }
 
@@ -231,18 +231,20 @@ float DebugHud::GetProfilerInterval() const
     return (float)profilerInterval_ / 1000.0f;
 }
 
-void DebugHud::SetAppStats(const String& label, const Variant& stats)
+void DebugHud::SetAppStats(const QString& label, const Variant& stats)
 {
     SetAppStats(label, stats.ToString());
 }
 
-void DebugHud::SetAppStats(const String& label, const String& stats)
+void DebugHud::SetAppStats(const QString& label, const QString& stats)
 {
     //bool newLabel = !appStats_.contains(label);
     appStats_[label] = stats;
+    //if (newLabel)
+    //   appStats_.Sort();
 }
 
-bool DebugHud::ResetAppStats(const String& label)
+bool DebugHud::ResetAppStats(const QString& label)
 {
     return appStats_.remove(label);
 }

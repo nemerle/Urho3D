@@ -200,25 +200,25 @@ public:
     CScriptDictionary &operator =(const CScriptDictionary &other);
 
     // Sets a key/value pair
-    void Set(const String &key, void *value, int typeId);
-    void Set(const String &key, const asINT64 &value);
-    void Set(const String &key, const double &value);
+    void Set(const QString &key, void *value, int typeId);
+    void Set(const QString &key, const asINT64 &value);
+    void Set(const QString &key, const double &value);
 
     // Gets the stored value. Returns false if the value isn't compatible with the informed typeId
-    bool Get(const String &key, void *value, int typeId) const;
-    bool Get(const String &key, asINT64 &value) const;
-    bool Get(const String &key, double &value) const;
+    bool Get(const QString &key, void *value, int typeId) const;
+    bool Get(const QString &key, asINT64 &value) const;
+    bool Get(const QString &key, double &value) const;
 
     // Index accessors. If the dictionary is not const it inserts the value if it doesn't already exist
     // If the dictionary is const then a script exception is set if it doesn't exist and a null pointer is returned
-    CScriptDictValue *operator[](const String &key);
-    const CScriptDictValue *operator[](const String &key) const;
+    CScriptDictValue *operator[](const QString &key);
+    const CScriptDictValue *operator[](const QString &key) const;
 
     // Returns the type id of the stored value, or negative if it doesn't exist
-    int GetTypeId(const String &key) const;
+    int GetTypeId(const QString &key) const;
 
     // Returns true if the key is set
-    bool Exists(const String &key) const;
+    bool Exists(const QString &key) const;
 
     // Returns true if there are no key/value pairs in the dictionary
     bool IsEmpty() const;
@@ -227,7 +227,7 @@ public:
     asUINT GetSize() const;
 
     // Deletes the key
-    void Delete(const String &key);
+    void Delete(const QString &key);
 
     // Deletes all keys
     void DeleteAll();
@@ -236,7 +236,7 @@ public:
     CScriptArray *GetKeys() const;
 
 public:
-    // STL style iterator
+    /// STL style iterator for %Script dictionary class.
     class CIterator
     {
     public:
@@ -250,7 +250,7 @@ public:
         bool operator!=(const CIterator &other) const;
 
         // Accessors
-        const String &GetKey() const;
+        const QString &GetKey() const;
         int                GetTypeId() const;
         bool               GetValue(asINT64 &value) const;
         bool               GetValue(double &value) const;
@@ -261,11 +261,11 @@ public:
 
         CIterator();
         CIterator(const CScriptDictionary &dict,
-                  HashMap<String, CScriptDictValue>::const_iterator it);
+                  HashMap<QString, CScriptDictValue>::const_iterator it);
 
         CIterator &operator=(const CIterator &) {return *this;} // Not used
 
-        HashMap<String, CScriptDictValue>::const_iterator m_it;
+        HashMap<QString, CScriptDictValue>::const_iterator m_it;
         const CScriptDictionary &m_dict;
     };
 
@@ -295,7 +295,7 @@ protected:
     mutable bool gcFlag;
 
     // TODO: memory: The allocator should use the asAllocMem and asFreeMem
-    HashMap<String, CScriptDictValue> dict;
+    HashMap<QString, CScriptDictValue> dict;
 };
 
 /// Register the array type to script.

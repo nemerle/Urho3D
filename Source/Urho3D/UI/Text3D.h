@@ -55,13 +55,13 @@ public:
     virtual UpdateGeometryType GetUpdateGeometryType();
 
     /// Set font and font size and use signed distance field font. Return true if successful.
-    bool SetFont(const String& fontName, int size = DEFAULT_FONT_SIZE);
+    bool SetFont(const QString& fontName, int size = DEFAULT_FONT_SIZE);
     /// Set font and font size and use signed distance field font. Return true if successful.
     bool SetFont(Font* font, int size = DEFAULT_FONT_SIZE);
     /// Set material.
     void SetMaterial(Material* material);
     /// Set text. Text is assumed to be either ASCII or UTF8-encoded.
-    void SetText(const String& text);
+    void SetText(const QString& text);
     /// Set horizontal and vertical alignment.
     void SetAlignment(HorizontalAlignment hAlign, VerticalAlignment vAlign);
     /// Set horizontal alignment.
@@ -98,7 +98,7 @@ public:
     /// Return font size.
     int GetFontSize() const;
     /// Return text.
-    const String& GetText() const;
+    const QString& GetText() const;
     /// Return row alignment.
     HorizontalAlignment GetTextAlignment() const;
     /// Return horizontal alignment.

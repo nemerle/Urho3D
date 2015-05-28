@@ -48,18 +48,18 @@ public:
     virtual void ThreadFunction();
 
     /// Start watching a directory. Return true if successful.
-    bool StartWatching(const String& pathName, bool watchSubDirs);
+    bool StartWatching(const QString& pathName, bool watchSubDirs);
     /// Stop watching the directory.
     void StopWatching();
     /// Set the delay in seconds before file changes are notified. This (hopefully) avoids notifying when a file save is still in progress. Default 1 second.
     void SetDelay(float interval);
     /// Add a file change into the changes queue.
-    void AddChange(const String& fileName);
+    void AddChange(const QString& fileName);
     /// Return a file change (true if was found, false if not.)
-    bool GetNextChange(String& dest);
+    bool GetNextChange(QString& dest);
 
     /// Return the path being watched, or empty if not watching.
-    const String& GetPath() const { return path_; }
+    const QString& GetPath() const { return path_; }
     /// Return the delay in seconds for notifying file changes.
     float GetDelay() const { return delay_;}
 
@@ -67,9 +67,9 @@ private:
     /// Filesystem.
     SharedPtr<FileSystem> fileSystem_;
     /// The path being watched.
-    String path_;
+    QString path_;
     /// Pending changes. These will be returned and removed from the list when their timer has exceeded the delay.
-    HashMap<String, Timer> changes_;
+    HashMap<QString, Timer> changes_;
     /// Mutex for the change buffer.
     Mutex changesMutex_;
     /// Delay in seconds for notifying changes.
@@ -85,7 +85,7 @@ private:
 #elif __linux__
 
     /// HashMap for the directory and sub-directories (needed for inotify's int handles).
-    HashMap<int, String> dirHandle_;
+    HashMap<int, QString> dirHandle_;
     /// Linux inotify needs a handle.
     int watchHandle_;
 

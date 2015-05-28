@@ -57,7 +57,7 @@ public:
     /// Automatically set console to visible when receiving an error log message.
     void SetAutoVisibleOnError(bool enable) { autoVisibleOnError_ = enable; }
     /// Set the command interpreter.
-    void SetCommandInterpreter(const String& interpreter) { commandInterpreter_ = interpreter; }
+    void SetCommandInterpreter(const QString& interpreter) { commandInterpreter_ = interpreter; }
     /// Set number of buffered rows.
     void SetNumBufferedRows(unsigned rows);
     /// Set number of displayed rows.
@@ -82,7 +82,7 @@ public:
     /// Return true when console is set to automatically visible when receiving an error log message.
     bool IsAutoVisibleOnError() const { return autoVisibleOnError_; }
     /// Return the last used command interpreter.
-    const String& GetCommandInterpreter() const { return commandInterpreter_; }
+    const QString& GetCommandInterpreter() const { return commandInterpreter_; }
     /// Return number of buffered rows.
     unsigned GetNumBufferedRows() const;
     /// Return number of displayed rows.
@@ -94,7 +94,7 @@ public:
     /// Return current history position.
     unsigned GetHistoryPosition() const { return historyPosition_; }
     /// Return history row at index.
-    const String& GetHistoryRow(unsigned index) const;
+    const QString& GetHistoryRow(unsigned index) const;
     /// Return whether automatically focuses the line edit when showing.
     bool GetFocusOnShow() const { return focusOnShow_; }
 
@@ -131,13 +131,13 @@ private:
     /// Close button.
     SharedPtr<Button> closeButton_;
     /// Last used command interpreter.
-    String commandInterpreter_;
+    QString commandInterpreter_;
     /// Command history.
-    Vector<String> history_;
+    QStringList history_;
     /// Pending log message rows.
-    Vector<Pair<int, String> > pendingRows_;
+    Vector<std::pair<int, QString> > pendingRows_;
     /// Current row being edited.
-    String currentRow_;
+    QString currentRow_;
     /// Maximum displayed rows.
     unsigned displayedRows_;
     /// Command history maximum rows.

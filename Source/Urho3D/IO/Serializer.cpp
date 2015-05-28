@@ -161,20 +161,19 @@ bool Serializer::WriteBoundingBox(const BoundingBox& value)
     return success;
 }
 
-bool Serializer::WriteString(const String& value)
+bool Serializer::WriteString(const QString& value)
 {
-    const char* chars = value.CString();
+    int length = strlen(qPrintable(value)) + 1;
     // Count length to the first zero, because ReadString() does the same
-    unsigned length = String::CStringLength(chars);
-    return Write(chars, length + 1) == length + 1;
+    return Write(qPrintable(value), length) == length;
 }
 
-bool Serializer::WriteFileID(const String& value)
+bool Serializer::WriteFileID(const QString& value)
 {
     bool success = true;
     unsigned length = Min((int)value.length(), 4);
 
-    success &= Write(value.CString(), length) == length;
+    success &= Write(qPrintable(value), length) == length;
     for (unsigned i = value.length(); i < 4; ++i)
         success &= WriteByte(' ');
     return success;
@@ -355,10 +354,10 @@ bool Serializer::WriteNetID(unsigned value)
     return Write(&value, 3) == 3;
 }
 
-bool Serializer::WriteLine(const String& value)
+bool Serializer::WriteLine(const QString& value)
 {
     bool success = true;
-    success &= Write(value.CString(), value.length()) == value.length();
+    success &= Write(qPrintable(value), value.length()) == value.length();
     success &= WriteUByte(13);
     success &= WriteUByte(10);
     return success;

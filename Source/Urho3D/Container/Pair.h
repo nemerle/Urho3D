@@ -68,7 +68,7 @@ public:
         return second_ > rhs.second_;
     }
 
-    /// Return hash value for QSet & HashMap.
+    /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const { return (MakeHash(first_) & 0xffff) | (MakeHash(second_) << 16); }
 
     /// First value.

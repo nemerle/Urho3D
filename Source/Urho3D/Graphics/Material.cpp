@@ -90,11 +90,11 @@ static const char* fillModeNames[] =
     "point",
     nullptr
 };
-TextureUnit ParseTextureUnitName(String name)
+TextureUnit ParseTextureUnitName(QString name)
 {
     name = name.toLower().trimmed();
 
-    TextureUnit unit = (TextureUnit)GetStringListIndex(name.CString(), textureUnitNames, MAX_TEXTURE_UNITS);
+    TextureUnit unit = (TextureUnit)GetStringListIndex(qPrintable(name), textureUnitNames, MAX_TEXTURE_UNITS);
     if (unit == MAX_TEXTURE_UNITS)
     {
         // Check also for shorthand names
@@ -125,8 +125,8 @@ bool CompareTechniqueEntries(const TechniqueEntry& lhs, const TechniqueEntry& rh
 {
     if (lhs.lodDistance_ != rhs.lodDistance_)
         return lhs.lodDistance_ > rhs.lodDistance_;
-    else
-        return lhs.qualityLevel_ > rhs.qualityLevel_;
+
+    return lhs.qualityLevel_ > rhs.qualityLevel_;
 }
 
 TechniqueEntry::TechniqueEntry() :
@@ -146,7 +146,7 @@ TechniqueEntry::~TechniqueEntry()
 {
 }
 
-ShaderParameterAnimationInfo::ShaderParameterAnimationInfo(Material* target, const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) :
+ShaderParameterAnimationInfo::ShaderParameterAnimationInfo(Material* target, const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) :
     ValueAnimationInfo(target, attributeAnimation, wrapMode, speed),
     name_(name)
 {
@@ -214,7 +214,7 @@ bool Material::BeginLoad(Deserializer& source)
             XMLElement textureElem = rootElem.GetChild("texture");
             while (textureElem)
             {
-                String name = textureElem.GetAttribute("name");
+                QString name = textureElem.GetAttribute("name");
                 // Detect cube maps by file extension: they are defined by an XML file
                 /// \todo Differentiate with 3D textures by actually reading the XML content
                 if (GetExtension(name) == ".xml")
@@ -316,7 +316,7 @@ bool Material::Load(const XMLElement& source)
             unit = ParseTextureUnitName(textureElem.GetAttribute("unit"));
         if (unit < MAX_TEXTURE_UNITS)
         {
-            String name = textureElem.GetAttribute("name");
+            QString name = textureElem.GetAttribute("name");
             // Detect cube maps by file extension: they are defined by an XML file
             /// \todo Differentiate with 3D textures by actually reading the XML content
             if (GetExtension(name) == ".xml")
@@ -338,7 +338,7 @@ bool Material::Load(const XMLElement& source)
     XMLElement parameterElem = source.GetChild("parameter");
     while (parameterElem)
     {
-        String name = parameterElem.GetAttribute("name");
+        QString name = parameterElem.GetAttribute("name");
         SetShaderParameter(name, ParseShaderParameterValue(parameterElem.GetAttribute("value")));
         parameterElem = parameterElem.GetNext("parameter");
     }
@@ -347,7 +347,7 @@ bool Material::Load(const XMLElement& source)
     XMLElement parameterAnimationElem = source.GetChild("parameteranimation");
     while (parameterAnimationElem)
     {
-        String name = parameterAnimationElem.GetAttribute("name");
+        QString name = parameterAnimationElem.GetAttribute("name");
         SharedPtr<ValueAnimation> animation(new ValueAnimation(context_));
         if (!animation->LoadXML(parameterAnimationElem))
         {
@@ -355,7 +355,7 @@ bool Material::Load(const XMLElement& source)
             return false;
         }
 
-        String wrapModeString = parameterAnimationElem.GetAttribute("wrapmode");
+        QString wrapModeString = parameterAnimationElem.GetAttribute("wrapmode");
         WrapMode wrapMode = WM_LOOP;
         for (int i = 0; i <= WM_CLAMP; ++i)
         {
@@ -374,15 +374,15 @@ bool Material::Load(const XMLElement& source)
 
     XMLElement cullElem = source.GetChild("cull");
     if (cullElem)
-        SetCullMode((CullMode)GetStringListIndex(cullElem.GetAttribute("value").CString(), cullModeNames, CULL_CCW));
+        SetCullMode((CullMode)GetStringListIndex(cullElem.GetAttribute("value"), cullModeNames, CULL_CCW));
 
     XMLElement shadowCullElem = source.GetChild("shadowcull");
     if (shadowCullElem)
-        SetShadowCullMode((CullMode)GetStringListIndex(shadowCullElem.GetAttribute("value").CString(), cullModeNames, CULL_CCW));
+        SetShadowCullMode((CullMode)GetStringListIndex(shadowCullElem.GetAttribute("value"), cullModeNames, CULL_CCW));
 
     XMLElement fillElem = source.GetChild("fill");
     if (fillElem)
-        SetFillMode((FillMode)GetStringListIndex(fillElem.GetAttribute("value").CString(), fillModeNames, FILL_SOLID));
+        SetFillMode((FillMode)GetStringListIndex(fillElem.GetAttribute("value"), fillModeNames, FILL_SOLID));
     XMLElement depthBiasElem = source.GetChild("depthbias");
     if (depthBiasElem)
         SetDepthBias(BiasParameters(depthBiasElem.GetFloat("constant"), depthBiasElem.GetFloat("slopescaled")));
@@ -483,7 +483,7 @@ void Material::SetTechnique(unsigned index, Technique* tech, unsigned qualityLev
     CheckOcclusion();
 }
 
-void Material::SetShaderParameter(const String& name, const Variant& value)
+void Material::SetShaderParameter(const QString& name, const Variant& value)
 {
     MaterialShaderParameter newParam;
     newParam.name_ = name;
@@ -513,7 +513,7 @@ void Material::SetShaderParameter(const String& name, const Variant& value)
 }
 }
 
-void Material::SetShaderParameterAnimation(const String& name, ValueAnimation* animation, WrapMode wrapMode, float speed)
+void Material::SetShaderParameterAnimation(const QString& name, ValueAnimation* animation, WrapMode wrapMode, float speed)
 {
     ShaderParameterAnimationInfo* info = GetShaderParameterAnimationInfo(name);
 
@@ -547,14 +547,14 @@ void Material::SetShaderParameterAnimation(const String& name, ValueAnimation* a
     }
 }
 
-void Material::SetShaderParameterAnimationWrapMode(const String& name, WrapMode wrapMode)
+void Material::SetShaderParameterAnimationWrapMode(const QString& name, WrapMode wrapMode)
 {
     ShaderParameterAnimationInfo* info = GetShaderParameterAnimationInfo(name);
     if (info)
         info->SetWrapMode(wrapMode);
 }
 
-void Material::SetShaderParameterAnimationSpeed(const String& name, float speed)
+void Material::SetShaderParameterAnimationSpeed(const QString& name, float speed)
 {
     ShaderParameterAnimationInfo* info = GetShaderParameterAnimationInfo(name);
     if (info)
@@ -636,7 +636,7 @@ void Material::SetScene(Scene* scene)
     UpdateEventSubscription();
 }
 
-void Material::RemoveShaderParameter(const String& name)
+void Material::RemoveShaderParameter(const QString& name)
 {
     StringHash nameHash(name);
     shaderParameters_.remove(nameHash);
@@ -658,7 +658,7 @@ void Material::ReleaseShaders()
     }
 }
 
-SharedPtr<Material> Material::Clone(const String& cloneName) const
+SharedPtr<Material> Material::Clone(const QString& cloneName) const
 {
     SharedPtr<Material> ret(new Material(context_));
 
@@ -696,7 +696,7 @@ Technique* Material::GetTechnique(unsigned index) const
     return index < techniques_.size() ? techniques_[index].technique_ : (Technique*)nullptr;
 }
 
-Pass* Material::GetPass(unsigned index, const String& passName) const
+Pass* Material::GetPass(unsigned index, const QString& passName) const
 {
     Technique* tech = index < techniques_.size() ? techniques_[index].technique_ : (Technique*)nullptr;
     return tech ? tech->GetPass(passName) : nullptr;
@@ -708,25 +708,25 @@ Texture* Material::GetTexture(TextureUnit unit) const
     return i != textures_.end() ? MAP_VALUE(i).Get() : (Texture*)nullptr;
 }
 
-const Variant& Material::GetShaderParameter(const String& name) const
+const Variant& Material::GetShaderParameter(const QString& name) const
 {
     auto i = shaderParameters_.find(name);
     return i != shaderParameters_.end() ? MAP_VALUE(i).value_ : Variant::EMPTY;
 }
 
-ValueAnimation* Material::GetShaderParameterAnimation(const String& name) const
+ValueAnimation* Material::GetShaderParameterAnimation(const QString& name) const
 {
     ShaderParameterAnimationInfo* info = GetShaderParameterAnimationInfo(name);
     return info == nullptr ? nullptr : info->GetAnimation();
 }
 
-WrapMode Material::GetShaderParameterAnimationWrapMode(const String& name) const
+WrapMode Material::GetShaderParameterAnimationWrapMode(const QString& name) const
 {
     ShaderParameterAnimationInfo* info = GetShaderParameterAnimationInfo(name);
     return info == nullptr ? WM_LOOP : info->GetWrapMode();
 }
 
-float Material::GetShaderParameterAnimationSpeed(const String& name) const
+float Material::GetShaderParameterAnimationSpeed(const QString& name) const
 {
     ShaderParameterAnimationInfo* info = GetShaderParameterAnimationInfo(name);
     return info == nullptr ? 0 : info->GetSpeed();
@@ -737,15 +737,15 @@ Scene* Material::GetScene() const
     return scene_;
 }
 
-String Material::GetTextureUnitName(TextureUnit unit)
+QString Material::GetTextureUnitName(TextureUnit unit)
 {
     return textureUnitNames[unit];
 }
 
-Variant Material::ParseShaderParameterValue(const String& value)
+Variant Material::ParseShaderParameterValue(const QString& value)
 {
-    String valueTrimmed = value.trimmed();
-    if (valueTrimmed.length() && IsAlpha(valueTrimmed[0]))
+    QString valueTrimmed = value.trimmed();
+    if (valueTrimmed.length() && valueTrimmed[0].isLetter())
         return Variant(ToBool(valueTrimmed));
     else
         return ToVectorVariant(valueTrimmed);
@@ -826,7 +826,7 @@ void Material::RefreshMemoryUse()
     SetMemoryUse(memoryUse);
 }
 
-ShaderParameterAnimationInfo* Material::GetShaderParameterAnimationInfo(const String& name) const
+ShaderParameterAnimationInfo* Material::GetShaderParameterAnimationInfo(const QString& name) const
 {
     StringHash nameHash(name);
     auto i = shaderParameterAnimationInfos_.find(nameHash);
@@ -858,7 +858,7 @@ void Material::HandleAttributeAnimationUpdate(StringHash eventType, VariantMap& 
     // Timestep parameter is same no matter what event is being listened to
     float timeStep = eventData[Update::P_TIMESTEP].GetFloat();
 
-    Vector<String> finishedNames;
+    QStringList finishedNames;
 
     for (auto &i : shaderParameterAnimationInfos_)
     {

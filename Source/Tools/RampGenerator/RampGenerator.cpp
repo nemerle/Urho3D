@@ -20,10 +20,12 @@
 // THE SOFTWARE.
 //
 
+#include <Urho3D/Urho3D.h>
 #include <Urho3D/Container/ArrayPtr.h>
 #include <Urho3D/Math/MathDefs.h>
 #include <Urho3D/Core/ProcessUtils.h>
 #include <Urho3D/Core/StringUtils.h>
+#include <QStringList>
 
 #ifdef WIN32
 #include <windows.h>
@@ -37,11 +39,11 @@
 using namespace Urho3D;
 
 int main(int argc, char** argv);
-void Run(const Vector<String>& arguments);
+void Run(const QStringList& arguments);
 
 int main(int argc, char** argv)
 {
-    Vector<String> arguments;
+    QStringList arguments;
 
     #ifdef WIN32
     arguments = ParseArguments(GetCommandLineW());
@@ -53,7 +55,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void Run(const Vector<String>& arguments)
+void Run(const QStringList & arguments)
 {
     if (arguments.size() < 3)
         ErrorExit("Usage: RampGenerator <output png file> <width> <power> [dimensions]\n");
@@ -86,18 +88,18 @@ void Run(const Vector<String>& arguments)
         data[0] = 255;
         data[width - 1] = 0;
 
-        stbi_write_png(arguments[0].CString(), width, 1, 1, data.Get(), 0);
+        stbi_write_png(qPrintable(arguments[0]), width, 1, 1, data.Get(), 0);
     }
 
     if (dimensions == 2)
     {
-        SharedArrayPtr<unsigned char> data(new unsigned char[width * width * 3]);
+        SharedArrayPtr<unsigned char> data(new unsigned char[width * width]);
 
         for (int y = 0; y < width; ++y)
         {
             for (int x = 0; x < width; ++x)
             {
-                unsigned i = (y * width + x) * 3;
+                unsigned i = y * width + x;
 
                 float halfWidth = width * 0.5f;
                 float xf = (x - halfWidth + 0.5f) / (halfWidth - 0.5f);
@@ -107,29 +109,18 @@ void Run(const Vector<String>& arguments)
                     dist = 1.0f;
 
                 data[i] = (unsigned char)((1.0f - pow(dist, power)) * 255.0f);
-                data[i + 1] = data[i];
-                data[i + 2] = data[i];
             }
         }
 
         // Ensure the border is completely black
         for (int x = 0; x < width; ++x)
         {
-            data[x * 3] = 0;
-            data[x * 3 + 1] = 0;
-            data[x * 3 + 2] = 0;
-            data[((width - 1) * width + x) * 3] = 0;
-            data[((width - 1) * width + x) * 3 + 1] = 0;
-            data[((width - 1) * width + x) * 3 + 2] = 0;
-            data[x * width * 3] = 0;
-            data[x * width * 3 + 1] = 0;
-            data[x * width * 3 + 2] = 0;
-            data[(x * width + (width - 1)) * 3] = 0;
-            data[(x * width + (width - 1)) * 3 + 1] = 0;
-            data[(x * width + (width - 1)) * 3 + 2] = 0;
+            data[x] = 0;
+            data[(width - 1) * width + x] = 0;
+            data[x * width] = 0;
+            data[x * width + (width - 1)] = 0;
         }
 
-        // Save as RGB to allow Direct3D11 shaders to sample monochrome and color spot textures similarly
-        stbi_write_png(arguments[0].CString(), width, width, 3, data.Get(), 0);
+        stbi_write_png(qPrintable(arguments[0]), width, width, 1, data.Get(), 0);
     }
 }

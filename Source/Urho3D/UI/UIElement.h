@@ -30,7 +30,6 @@
 namespace Urho3D
 {
 
-const Color DEBUG_DRAW_COLOR(Color::BLUE);
 
 /// %UI element horizontal alignment.
 enum HorizontalAlignment
@@ -170,7 +169,7 @@ public:
     /// React to a key press.
     virtual void OnKey(int key, int buttons, int qualifiers);
     /// React to text input event.
-    virtual void OnTextInput(const String& text, int buttons, int qualifiers);
+    virtual void OnTextInput(const QString& text, int buttons, int qualifiers);
     /// React to resize.
     virtual void OnResize() {}
     /// React to position change.
@@ -183,12 +182,12 @@ public:
     /// Load from an XML file. Return true if successful.
     bool LoadXML(Deserializer& source);
     /// Save to an XML file. Return true if successful.
-    bool SaveXML(Serializer& dest, const String& indentation = "\t") const;
+    bool SaveXML(Serializer& dest, const QString& indentation = "\t") const;
     /// Filter attributes in serialization process.
     bool FilterAttributes(XMLElement& dest) const;
 
     /// Set name.
-    void SetName(const String& name);
+    void SetName(const QString& name);
     /// Set position.
     void SetPosition(const IntVector2& position);
     /// Set position.
@@ -272,7 +271,7 @@ public:
     /// Set drag and drop flags.
     void SetDragDropMode(unsigned mode);
     /// Set style from an XML file. Find the style element by name. If the style file is not explicitly provided, use the default style from parental chain. Return true if the style is applied successfully.
-    bool SetStyle(const String& styleName, XMLFile* file = nullptr);
+    bool SetStyle(const QString& styleName, XMLFile* file = nullptr);
     /// Set style from an XML element. Return true if the style is applied successfully.
     bool SetStyle(const XMLElement& element);
     /// Set style from an XML file. Find the style element automatically. If the style file is not explicitly provided, use the default style from parental chain. Return true if the style is applied successfully.
@@ -302,7 +301,7 @@ public:
     /// Bring UI element to front.
     void BringToFront();
     /// Create and add a child element and return it.
-    UIElement* CreateChild(StringHash type, const String& name = String::EMPTY, unsigned index = M_MAX_UNSIGNED);
+    UIElement* CreateChild(StringHash type, const QString& name = QString::null, unsigned index = M_MAX_UNSIGNED);
     /// Add a child element.
     void AddChild(UIElement* element);
     /// Insert a child element into a specific position in the child list.
@@ -329,10 +328,10 @@ public:
     void SetElementEventSender(bool flag);
 
     /// Template version of creating a child element.
-    template <class T> T* CreateChild(const String& name = String::EMPTY, unsigned index = M_MAX_UNSIGNED);
+    template <class T> T* CreateChild(const QString& name = QString::null, unsigned index = M_MAX_UNSIGNED);
 
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return position.
     const IntVector2& GetPosition() const { return position_; }
     /// Return size.
@@ -408,7 +407,7 @@ public:
     /// Return drag and drop flags.
     unsigned GetDragDropMode() const { return dragDropMode_; }
     /// Return applied style name. Return an empty string when the applied style is an 'auto' style (i.e. style derived from instance's type).
-    const String& GetAppliedStyle() const;
+    const QString& GetAppliedStyle() const;
     /// Return default style.
     XMLFile* GetDefaultStyle(bool recursiveUp = true) const;
     /// Return layout mode.
@@ -424,7 +423,7 @@ public:
     /// Return child element by index.
     UIElement* GetChild(unsigned index) const;
     /// Return child element by name.
-    UIElement* GetChild(const String& name, bool recursive = false) const;
+    UIElement* GetChild(const QString& name, bool recursive = false) const;
     /// Return child element by variable. If only key is provided, return the first child having the matching variable key. If value is also provided then the actual variable value would also be checked against.
     UIElement* GetChild(const StringHash& key, const Variant& value = Variant::EMPTY, bool recursive = false) const;
     /// Return immediate child elements.
@@ -492,20 +491,20 @@ protected:
     /// Handle attribute animation removed.
     virtual void OnAttributeAnimationRemoved() override;
     /// Set object attribute animation internal.
-    virtual void SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) override;
+    virtual void SetObjectAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) override;
     /// Mark screen position as needing an update.
     void MarkDirty();
     /// Remove child XML element by matching attribute name.
-    bool RemoveChildXML(XMLElement& parent, const String& name) const;
+    bool RemoveChildXML(XMLElement& parent, const QString& name) const;
     /// Remove child XML element by matching attribute name and value.
-    bool RemoveChildXML(XMLElement& parent, const String& name, const String& value) const;
+    bool RemoveChildXML(XMLElement& parent, const QString& name, const QString& value) const;
     /// Filter UI-style attributes in serialization process.
     bool FilterUIStyleAttributes(XMLElement& dest, const XMLElement& styleElem) const;
     /// Filter implicit attributes in serialization process.
     virtual bool FilterImplicitAttributes(XMLElement& dest) const;
 
     /// Name.
-    String name_;
+    QString name_;
     /// Child elements.
     Vector<SharedPtr<UIElement> > children_;
     /// Parent element.
@@ -573,7 +572,7 @@ protected:
     /// Screen position dirty flag.
     mutable bool positionDirty_;
     /// Applied style.
-    String appliedStyle_;
+    QString appliedStyle_;
     /// Drag button combo.
     int dragButtonCombo_;
     /// Drag button count.
@@ -631,6 +630,6 @@ private:
     static XPathQuery styleXPathQuery_;
 };
 
-template <class T> T* UIElement::CreateChild(const String& name, unsigned index) { return static_cast<T*>(CreateChild(T::GetTypeStatic(), name, index)); }
+template <class T> T* UIElement::CreateChild(const QString& name, unsigned index) { return static_cast<T*>(CreateChild(T::GetTypeStatic(), name, index)); }
 
 }

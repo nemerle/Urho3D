@@ -28,7 +28,6 @@
    andreas@angelcode.com
 */
 
-// Modified by Lasse Oorni for Urho3D
 
 
 //
@@ -68,20 +67,25 @@ public:
 protected:
     mutable asCAtomic refCount;
     bool      value;
-    DECLARECRITICALSECTION(mutable lock)
+    DECLARECRITICALSECTION(mutable lock);
 };
 
 class asCScriptObject : public asIScriptObject
 {
+#ifdef AS_DEPRECATED
+// Deprecated since 2.30.0, 2014-11-04
+// interface
+friend class asCScriptEngine;
+#endif
 public:
 //===================================
 // From asIScriptObject
 //===================================
-    asIScriptEngine *GetEngine() const;
 
     // Memory management
-    int AddRef() const;
-    int Release() const;
+    int                    AddRef() const;
+    int                    Release() const;
+    asILockableSharedBool *GetWeakRefFlag() const;
 
     // Type info
     int            GetTypeId() const;
@@ -93,14 +97,13 @@ public:
     const char *GetPropertyName(asUINT prop) const;
     void       *GetAddressOfProperty(asUINT prop);
 
-    int         CopyFrom(asIScriptObject *other);
+    // Miscellaneous
+    asIScriptEngine *GetEngine() const;
+    int              CopyFrom(asIScriptObject *other);
 
-	// TODO: interface: Add a method for getting the weak ref flag directly from 
-	//                  the object, so it is not necessary to call the engine's 
-	//                  GetWeakRefFlagOfScriptObject
-    // Urho3D: added userdata
-    void *SetUserData(void *data);
-    void *GetUserData() const;
+    // User data
+    void *SetUserData(void *data, asPWORD type = 0);
+    void *GetUserData(asPWORD type = 0) const;
 
 //====================================
 // Internal
@@ -118,9 +121,6 @@ public:
     void EnumReferences(asIScriptEngine *engine);
     void ReleaseAllHandles(asIScriptEngine *engine);
 
-    // Weakref methods
-    asILockableSharedBool *GetWeakRefFlag() const;
-
     // Used for properties
     void *AllocateUninitializedObject(asCObjectType *objType, asCScriptEngine *engine);
     void FreeObject(void *ptr, asCObjectType *objType, asCScriptEngine *engine);
@@ -132,22 +132,26 @@ public:
 //=============================================
 // Properties
 //=============================================
-public:
-    asCObjectType *objType;
-
 protected:
-    mutable asCAtomic refCount;
-    mutable asBYTE gcFlag:1;
-    mutable asBYTE hasRefCountReachedZero:1;
-    bool isDestructCalled;
-    // TODO: 2.30.0: Allow storing user data in script objects too and minimize the memory overhead by
-    //               storing the structure for holding the user data in a separate object that will only
-    //               be allocated as needed. The weakRefFlag should be moved to this separate object too,
-    //               so that by default the only overhead is a single pointer in the script object.
-    mutable asCLockableSharedBool *weakRefFlag;
+    friend class asCContext;
+    asCObjectType    *objType;
 
-    // Urho3D: added userdata
-    void* userData;
+    mutable asCAtomic refCount;
+    mutable asBYTE    gcFlag:1;
+    mutable asBYTE    hasRefCountReachedZero:1;
+    bool              isDestructCalled;
+
+    // Most script classes instances won't have neither the weakRefFlags nor
+    // userData so we only allocate this if requested. Even when used it is
+    // not something that will be accessed all the time so having the extra
+    // indirection will not affect the performance significantly.
+    struct SExtra
+    {
+        SExtra() : weakRefFlag(0) {};
+        asCLockableSharedBool *weakRefFlag;
+        asCArray<asPWORD>      userData;
+    };
+    mutable SExtra *extra;
 };
 
 void ScriptObject_Construct(asCObjectType *objType, asCScriptObject *self);

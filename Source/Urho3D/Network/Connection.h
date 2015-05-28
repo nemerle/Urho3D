@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../Input/Controls.h"
+#include "../Container/HashMap.h"
 #include "../Core/Object.h"
 #include "../Scene/ReplicationState.h"
 #include "../Core/Timer.h"
@@ -70,7 +71,7 @@ struct PackageDownload
     /// Already received fragments.
     QSet<unsigned> receivedFragments_;
     /// Package name.
-    String name_;
+    QString name_;
     /// Total number of fragments.
     unsigned totalFragments_;
     /// Checksum.
@@ -174,15 +175,15 @@ public:
     /// Return whether to log data in/out statistics.
     bool GetLogStatistics() const { return logStatistics_; }
     /// Return remote address.
-    String GetAddress() const { return address_; }
+    QString GetAddress() const { return address_; }
     /// Return remote port.
     unsigned short GetPort() const { return port_; }
     /// Return an address:port string.
-    String ToString() const;
+    QString ToString() const;
     /// Return number of package downloads remaining.
     unsigned GetNumDownloads() const;
     /// Return name of current package download, or empty if no downloads.
-    const String& GetDownloadName() const;
+    QString GetDownloadName() const;
     /// Return progress of current package download, or 1.0 if no downloads.
     float GetDownloadProgress() const;
     /// Trigger client connection to download a package file from the server. Can be used to download additional resource packages when client is already joined in a scene. The package must have been added as a requirement to the scene the client is joined in, or else the eventual download will fail.
@@ -227,13 +228,13 @@ private:
     /// Check a package list received from server and initiate package downloads as necessary. Return true on success, or false if failed to initialze downloads (cache dir not set)
     bool RequestNeededPackages(unsigned numPackages, MemoryBuffer& msg);
     /// Initiate a package download.
-    void RequestPackage(const String& name, unsigned fileSize, unsigned checksum);
+    void RequestPackage(const QString& name, unsigned fileSize, unsigned checksum);
     /// Send an error reply for a package download.
-    void SendPackageError(const String& name);
+    void SendPackageError(const QString& name);
     /// Handle scene load failure on the server or client.
     void OnSceneLoadFailed();
     /// Handle a package download failure on the client.
-    void OnPackageDownloadFailed(const String& name);
+    void OnPackageDownloadFailed(const QString& name);
     /// Handle all packages loaded successfully. Also called directly on MSG_LOADSCENE if there are none.
     void OnPackagesReady();
 
@@ -258,11 +259,11 @@ private:
     /// Queued remote events.
     Vector<RemoteEvent> remoteEvents_;
     /// Scene file to load once all packages (if any) have been downloaded.
-    String sceneFileName_;
+    QString sceneFileName_;
     /// Statistics timer.
     Timer statsTimer_;
     /// Remote endpoint address.
-    String address_;
+    QString address_;
     /// Remote endpoint port.
     unsigned short port_;
     /// Observer position for interest management.

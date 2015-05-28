@@ -69,7 +69,7 @@ static const char* lightingModeNames[] =
     nullptr
 };
 
-Pass::Pass(const String& name) :
+Pass::Pass(const QString& name) :
     blendMode_(BLEND_REPLACE),
     depthTestMode_(CMP_LESSEQUAL),
     lightingMode_(LIGHTING_UNLIT),
@@ -122,25 +122,25 @@ void Pass::SetIsDesktop(bool enable)
     isDesktop_ = enable;
 }
 
-void Pass::SetVertexShader(const String& name)
+void Pass::SetVertexShader(const QString& name)
 {
     vertexShaderName_ = name;
     ReleaseShaders();
 }
 
-void Pass::SetPixelShader(const String& name)
+void Pass::SetPixelShader(const QString& name)
 {
     pixelShaderName_ = name;
     ReleaseShaders();
 }
 
-void Pass::SetVertexShaderDefines(const String& defines)
+void Pass::SetVertexShaderDefines(const QString& defines)
 {
     vertexShaderDefines_ = defines;
     ReleaseShaders();
 }
 
-void Pass::SetPixelShaderDefines(const String& defines)
+void Pass::SetPixelShaderDefines(const QString& defines)
 {
     pixelShaderDefines_ = defines;
     ReleaseShaders();
@@ -164,7 +164,7 @@ unsigned Technique::lightPassIndex = 0;
 unsigned Technique::litBasePassIndex = 0;
 unsigned Technique::litAlphaPassIndex = 0;
 unsigned Technique::shadowPassIndex = 0;
-HashMap<String, unsigned> Technique::passIndices;
+HashMap<QString, unsigned> Technique::passIndices;
 
 Technique::Technique(Context* context) :
     Resource(context),
@@ -200,10 +200,10 @@ bool Technique::BeginLoad(Deserializer& source)
     if (rootElem.HasAttribute("desktop"))
         isDesktop_ = rootElem.GetBool("desktop");
 
-    String globalVS = rootElem.GetAttribute("vs");
-    String globalPS = rootElem.GetAttribute("ps");
-    String globalVSDefines = rootElem.GetAttribute("vsdefines");
-    String globalPSDefines = rootElem.GetAttribute("psdefines");
+    QString globalVS = rootElem.GetAttribute("vs");
+    QString globalPS = rootElem.GetAttribute("ps");
+    QString globalVSDefines = rootElem.GetAttribute("vsdefines");
+    QString globalPSDefines = rootElem.GetAttribute("psdefines");
     // End with space so that the pass-specific defines can be appended
     if (!globalVSDefines.isEmpty())
         globalVSDefines += ' ';
@@ -247,24 +247,24 @@ bool Technique::BeginLoad(Deserializer& source)
 
             if (passElem.HasAttribute("lighting"))
             {
-                String lighting = passElem.GetAttributeLower("lighting");
-                newPass->SetLightingMode((PassLightingMode)GetStringListIndex(lighting.CString(), lightingModeNames,
+                QString lighting = passElem.GetAttributeLower("lighting");
+                newPass->SetLightingMode((PassLightingMode)GetStringListIndex(lighting, lightingModeNames,
                                                                               LIGHTING_UNLIT));
             }
 
             if (passElem.HasAttribute("blend"))
             {
-                String blend = passElem.GetAttributeLower("blend");
-                newPass->SetBlendMode((BlendMode)GetStringListIndex(blend.CString(), blendModeNames, BLEND_REPLACE));
+                QString blend = passElem.GetAttributeLower("blend");
+                newPass->SetBlendMode((BlendMode)GetStringListIndex(blend, blendModeNames, BLEND_REPLACE));
             }
 
             if (passElem.HasAttribute("depthtest"))
             {
-                String depthTest = passElem.GetAttributeLower("depthtest");
+                QString depthTest = passElem.GetAttributeLower("depthtest");
                 if (depthTest == "false")
                     newPass->SetDepthTestMode(CMP_ALWAYS);
                 else
-                    newPass->SetDepthTestMode((CompareMode)GetStringListIndex(depthTest.CString(), compareModeNames, CMP_LESS));
+                    newPass->SetDepthTestMode((CompareMode)GetStringListIndex(depthTest, compareModeNames, CMP_LESS));
             }
 
             if (passElem.HasAttribute("depthwrite"))
@@ -297,23 +297,27 @@ void Technique::ReleaseShaders()
     }
 }
 
-Pass* Technique::CreatePass(const String& name)
+Pass* Technique::CreatePass(const QString& name)
 {
     Pass* oldPass = GetPass(name);
     if (oldPass)
         return oldPass;
 
     SharedPtr<Pass> newPass(new Pass(name));
-    passes_.push_back(newPass);
+    unsigned passIndex = newPass->GetIndex();
+    //TODO: passes_ is essentialy an pass_id => Pass dictionary, mark it as one
+    if (passIndex >= passes_.size())
+        passes_.resize(passIndex + 1);
+    passes_[passIndex] = newPass;
 
     // Calculate memory use now
     SetMemoryUse(sizeof(Technique) + GetNumPasses() * sizeof(Pass));
     return newPass;
 }
 
-void Technique::RemovePass(const String& name)
+void Technique::RemovePass(const QString& name)
 {
-    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    HashMap<QString, unsigned>::const_iterator i = passIndices.find(name.toLower());
     if (i == passIndices.end())
         return;
     else if (MAP_VALUE(i) < passes_.size() && passes_[MAP_VALUE(i)].Get())
@@ -323,21 +327,21 @@ void Technique::RemovePass(const String& name)
     }
 }
 
-bool Technique::HasPass(const String& name) const
+bool Technique::HasPass(const QString& name) const
 {
-    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    HashMap<QString, unsigned>::const_iterator i = passIndices.find(name.toLower());
     return i != passIndices.end() ? HasPass(MAP_VALUE(i)) : false;
 }
 
-Pass* Technique::GetPass(const String& name) const
+Pass* Technique::GetPass(const QString& name) const
 {
-    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    HashMap<QString, unsigned>::const_iterator i = passIndices.find(name.toLower());
     return i != passIndices.end() ? GetPass(MAP_VALUE(i)) : nullptr;
 }
 
-Pass* Technique::GetSupportedPass(const String& name) const
+Pass* Technique::GetSupportedPass(const QString& name) const
 {
-    HashMap<String, unsigned>::const_iterator i = passIndices.find(name.toLower());
+    HashMap<QString, unsigned>::const_iterator i = passIndices.find(name.toLower());
     return i != passIndices.end() ? GetSupportedPass(MAP_VALUE(i)) : nullptr;
 }
 
@@ -354,9 +358,9 @@ unsigned Technique::GetNumPasses() const
     return ret;
 }
 
-Vector<String> Technique::GetPassNames() const
+PODVector<QString> Technique::GetPassNames() const
 {
-    Vector<String> ret;
+    PODVector<QString> ret;
     ret.reserve(passes_.size());
     for (const SharedPtr<Pass> &pass : passes_)
     {
@@ -378,7 +382,7 @@ PODVector<Pass*> Technique::GetPasses() const
     }
     return ret;
 }
-unsigned Technique::GetPassIndex(const String& passName)
+unsigned Technique::GetPassIndex(const QString& passName)
 {
     // Initialize built-in pass indices on first call
     if (passIndices.empty())
@@ -393,8 +397,8 @@ unsigned Technique::GetPassIndex(const String& passName)
         shadowPassIndex = passIndices["shadow"] = 7;
     }
 
-    String nameLower = passName.toLower();
-    HashMap<String, unsigned>::iterator i = passIndices.find(nameLower);
+    QString nameLower = passName.toLower();
+    HashMap<QString, unsigned>::iterator i = passIndices.find(nameLower);
     if (i != passIndices.end())
         return MAP_VALUE(i);
     else

@@ -59,7 +59,7 @@ bool SpriteSheet2D::BeginLoad(Deserializer& source)
     loadTextureName_.clear();
     spriteMapping_.clear();
 
-    String extension = GetExtension(source.GetName());
+    QString extension = GetExtension(source.GetName());
     if (extension == ".plist")
         return BeginLoadFromPListFile(source);
 
@@ -81,16 +81,16 @@ bool SpriteSheet2D::EndLoad()
     return false;
 }
 
-Sprite2D* SpriteSheet2D::GetSprite(const String& name) const
+Sprite2D* SpriteSheet2D::GetSprite(const QString& name) const
 {
-    HashMap<String, SharedPtr<Sprite2D> >::const_iterator i = spriteMapping_.find(name);
+    HashMap<QString, SharedPtr<Sprite2D> >::const_iterator i = spriteMapping_.find(name);
     if (i == spriteMapping_.end())
         return nullptr;
 
     return MAP_VALUE(i);
 }
 
-void SpriteSheet2D::DefineSprite(const String& name, const IntRect& rectangle, const Vector2& hotSpot, const IntVector2& offset)
+void SpriteSheet2D::DefineSprite(const QString& name, const IntRect& rectangle, const Vector2& hotSpot, const IntVector2& offset)
 {
     if (!texture_)
         return;
@@ -123,7 +123,7 @@ bool SpriteSheet2D::BeginLoadFromPListFile(Deserializer& source)
 
     const PListValueMap& root = loadPListFile_->GetRoot();
     const PListValueMap& metadata = root["metadata"].GetValueMap();
-    const String& textureFileName = metadata["realTextureFileName"].GetString();
+    const QString& textureFileName = metadata["realTextureFileName"].GetString();
 
     // If we're async loading, request the texture now. Finish during EndLoad().
     loadTextureName_ = GetParentPath(GetName()) + textureFileName;
@@ -150,7 +150,7 @@ bool SpriteSheet2D::EndLoadFromPListFile()
     const PListValueMap& frames = root["frames"].GetValueMap();
     for (auto frame=frames.begin(),fin=frames.end(); frame!=fin; ++frame)
     {
-        String name = MAP_KEY(frame).split('.')[0];
+        QString name = MAP_KEY(frame).split('.')[0];
 
         const PListValueMap& frameInfo = MAP_VALUE(frame).GetValueMap();
         if (frameInfo["rotated"].GetBool())
@@ -226,7 +226,7 @@ bool SpriteSheet2D::EndLoadFromXMLFile()
     XMLElement subTextureElem = rootElem.GetChild("SubTexture");
     while (subTextureElem)
     {
-        String name = subTextureElem.GetAttribute("name");
+        QString name = subTextureElem.GetAttribute("name");
 
         int x = subTextureElem.GetInt("x");
         int y = subTextureElem.GetInt("y");

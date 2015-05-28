@@ -347,16 +347,16 @@ bool Object::HasSubscribedToEvent(Object* sender, StringHash eventType) const
         return FindSpecificEventHandler(sender, eventType) != eventHandlers_.end();
 }
 
-const String& Object::GetCategory() const
+const QString& Object::GetCategory() const
 {
-    const HashMap<String, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
+    const HashMap<QString, Vector<StringHash> >& objectCategories = context_->GetObjectCategories();
     for (auto iter = objectCategories.begin(),fin=objectCategories.end(); iter!=fin; ++iter)
     {
         if (MAP_VALUE(iter).contains(GetType()))
             return MAP_KEY(iter);
     }
 
-    return String::EMPTY;
+    return s_dummy;
 }
 
 cilEventHandler Object::FindEventHandler(StringHash eventType) const

@@ -68,9 +68,9 @@ public:
     /// Return visible.
     bool IsVisible() const { return visible_; }
     /// Return has property
-    bool HasProperty(const String& name) const;
+    bool HasProperty(const QString& name) const;
     /// Return property.
-    const String& GetProperty(const String& name) const;
+    const QString& GetProperty(const QString& name) const;
     /// Return layer type.
     TileMapLayerType2D GetLayerType() const;
 

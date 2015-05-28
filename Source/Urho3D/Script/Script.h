@@ -63,7 +63,7 @@ public:
     ~Script();
 
     /// Compile and execute a line of script in immediate mode.
-    bool Execute(const String& line);
+    bool Execute(const QString& line);
     /// Set immediate mode script file.
     void SetDefaultScriptFile(ScriptFile* file);
     /// Set immediate mode scene.
@@ -71,13 +71,13 @@ public:
     /// Set whether to execute engine console commands as script code.
     void SetExecuteConsoleCommands(bool enable);
     /// Print the whole script API (all registered classes, methods and properties) to the log. No-ops when URHO3D_LOGGING not defined.
-    void DumpAPI(DumpMode mode= DOXYGEN, const String& sourceTree = String::EMPTY);
+    void DumpAPI(DumpMode mode= DOXYGEN, const QString& sourceTree = QString::null);
     /// Log a message from the script engine.
     void MessageCallback(const asSMessageInfo* msg);
     /// Handle a script exception.
     void ExceptionCallback(asIScriptContext* context);
     /// Get call stack.
-    static String GetCallStack(asIScriptContext* context);
+    static QString GetCallStack(asIScriptContext* context);
 
     /// Return the AngelScript engine.
     asIScriptEngine* GetScriptEngine() const { return scriptEngine_; }
@@ -106,7 +106,7 @@ private:
     /// Return a script function/method execution context for the current execution nesting level.
     asIScriptContext* GetScriptFileContext();
     /// Output a sanitated row of script API. No-ops when URHO3D_LOGGING not defined.
-    void OutputAPIRow(DumpMode mode, const String& row, bool removeReference = false, String separator = ";");
+    void OutputAPIRow(DumpMode mode, const QString& row, bool removeReference = false, QString separator = ";");
     /// Handle a console command event.
     void HandleConsoleCommand(StringHash eventType, VariantMap& eventData);
 

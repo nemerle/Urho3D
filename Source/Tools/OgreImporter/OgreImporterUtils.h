@@ -28,6 +28,7 @@
 #include <Urho3D/IO/Serializer.h>
 #include <Urho3D/Math/Matrix3x4.h>
 
+#include <QString>
 #include <unordered_map>
 using namespace Urho3D;
 
@@ -40,7 +41,7 @@ struct Triangle
 
 struct ModelBone
 {
-    String name_;
+    QString name_;
     unsigned parentIndex_;
     Vector3 bindPosition_;
     Quaternion bindRotation_;
@@ -57,7 +58,7 @@ struct ModelBone
 
 struct ModelAnimation
 {
-    String name_;
+    QString name_;
     float length_;
     Vector<AnimationTrack> tracks_;
 };
@@ -158,7 +159,7 @@ struct ModelMorphBuffer
 
 struct ModelMorph
 {
-    String name_;
+    QString name_;
     Vector<ModelMorphBuffer> buffers_;
 
     void WriteData(Serializer& dest)

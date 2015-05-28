@@ -239,7 +239,7 @@ void SceneReplication::SubscribeToEvents()
     GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTID);
 }
 
-Button* SceneReplication::CreateButton(const String& text, int width)
+Button* SceneReplication::CreateButton(const QString& text, int width)
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     Font* font = cache->GetResource<Font>("Fonts/Anonymous Pro.ttf");
@@ -418,7 +418,7 @@ void SceneReplication::HandlePhysicsPreStep(StringHash eventType, VariantMap& ev
 void SceneReplication::HandleConnect(StringHash eventType, VariantMap& eventData)
 {
     Network* network = GetSubsystem<Network>();
-    String address = textEdit_->GetText().trimmed();
+    QString address = textEdit_->GetText().trimmed();
     if (address.isEmpty())
         address = "localhost"; // Use localhost to connect if nothing else specified
 

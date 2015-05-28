@@ -46,12 +46,12 @@
 namespace Urho3D
 {
 
-static bool FontSaveXMLVectorBuffer(VectorBuffer& buffer, int pointSize, bool usedGlyphs, const String& indentation, Font* ptr)
+static bool FontSaveXMLVectorBuffer(VectorBuffer& buffer, int pointSize, bool usedGlyphs, const QString& indentation, Font* ptr)
 {
     return ptr->SaveXML(buffer, pointSize, usedGlyphs, indentation);
 }
 
-static bool FontSaveXML(const String& fileName, int pointSize, bool usedGlyphs, const String& indentation, Font* ptr)
+static bool FontSaveXML(const QString& fileName, int pointSize, bool usedGlyphs, const QString& indentation, Font* ptr)
 {
     if (fileName.isEmpty())
         return false;
@@ -168,10 +168,10 @@ static void RegisterCursor(asIScriptEngine* engine)
 
     RegisterBorderImage<Cursor>(engine, "Cursor");
     engine->RegisterObjectMethod("Cursor", "void DefineShape(const String&in, Texture@+, const IntRect&in, const IntVector2&in)", asMETHODPR(Cursor, DefineShape, (CursorShape, Image*, const IntRect&, const IntVector2&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Cursor", "void DefineShape(CursorShape, Texture@+, const IntRect&in, const IntVector2&in)", asMETHODPR(Cursor, DefineShape, (const String&, Image*, const IntRect&, const IntVector2&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Cursor", "void SetShape(const String&in)", asMETHODPR(Cursor, SetShape, (const String&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void DefineShape(CursorShape, Texture@+, const IntRect&in, const IntVector2&in)", asMETHODPR(Cursor, DefineShape, (const QString&, Image*, const IntRect&, const IntVector2&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void SetShape(const String&in)", asMETHODPR(Cursor, SetShape, (const QString&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("Cursor", "void SetShape(CursorShape)", asMETHODPR(Cursor, SetShape, (CursorShape), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Cursor", "void set_shape(const String&in)", asMETHODPR(Cursor, SetShape, (const String&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Cursor", "void set_shape(const String&in)", asMETHODPR(Cursor, SetShape, (const QString&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("Cursor", "const String& get_shape() const", asMETHOD(Cursor, GetShape), asCALL_THISCALL);
     engine->RegisterObjectMethod("Cursor", "void set_useSystemShapes(bool)", asMETHOD(Cursor, SetUseSystemShapes), asCALL_THISCALL);
     engine->RegisterObjectMethod("Cursor", "bool get_useSystemShapes() const", asMETHOD(Cursor, GetUseSystemShapes), asCALL_THISCALL);
@@ -363,7 +363,7 @@ static void RegisterText(asIScriptEngine* engine)
     engine->RegisterEnumValue("TextEffect", "TE_STROKE", TE_STROKE);
 
     RegisterUIElement<Text>(engine, "Text");
-    engine->RegisterObjectMethod("Text", "bool SetFont(const String&in, int)", asMETHODPR(Text, SetFont, (const String&, int), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Text", "bool SetFont(const String&in, int)", asMETHODPR(Text, SetFont, (const QString&, int), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Text", "bool SetFont(Font@+, int)", asMETHODPR(Text, SetFont, (Font*, int), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Text", "void SetSelection(uint, uint arg1 = M_MAX_UNSIGNED)", asMETHOD(Text, SetSelection), asCALL_THISCALL);
     engine->RegisterObjectMethod("Text", "void ClearSelection()", asMETHOD(Text, ClearSelection), asCALL_THISCALL);
@@ -398,7 +398,7 @@ static void RegisterText(asIScriptEngine* engine)
 static void RegisterText3D(asIScriptEngine* engine)
 {
     RegisterDrawable<Text3D>(engine, "Text3D");
-    engine->RegisterObjectMethod("Text3D", "bool SetFont(const String&in, int)", asMETHODPR(Text3D, SetFont, (const String&, int), bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Text3D", "bool SetFont(const String&in, int)", asMETHODPR(Text3D, SetFont, (const QString&, int), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Text3D", "bool SetFont(Font@+, int)", asMETHODPR(Text3D, SetFont, (Font*, int), bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Text3D", "void SetAlignment(HorizontalAlignment, VerticalAlignment)", asMETHOD(Text3D, SetAlignment), asCALL_THISCALL);
     engine->RegisterObjectMethod("Text3D", "Font@+ get_font() const", asMETHOD(Text3D, GetFont), asCALL_THISCALL);
@@ -478,7 +478,7 @@ static void RegisterMenu(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Menu", "int get_acceleratorQualifiers() const", asMETHOD(Menu, GetAcceleratorQualifiers), asCALL_THISCALL);
 }
 
-static MessageBox* ConstructMessageBox(const String& messageString, const String& titleString, XMLFile* layoutFile, XMLFile* styleFile)
+static MessageBox* ConstructMessageBox(const QString& messageString, const QString& titleString, XMLFile* layoutFile, XMLFile* styleFile)
 {
     SharedPtr<MessageBox> messageBox(new MessageBox(GetScriptContext(), messageString, titleString, layoutFile, styleFile));
     if (messageBox)
@@ -558,10 +558,10 @@ static void FileSelectorSetFilters(CScriptArray* filters, unsigned defaultIndex,
         return;
 
     unsigned numFilters = filters->GetSize();
-    Vector<String> destFilters(numFilters);
+    QStringList destFilters;
 
     for (unsigned i = 0; i < numFilters; ++i)
-        destFilters[i] = *(static_cast<String*>(filters->At(i)));
+        destFilters.push_back( *(static_cast<QString*>(filters->At(i))) );
 
     ptr->SetFilters(destFilters, defaultIndex);
 }

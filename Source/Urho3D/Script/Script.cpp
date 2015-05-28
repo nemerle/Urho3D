@@ -118,14 +118,14 @@ Script::~Script()
     }
 }
 
-bool Script::Execute(const String& line)
+bool Script::Execute(const QString& line)
 {
     // Note: compiling code each time is slow. Not to be used for performance-critical or repeating activity
     PROFILE(ExecuteImmediate);
 
     ClearObjectTypeCache();
 
-    String wrappedLine = "void f(){\n" + line + ";\n}";
+    QString wrappedLine = "void f(){\n" + line + ";\n}";
 
     // If no immediate mode script file set, create a dummy module for compiling the line
     asIScriptModule* module = nullptr;
@@ -137,7 +137,7 @@ bool Script::Execute(const String& line)
         return false;
 
     asIScriptFunction *function = nullptr;
-    if (module->CompileFunction("", wrappedLine.CString(), -1, 0, &function) < 0)
+    if (module->CompileFunction("", qPrintable(wrappedLine), -1, 0, &function) < 0)
         return false;
 
     if (immediateContext_->Prepare(function) < 0)
@@ -177,8 +177,7 @@ void Script::SetExecuteConsoleCommands(bool enable)
 
 void Script::MessageCallback(const asSMessageInfo* msg)
 {
-    String message;
-    message.AppendWithFormat("%s:%d,%d %s", msg->section, msg->row, msg->col, msg->message);
+    QString message = QString("%1:%2,%3 %4").arg(msg->section).arg(msg->row).arg(msg->col).arg(msg->message);
 
     switch (msg->type)
     {
@@ -198,20 +197,23 @@ void Script::MessageCallback(const asSMessageInfo* msg)
 
 void Script::ExceptionCallback(asIScriptContext* context)
 {
-    String message;
-    message.AppendWithFormat("- Exception '%s' in '%s'\n%s", context->GetExceptionString(), context->GetExceptionFunction()->GetDeclaration(), GetCallStack(context).CString());
-
+    QString message = QString("- Exception '%1' in '%2'\n%3")
+            .arg(context->GetExceptionString())
+            .arg(context->GetExceptionFunction()->GetDeclaration())
+            .arg(GetCallStack(context))
+            ;
+    QByteArray message_data= message.toLocal8Bit();
     asSMessageInfo msg;
     msg.row = context->GetExceptionLineNumber(&msg.col, &msg.section);
     msg.type = asMSGTYPE_ERROR;
-    msg.message = message.CString();
+    msg.message = message_data.data();
 
     MessageCallback(&msg);
 }
 
-String Script::GetCallStack(asIScriptContext* context)
+QString Script::GetCallStack(asIScriptContext* context)
 {
-    String str("AngelScript callstack:\n");
+    QString str("AngelScript callstack:\n");
 
     // Append the call stack
     for (asUINT i = 0; i < context->GetCallstackSize(); i++)
@@ -221,7 +223,7 @@ String Script::GetCallStack(asIScriptContext* context)
         int line, column;
         func = context->GetFunction(i);
         line = context->GetLineNumber(i, &column, &scriptSection);
-        str.AppendWithFormat("\t%s:%s:%d,%d\n", scriptSection, func->GetDeclaration(), line, column);
+        str += QString("\t%1:%2:%3,%4\n").arg(scriptSection).arg(func->GetDeclaration()).arg(line).arg(column);
     }
 
     return str;

@@ -44,11 +44,13 @@
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/View.h"
+#include "../Container/HashMap.h"
 #include "../UI/UI.h"
 #include "../Core/WorkQueue.h"
 
 #include "../DebugNew.h"
-
+#include <bits/stl_vector.h>
+#include <algorithm>
 namespace Urho3D
 {
 
@@ -176,7 +178,8 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
     unsigned cameraViewMask = view->camera_->GetViewMask();
     bool cameraZoneOverride = view->cameraZoneOverride_;
     PerThreadSceneResult& result = view->sceneResults_[threadIndex];
-    while(start!=end)
+
+    while (start != end)
     {
         Drawable* drawable = *start++;
         bool batchesUpdated = false;
@@ -191,6 +194,7 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
                 continue;
         }
         const BoundingBox& geomBox(drawable->GetWorldBoundingBox());
+
         uint8_t drawableFlags = drawable->GetDrawableFlags();
         if (!buffer || !drawable->IsOccludee() || buffer->IsVisible(geomBox))
         {
@@ -205,10 +209,10 @@ void CheckVisibilityWork(const WorkItem* item, unsigned threadIndex)
                 if (!cameraZoneOverride && (drawable->IsZoneDirty() || !drawableZone || (drawableZone->GetViewMask() &
                                                                                          cameraViewMask) == 0))
                     view->FindZone(drawable);
+
                 assert(geomBox==drawable->GetWorldBoundingBox());
                 Vector3 center = geomBox.Center();
                 Vector3 edge = geomBox.size() * 0.5f;
-
 
                 // Do not add "infinite" objects like skybox to prevent shadow map focusing behaving erroneously
                 if (edge.LengthSquared() < M_LARGE_VALUE * M_LARGE_VALUE)
@@ -316,7 +320,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     renderPath_ = viewport->GetRenderPath();
     if (!renderPath_)
         return false;
-
+    alphaPassQueueIdx_ = -1;
     // Set default passes
     gBufferPassIndex_ = M_MAX_UNSIGNED;
     basePassIndex_ = Technique::GetPassIndex("base");
@@ -324,6 +328,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     lightPassIndex_ = Technique::GetPassIndex("light");
     litBasePassIndex_ = Technique::GetPassIndex("litbase");
     litAlphaPassIndex_ = Technique::GetPassIndex("litalpha");
+
     drawDebug_ = viewport->GetDrawDebug();
     hasScenePasses_ = false;
     lightVolumeCommand_ = nullptr;
@@ -390,6 +395,8 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
             BatchQueueMap::iterator j = batchQueues_.find(info.passIndex_);
             if (j == batchQueues_.end()) {
                 batchQueueStorage_.emplace_back();
+                if(-1==alphaPassQueueIdx_ && info.passIndex_==alphaPassIndex_)
+                    alphaPassQueueIdx_ = batchQueueStorage_.size()-1;
                 j = batchQueues_.emplace(info.passIndex_, batchQueueStorage_.size()-1).first;
             }
             info.batchQueueIdx_ = MAP_VALUE(j);
@@ -400,7 +407,6 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
         else if (command.type_ == CMD_FORWARDLIGHTS && !command.pass_.isEmpty())
             lightPassIndex_ = command.passIndex_ = Technique::GetPassIndex(command.pass_);
     }
-
 
     scene_ = viewport->GetScene();
     camera_ = viewport->GetCamera();
@@ -520,6 +526,7 @@ void View::Update(const FrameInfo& frame)
     eventData[P_SCENE] = scene_;
     eventData[P_CAMERA] = camera_;
     renderer_->SendEvent(E_BEGINVIEWUPDATE, eventData);
+
     int maxSortedInstances = renderer_->GetMaxSortedInstances();
 
     // Clear buffers, geometry, light, occluder & batch list
@@ -544,6 +551,7 @@ void View::Update(const FrameInfo& frame)
 
     GetDrawables();
     GetBatches();
+
     renderer_->SendEvent(E_ENDVIEWUPDATE, eventData);
 }
 
@@ -616,8 +624,9 @@ void View::Render()
             graphics_->SetDepthStencil(GetDepthStencil(currentRenderTarget_));
             IntVector2 rtSizeNow = graphics_->GetRenderTargetDimensions();
             IntRect viewport = (currentRenderTarget_ == renderTarget_) ? viewRect_ : IntRect(0, 0, rtSizeNow.x_,
-                rtSizeNow.y_);
+                                                                                             rtSizeNow.y_);
             graphics_->SetViewport(viewport);
+
             debug->SetView(camera_);
             debug->Render();
         }
@@ -630,7 +639,7 @@ void View::Render()
 
     // Run framebuffer blitting if necessary
     if (currentRenderTarget_ != renderTarget_)
-        BlitFramebuffer(static_cast<Texture2D*>(currentRenderTarget_->GetParentTexture()), renderTarget_, true);
+        BlitFramebuffer(currentRenderTarget_->GetParentTexture(), renderTarget_, true);
 
     // "Forget" the scene, camera, octree and zone after rendering
     scene_ = nullptr;
@@ -734,7 +743,7 @@ void View::SetGBufferShaderParameters(const IntVector2& texSize, const IntRect& 
 #else
     const Vector2& pixelUVOffset = Graphics::GetPixelUVOffset();
     Vector4 bufferUVOffset((pixelUVOffset.x_ + (float)viewRect.left_) / texWidth + widthRange,
-        (pixelUVOffset.y_ + (float)viewRect.top_) / texHeight + heightRange, widthRange, heightRange);
+                           (pixelUVOffset.y_ + (float)viewRect.top_) / texHeight + heightRange, widthRange, heightRange);
 #endif
     graphics_->SetShaderParameter(VSP_GBUFFEROFFSETS, bufferUVOffset);
 
@@ -809,7 +818,7 @@ void View::GetDrawables()
     if (maxOccluderTriangles_ > 0)
     {
         UpdateOccluders(occluders_, camera_);
-        if (occluders_.size())
+        if (!occluders_.empty())
         {
             PROFILE(DrawOcclusion);
 
@@ -836,17 +845,19 @@ void View::GetDrawables()
     {
         for (PerThreadSceneResult& result : sceneResults_)
         {
+
             result.geometries_.clear();
             result.lights_.clear();
             result.minZ_ = M_INFINITY;
             result.maxZ_ = 0.0f;
         }
+
         if(!tempDrawables.empty())
         {
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
             int drawablesPerItem = tempDrawables.size() / numWorkItems;
 
-            Drawable ** start_ptr = &tempDrawables.front();
+            Drawable ** start_ptr = tempDrawables.data();
             Drawable ** fin_ptr = start_ptr + tempDrawables.size();
             // Create a work item for each thread
             for (int i = 0; i < numWorkItems; ++i)
@@ -893,8 +904,8 @@ void View::GetDrawables()
         PerThreadSceneResult& result = sceneResults_[0];
         minZ_ = result.minZ_;
         maxZ_ = result.maxZ_;
-        std::swap(geometries_, result.geometries_);
-        std::swap(lights_, result.lights_);
+        geometries_.swap(result.geometries_);
+        lights_.swap(result.lights_);
     }
 
     if (minZ_ == M_INFINITY)
@@ -917,16 +928,15 @@ void View::GetBatches()
 
     nonThreadedGeometries_.clear();
     threadedGeometries_.clear();
-
-    PODVectorN<Light*,4> vertexLights;
     // retrieve default technique.
     const Vector<TechniqueEntry>& techniques(renderer_->GetDefaultMaterial()->GetTechniques());
-    size_t tech_count = techniques.size();
-    Technique *default_tech = tech_count ? techniques[tech_count-1].technique_ : (Technique*)nullptr;
+    Technique *default_tech = techniques.empty() ? (Technique *)nullptr : techniques.back().technique_;
+
     ProcessLights();
     GetLightBatches(default_tech);
     GetBaseBatches(default_tech);
 }
+
 void View::ProcessLights()
 {
     // Process lit geometries and shadow casters for each light
@@ -952,11 +962,10 @@ void View::ProcessLights()
     // Ensure all lights have been processed before proceeding
     queue->Complete(M_MAX_UNSIGNED);
 }
+
 void View::GetLightBatches(Technique *default_tech)
 {
-    BatchQueue* alphaQueue = batchQueues_.contains(alphaPassIndex_) ?
-                &batchQueueStorage_[batchQueues_[alphaPassIndex_]] : (BatchQueue*)nullptr;
-
+    BatchQueue * alphaqueue = (alphaPassQueueIdx_ == -1) ? nullptr : &batchQueueStorage_[alphaPassQueueIdx_];
     // Build light queues and lit batches
     {
         PROFILE(GetLightBatches);
@@ -964,7 +973,6 @@ void View::GetLightBatches(Technique *default_tech)
         // Preallocate light queues: per-pixel lights which have lit geometries
         unsigned numLightQueues = 0;
         unsigned usedLightQueues = 0;
-        BatchQueue::BatchGroupMap dummy; // used in cases where don't have alphaqueue
         for (LightQueryResult & i : lightQueryResults_)
         {
             if (!i.light_->GetPerVertex() && i.litGeometries_.size())
@@ -974,11 +982,10 @@ void View::GetLightBatches(Technique *default_tech)
         lightQueues_.resize(numLightQueues);
         maxLightsDrawables_.clear();
         unsigned maxSortedInstances = renderer_->GetMaxSortedInstances();
-        // group drawables by their zones
-        FasterHashMap<Zone *,PODVector<Drawable *> > zoneDrawableMap;
 
         for (LightQueryResult & query : lightQueryResults_)
         {
+
             // If light has no affected geometries, no need to process further
             if (query.litGeometries_.empty())
                 continue;
@@ -986,169 +993,149 @@ void View::GetLightBatches(Technique *default_tech)
             Light* light = query.light_;
 
             // Per-pixel light
-            if (!light->GetPerVertex())
-            {
-                unsigned shadowSplits = query.numSplits_;
-
-                // Initialize light queue and store it to the light so that it can be found later
-                LightBatchQueue& lightQueue(lightQueues_[usedLightQueues++]);
-                light->SetLightQueue(&lightQueue);
-                lightQueue.light_ = light;
-                lightQueue.negative_ = light->IsNegative();
-                lightQueue.shadowMap_ = nullptr;
-                lightQueue.litBaseBatches_.Clear(maxSortedInstances);
-                lightQueue.litBatches_.Clear(maxSortedInstances);
-                lightQueue.volumeBatches_.clear();
-                // Allocate shadow map now
-                if (shadowSplits > 0)
-                {
-                    lightQueue.shadowMap_ = renderer_->GetShadowMap(light, camera_, viewSize_.x_, viewSize_.y_);
-                    // If did not manage to get a shadow map, convert the light to unshadowed
-                    if (!lightQueue.shadowMap_)
-                        shadowSplits = 0;
-                }
-
-                // Setup shadow batch queues
-                lightQueue.shadowSplits_.resize(shadowSplits);
-                for (unsigned j = 0; j < shadowSplits; ++j)
-                {
-                    ShadowBatchQueue& shadowQueue = lightQueue.shadowSplits_[j];
-                    LightQueryShadowEntry &entry(query.shadowEntries_[j]);
-                    Camera* shadowCamera = entry.shadowCameras_;
-                    shadowQueue.shadowCamera_ = shadowCamera;
-                    shadowQueue.nearSplit_ = entry.shadowNearSplits_;
-                    shadowQueue.farSplit_ = entry.shadowFarSplits_;
-                    shadowQueue.shadowBatches_.Clear(maxSortedInstances);
-
-                    // Setup the shadow split viewport and finalize shadow camera parameters
-                    shadowQueue.shadowViewport_ = GetShadowMapViewport(light, j, lightQueue.shadowMap_);
-                    FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, entry.shadowCasterBox_);
-
-                    // Loop through shadow casters
-                    PODVector<Drawable*>::const_iterator k = query.shadowCasters_.begin() + entry.shadowCasterBegin_;
-                    PODVector<Drawable*>::const_iterator fin = query.shadowCasters_.begin() + entry.shadowCasterEnd_;
-                    for (; k!=fin; ++k)
-                    {
-                        Drawable* drawable = *k;
-                        // If drawable is not in actual view frustum, mark it in view here and check its geometry update type
-                        if (!drawable->IsInView(frame_, true))
-                        {
-                            drawable->MarkInView(frame_.frameNumber_,frame_.camera_);
-                            UpdateGeometryType type = drawable->GetUpdateGeometryType();
-                            if (type == UPDATE_MAIN_THREAD)
-                                nonThreadedGeometries_.push_back(drawable);
-                            else if (type == UPDATE_WORKER_THREAD)
-                                threadedGeometries_.push_back(drawable);
-                        }
-
-                        Zone* zone = GetZone(drawable);
-                        BatchQueue::BatchGroupMap &groupMap(shadowQueue.shadowBatches_.zoneLightGroups_[ZoneLightKey(zone,&lightQueue)]);
-
-                        for (const SourceBatch& srcBatch : drawable->GetBatches())
-                        {
-                            if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_)
-                                continue;
-                            Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
-                            if (!tech)
-                                continue;
-
-                            Pass* pass = tech->GetSupportedPass(Technique::shadowPassIndex);
-                            // Skip if material has no shadow pass
-                            if (!pass)
-                                continue;
-
-                            AddBatchToQueue(shadowQueue.shadowBatches_,groupMap,
-                                            Batch(srcBatch,shadowCamera,zone,&lightQueue,pass), tech);
-                        }
-                    }
-                }
-
-                zoneDrawableMap.clear();
-                // Process lit geometries
-                for (Drawable* drawable : query.litGeometries_) {
-                    drawable->AddLight(light);
-                    // If drawable limits maximum lights, only record the light, and check maximum count / build batches later
-                    if(!drawable->GetMaxLights())
-                        zoneDrawableMap[GetZone(drawable)].push_back(drawable);
-                    else
-                        maxLightsDrawables_.insert(drawable);
-                }
-
-                // fill in lit non-maxLights geometries' batches
-                BatchQueue *availableQueues[] = { &lightQueue.litBaseBatches_,&lightQueue.litBatches_,alphaQueue };
-                for(std::pair<Zone *,PODVector<Drawable *> > &elem : zoneDrawableMap) {
-                    Zone *zone { elem.first };
-                    ZoneLightKey zoneLightKey(zone,&lightQueue);
-                    BatchQueue::BatchGroupMap *groupMaps[] = {
-                        &lightQueue.litBaseBatches_.zoneLightGroups_[zoneLightKey],
-                        &lightQueue.litBatches_.zoneLightGroups_[zoneLightKey],
-                        alphaQueue ? &alphaQueue->zoneLightGroups_[zoneLightKey] : &dummy
-                    };
-
-                    for (Drawable* drawable : elem.second)
-                    {
-                        GetLitBatches(drawable, zone,lightQueue, availableQueues,groupMaps,default_tech);
-                    }
-                }
-
-                // In deferred modes, store the light volume batch now
-                if (deferred_)
-                {
-                    Batch volumeBatch;
-                    volumeBatch.geometry_           = renderer_->GetLightGeometry(light);
-                    volumeBatch.geometryType_       = GEOM_STATIC;
-                    volumeBatch.worldTransform_     = &light->GetVolumeTransform(camera_);
-                    volumeBatch.numWorldTransforms_ = 1;
-                    volumeBatch.camera_             = camera_;
-                    volumeBatch.lightQueue_         = &lightQueue;
-                    volumeBatch.distance_           = light->GetDistance();
-                    volumeBatch.material_           = nullptr;
-                    volumeBatch.pass_               = nullptr;
-                    volumeBatch.zone_               = nullptr;
-                    renderer_->SetLightVolumeBatchShaders(volumeBatch, lightVolumeCommand_->vertexShaderName_,
-                                                          lightVolumeCommand_->pixelShaderName_, lightVolumeCommand_->vertexShaderDefines_,
-                                                          lightVolumeCommand_->pixelShaderDefines_);
-                    lightQueue.volumeBatches_.push_back(volumeBatch);
-                }
-            }
-            // Per-vertex light
-            else
+            if (light->GetPerVertex())
             {
                 // Add the vertex light to lit drawables. It will be processed later during base pass batch generation
                 for (Drawable* drawable : query.litGeometries_)
                 {
                     drawable->AddVertexLight(light);
                 }
+                continue; // go to next light;
+            }
+
+            unsigned shadowSplits = query.numSplits_;
+
+            // Initialize light queue and store it to the light so that it can be found later
+            LightBatchQueue& lightQueue(lightQueues_[usedLightQueues++]);
+            light->SetLightQueue(&lightQueue);
+            lightQueue.light_ = light;
+            lightQueue.negative_ = light->IsNegative();
+            lightQueue.shadowMap_ = nullptr;
+            lightQueue.litBaseBatches_.Clear(maxSortedInstances);
+            lightQueue.litBatches_.Clear(maxSortedInstances);
+            lightQueue.volumeBatches_.clear();
+
+            // Allocate shadow map now
+            if (shadowSplits > 0)
+            {
+                lightQueue.shadowMap_ = renderer_->GetShadowMap(light, camera_, viewSize_.x_, viewSize_.y_);
+                // If did not manage to get a shadow map, convert the light to unshadowed
+                if (!lightQueue.shadowMap_)
+                    shadowSplits = 0;
+            }
+
+            // Setup shadow batch queues
+            lightQueue.shadowSplits_.resize(shadowSplits);
+            for (unsigned j = 0; j < shadowSplits; ++j)
+            {
+                ShadowBatchQueue& shadowQueue = lightQueue.shadowSplits_[j];
+                LightQueryShadowEntry &entry(query.shadowEntries_[j]);
+                Camera* shadowCamera = entry.shadowCameras_;
+                shadowQueue.shadowCamera_ = shadowCamera;
+                shadowQueue.nearSplit_ = entry.shadowNearSplits_;
+                shadowQueue.farSplit_ = entry.shadowFarSplits_;
+                shadowQueue.shadowBatches_.Clear(maxSortedInstances);
+
+                // Setup the shadow split viewport and finalize shadow camera parameters
+                shadowQueue.shadowViewport_ = GetShadowMapViewport(light, j, lightQueue.shadowMap_);
+                FinalizeShadowCamera(shadowCamera, light, shadowQueue.shadowViewport_, entry.shadowCasterBox_);
+
+                // Loop through shadow casters
+                PODVector<Drawable*>::const_iterator k = query.shadowCasters_.begin() + entry.shadowCasterBegin_;
+                PODVector<Drawable*>::const_iterator fin = query.shadowCasters_.begin() + entry.shadowCasterEnd_;
+
+                for (; k != fin; ++k)
+                {
+                    Drawable* drawable = *k;
+                    // If drawable is not in actual view frustum, mark it in view here and check its geometry update type
+                    if (!drawable->IsInView(frame_, true))
+                    {
+                        drawable->MarkInView(frame_);
+                        UpdateGeometryType type = drawable->GetUpdateGeometryType();
+                        if (type == UPDATE_MAIN_THREAD)
+                            nonThreadedGeometries_.push_back(drawable);
+                        else if (type == UPDATE_WORKER_THREAD)
+                            threadedGeometries_.push_back(drawable);
+                    }
+
+                    Zone* zone = GetZone(drawable);
+
+                    for (const SourceBatch& srcBatch : drawable->GetBatches())
+                    {
+                        if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_)
+                            continue;
+
+                        Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
+                        if (!tech)
+                            continue;
+
+                        Pass* pass = tech->GetSupportedPass(Technique::shadowPassIndex);
+                        // Skip if material has no shadow pass
+                        if (!pass)
+                            continue;
+
+
+                        AddBatchToQueue(shadowQueue.shadowBatches_,
+                                        Batch(srcBatch,shadowCamera,zone,&lightQueue,pass), tech);
+                    }
+                }
+            }
+
+            BatchQueue *availableQueues[] = { &lightQueue.litBaseBatches_,&lightQueue.litBatches_,alphaqueue };
+
+            // Process lit geometries
+            for (Drawable* drawable : query.litGeometries_) {
+                drawable->AddLight(light);
+
+                // If drawable limits maximum lights, only record the light, and check maximum count / build batches later
+                if (!drawable->GetMaxLights()) {
+                    Zone *zone { GetZone(drawable) };
+                    GetLitBatches(drawable, zone,lightQueue, availableQueues,default_tech);
+                }
+                else
+                    maxLightsDrawables_.insert(drawable);
+            }
+
+            // In deferred modes, store the light volume batch now
+            if (deferred_)
+            {
+                Batch volumeBatch;
+                volumeBatch.geometry_ = renderer_->GetLightGeometry(light);
+                volumeBatch.geometryType_ = GEOM_STATIC;
+                volumeBatch.worldTransform_ = &light->GetVolumeTransform(camera_);
+                volumeBatch.numWorldTransforms_ = 1;
+                volumeBatch.camera_ = camera_;
+                volumeBatch.lightQueue_ = &lightQueue;
+                volumeBatch.distance_ = light->GetDistance();
+                volumeBatch.material_           = nullptr;
+                volumeBatch.pass_               = nullptr;
+                volumeBatch.zone_               = nullptr;
+                renderer_->SetLightVolumeBatchShaders(volumeBatch, lightVolumeCommand_->vertexShaderName_,
+                                                      lightVolumeCommand_->pixelShaderName_, lightVolumeCommand_->vertexShaderDefines_,
+                                                      lightVolumeCommand_->pixelShaderDefines_);
+                lightQueue.volumeBatches_.push_back(volumeBatch);
             }
         }
     }
 
     // Process drawables with limited per-pixel light count
-    if (maxLightsDrawables_.size())
+    if (!maxLightsDrawables_.empty())
     {
         PROFILE(GetMaxLightsBatches);
 
-        // Process lit geometries
-        BatchQueue::BatchGroupMap dummy; // in case we dont have alphaqueue
         for (Drawable* drawable : maxLightsDrawables_)
         {
             Zone *zone=GetZone(drawable);
             drawable->LimitLights();
-            const PODVectorN<Light*,4>& lights(drawable->GetLights());
+            const PODVector<Light*>& lights(drawable->GetLights());
 
             for (Light* light : lights)
             {
                 // Find the correct light queue again
                 LightBatchQueue* queue = light->GetLightQueue();
                 if (queue) {
-                    BatchQueue *availableQueues[3] = { &queue->litBaseBatches_,&queue->litBatches_,alphaQueue };
-                    ZoneLightKey zoneLightKey(zone,queue);
-                    BatchQueue::BatchGroupMap *groupMaps[3] = {
-                        &availableQueues[0]->zoneLightGroups_[zoneLightKey],
-                        &availableQueues[1]->zoneLightGroups_[zoneLightKey],
-                        availableQueues[2] ? &availableQueues[2]->zoneLightGroups_[zoneLightKey] : &dummy
-                    };
-                    GetLitBatches(drawable,zone, *queue, availableQueues,groupMaps,default_tech);
+                    BatchQueue *availableQueues[3] = { &queue->litBaseBatches_,&queue->litBatches_,alphaqueue };
+                    GetLitBatches(drawable,zone, *queue, availableQueues,default_tech);
                 }
             }
         }
@@ -1161,8 +1148,9 @@ void View::GetBaseBatches(Technique *default_tech)
     unsigned frameNo = frame_.frameNumber_;
     for (Drawable* drawable : geometries_)
     {
-        const Vector<SourceBatch>& batches(drawable->GetBatches());
-        const PODVectorN<Light*,4>& drawableVertexLights(drawable->GetVertexLights());
+        const PODVector<SourceBatch>& batches(drawable->GetBatches());
+        bool vertexLightsProcessed = false;
+
         UpdateGeometryType type = drawable->GetUpdateGeometryType();
         if (type == UPDATE_MAIN_THREAD)
             nonThreadedGeometries_.push_back(drawable);
@@ -1178,60 +1166,61 @@ void View::GetBaseBatches(Technique *default_tech)
             const SourceBatch& srcBatch(batches[j]);
             if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_)
                 continue;
-
+            Material *srcMaterial = srcBatch.material_.Get();
             // Check here if the material refers to a rendertarget texture with camera(s) attached
             // Only check this for backbuffer views (null rendertarget)
-            if (srcBatch.material_ && srcBatch.material_->GetAuxViewFrameNumber() != frameNo && !renderTarget_)
-                CheckMaterialForAuxView(srcBatch.material_);
+            if (srcMaterial && srcMaterial->GetAuxViewFrameNumber() != frameNo && !renderTarget_)
+                CheckMaterialForAuxView(srcMaterial);
 
-            Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
+            Technique* tech = srcMaterial ? GetTechnique(drawable, srcMaterial) : default_tech;
             if (!tech)
                 continue;
 
             bool drawableHasBasePass = j < 32 && drawable->HasBasePass(j);
             // Check each of the scene passes
             LightBatchQueue* lq = nullptr;
-
             for (ScenePassInfo& info : scenePasses_)
             {
                 // Skip forward base pass if the corresponding litbase pass already exists
-                if (info.passIndex_ == basePassIndex_ && drawableHasBasePass)
+                if ((info.passIndex_ == basePassIndex_) && drawableHasBasePass)
                     continue;
 
                 Pass* pass = tech->GetSupportedPass(info.passIndex_);
                 if (!pass)
                     continue;
 
-                // Limit vertex lights. If this is a deferred opaque batch, remove converted per-pixel lights,
-                // as they will be rendered as light volumes in any case, and drawing them also as vertex lights
-                // would result in double lighting
-
-                if (!drawableVertexLights.empty())
-                    drawable->LimitVertexLights(deferred_ && pass->GetBlendMode() == BLEND_REPLACE);
-                if (info.vertexLights_ && !drawableVertexLights.empty())
+                if (info.vertexLights_)
                 {
+                    const PODVector<Light*>& drawableVertexLights(drawable->GetVertexLights());
+                    if (!drawableVertexLights.empty() && !vertexLightsProcessed)
+                    {
+                        // Limit vertex lights. If this is a deferred opaque batch, remove converted per-pixel lights,
+                        // as they will be rendered as light volumes in any case, and drawing them also as vertex lights
+                        // would result in double lighting
+                        drawable->LimitVertexLights(deferred_ && pass->GetBlendMode() == BLEND_REPLACE);
+                        vertexLightsProcessed = true;
+                    }
+                    if (!drawableVertexLights.empty() ) {
+                        uint64_t vertex_lights_hash = GetVertexLightQueueHash(drawableVertexLights);
                         // Find a vertex light queue. If not found, create new
-                        unsigned long long hash = GetVertexLightQueueHash(drawableVertexLights);
-                        HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(hash);
+                        HashMap<unsigned long long, LightBatchQueue>::iterator i = vertexLightQueues_.find(vertex_lights_hash);
                         if (i == vertexLightQueues_.end())
                         {
-                            lq = &MAP_VALUE(vertexLightQueues_.emplace(hash, LightBatchQueue()).first);
-                            lq->light_ = nullptr;
-                            lq->shadowMap_ = nullptr;
-                            lq->vertexLights_ = drawableVertexLights;
+                            i = vertexLightQueues_.emplace(vertex_lights_hash, LightBatchQueue()).first;
+                            MAP_VALUE(i).light_ = nullptr;
+                            MAP_VALUE(i).shadowMap_ = nullptr;
+                            MAP_VALUE(i).vertexLights_ = drawableVertexLights;
                         }
-                        else
-                            lq = &MAP_VALUE(i);
+                        lq = &MAP_VALUE(i);
                     }
-                ZoneLightKey zoneLightKey(zone,lq);
+                }
                 BatchQueue & que(batchQueueStorage_[info.batchQueueIdx_]);
-                BatchQueue::BatchGroupMap &groupMap(que.zoneLightGroups_[zoneLightKey]);
 
                 bool allowInstancing = info.allowInstancing_;
                 if (allowInstancing && info.markToStencil_ && drawableLightMask != (zone->GetLightMask() & 0xff))
                     allowInstancing = false;
-                AddBatchToQueue(que, groupMap,
-                                Batch(srcBatch,camera_,zone,lq,pass,drawableLightMask,true),
+
+                AddBatchToQueue(que, Batch(srcBatch,camera_,zone,lq,pass,drawableLightMask,true),
                                 tech, allowInstancing);
             }
         }
@@ -1246,7 +1235,6 @@ void View::UpdateGeometries()
 
     // Sort batches
     {
-
         for (unsigned i = 0; i < renderPath_->commands_.size(); ++i)
         {
             const RenderPathCommand& command = renderPath_->commands_[i];
@@ -1301,10 +1289,8 @@ void View::UpdateGeometries()
             int numWorkItems = queue->GetNumThreads() + 1; // Worker threads + main thread
             int drawablesPerItem = threadedGeometries_.size() / numWorkItems;
 
-
             Drawable ** start_ptr = &threadedGeometries_.front();
             Drawable ** fin_ptr = start_ptr + threadedGeometries_.size();
-
             for (int i = 0; i < numWorkItems; ++i)
             {
                 Drawable ** end_ptr = fin_ptr;
@@ -1332,19 +1318,18 @@ void View::UpdateGeometries()
     queue->Complete(M_MAX_UNSIGNED);
 }
 
-void View::GetLitBatches(Drawable* drawable, Zone *zone,LightBatchQueue& lightQueue, BatchQueue* availableQueues[3],
-BatchQueue::BatchGroupMap *groupMaps[3],
-Technique *default_tech)
+void View::GetLitBatches(Drawable* drawable, Zone *zone,LightBatchQueue& lightQueue,
+                         BatchQueue* availableQueues[3], Technique *default_tech)
 {
     Light* light = lightQueue.light_;
-    const Vector<SourceBatch>& batches(drawable->GetBatches());
+    const PODVector<SourceBatch>& batches(drawable->GetBatches());
 
     // Shadows on transparencies can only be rendered if shadow maps are not reused
     bool allowTransparentShadows = !renderer_->GetReuseShadowMaps();
     bool allowLitBase = useLitBase_ && !lightQueue.negative_ && light == drawable->GetFirstLight() &&
             drawable->GetVertexLights().empty() && !zone->GetAmbientGradient();
+    bool hasAlphaQueue = availableQueues[2]!=nullptr;
     int i=-1;
-    Pass * dest_pass;
     int queueIndex;
 
     if(allowLitBase) {
@@ -1360,28 +1345,28 @@ Technique *default_tech)
                 continue;
 
             bool useInstancing = true;
-            bool isBase = false;
+
             // Check for lit base pass. Because it uses the replace blend mode, it must be ensured to be the first light
             // Also vertex lighting or ambient gradient require the non-lit base pass, so skip in those cases
+            Pass * dest_pass = nullptr;
             queueIndex = 1;
             if (i < 32)
             {
                 dest_pass = tech->GetSupportedPass(litBasePassIndex_);
                 if (dest_pass)
                 {
-                    isBase = true;
                     queueIndex = 0;
                     drawable->SetBasePass(i);
                 }
             }
-
             if(queueIndex==1)
                 dest_pass = tech->GetSupportedPass(lightPassIndex_);
+            bool isBase = (queueIndex==0);
 
             // If no lit pass, check for lit alpha
             if (!dest_pass)
             {
-                if(!availableQueues[2])
+                if(!hasAlphaQueue)
                     continue; // no alpha queue, skip it then.
                 dest_pass = tech->GetSupportedPass(litAlphaPassIndex_);
                 // Skip if material does not receive light at all
@@ -1391,16 +1376,15 @@ Technique *default_tech)
                 queueIndex = 2;
             }
 
-            AddBatchToQueue(*availableQueues[queueIndex],*groupMaps[queueIndex],
-                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,isBase), tech,
-                            useInstancing, useInstancing || allowTransparentShadows);
+            AddBatchToQueue(*availableQueues[queueIndex],
+                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,isBase), tech,
+                            useInstancing, allowTransparentShadows);
         }
 
     }
     else {
         for (const SourceBatch& srcBatch : batches)
         {
-            ++i;
             Technique* tech = srcBatch.material_ ? GetTechnique(drawable, srcBatch.material_) : default_tech;
             if (!srcBatch.geometry_ || !srcBatch.numWorldTransforms_ || !tech)
                 continue;
@@ -1410,13 +1394,13 @@ Technique *default_tech)
                 continue;
 
             bool useInstancing = true;
-            dest_pass = tech->GetSupportedPass(litBasePassIndex_);
+            Pass * dest_pass = tech->GetSupportedPass(lightPassIndex_);
 
             queueIndex = 1;
             // If no lit pass, check for lit alpha
             if (!dest_pass)
             {
-                if(!availableQueues[2])
+                if(!hasAlphaQueue)
                     continue; // no alpha queue, skip it then.
                 dest_pass = tech->GetSupportedPass(litAlphaPassIndex_);
                 // Skip if material does not receive light at all
@@ -1425,10 +1409,9 @@ Technique *default_tech)
                 useInstancing = false; // Transparent batches can not be instanced
                 queueIndex = 2;
             }
-
-            AddBatchToQueue(*availableQueues[queueIndex],*groupMaps[queueIndex],
-                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass,DEFAULT_LIGHTMASK,false), tech,
-                            useInstancing, useInstancing || allowTransparentShadows);
+            AddBatchToQueue(*availableQueues[queueIndex],
+                            Batch(srcBatch,camera_,zone,&lightQueue,dest_pass), tech,
+                            useInstancing, allowTransparentShadows);
         }
     }
 }
@@ -1496,7 +1479,7 @@ void View::ExecuteRenderPathCommands()
                         if (viewportWrite)
                         {
                             BlitFramebuffer(currentRenderTarget_->GetParentTexture(),
-                                GetRenderSurfaceFromTexture(viewportTextures_[0]), false);
+                                            GetRenderSurfaceFromTexture(viewportTextures_[0]), false);
                             currentViewportTexture_ = viewportTextures_[0];
                             viewportModified = false;
                         }
@@ -1559,7 +1542,7 @@ void View::ExecuteRenderPathCommands()
 
             case CMD_SCENEPASS:
             {
-                    BatchQueue* queue = &batchQueueStorage_[batchQueues_[command.passIndex_]];
+                BatchQueue* queue = &batchQueueStorage_[batchQueues_[command.passIndex_]];
                 if (!queue->IsEmpty())
                 {
                     PROFILE(RenderScenePass);
@@ -1571,6 +1554,7 @@ void View::ExecuteRenderPathCommands()
                 }
                 break;
             }
+
             case CMD_QUAD:
             {
                 PROFILE(RenderQuad);
@@ -1655,6 +1639,7 @@ void View::ExecuteRenderPathCommands()
                 GetSubsystem<UI>()->Render(false);
             }
                 break;
+
             default:
                 break;
             }
@@ -1674,29 +1659,30 @@ void View::SetRenderTargets(RenderPathCommand& command)
 
     while (index < command.outputs_.size())
     {
-        if (!command.outputs_[index].first_.Compare("viewport", false))
+        if (!command.outputs_[index].first_.compare("viewport", Qt::CaseInsensitive))
             graphics_->SetRenderTarget(index, currentRenderTarget_);
         else
         {
             Texture* texture = FindNamedTexture(command.outputs_[index].first_, true, false);
-                // Check for depth only rendering (by specifying a depth texture as the sole output)
-                if (!index && command.outputs_.size() == 1 && texture && texture->GetFormat() ==
-                        Graphics::GetReadableDepthFormat() || texture->GetFormat() == Graphics::GetDepthStencilFormat())
-                {
-                    useColorWrite = false;
-                    useCustomDepth = true;
+
+            // Check for depth only rendering (by specifying a depth texture as the sole output)
+            if (!index && command.outputs_.size() == 1 && texture && (texture->GetFormat() ==
+                    Graphics::GetReadableDepthFormat() || texture->GetFormat() == Graphics::GetDepthStencilFormat()))
+            {
+                useColorWrite = false;
+                useCustomDepth = true;
 #if !defined(URHO3D_OPENGL) && !defined(URHO3D_D3D11)
-                    // On D3D actual depth-only rendering is illegal, we need a color rendertarget
-                    if (!depthOnlyDummyTexture_)
-                    {
-                        depthOnlyDummyTexture_ = renderer_->GetScreenBuffer(texture->GetWidth(), texture->GetHeight(),
-                                                                            graphics_->GetDummyColorFormat(), false, false, false);
-                    }
+                // On D3D actual depth-only rendering is illegal, we need a color rendertarget
+                if (!depthOnlyDummyTexture_)
+                {
+                    depthOnlyDummyTexture_ = renderer_->GetScreenBuffer(texture->GetWidth(), texture->GetHeight(),
+                                                                        graphics_->GetDummyColorFormat(), false, false, false);
+                }
 #endif
                 graphics_->SetRenderTarget(0, GetRenderSurfaceFromTexture(depthOnlyDummyTexture_));
                 graphics_->SetDepthStencil(GetRenderSurfaceFromTexture(texture));
-                }
-                else
+            }
+            else
                 graphics_->SetRenderTarget(index, GetRenderSurfaceFromTexture(texture, command.outputs_[index].second_));
         }
 
@@ -1723,7 +1709,7 @@ void View::SetRenderTargets(RenderPathCommand& command)
     // viewport-sized, so they should use their full size as the viewport
     IntVector2 rtSizeNow = graphics_->GetRenderTargetDimensions();
     IntRect viewport = (currentRenderTarget_ == renderTarget_) ? viewRect_ : IntRect(0, 0, rtSizeNow.x_,
-                                                                                              rtSizeNow.y_);
+                                                                                     rtSizeNow.y_);
 
     if (!useCustomDepth)
         graphics_->SetDepthStencil(GetDepthStencil(graphics_->GetRenderTarget(0)));
@@ -1743,7 +1729,7 @@ bool View::SetTextures(RenderPathCommand& command)
             continue;
 
         // Bind the rendered output
-        if (!command.textureNames_[i].Compare("viewport", false))
+        if (!command.textureNames_[i].compare("viewport", Qt::CaseInsensitive))
         {
             graphics_->SetTexture(i, currentViewportTexture_);
             continue;
@@ -1751,7 +1737,7 @@ bool View::SetTextures(RenderPathCommand& command)
 
 #ifdef DESKTOP_GRAPHICS
         Texture* texture = FindNamedTexture(command.textureNames_[i], false, i == TU_VOLUMEMAP);
-        #else
+#else
         Texture* texture = FindNamedTexture(command.textureNames_[i], false, false);
 #endif
 
@@ -1765,7 +1751,7 @@ bool View::SetTextures(RenderPathCommand& command)
         else
         {
             // If requesting a texture fails, clear the texture name to prevent redundant attempts
-            command.textureNames_[i] = String::EMPTY;
+            command.textureNames_[i] = QString::null;
         }
     }
 
@@ -1780,10 +1766,10 @@ void View::RenderQuad(RenderPathCommand& command)
     // If shader can not be found, clear it from the command to prevent redundant attempts
     ShaderVariation* vs = graphics_->GetShader(VS, command.vertexShaderName_, command.vertexShaderDefines_);
     if (!vs)
-        command.vertexShaderName_ = String::EMPTY;
+        command.vertexShaderName_ = QString::null;
     ShaderVariation* ps = graphics_->GetShader(PS, command.pixelShaderName_, command.pixelShaderDefines_);
     if (!ps)
-        command.pixelShaderName_ = String::EMPTY;
+        command.pixelShaderName_ = QString::null;
 
     // Set shaders & shader parameters and textures
     graphics_->SetShaders(vs, ps);
@@ -1811,8 +1797,8 @@ void View::RenderQuad(RenderPathCommand& command)
         if (!renderTargets_.contains(nameHash))
             continue;
 
-        String invSizeName = rtInfo.name_ + "InvSize";
-        String offsetsName = rtInfo.name_ + "Offsets";
+        QString invSizeName = rtInfo.name_ + "InvSize";
+        QString offsetsName = rtInfo.name_ + "Offsets";
         float width = (float)renderTargets_[nameHash]->GetWidth();
         float height = (float)renderTargets_[nameHash]->GetHeight();
 
@@ -1821,7 +1807,7 @@ void View::RenderQuad(RenderPathCommand& command)
         graphics_->SetShaderParameter(offsetsName, Vector2(pixelUVOffset.x_ / width, pixelUVOffset.y_ / height));
     }
 
-    graphics_->SetBlendMode(BLEND_REPLACE);
+    graphics_->SetBlendMode(command.blendMode_);
     graphics_->SetDepthTest(CMP_ALWAYS);
     graphics_->SetDepthWrite(false);
     graphics_->SetFillMode(FILL_SOLID);
@@ -1834,6 +1820,7 @@ void View::RenderQuad(RenderPathCommand& command)
 
 bool View::IsNecessary(const RenderPathCommand& command)
 {
+
     return command.enabled_ && command.outputs_.size() && (command.type_ != CMD_SCENEPASS ||
             !batchQueueStorage_[batchQueues_[command.passIndex_]].IsEmpty());
 }
@@ -1842,7 +1829,7 @@ bool View::CheckViewportRead(const RenderPathCommand& command)
 {
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
     {
-        if (!command.textureNames_[i].isEmpty() && !command.textureNames_[i].Compare("viewport", false))
+        if (!command.textureNames_[i].isEmpty() && !command.textureNames_[i].compare("viewport", Qt::CaseInsensitive))
             return true;
     }
 
@@ -1853,7 +1840,7 @@ bool View::CheckViewportWrite(const RenderPathCommand& command)
 {
     for (unsigned i = 0; i < command.outputs_.size(); ++i)
     {
-        if (!command.outputs_[i].first_.Compare("viewport", false))
+        if (!command.outputs_[i].first_.compare("viewport", Qt::CaseInsensitive))
             return true;
     }
 
@@ -1905,8 +1892,8 @@ void View::AllocateScreenBuffers()
         {
             if (!IsNecessary(command))
                 continue;
-            if (command.depthStencilName_.length() && command.outputs_.size() && !command.outputs_[0].first_.Compare("viewport",
-                false))
+            if (command.depthStencilName_.length() && command.outputs_.size() && !command.outputs_[0].first_.compare("viewport",
+                                                                                                                     Qt::CaseInsensitive))
             {
                 needSubstitute = true;
                 break;
@@ -1937,7 +1924,7 @@ void View::AllocateScreenBuffers()
                 {
                     for (unsigned j = 0; j < command.outputs_.size(); ++j)
                     {
-                        if (!command.outputs_[j].first_.Compare("viewport", false))
+                        if (!command.outputs_[j].first_.compare("viewport", Qt::CaseInsensitive))
                         {
                             needSubstitute = true;
                             break;
@@ -2012,11 +1999,11 @@ void View::AllocateScreenBuffers()
     // Follow the sRGB mode of the destination render target
     bool sRGB = renderTarget_ ? renderTarget_->GetParentTexture()->GetSRGB() : graphics_->GetSRGB();
     substituteRenderTarget_ = needSubstitute ? GetRenderSurfaceFromTexture(renderer_->GetScreenBuffer(viewSize_.x_, viewSize_.y_,
-        format, false, true, sRGB)) : (RenderSurface*)nullptr;
+                                                                                                      format, false, true, sRGB)) : (RenderSurface*)nullptr;
     for (unsigned i = 0; i < MAX_VIEWPORT_TEXTURES; ++i)
     {
         viewportTextures_[i] = i < numViewportTextures ? renderer_->GetScreenBuffer(viewSize_.x_, viewSize_.y_, format, false, true, sRGB) :
-            (Texture*)nullptr;
+                                                         (Texture*)nullptr;
     }
     // If using a substitute render target and pingponging, the substitute can act as the second viewport texture
     if (numViewportTextures == 1 && substituteRenderTarget_)
@@ -2081,7 +2068,7 @@ void View::BlitFramebuffer(Texture* source, RenderSurface* destination, bool dep
     graphics_->SetDepthStencil(GetDepthStencil(destination));
     graphics_->SetViewport(destRect);
 
-    static const String shaderName("CopyFramebuffer");
+    static const QString shaderName("CopyFramebuffer");
     graphics_->SetShaders(graphics_->GetShader(VS, shaderName), graphics_->GetShader(PS, shaderName));
 
     SetGBufferShaderParameters(srcSize, srcRect);
@@ -2345,7 +2332,7 @@ void View::ProcessShadowCasters(LightQueryResult& query, const PODVector<Drawabl
         if (drawDistance > 0.0f && (maxShadowDistance <= 0.0f || drawDistance < maxShadowDistance))
             maxShadowDistance = drawDistance;
         if (maxShadowDistance > 0.0f && drawable->GetDistance() > maxShadowDistance)
-                continue;
+            continue;
 
         // Project shadow caster bounding box to light view space for visibility check
         lightViewBox = drawable->GetWorldBoundingBox().Transformed(lightView);
@@ -2436,6 +2423,7 @@ void View::SetupShadowCameras(LightQueryResult& query)
     Light* light = query.light_;
 
     int splits = 0;
+
     switch (light->GetLightType())
     {
     case LIGHT_DIRECTIONAL:
@@ -2543,8 +2531,6 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
         for (unsigned i = 0; i < geometries_.size(); ++i)
         {
             Drawable* drawable = geometries_[i];
-
-
             if (drawable->GetMinZ() <= farSplit && drawable->GetMaxZ() >= nearSplit &&
                     (GetLightMask(drawable) & light->GetLightMask()))
                 litGeometriesBox.Merge(drawable->GetWorldBoundingBox());
@@ -2630,7 +2616,7 @@ void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRec
     }
 }
 
-void View::QuantizeDirLightShadowCamera(Camera* shadowCamera, const FocusParameters &shadowFocusParameters, const IntRect& shadowViewport,
+void View::QuantizeDirLightShadowCamera(Camera* shadowCamera, const FocusParameters& shadowFocusParameters, const IntRect& shadowViewport,
                                         const BoundingBox& viewBox)
 {
     Node* shadowCameraNode = shadowCamera->GetNode();
@@ -2714,7 +2700,6 @@ void View::FindZone(Drawable* drawable)
 
 Technique* View::GetTechnique(Drawable* drawable, Material* material)
 {
-
     assert(material!=nullptr);
 
     const Vector<TechniqueEntry>& techniques = material->GetTechniques();
@@ -2722,7 +2707,6 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
         return nullptr;                      // No techniques no choice at all
     if (techniques.size() == 1)
         return techniques[0].technique_; // If only one technique, no choice
-
     float lodDistance = drawable->GetLodDistance();
 
     // Check for suitable technique. Techniques should be ordered like this:
@@ -2776,10 +2760,11 @@ void View::CheckMaterialForAuxView(Material* material)
     material->MarkForAuxView(frame_.frameNumber_);
 }
 
-void View::AddBatchToQueue(BatchQueue& batchQueue,BatchQueue::BatchGroupMap &batchGroupMap,
-                           Batch batch, const Technique* tech, bool allowInstancing, bool allowShadows)
+void View::AddBatchToQueue(BatchQueue& batchQueue,
+                           Batch  batch, const Technique* tech, bool allowInstancing, bool allowShadows)
 {
-    assert(batchGroupMap.size()>=batchQueue.batchGroupStorage_.size());
+
+    assert(batchQueue.batchGroups_.size()>=batchQueue.batchGroupStorage_.size());
     Renderer * ren = renderer_.Get();
     if (!batch.material_)
         batch.material_ = ren->GetDefaultMaterial();
@@ -2792,19 +2777,19 @@ void View::AddBatchToQueue(BatchQueue& batchQueue,BatchQueue::BatchGroupMap &bat
     {
         BatchGroup *grp_ptr;
         BatchGroupKey key(batch);
-        BatchQueue::BatchGroupMap::iterator i = batchGroupMap.find(key);
-        if (i == batchGroupMap.end())
+
+        BatchQueue::BatchGroupMap::iterator i = batchQueue.batchGroups_.find(key);
+        if (i == batchQueue.batchGroups_.end())
         {
             // Create a new group based on the batch
             // In case the group remains below the instancing limit, do not enable instancing shaders yet
             batchQueue.batchGroupStorage_.emplace_back(batch);
             BatchGroup &newGroup(batchQueue.batchGroupStorage_.back());
             grp_ptr = &batchQueue.batchGroupStorage_.back();
-
             newGroup.geometryType_ = GEOM_STATIC;
             ren->SetBatchShaders(newGroup, tech, allowShadows);
             newGroup.CalculateSortKey();
-            batchGroupMap.emplace(key, batchQueue.batchGroupStorage_.size()-1);
+            batchQueue.batchGroups_.emplace(key, batchQueue.batchGroupStorage_.size()-1);
         }
         else
             grp_ptr = &batchQueue.batchGroupStorage_[MAP_VALUE(i)];
@@ -2832,12 +2817,12 @@ void View::AddBatchToQueue(BatchQueue& batchQueue,BatchQueue::BatchGroupMap &bat
             for (unsigned i = 0; i < numTransforms; ++i)
             {
                 // Move the transform pointer to generate copies of the batch which only refer to 1 world transform
-                batchQueue.batches_.push_back(batch);
+                batchQueue.batches_.emplace_back(batch);
                 ++batch.worldTransform_;
             }
         }
         else
-            batchQueue.batches_.push_back(batch);
+            batchQueue.batches_.emplace_back(batch);
     }
 }
 
@@ -2860,6 +2845,7 @@ void View::PrepareInstancingBuffer()
 
     if (!totalInstances || !renderer_->ResizeInstancingBuffer(totalInstances))
         return;
+
     VertexBuffer* instancingBuffer = renderer_->GetInstancingBuffer();
     unsigned freeIndex = 0;
     void* dest = instancingBuffer->Lock(0, totalInstances, true);
@@ -3009,7 +2995,7 @@ RenderSurface* View::GetRenderSurfaceFromTexture(Texture* texture, CubeMapFace f
         return 0;
 }
 
-Texture* View::FindNamedTexture(const String& name, bool isRenderTarget, bool isVolumeMap)
+Texture* View::FindNamedTexture(const QString& name, bool isRenderTarget, bool isVolumeMap)
 {
     // Check rendertargets first
     StringHash nameHash(name);
@@ -3036,11 +3022,11 @@ Texture* View::FindNamedTexture(const String& name, bool isRenderTarget, bool is
         if (GetExtension(name) == ".xml")
         {
             // Assume 3D textures are only bound to the volume map unit, otherwise it's a cube texture
-            #ifdef DESKTOP_GRAPHICS
+#ifdef DESKTOP_GRAPHICS
             if (isVolumeMap)
                 return cache->GetResource<Texture3D>(name);
             else
-            #endif
+#endif
                 return cache->GetResource<TextureCube>(name);
         }
         else

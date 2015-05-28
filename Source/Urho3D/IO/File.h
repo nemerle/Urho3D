@@ -53,9 +53,9 @@ public:
     /// Construct.
     File(Context* context);
     /// Construct and open a filesystem file.
-    File(Context* context, const String& fileName, FileMode mode = FILE_READ);
+    File(Context* context, const QString& fileName, FileMode mode = FILE_READ);
     /// Construct and open from a package file.
-    File(Context* context, PackageFile* package, const String& fileName);
+    File(Context* context, PackageFile* package, const QString& fileName);
     /// Destruct. Close the file if open.
     virtual ~File();
     
@@ -66,20 +66,20 @@ public:
     /// Write bytes to the file. Return number of bytes actually written.
     virtual unsigned Write(const void* data, unsigned size) override;
     /// Return the file name.
-    virtual const String& GetName() const override { return fileName_; }
+    virtual const QString& GetName() const override { return fileName_; }
     /// Return a checksum of the file contents using the SDBM hash algorithm.
     virtual unsigned GetChecksum() override;
     
     /// Open a filesystem file. Return true if successful.
-    bool Open(const String& fileName, FileMode mode = FILE_READ);
+    bool Open(const QString& fileName, FileMode mode = FILE_READ);
     /// Open from within a package file. Return true if successful.
-    bool Open(PackageFile* package, const String& fileName);
+    bool Open(PackageFile* package, const QString& fileName);
     /// Close the file.
     void Close();
     /// Flush any buffered output to the file.
     void Flush();
     /// Change the file name. Used by the resource system.
-    void SetName(const String& name);
+    void SetName(const QString& name);
     
     /// Return the open mode.
     FileMode GetMode() const { return mode_; }
@@ -92,7 +92,7 @@ public:
     
 private:
     /// File name.
-    String fileName_;
+    QString fileName_;
     /// Open mode.
     FileMode mode_;
     /// File handle.

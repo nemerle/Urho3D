@@ -169,7 +169,7 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
 
     if (rootElem.HasChild("emittertype"))
     {
-        String type = rootElem.GetChild("emittertype").GetAttributeLower("value");
+        QString type = rootElem.GetChild("emittertype").GetAttributeLower("value");
         if (type == "point")
         {
             // Point emitter type is deprecated, handled as zero sized sphere
@@ -358,7 +358,7 @@ bool ParticleEffect::Load(const XMLElement& source)
 
     if (source.HasChild("emittertype"))
     {
-        String type = source.GetChild("emittertype").GetAttributeLower("value");
+        QString type = source.GetChild("emittertype").GetAttributeLower("value");
         if (type == "point")
         {
             // Point emitter type is deprecated, handled as zero sized sphere

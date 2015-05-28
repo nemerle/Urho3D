@@ -170,7 +170,7 @@ struct AttributeInfo
     /// Attribute type.
     VariantType type_;
     /// Name.
-    String name_;
+    QString name_;
     /// Byte offset from start of object.
     unsigned offset_;
     /// Enum names.

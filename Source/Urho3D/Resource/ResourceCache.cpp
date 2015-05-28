@@ -85,7 +85,7 @@ ResourceCache::~ResourceCache()
     backgroundLoader_.Reset();
 }
 
-bool ResourceCache::AddResourceDir(const String& pathName, unsigned priority)
+bool ResourceCache::AddResourceDir(const QString& pathName, unsigned priority)
 {
     MutexLock lock(resourceMutex_);
 
@@ -97,12 +97,12 @@ bool ResourceCache::AddResourceDir(const String& pathName, unsigned priority)
     }
 
     // Convert path to absolute
-    String fixedPath = SanitateResourceDirName(pathName);
+    QString fixedPath = SanitateResourceDirName(pathName);
 
     // Check that the same path does not already exist
     for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
-        if (!resourceDirs_[i].Compare(fixedPath, false))
+        if (!resourceDirs_[i].compare(fixedPath, Qt::CaseInsensitive))
             return true;
     }
 
@@ -140,7 +140,7 @@ bool ResourceCache::AddPackageFile(PackageFile* package, unsigned priority)
     return true;
 }
 
-bool ResourceCache::AddPackageFile(const String& fileName, unsigned priority)
+bool ResourceCache::AddPackageFile(const QString& fileName, unsigned priority)
 {
     SharedPtr<PackageFile> package(new PackageFile(context_));
     return package->Open(fileName) && AddPackageFile(package);
@@ -154,7 +154,7 @@ bool ResourceCache::AddManualResource(Resource* resource)
         return false;
     }
 
-    const String& name = resource->GetName();
+    const QString& name = resource->GetName();
     if (name.isEmpty())
     {
         LOGERROR("Manual resource with empty name, can not add");
@@ -167,22 +167,22 @@ bool ResourceCache::AddManualResource(Resource* resource)
     return true;
 }
 
-void ResourceCache::RemoveResourceDir(const String& pathName)
+void ResourceCache::RemoveResourceDir(const QString& pathName)
 {
     MutexLock lock(resourceMutex_);
 
-    String fixedPath = SanitateResourceDirName(pathName);
-    Vector<String>::iterator i = resourceDirs_.begin(),
+    QString fixedPath = SanitateResourceDirName(pathName);
+    QStringList::iterator i = resourceDirs_.begin(),
             fin = resourceDirs_.end();
     Vector<SharedPtr<FileWatcher> >::iterator j,fin_j = fileWatchers_.end();
     while (i != fin)
     {
-        if (!i->Compare(fixedPath, false)) {
+        if (!i->compare(fixedPath, Qt::CaseInsensitive)) {
             resourceDirs_.erase(i);
             // Remove the filewatcher with the matching path
             for (j = fileWatchers_.begin(); j!=fin_j; ++j)
             {
-                if (!(*j)->GetPath().Compare(fixedPath, false))
+                if (!(*j)->GetPath().compare(fixedPath, Qt::CaseInsensitive))
                 {
                     fileWatchers_.erase(j);
                     break;
@@ -212,16 +212,16 @@ void ResourceCache::RemovePackageFile(PackageFile* package, bool releaseResource
     }
 }
 
-void ResourceCache::RemovePackageFile(const String& fileName, bool releaseResources, bool forceRelease)
+void ResourceCache::RemovePackageFile(const QString& fileName, bool releaseResources, bool forceRelease)
 {
     MutexLock lock(resourceMutex_);
 
     // Compare the name and extension only, not the path
-    String fileNameNoPath = GetFileNameAndExtension(fileName);
+    QString fileNameNoPath = GetFileNameAndExtension(fileName);
 
     for (Vector<SharedPtr<PackageFile> >::iterator i = packages_.begin(); i != packages_.end(); ++i)
     {
-        if (!GetFileNameAndExtension((*i)->GetName()).Compare(fileNameNoPath, false))
+        if (!GetFileNameAndExtension((*i)->GetName()).compare(fileNameNoPath, Qt::CaseInsensitive))
         {
             if (releaseResources)
                 ReleasePackageResources(*i, forceRelease);
@@ -232,7 +232,7 @@ void ResourceCache::RemovePackageFile(const String& fileName, bool releaseResour
     }
 }
 
-void ResourceCache::ReleaseResource(StringHash type, const String& name, bool force)
+void ResourceCache::ReleaseResource(StringHash type, const QString& name, bool force)
 {
     StringHash nameHash(name);
     const SharedPtr<Resource>& existingRes = FindResource(type, nameHash);
@@ -272,7 +272,7 @@ void ResourceCache::ReleaseResources(StringHash type, bool force)
         UpdateResourceGroup(type);
 }
 
-void ResourceCache::ReleaseResources(StringHash type, const String& partialName, bool force)
+void ResourceCache::ReleaseResources(StringHash type, const QString& partialName, bool force)
 {
     bool released = false;
 
@@ -301,7 +301,7 @@ void ResourceCache::ReleaseResources(StringHash type, const String& partialName,
         UpdateResourceGroup(type);
 }
 
-void ResourceCache::ReleaseResources(const String& partialName, bool force)
+void ResourceCache::ReleaseResources(const QString& partialName, bool force)
 {
     // Some resources refer to others, like materials to textures. Release twice to ensure these get released.
     // This is not necessary if forcing release
@@ -389,7 +389,7 @@ bool ResourceCache::ReloadResource(Resource* resource)
     return false;
 }
 
-void ResourceCache::ReloadResourceWithDependencies(const String& fileName)
+void ResourceCache::ReloadResourceWithDependencies(const QString& fileName)
 {
     StringHash fileNameHash(fileName);
     // If the filename is a resource we keep track of, reload it
@@ -457,11 +457,11 @@ void ResourceCache::SetReturnFailedResources(bool enable)
     returnFailedResources_ = enable;
 }
 
-SharedPtr<File> ResourceCache::GetFile(const String& nameIn, bool sendEventOnFailure)
+SharedPtr<File> ResourceCache::GetFile(const QString& nameIn, bool sendEventOnFailure)
 {
     MutexLock lock(resourceMutex_);
 
-    String name = SanitateResourceName(nameIn);
+    QString name = SanitateResourceName(nameIn);
     if (resourceRouter_)
         resourceRouter_->Route(name, RESOURCE_GETFILE);
 
@@ -506,9 +506,9 @@ SharedPtr<File> ResourceCache::GetFile(const String& nameIn, bool sendEventOnFai
     return SharedPtr<File>();
 }
 
-Resource* ResourceCache::GetExistingResource(StringHash type, const String& nameIn)
+Resource* ResourceCache::GetExistingResource(StringHash type, const QString& nameIn)
 {
-    String name = SanitateResourceName(nameIn);
+    QString name = SanitateResourceName(nameIn);
 
     if (!Thread::IsMainThread())
     {
@@ -525,9 +525,9 @@ Resource* ResourceCache::GetExistingResource(StringHash type, const String& name
     const SharedPtr<Resource>& existing = FindResource(type, nameHash);
     return existing;
 }
-Resource* ResourceCache::GetResource(StringHash type, const String& nameIn, bool sendEventOnFailure)
+Resource* ResourceCache::GetResource(StringHash type, const QString& nameIn, bool sendEventOnFailure)
 {
-    String name = SanitateResourceName(nameIn);
+    QString name = SanitateResourceName(nameIn);
 
     if (!Thread::IsMainThread())
     {
@@ -553,7 +553,7 @@ Resource* ResourceCache::GetResource(StringHash type, const String& nameIn, bool
     resource = DynamicCast<Resource>(context_->CreateObject(type));
     if (!resource)
     {
-        LOGERROR("Could not load unknown resource type " + String(type));
+        LOGERROR(QString("Could not load unknown resource type ") + type.ToString());
 
         if (sendEventOnFailure)
         {
@@ -599,10 +599,10 @@ Resource* ResourceCache::GetResource(StringHash type, const String& nameIn, bool
     return resource;
 }
 
-bool ResourceCache::BackgroundLoadResource(StringHash type, const String& nameIn, bool sendEventOnFailure, Resource* caller)
+bool ResourceCache::BackgroundLoadResource(StringHash type, const QString& nameIn, bool sendEventOnFailure, Resource* caller)
 {
     // If empty name, fail immediately
-    String name = SanitateResourceName(nameIn);
+    QString name = SanitateResourceName(nameIn);
     if (name.isEmpty())
         return false;
 
@@ -614,9 +614,9 @@ bool ResourceCache::BackgroundLoadResource(StringHash type, const String& nameIn
     return backgroundLoader_->QueueResource(type, name, sendEventOnFailure, caller);
 }
 
-SharedPtr<Resource> ResourceCache::GetTempResource(StringHash type, const String& nameIn, bool sendEventOnFailure)
+SharedPtr<Resource> ResourceCache::GetTempResource(StringHash type, const QString& nameIn, bool sendEventOnFailure)
 {
-    String name = SanitateResourceName(nameIn);
+    QString name = SanitateResourceName(nameIn);
 
     // If empty name, return null pointer immediately
     if (name.isEmpty())
@@ -627,7 +627,7 @@ SharedPtr<Resource> ResourceCache::GetTempResource(StringHash type, const String
     resource = DynamicCast<Resource>(context_->CreateObject(type));
     if (!resource)
     {
-        LOGERROR("Could not load unknown resource type " + String(type));
+        LOGERROR("Could not load unknown resource type " + type.ToString());
 
         if (sendEventOnFailure)
         {
@@ -683,11 +683,11 @@ void ResourceCache::GetResources(PODVector<Resource*>& result, StringHash type) 
     }
 }
 
-bool ResourceCache::Exists(const String& nameIn) const
+bool ResourceCache::Exists(const QString& nameIn) const
 {
     MutexLock lock(resourceMutex_);
 
-    String name = SanitateResourceName(nameIn);
+    QString name = SanitateResourceName(nameIn);
     if (resourceRouter_)
         resourceRouter_->Route(name, RESOURCE_CHECKEXISTS);
 
@@ -740,7 +740,7 @@ unsigned ResourceCache::GetTotalMemoryUse() const
     return total;
 }
 
-String ResourceCache::GetResourceFileName(const String& name) const
+QString ResourceCache::GetResourceFileName(const QString& name) const
 {
     MutexLock lock(resourceMutex_);
 
@@ -751,12 +751,12 @@ String ResourceCache::GetResourceFileName(const String& name) const
             return resourceDirs_[i] + name;
     }
 
-    return String();
+    return QString();
 }
 
-String ResourceCache::GetPreferredResourceDir(const String& path) const
+QString ResourceCache::GetPreferredResourceDir(const QString& path) const
 {
-    String fixedPath = AddTrailingSlash(path);
+    QString fixedPath = AddTrailingSlash(path);
 
     bool pathHasKnownDirs = false;
     bool parentHasKnownDirs = false;
@@ -773,7 +773,7 @@ String ResourceCache::GetPreferredResourceDir(const String& path) const
     }
     if (!pathHasKnownDirs)
     {
-        String parentPath = GetParentPath(fixedPath);
+        QString parentPath = GetParentPath(fixedPath);
         for (unsigned i = 0; checkDirs[i] != nullptr; ++i)
         {
             if (fileSystem->DirExists(parentPath + checkDirs[i]))
@@ -790,10 +790,10 @@ String ResourceCache::GetPreferredResourceDir(const String& path) const
     return fixedPath;
 }
 
-String ResourceCache::SanitateResourceName(const String& nameIn) const
+QString ResourceCache::SanitateResourceName(const QString& nameIn) const
 {
     // Sanitate unsupported constructs from the resource name
-    String name = GetInternalPath(nameIn);
+    QString name = GetInternalPath(nameIn);
     name.replace("../", "");
     name.replace("./", "");
 
@@ -801,18 +801,18 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
     if (resourceDirs_.size())
     {
-        String namePath = GetPath(name);
-        String exePath = fileSystem->GetProgramDir();
+        QString namePath = GetPath(name);
+        QString exePath = fileSystem->GetProgramDir();
         for (unsigned i = 0; i < resourceDirs_.size(); ++i)
         {
-            String relativeResourcePath = resourceDirs_[i];
+            QString relativeResourcePath = resourceDirs_[i];
             if (relativeResourcePath.startsWith(exePath))
-                relativeResourcePath = relativeResourcePath.Substring(exePath.length());
+                relativeResourcePath = relativeResourcePath.mid(exePath.length());
 
-            if (namePath.startsWith(resourceDirs_[i], false))
-                namePath = namePath.Substring(resourceDirs_[i].length());
-            else if (namePath.startsWith(relativeResourcePath, false))
-                namePath = namePath.Substring(relativeResourcePath.length());
+            if (namePath.startsWith(resourceDirs_[i], Qt::CaseInsensitive))
+                namePath = namePath.mid(resourceDirs_[i].length());
+            else if (namePath.startsWith(relativeResourcePath, Qt::CaseInsensitive))
+                namePath = namePath.mid(relativeResourcePath.length());
         }
 
         name = namePath + GetFileNameAndExtension(name);
@@ -821,9 +821,9 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
     return name.trimmed();
 }
 
-String ResourceCache::SanitateResourceDirName(const String& nameIn) const
+QString ResourceCache::SanitateResourceDirName(const QString& nameIn) const
 {
-    String fixedPath = AddTrailingSlash(nameIn);
+    QString fixedPath = AddTrailingSlash(nameIn);
     if (!IsAbsolutePath(fixedPath))
         fixedPath = GetSubsystem<FileSystem>()->GetCurrentDir() + fixedPath;
 
@@ -833,7 +833,7 @@ String ResourceCache::SanitateResourceDirName(const String& nameIn) const
     return fixedPath.trimmed();
 }
 
-void ResourceCache::StoreResourceDependency(Resource* resource, const String& dependency)
+void ResourceCache::StoreResourceDependency(Resource* resource, const QString& dependency)
 {
     // If resource reloading is not on, do not create the dependency data structure (saves memory)
     if (!resource || !autoReloadResources_)
@@ -886,8 +886,8 @@ const SharedPtr<Resource>& ResourceCache::FindResource(StringHash nameHash)
 
     for (auto & elem : resourceGroups_)
     {
-        HashMap<StringHash, SharedPtr<Resource> >::iterator j = elem.second.resources_.find(nameHash);
-        if (j != elem.second.resources_.end())
+        HashMap<StringHash, SharedPtr<Resource> >::iterator j = ELEMENT_VALUE(elem).resources_.find(nameHash);
+        if (j != ELEMENT_VALUE(elem).resources_.end())
             return MAP_VALUE(j);
     }
 
@@ -898,7 +898,7 @@ void ResourceCache::ReleasePackageResources(PackageFile* package, bool force)
 {
     QSet<StringHash> affectedGroups;
 
-    const HashMap<String, PackageEntry>& entries = package->GetEntries();
+    const HashMap<QString, PackageEntry>& entries = package->GetEntries();
     for (auto nameHash : entries.keys())
     {
         // We do not know the actual resource type, so search all type containers
@@ -966,7 +966,7 @@ void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData
 {
     for (unsigned i = 0; i < fileWatchers_.size(); ++i)
     {
-        String fileName;
+        QString fileName;
         while (fileWatchers_[i]->GetNextChange(fileName))
         {
             ReloadResourceWithDependencies(fileName);
@@ -988,7 +988,7 @@ void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData
     }
 }
 
-File* ResourceCache::SearchResourceDirs(const String& nameIn)
+File* ResourceCache::SearchResourceDirs(const QString& nameIn)
 {
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
     for (unsigned i = 0; i < resourceDirs_.size(); ++i)
@@ -1010,7 +1010,7 @@ File* ResourceCache::SearchResourceDirs(const String& nameIn)
     return nullptr;
 }
 
-File* ResourceCache::SearchPackages(const String& nameIn)
+File* ResourceCache::SearchPackages(const QString& nameIn)
 {
     for (unsigned i = 0; i < packages_.size(); ++i)
     {

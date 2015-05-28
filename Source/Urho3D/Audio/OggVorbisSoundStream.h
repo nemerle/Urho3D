@@ -21,7 +21,7 @@
 //
 
 #pragma once
-
+#include "../Urho3D.h"
 #include "../Container/ArrayPtr.h"
 #include "../Audio/SoundStream.h"
 
@@ -31,7 +31,7 @@ namespace Urho3D
 class Sound;
 
 /// Ogg Vorbis sound stream.
-class OggVorbisSoundStream : public SoundStream
+class URHO3D_API OggVorbisSoundStream : public SoundStream
 {
 public:
     /// Construct from an Ogg Vorbis compressed sound.

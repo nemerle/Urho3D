@@ -32,6 +32,7 @@
 #include <windows.h>
 #endif
 
+#include <QString>
 #include <cstdio>
 #include <cstring>
 #include <LZ4/lz4.h>
@@ -45,7 +46,7 @@ static const unsigned COMPRESSED_BLOCK_SIZE = 32768;
 
 struct FileEntry
 {
-    String name_;
+    QString name_;
     unsigned offset_;
     unsigned size_;
     unsigned checksum_;
@@ -53,28 +54,28 @@ struct FileEntry
 
 SharedPtr<Context> context_(new Context());
 SharedPtr<FileSystem> fileSystem_(new FileSystem(context_));
-String basePath_;
+QString basePath_;
 Vector<FileEntry> entries_;
 unsigned checksum_ = 0;
 bool compress_ = false;
 bool quiet_ = false;
 unsigned blockSize_ = COMPRESSED_BLOCK_SIZE;
 
-String ignoreExtensions_[] = {
+QString ignoreExtensions_[] = {
     ".bak",
     ".rule",
     ""
 };
 
 int main(int argc, char** argv);
-void Run(const Vector<String>& arguments);
-void ProcessFile(const String& fileName, const String& rootDir);
-void WritePackageFile(const String& fileName, const String& rootDir);
+void Run(const QStringList& arguments);
+void ProcessFile(const QString& fileName, const QString& rootDir);
+void WritePackageFile(const QString& fileName, const QString& rootDir);
 void WriteHeader(File& dest);
 
 int main(int argc, char** argv)
 {
-    Vector<String> arguments;
+    QStringList arguments;
 
 #ifdef WIN32
     arguments = ParseArguments(GetCommandLineW());
@@ -86,7 +87,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void Run(const Vector<String>& arguments)
+void Run(const QStringList & arguments)
 {
     if (arguments.size() < 2)
         ErrorExit(
@@ -97,8 +98,8 @@ void Run(const Vector<String>& arguments)
                     "-q      Enable quiet mode\n"
                     );
 
-    const String& dirName = arguments[0];
-    const String& packageName = arguments[1];
+    const QString& dirName = arguments[0];
+    const QString& packageName = arguments[1];
     if (arguments.size() > 2)
     {
         for (unsigned i = 2; i < arguments.size(); ++i)
@@ -109,7 +110,7 @@ void Run(const Vector<String>& arguments)
             {
                 if (arguments[i].length() > 1)
                 {
-                    switch (arguments[i][1])
+                    switch (arguments[i][1].toLatin1())
                     {
                     case 'c':
                         compress_ = true;
@@ -127,7 +128,7 @@ void Run(const Vector<String>& arguments)
         PrintLine("Scanning directory " + dirName + " for files");
 
     // Get the file list recursively
-    Vector<String> fileNames;
+    QStringList fileNames;
     fileSystem_->ScanDir(fileNames, dirName, "*.*", SCAN_FILES, true);
     if (!fileNames.size())
         ErrorExit("No files found");
@@ -135,7 +136,7 @@ void Run(const Vector<String>& arguments)
     // Check for extensions to ignore
     for (unsigned i = fileNames.size() - 1; i < fileNames.size(); --i)
     {
-        String extension = GetExtension(fileNames[i]);
+        QString extension = GetExtension(fileNames[i]);
         for (unsigned j = 0; ignoreExtensions_[j].length(); ++j)
         {
             if (extension == ignoreExtensions_[j])
@@ -152,9 +153,9 @@ void Run(const Vector<String>& arguments)
     WritePackageFile(packageName, dirName);
 }
 
-void ProcessFile(const String& fileName, const String& rootDir)
+void ProcessFile(const QString& fileName, const QString& rootDir)
 {
-    String fullPath = rootDir + "/" + fileName;
+    QString fullPath = rootDir + "/" + fileName;
     File file(context_);
     if (!file.Open(fullPath))
         ErrorExit("Could not open file " + fileName);
@@ -169,7 +170,7 @@ void ProcessFile(const String& fileName, const String& rootDir)
     entries_.push_back(newEntry);
 }
 
-void WritePackageFile(const String& fileName, const String& rootDir)
+void WritePackageFile(const QString& fileName, const QString& rootDir)
 {
     if (!quiet_)
         PrintLine("Writing package");
@@ -196,7 +197,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
     for (unsigned i = 0; i < entries_.size(); ++i)
     {
         entries_[i].offset_ = dest.GetSize();
-        String fileFullPath = rootDir + "/" + entries_[i].name_;
+        QString fileFullPath = rootDir + "/" + entries_[i].name_;
 
         File srcFile(context_, fileFullPath);
         if (!srcFile.IsOpen())
@@ -219,7 +220,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
         if (!compress_)
         {
             if (!quiet_)
-                PrintLine(entries_[i].name_ + " size " + String(dataSize));
+                PrintLine(entries_[i].name_ + " size " + QString(dataSize));
             dest.Write(&buffer[0], entries_[i].size_);
         }
         else
@@ -248,7 +249,7 @@ void WritePackageFile(const String& fileName, const String& rootDir)
             }
 
             if (!quiet_)
-                PrintLine(entries_[i].name_ + " in " + String(dataSize) + " out " + String(totalPackedBytes));
+                PrintLine(QString("%1 in %2 out %3").arg(entries_[i].name_).arg(dataSize).arg(totalPackedBytes));
         }
     }
 
@@ -270,9 +271,9 @@ void WritePackageFile(const String& fileName, const String& rootDir)
 
     if (!quiet_)
     {
-        PrintLine("Number of files " + String(entries_.size()));
-        PrintLine("File data size " + String(totalDataSize));
-        PrintLine("Package size " + String(dest.GetSize()));
+        PrintLine("Number of files " + QString::number(entries_.size()));
+        PrintLine("File data size " + QString::number(totalDataSize));
+        PrintLine("Package size " + QString::number(dest.GetSize()));
     }
 }
 

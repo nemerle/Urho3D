@@ -69,7 +69,7 @@ void AnimatedSprite2D::RegisterObject(Context* context)
     REMOVE_ATTRIBUTE("Sprite");
     ACCESSOR_ATTRIBUTE("Speed", GetSpeed, SetSpeed, float, 1.0f, AM_DEFAULT);
     MIXED_ACCESSOR_ATTRIBUTE("Animation Set", GetAnimationSetAttr, SetAnimationSetAttr, ResourceRef, ResourceRef(AnimatedSprite2D::GetTypeStatic()), AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Animation", GetAnimation, SetAnimationAttr, String, String::EMPTY, AM_DEFAULT);
+    ACCESSOR_ATTRIBUTE("Animation", GetAnimation, SetAnimationAttr, QString, QString(), AM_DEFAULT);
     ENUM_ACCESSOR_ATTRIBUTE("Loop Mode", GetLoopMode, SetLoopMode, LoopMode2D, loopModeNames, LM_DEFAULT, AM_DEFAULT);
 }
 
@@ -104,14 +104,14 @@ void AnimatedSprite2D::SetSpeed(float speed)
     MarkNetworkUpdate();
 }
 
-void AnimatedSprite2D::SetAnimation(AnimationSet2D* animationSet, const String& name, LoopMode2D loopMode)
+void AnimatedSprite2D::SetAnimation(AnimationSet2D* animationSet, const QString& name, LoopMode2D loopMode)
 {
     animationSet_ = animationSet;
 
     SetAnimation(name, loopMode);
 }
 
-void AnimatedSprite2D::SetAnimation(const String& name, LoopMode2D loopMode)
+void AnimatedSprite2D::SetAnimation(const QString& name, LoopMode2D loopMode)
 {
     animationName_ = name;
 
@@ -195,7 +195,7 @@ void AnimatedSprite2D::OnNodeSet(Node* node)
     }
 }
 
-void AnimatedSprite2D::SetAnimationAttr(const String& name)
+void AnimatedSprite2D::SetAnimationAttr(const QString& name)
 {
     animationName_ = name;
 
@@ -243,6 +243,7 @@ void AnimatedSprite2D::OnFlipChanged()
             continue;
 
         StaticSprite2D* staticSprite = trackNodes_[i]->GetComponent<StaticSprite2D>();
+        if (staticSprite)
         staticSprite->SetFlip(flipX_, flipY_);
     }
 
@@ -418,6 +419,8 @@ void AnimatedSprite2D::UpdateAnimation(float timeStep)
     for (unsigned i = 0; i < numTracks_; ++i)
     {
         Node* node = trackNodes_[i];
+        if (!node)
+            continue;
         TrackNodeInfo& nodeInfo = trackNodeInfos_[i];
 
         if (!nodeInfo.value.enabled_)

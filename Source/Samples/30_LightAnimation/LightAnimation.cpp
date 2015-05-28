@@ -121,7 +121,7 @@ void LightAnimation::CreateScene()
     textAnimation->SetKeyFrame(2.0f, "YELLOW");
     textAnimation->SetKeyFrame(3.0f, "GREEN");
     textAnimation->SetKeyFrame(4.0f, "WHITE");
-    GetSubsystem<UI>()->GetRoot()->GetChild(String("animatingText"))->SetAttributeAnimation("Text", textAnimation);
+    GetSubsystem<UI>()->GetRoot()->GetChild(QString("animatingText"))->SetAttributeAnimation("Text", textAnimation);
 
     // Create light color animation
     SharedPtr<ValueAnimation> colorAnimation(new ValueAnimation(context_));

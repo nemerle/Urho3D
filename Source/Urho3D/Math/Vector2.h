@@ -24,9 +24,9 @@
 
 #include "../Math/MathDefs.h"
 
+class QString;
 namespace Urho3D
 {
-class String;
 /// Two-dimensional vector.
 class URHO3D_API Vector2
 {
@@ -180,7 +180,7 @@ public:
     /// Return float data.
     const float* Data() const { return &x_; }
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
 
     /// X coordinate.
     float x_;
@@ -286,7 +286,7 @@ public:
     /// Return integer data.
     const int* Data() const { return &x_; }
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
 
     /// X coordinate.
     int x_;

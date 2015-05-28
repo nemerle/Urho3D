@@ -28,9 +28,9 @@ namespace Urho3D
 {
 
 /// SoundSource type defaults
-static const String SOUND_MASTER = "Master";
-static const String SOUND_EFFECT = "Effect";
-static const String SOUND_AMBIENT = "Ambient";
-static const String SOUND_VOICE = "Voice";
-static const String SOUND_MUSIC = "Music";
+static const QString SOUND_MASTER = "Master";
+static const QString SOUND_EFFECT = "Effect";
+static const QString SOUND_AMBIENT = "Ambient";
+static const QString SOUND_VOICE = "Voice";
+static const QString SOUND_MUSIC = "Music";
 }

@@ -123,7 +123,7 @@ bool ScriptFile::BeginLoad(Deserializer& source)
         MutexLock lock(script_->GetModuleMutex());
 
         // Create the module. Discard previous module if there was one
-        scriptModule_ = engine->GetModule(GetName().CString(), asGM_ALWAYS_CREATE);
+        scriptModule_ = engine->GetModule(qPrintable(GetName()), asGM_ALWAYS_CREATE);
         if (!scriptModule_)
         {
             LOGERROR("Failed to create script module " + GetName());
@@ -188,7 +188,7 @@ bool ScriptFile::EndLoad()
     return success;
 }
 
-void ScriptFile::AddEventHandler(StringHash eventType, const String& handlerName)
+void ScriptFile::AddEventHandler(StringHash eventType, const QString& handlerName)
 {
     if (!compiled_)
         return;
@@ -196,14 +196,14 @@ void ScriptFile::AddEventHandler(StringHash eventType, const String& handlerName
     AddEventHandlerInternal(nullptr, eventType, handlerName);
 }
 
-void ScriptFile::AddEventHandler(Object* sender, StringHash eventType, const String& handlerName)
+void ScriptFile::AddEventHandler(Object* sender, StringHash eventType, const QString& handlerName)
 {
     if (!compiled_)
         return;
 
     if (!sender)
     {
-        LOGERROR("Null event sender for event " + String(eventType) + ", handler " + handlerName);
+        LOGERROR(QString("Null event sender for event %1, handler %2").arg(eventType.ToString()).arg(handlerName));
         return;
     }
 
@@ -271,7 +271,7 @@ void ScriptFile::RemoveEventHandlersExcept(const PODVector<StringHash>& exceptio
     }
 }
 
-bool ScriptFile::Execute(const String& declaration, const VariantVector& parameters, bool unprepare)
+bool ScriptFile::Execute(const QString& declaration, const VariantVector& parameters, bool unprepare)
 {
     asIScriptFunction* function = GetFunction(declaration);
     if (!function)
@@ -309,12 +309,14 @@ bool ScriptFile::Execute(asIScriptFunction* function, const VariantVector& param
     return success;
 }
 
-bool ScriptFile::Execute(asIScriptObject* object, const String& declaration, const VariantVector& parameters, bool unprepare)
+bool ScriptFile::Execute(asIScriptObject* object, const QString& declaration, const VariantVector& parameters, bool unprepare)
 {
+    if (!object)
+        return false;
     asIScriptFunction* method = GetMethod(object, declaration);
     if (!method)
     {
-        LOGERROR("Method " + declaration + " not found in " + GetName());
+        LOGERROR("Method " + declaration + " not found in class " + QString(object->GetObjectType()->GetName()));
         return false;
     }
 
@@ -348,7 +350,7 @@ bool ScriptFile::Execute(asIScriptObject* object, asIScriptFunction* method, con
     return success;
 }
 
-void ScriptFile::DelayedExecute(float delay, bool repeat, const String& declaration, const VariantVector& parameters)
+void ScriptFile::DelayedExecute(float delay, bool repeat, const QString& declaration, const VariantVector& parameters)
 {
     DelayedCall call;
     call.period_ = call.delay_ = Max(delay, 0.0f);
@@ -365,7 +367,7 @@ void ScriptFile::DelayedExecute(float delay, bool repeat, const String& declarat
     }
 }
 
-void ScriptFile::ClearDelayedExecute(const String& declaration)
+void ScriptFile::ClearDelayedExecute(const QString& declaration)
 {
     if (declaration.isEmpty())
         delayedCalls_.clear();
@@ -380,7 +382,7 @@ void ScriptFile::ClearDelayedExecute(const String& declaration)
         }
     }
 }
-asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInterface)
+asIScriptObject* ScriptFile::CreateObject(const QString& className, bool useInterface)
 {
     PROFILE(CreateObject);
 
@@ -391,7 +393,7 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
     asIObjectType* type = nullptr;
     if (useInterface)
     {
-        asIObjectType* interfaceType = scriptModule_->GetObjectTypeByDecl(className.CString());
+        asIObjectType* interfaceType = scriptModule_->GetObjectTypeByDecl(qPrintable(className));
 
         if (!interfaceType)
             return nullptr;
@@ -408,7 +410,7 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
     }
     else
     {
-       type = scriptModule_->GetObjectTypeByDecl(className.CString());
+       type = scriptModule_->GetObjectTypeByDecl(qPrintable(className));
     }
 
     if (!type)
@@ -429,13 +431,13 @@ asIScriptObject* ScriptFile::CreateObject(const String& className, bool useInter
 
     if (!found)
     {
-        LOGERRORF("Script class %s does not implement the ScriptObject interface", type->GetName());
+        LOGERROR(QString("Script class %1 does not implement the ScriptObject interface").arg(type->GetName()));
         return nullptr;
     }
 
     // Get the factory function id from the object type
-    String factoryName = String(type->GetName()) + "@ " + type->GetName() + "()";
-    asIScriptFunction* factory = type->GetFactoryByDecl(factoryName.CString());
+    QString factoryName = QString(type->GetName()) + "@ " + type->GetName() + "()";
+    asIScriptFunction* factory = type->GetFactoryByDecl(qPrintable(factoryName));
     if (!factory || context->Prepare(factory) < 0 || context->Execute() < 0)
         return nullptr;
 
@@ -458,37 +460,47 @@ bool ScriptFile::SaveByteCode(Serializer& dest)
         return false;
 }
 
-asIScriptFunction* ScriptFile::GetFunction(const String& declaration)
+asIScriptFunction* ScriptFile::GetFunction(const QString& declarationIn)
 {
     if (!compiled_)
         return nullptr;
 
-    HashMap<String, asIScriptFunction*>::const_iterator i = functions_.find(declaration);
+    QString declaration = declarationIn.trimmed();
+    // If not a full declaration, assume void with no parameters
+    if (declaration.indexOf('(') == -1)
+        declaration = "void " + declaration + "()";
+
+    HashMap<QString, asIScriptFunction*>::const_iterator i = functions_.find(declaration);
     if (i != functions_.end())
         return MAP_VALUE(i);
 
-    asIScriptFunction* function = scriptModule_->GetFunctionByDecl(declaration.CString());
+    asIScriptFunction* function = scriptModule_->GetFunctionByDecl(qPrintable(declaration));
     functions_[declaration] = function;
     return function;
 }
 
-asIScriptFunction* ScriptFile::GetMethod(asIScriptObject* object, const String& declaration)
+asIScriptFunction* ScriptFile::GetMethod(asIScriptObject* object, const QString& declarationIn)
 {
     if (!compiled_ || !object)
         return nullptr;
 
+    QString declaration = declarationIn.trimmed();
+    // If not a full declaration, assume void with no parameters
+    if (declaration.indexOf('(') == -1)
+        declaration = "void " + declaration + "()";
+
     asIObjectType* type = object->GetObjectType();
     if (!type)
         return nullptr;
-    HashMap<asIObjectType*, HashMap<String, asIScriptFunction*> >::const_iterator i = methods_.find(type);
+    HashMap<asIObjectType*, HashMap<QString, asIScriptFunction*> >::const_iterator i = methods_.find(type);
     if (i != methods_.end())
     {
-        HashMap<String, asIScriptFunction*>::const_iterator j = MAP_VALUE(i).find(declaration);
+        HashMap<QString, asIScriptFunction*>::const_iterator j = MAP_VALUE(i).find(declaration);
         if (j != MAP_VALUE(i).end())
             return MAP_VALUE(j);
     }
 
-    asIScriptFunction* function = type->GetMethodByDecl(declaration.CString());
+    asIScriptFunction* function = type->GetMethodByDecl(qPrintable(declaration));
     methods_[type][declaration] = function;
     return function;
 }
@@ -498,9 +510,9 @@ void ScriptFile::CleanupEventInvoker(asIScriptObject* object)
     eventInvokers_.remove(object);
 }
 
-void ScriptFile::AddEventHandlerInternal(Object* sender, StringHash eventType, const String& handlerName)
+void ScriptFile::AddEventHandlerInternal(Object* sender, StringHash eventType, const QString& handlerName)
 {
-    String declaration = "void " + handlerName + "(StringHash, VariantMap&)";
+    QString declaration = "void " + handlerName + "(StringHash, VariantMap&)";
     asIScriptFunction* function = nullptr;
     asIScriptObject* receiver = static_cast<asIScriptObject*>(asGetActiveContext()->GetThisPointer());
 
@@ -511,12 +523,12 @@ void ScriptFile::AddEventHandlerInternal(Object* sender, StringHash eventType, c
 
     if (!function)
     {
-        declaration = "void " + handlerName + "()";
+        // Retry with parameterless signature
 
         if (receiver)
-            function = GetMethod(receiver, declaration);
+            function = GetMethod(receiver, handlerName);
         else
-            function = GetFunction(declaration);
+            function = GetFunction(handlerName);
 
         if (!function)
         {
@@ -557,11 +569,11 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
 
     // Pre-parse for includes
     // Adapted from Angelscript's scriptbuilder add-on
-    Vector<String> includeFiles;
+    QStringList includeFiles;
     unsigned pos = 0;
     while(pos < dataSize)
     {
-        int len;
+        asUINT len;
         asETokenClass t = engine->ParseToken(&buffer[pos], dataSize - pos, &len);
         if (t == asTC_COMMENT || t == asTC_WHITESPACE)
         {
@@ -575,7 +587,7 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
             asETokenClass t = engine->ParseToken(&buffer[pos], dataSize - pos, &len);
             if (t == asTC_IDENTIFIER)
             {
-                String token(&buffer[pos], len);
+                QString token(QString::fromLatin1(&buffer[pos], len));
                 if (token == "include")
                 {
                     pos += len;
@@ -589,18 +601,18 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
                     if (t == asTC_VALUE && len > 2 && buffer[pos] == '"')
                     {
                         // Get the include file
-                        String includeFile(&buffer[pos+1], len - 2);
+                        QString includeFile(QString::fromLatin1(&buffer[pos+1], len - 2));
                         pos += len;
 
                         // If the file is not found as it is, add the path of current file but only if it is found there
                         if (!cache->Exists(includeFile))
                         {
-                            String prefixedIncludeFile = GetPath(GetName()) + includeFile;
+                            QString prefixedIncludeFile = GetPath(GetName()) + includeFile;
                             if (cache->Exists(prefixedIncludeFile))
                                 includeFile = prefixedIncludeFile;
                         }
 
-                        String includeFileLower = includeFile.toLower();
+                        QString includeFileLower = includeFile.toLower();
 
                         // If not included yet, store it for later processing
                         if (!includeFiles_.contains(includeFileLower))
@@ -618,7 +630,7 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
         // Don't search includes within statement blocks or between tokens in statements
         else
         {
-            int len;
+            asUINT len;
             // Skip until ; or { whichever comes first
             while (pos < dataSize && buffer[pos] != ';' && buffer[pos] != '{')
             {
@@ -667,7 +679,7 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
     }
 
     // Then add this section
-    if (scriptModule_->AddScriptSection(source.GetName().CString(), (const char*)buffer.Get(), dataSize) < 0)
+    if (scriptModule_->AddScriptSection(qPrintable(source.GetName()), (const char*)buffer.Get(), dataSize) < 0)
     {
         LOGERROR("Failed to add script section " + source.GetName());
         return false;
@@ -772,7 +784,7 @@ void ScriptFile::ReleaseModule()
             MutexLock lock(script_->GetModuleMutex());
 
             script_->ClearObjectTypeCache();
-            engine->DiscardModule(GetName().CString());
+            engine->DiscardModule(qPrintable(GetName()));
         }
 
         scriptModule_ = nullptr;

@@ -299,7 +299,7 @@ public:
     Intersection IsInsideFast(const Sphere& sphere) const;
     
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
     
     /// Minimum vector.
     Vector3 min_;

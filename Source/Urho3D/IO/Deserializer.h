@@ -45,7 +45,7 @@ public:
     /// Set position from the beginning of the stream.
     virtual unsigned Seek(unsigned position) = 0;
     /// Return name of the stream.
-    virtual const String& GetName() const;
+    virtual const QString& GetName() const;
     /// Return a checksum if applicable.
     virtual unsigned GetChecksum();
     /// Return current position.
@@ -100,9 +100,9 @@ public:
     /// Read a bounding box.
     BoundingBox ReadBoundingBox();
     /// Read a null-terminated string.
-    String ReadString();
+    QString ReadString();
     /// Read a four-letter file ID.
-    String ReadFileID();
+    QString ReadFileID();
     /// Read a 32-bit StringHash.
     StringHash ReadStringHash();
     /// Read a buffer with size encoded as VLE.
@@ -124,7 +124,7 @@ public:
     /// Read a 24-bit network object ID.
     unsigned ReadNetID();
     /// Read a text line.
-    String ReadLine();
+    QString ReadLine();
     
 protected:
     /// Stream position.

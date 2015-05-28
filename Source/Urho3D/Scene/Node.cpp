@@ -71,7 +71,7 @@ void Node::RegisterObject(Context* context)
     context->RegisterFactory<Node>();
 
     ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, String, String::EMPTY, AM_DEFAULT);
+    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, QString, QString(), AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Position", GetPosition, SetPosition, Vector3, Vector3::ZERO, AM_FILE);
     ACCESSOR_ATTRIBUTE("Rotation", GetRotation, SetRotation, Quaternion, Quaternion::IDENTITY, AM_FILE);
     ACCESSOR_ATTRIBUTE("Scale", GetScale, SetScale, Vector3, Vector3::ONE, AM_DEFAULT);
@@ -223,7 +223,7 @@ void Node::AddReplicationState(NodeReplicationState* state)
     networkState_->replicationStates_.push_back(state);
 }
 
-bool Node::SaveXML(Serializer& dest, const String& indentation) const
+bool Node::SaveXML(Serializer& dest, const QString& indentation) const
 {
     SharedPtr<XMLFile> xml(new XMLFile(context_));
     XMLElement rootElem = xml->CreateRoot("node");
@@ -233,7 +233,7 @@ bool Node::SaveXML(Serializer& dest, const String& indentation) const
     return xml->Save(dest, indentation);
 }
 
-void Node::SetName(const String& name)
+void Node::SetName(const QString& name)
 {
     if (name != name_)
     {
@@ -560,7 +560,7 @@ void Node::MarkDirty()
         elem->MarkDirty();
 }
 
-Node* Node::CreateChild(const String& name, CreateMode mode, unsigned id)
+Node* Node::CreateChild(const QString& name, CreateMode mode, unsigned id)
 {
     Node* newNode = CreateChild(id, mode);
     newNode->SetName(name);
@@ -965,7 +965,7 @@ void Node::GetChildrenWithComponent(PODVector<Node*>& dest, StringHash type, boo
     {
         for (const auto & elem : children_)
         {
-            if ((elem)->HasComponent(type))
+            if (elem->HasComponent(type))
                 dest.push_back(elem);
         }
     }
@@ -978,7 +978,7 @@ Node* Node::GetChild(unsigned index) const
     return index < children_.size() ? children_[index].Get() : nullptr;
 }
 
-Node* Node::GetChild(const String& name, bool recursive) const
+Node* Node::GetChild(const QString& name, bool recursive) const
 {
     return GetChild(StringHash(name), recursive);
 }
@@ -992,12 +992,12 @@ Node* Node::GetChild(StringHash nameHash, bool recursive) const
 {
     for (const auto & elem : children_)
     {
-        if ((elem)->GetNameHash() == nameHash)
+        if (elem->GetNameHash() == nameHash)
             return elem;
 
         if (recursive)
         {
-            Node* node = (elem)->GetChild(nameHash, true);
+            Node* node = elem->GetChild(nameHash, true);
             if (node)
                 return node;
         }
@@ -1011,7 +1011,7 @@ unsigned Node::GetNumNetworkComponents() const
     unsigned num = 0;
     for (const auto & elem : components_)
     {
-        if ((elem)->GetID() < FIRST_LOCAL_ID)
+        if (elem->GetID() < FIRST_LOCAL_ID)
             ++num;
     }
 
@@ -1038,7 +1038,7 @@ bool Node::HasComponent(StringHash type) const
 {
     for (const auto & elem : components_)
     {
-        if ((elem)->GetType() == type)
+        if (elem->GetType() == type)
             return true;
     }
     return false;
@@ -1114,7 +1114,7 @@ void Node::SetNetParentAttr(const PODVector<unsigned char>& value)
     Node* baseNode = scene->GetNode(baseNodeID);
     if (!baseNode)
     {
-        LOGWARNING("Failed to find parent node " + String(baseNodeID));
+        LOGWARNING("Failed to find parent node " + QString::number(baseNodeID));
         return;
     }
 
@@ -1189,7 +1189,7 @@ bool Node::Load(Deserializer& source, SceneResolver& resolver, bool readChildren
         StringHash compType = compBuffer.ReadStringHash();
         unsigned compID = compBuffer.ReadUInt();
 
-        Component* newComponent = SafeCreateComponent(String::EMPTY, compType,
+        Component* newComponent = SafeCreateComponent(QString::null, compType,
                                                       (mode == REPLICATED && compID < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, rewriteIDs ? 0 : compID);
         if (newComponent)
         {
@@ -1228,7 +1228,7 @@ bool Node::LoadXML(const XMLElement& source, SceneResolver& resolver, bool readC
     XMLElement compElem = source.GetChild("component");
     while (compElem)
     {
-        String typeName = compElem.GetAttribute("type");
+        QString typeName = compElem.GetAttribute("type");
         unsigned compID = compElem.GetInt("id");
         Component* newComponent = SafeCreateComponent(typeName, StringHash(typeName),
                                                       (mode == REPLICATED && compID < FIRST_LOCAL_ID) ? REPLICATED : LOCAL, rewriteIDs ? 0 : compID);
@@ -1455,7 +1455,7 @@ unsigned Node::GetNumPersistentChildren() const
 
     for (const auto & elem : children_)
     {
-        if (!(elem)->IsTemporary())
+        if (!elem->IsTemporary())
             ++ret;
     }
 
@@ -1468,7 +1468,7 @@ unsigned Node::GetNumPersistentComponents() const
 
     for (const auto & elem : components_)
     {
-        if (!(elem)->IsTemporary())
+        if (!elem->IsTemporary())
             ++ret;
     }
 
@@ -1490,13 +1490,13 @@ void Node::OnAttributeAnimationAdded()
 
 void Node::OnAttributeAnimationRemoved()
 {
-    if (attributeAnimationInfos_.isEmpty())
+    if (attributeAnimationInfos_.empty())
         UnsubscribeFromEvent(GetScene(), E_ATTRIBUTEANIMATIONUPDATE);
 }
 
-void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
+void Node::SetObjectAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
 {
-    Vector<String> names = name.split('/');
+    QStringList names = name.split('/');
     // Only attribute name
     if (names.size() == 1)
         SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
@@ -1507,10 +1507,10 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
         unsigned i = 0;
         for (; i < names.size() - 1; ++i)
         {
-            if (names[i].Front() != '#')
+            if (!names[i].startsWith('#'))
                 break;
 
-            unsigned index = ToInt(names[i].Substring(1, names[i].length() - 1));
+            unsigned index = names[i].mid(1, names[i].length() - 1).toInt();
             node = node->GetChild(index);
             if (!node)
             {
@@ -1525,14 +1525,14 @@ void Node::SetObjectAttributeAnimation(const String& name, ValueAnimation* attri
             return;
         }
 
-        if (i != names.size() - 2 || names[i].Front() != '@')
+        if (i != names.size() - 2 || !names[i].startsWith('@') )
         {
             LOGERROR("Invalid name " + name);
             return;
         }
 
-        String componentName = names[i].Substring(1, names[i].length() - 1);
-        Vector<String> componentNames = componentName.split('#');
+        QString componentName = names[i].mid(1, names[i].length() - 1);
+        QStringList componentNames = componentName.split('#');
         if (componentNames.size() == 1)
         {
             Component* component = node->GetComponent(StringHash(componentNames.front()));
@@ -1604,7 +1604,7 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
 
         for (auto & elem : components_)
         {
-            (elem)->OnSetEnabled();
+            elem->OnSetEnabled();
 
             // Send change event for the component
             if (scene_)
@@ -1614,7 +1614,7 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
                 VariantMap& eventData = GetEventDataMap();
                 eventData[P_SCENE] = scene_;
                 eventData[P_NODE] = this;
-                eventData[P_COMPONENT] = (elem);
+                eventData[P_COMPONENT] = elem;
 
                 scene_->SendEvent(E_COMPONENTENABLEDCHANGED, eventData);
             }
@@ -1624,11 +1624,11 @@ void Node::SetEnabled(bool enable, bool recursive, bool storeSelf)
     if (recursive)
     {
         for (auto & elem : children_)
-            (elem)->SetEnabled(enable, recursive, storeSelf);
+            elem->SetEnabled(enable, recursive, storeSelf);
     }
 }
 
-Component* Node::SafeCreateComponent(const String& typeName, StringHash type, CreateMode mode, unsigned id)
+Component* Node::SafeCreateComponent(const QString& typeName, StringHash type, CreateMode mode, unsigned id)
 {
     // Do not attempt to create replicated components to local nodes, as that may lead to component ID overwrite
     // as replicated components are synced over
@@ -1642,7 +1642,7 @@ Component* Node::SafeCreateComponent(const String& typeName, StringHash type, Cr
         LOGWARNING("Component type " + type.ToString() + " not known, creating UnknownComponent as placeholder");
         // Else create as UnknownComponent
         SharedPtr<UnknownComponent> newComponent(new UnknownComponent(context_));
-        if (typeName.isEmpty() || typeName.startsWith("Unknown", false))
+        if (typeName.isEmpty() || typeName.startsWith("Unknown", Qt::CaseInsensitive))
             newComponent->SetType(type);
         else
             newComponent->SetTypeName(typeName);
@@ -1725,11 +1725,11 @@ void Node::GetComponentsRecursive(PODVector<Component*>& dest, StringHash type) 
 {
     for (const auto & elem : components_)
     {
-        if ((elem)->GetType() == type)
+        if (elem->GetType() == type)
             dest.push_back(elem);
     }
     for (const auto & elem : children_)
-        (elem)->GetComponentsRecursive(dest, type);
+        elem->GetComponentsRecursive(dest, type);
 }
 
 Node* Node::CloneRecursive(Node* parent, SceneResolver& resolver, CreateMode mode)

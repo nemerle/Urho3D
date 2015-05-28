@@ -39,7 +39,7 @@ static void ConstructStringHashCopy(const StringHash& hash, StringHash* ptr)
     new(ptr) StringHash(hash);
 }
 
-static void ConstructStringHashInit(const String& str, StringHash* ptr)
+static void ConstructStringHashInit(const QString& str, StringHash* ptr)
 {
     new(ptr) StringHash(str);
 }
@@ -120,7 +120,7 @@ static bool ResourceRefListIsEmpty(ResourceRefList* ptr)
     return ptr->names_.size() == 0;
 }
 
-static void ResourceRefListSetName(unsigned index, const String& name, ResourceRefList* ptr)
+static void ResourceRefListSetName(unsigned index, const QString& name, ResourceRefList* ptr)
 {
     if (index >= ptr->names_.size())
     {
@@ -131,12 +131,12 @@ static void ResourceRefListSetName(unsigned index, const String& name, ResourceR
     ptr->names_[index] = name;
 }
 
-static const String& ResourceRefListGetName(unsigned index, ResourceRefList* ptr)
+static const QString& ResourceRefListGetName(unsigned index, ResourceRefList* ptr)
 {
     if (index >= ptr->names_.size())
     {
         asGetActiveContext()->SetException("Index out of bounds");
-        return String::EMPTY;
+        return s_dummy;
     }
 
     return ptr->names_[index];
@@ -210,7 +210,7 @@ static void ConstructVariantColor(const Color& value, Variant* ptr)
     new(ptr) Variant(value);
 }
 
-static void ConstructVariantString(const String& value, Variant* ptr)
+static void ConstructVariantString(const QString& value, Variant* ptr)
 {
     new(ptr) Variant(value);
 }
@@ -281,12 +281,12 @@ static void ConstructVariantMatrix4(const Matrix4& value, Variant* ptr)
     new(ptr) Variant(value);
 }
 
-static void ConstructVariantTypeNameValue(const String& type, const String& value, Variant* ptr)
+static void ConstructVariantTypeNameValue(const QString& type, const QString& value, Variant* ptr)
 {
     new(ptr) Variant(type, value);
 }
 
-static void ConstructVariantTypeValue(VariantType type, const String& value, Variant* ptr)
+static void ConstructVariantTypeValue(VariantType type, const QString& value, Variant* ptr)
 {
     new(ptr) Variant(type, value);
 }
@@ -344,7 +344,7 @@ static void DestructVariantMap(VariantMap* ptr)
     ptr->~VariantMap();
 }
 
-static Variant& VariantMapAt(const String& key, VariantMap& map)
+static Variant& VariantMapAt(const QString& key, VariantMap& map)
 {
     return map[key];
 }
@@ -354,12 +354,12 @@ static Variant& VariantMapAtHash(StringHash key, VariantMap& map)
     return map[key];
 }
 
-static bool VariantMapContains(const String& key, VariantMap& map)
+static bool VariantMapContains(const QString& key, VariantMap& map)
 {
     return map.contains(key);
 }
 
-static bool VariantMapErase(const String& key, VariantMap& map)
+static bool VariantMapErase(const QString& key, VariantMap& map)
 {
     return map.remove(key);
 }
@@ -475,7 +475,7 @@ static void RegisterVariant(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const Vector4&in)", asMETHODPR(Variant, operator =, (const Vector4&), Variant&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const Quaternion&in)", asMETHODPR(Variant, operator =, (const Quaternion&), Variant&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const Color&in)", asMETHODPR(Variant, operator =, (const Color&), Variant&), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Variant", "Variant& opAssign(const String&in)", asMETHODPR(Variant, operator =, (const String&), Variant&), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Variant", "Variant& opAssign(const String&in)", asMETHODPR(Variant, operator =, (const QString&), Variant&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const ResourceRef&in)", asMETHODPR(Variant, operator =, (const ResourceRef&), Variant&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const ResourceRefList&in)", asMETHODPR(Variant, operator =, (const ResourceRefList&), Variant&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const Array<Variant>@+)", asFUNCTION(VariantAssignVariantVector), asCALL_CDECL_OBJLAST);
@@ -498,7 +498,7 @@ static void RegisterVariant(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Variant", "bool opEquals(const Vector4&in) const", asMETHODPR(Variant, operator ==, (const Vector4&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool opEquals(const Quaternion&in) const", asMETHODPR(Variant, operator ==, (const Quaternion&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool opEquals(const Color&in) const", asMETHODPR(Variant, operator ==, (const Color&) const, bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Variant", "bool opEquals(const String&in) const", asMETHODPR(Variant, operator ==, (const String&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Variant", "bool opEquals(const String&in) const", asMETHODPR(Variant, operator ==, (const QString&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool opEquals(const ResourceRef&in) const", asMETHODPR(Variant, operator ==, (const ResourceRef&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool opEquals(const ResourceRefList&in) const", asMETHODPR(Variant, operator ==, (const ResourceRefList&) const, bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool opEquals(const Array<Variant>@+)", asFUNCTION(VariantEqualsVariantVector), asCALL_CDECL_OBJLAST);
@@ -532,13 +532,13 @@ static void RegisterVariant(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Variant", "const Matrix3& GetMatrix3() const", asMETHOD(Variant, GetMatrix3), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "const Matrix3x4& GetMatrix3x4() const", asMETHOD(Variant, GetMatrix3x4), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "const Matrix4& GetMatrix4() const", asMETHOD(Variant, GetMatrix4), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Variant", "void FromString(const String&in, const String&in)", asMETHODPR(Variant, FromString, (const String&, const String&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Variant", "void FromString(VariantType, const String&in)", asMETHODPR(Variant, FromString, (VariantType, const String&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Variant", "void FromString(const String&in, const String&in)", asMETHODPR(Variant, FromString, (const QString&, const QString&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Variant", "void FromString(VariantType, const String&in)", asMETHODPR(Variant, FromString, (VariantType, const QString&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "String ToString() const", asMETHOD(Variant, ToString), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool get_zero() const", asMETHOD(Variant, IsZero), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "bool get_empty() const", asMETHOD(Variant, IsEmpty), asCALL_THISCALL);
     engine->RegisterObjectMethod("Variant", "VariantType get_type() const", asMETHOD(Variant, GetType), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Variant", "String get_typeName() const", asMETHODPR(Variant, GetTypeName, () const, String), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Variant", "String get_typeName() const", asMETHODPR(Variant, GetTypeName, () const, QString), asCALL_THISCALL);
 
     engine->RegisterObjectBehaviour("VariantMap", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructVariantMap), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("VariantMap", asBEHAVE_CONSTRUCT, "void f(const VariantMap&in)", asFUNCTION(ConstructVariantMapCopy), asCALL_CDECL_OBJLAST);
@@ -620,43 +620,49 @@ static void RegisterSpline(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Spline", "Variant GetPoint(float)", asMETHOD(Spline, GetPoint), asCALL_THISCALL);
 }
 
-static CScriptArray* StringSplit(char separator, const String* str)
+static CScriptArray* StringSplit(char separator, const QString* str)
 {
-    Vector<String> result = str->split(separator);
-    return VectorToArray<String>(result, "Array<String>");
+    QStringList result = str->split(separator);
+    return StringListToArray(result, "Array<String>");
 }
 
-static void StringJoin(CScriptArray* arr, const String& glue, String* str)
+static void StringJoin(CScriptArray* arr, const QString& glue, QString* str)
 {
-    Vector<String> subStrings = ArrayToVector<String>(arr);
-    str->Join(subStrings, glue);
+    QStringList subStrings;
+    auto contents(ArrayToVector<QString>(arr));
+    for(QString s : contents)
+        subStrings << s;
+    *str = subStrings.join(glue);
 }
 
-static String StringJoined(CScriptArray* arr, const String& glue)
+static QString StringJoined(CScriptArray* arr, const QString& glue)
 {
-    Vector<String> subStrings = ArrayToVector<String>(arr);
-    return String::Joined(subStrings, glue);
+    QStringList subStrings;
+    auto contents(ArrayToVector<QString>(arr));
+    for(QString s : contents)
+        subStrings << s;
+    return subStrings.join(glue);
 }
 
 static void RegisterStringUtils(asIScriptEngine* engine)
 {
     engine->RegisterObjectMethod("String", "Array<String>@ Split(uint8) const", asFUNCTION(StringSplit), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "void Join(String[]&, const String&in)", asFUNCTION(StringJoin), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "bool ToBool() const", asFUNCTIONPR(ToBool, (const String&), bool), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "float ToFloat() const", asFUNCTIONPR(ToFloat, (const String&), float), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "int ToInt() const", asFUNCTIONPR(ToInt, (const String&), int), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "uint ToUInt() const", asFUNCTIONPR(ToUInt, (const String&), unsigned), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Color ToColor() const", asFUNCTIONPR(ToColor, (const String&), Color), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "IntRect ToIntRect() const", asFUNCTIONPR(ToIntRect, (const String&), IntRect), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "IntVector2 ToIntVector2() const", asFUNCTIONPR(ToIntVector2, (const String&), IntVector2), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Quaternion ToQuaternion() const", asFUNCTIONPR(ToQuaternion, (const String&), Quaternion), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Vector2 ToVector2() const", asFUNCTIONPR(ToVector2, (const String&), Vector2), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Vector3 ToVector3() const", asFUNCTIONPR(ToVector3, (const String&), Vector3), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Vector4 ToVector4(bool allowMissingCoords = false) const", asFUNCTIONPR(ToVector4, (const String&, bool), Vector4), asCALL_CDECL_OBJFIRST);
-    engine->RegisterObjectMethod("String", "Variant ToVectorVariant() const", asFUNCTIONPR(ToVectorVariant, (const String&), Variant), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Matrix3 ToMatrix3() const", asFUNCTIONPR(ToMatrix3, (const String&), Matrix3), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Matrix3x4 ToMatrix3x4() const", asFUNCTIONPR(ToMatrix3x4, (const String&), Matrix3x4), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "Matrix4 ToMatrix4() const", asFUNCTIONPR(ToMatrix4, (const String&), Matrix4), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "bool ToBool() const", asFUNCTIONPR(ToBool, (const QString&), bool), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "float ToFloat() const", asFUNCTIONPR(ToFloat, (const QString&), float), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "int ToInt() const", asFUNCTIONPR(ToInt, (const QString&), int), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "uint ToUInt() const", asFUNCTIONPR(ToUInt, (const QString&), unsigned), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Color ToColor() const", asFUNCTIONPR(ToColor, (const QString&), Color), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "IntRect ToIntRect() const", asFUNCTIONPR(ToIntRect, (const QString&), IntRect), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "IntVector2 ToIntVector2() const", asFUNCTIONPR(ToIntVector2, (const QString&), IntVector2), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Quaternion ToQuaternion() const", asFUNCTIONPR(ToQuaternion, (const QString&), Quaternion), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Vector2 ToVector2() const", asFUNCTIONPR(ToVector2, (const QString&), Vector2), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Vector3 ToVector3() const", asFUNCTIONPR(ToVector3, (const QString&), Vector3), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Vector4 ToVector4(bool allowMissingCoords = false) const", asFUNCTIONPR(ToVector4, (const QString&, bool), Vector4), asCALL_CDECL_OBJFIRST);
+    engine->RegisterObjectMethod("String", "Variant ToVectorVariant() const", asFUNCTIONPR(ToVectorVariant, (const QString&), Variant), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Matrix3 ToMatrix3() const", asFUNCTIONPR(ToMatrix3, (const QString&), Matrix3), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Matrix3x4 ToMatrix3x4() const", asFUNCTIONPR(ToMatrix3x4, (const QString&), Matrix3x4), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "Matrix4 ToMatrix4() const", asFUNCTIONPR(ToMatrix4, (const QString&), Matrix4), asCALL_CDECL_OBJLAST);
     engine->RegisterGlobalFunction("String ToStringHex(int)", asFUNCTION(ToStringHex), asCALL_CDECL);
     engine->RegisterGlobalFunction("String Join(String[]&, const String&in glue)", asFUNCTION(StringJoined), asCALL_CDECL);
     engine->RegisterGlobalFunction("bool IsDigit(uint)", asFUNCTION(IsDigit), asCALL_CDECL);
@@ -685,7 +691,7 @@ static unsigned TimeGetTimeSinceEpoch(Time* time)
     return Time::GetTimeSinceEpoch();
 }
 
-static String TimeGetTimeStamp(Time* time)
+static QString TimeGetTimeStamp(Time* time)
 {
     return Time::GetTimeStamp();
 }
@@ -709,7 +715,7 @@ static void RegisterTimer(asIScriptEngine* engine)
 
 static CScriptArray* GetArgumentsToArray()
 {
-    return VectorToArray<String>(GetArguments(), "Array<String>");
+    return StringListToArray(GetArguments(), "Array<String>");
 }
 
 static void RegisterProcessUtils(asIScriptEngine* engine)
@@ -740,42 +746,42 @@ static void DestructAttributeInfo(AttributeInfo* ptr)
 
 static CScriptArray* AttributeInfoGetEnumNames(AttributeInfo* ptr)
 {
-    Vector<String> enumNames;
+    QStringList enumNames;
     const char** enumNamePtrs = ptr->enumNames_;
     while (enumNamePtrs && *enumNamePtrs)
         enumNames.push_back(*enumNamePtrs++);
-    return VectorToArray<String>(enumNames, "Array<String>");
+    return StringListToArray(enumNames, "Array<String>");
 }
 
-static void SendEvent(const String& eventType, VariantMap& eventData)
+static void SendEvent(const QString& eventType, VariantMap& eventData)
 {
     Object* sender = GetScriptContextEventListenerObject();
     if (sender)
         sender->SendEvent(eventType, eventData);
 }
 
-static void SubscribeToEvent(const String& eventType, const String& handlerName)
+static void SubscribeToEvent(const QString& eventType, const QString& handlerName)
 {
     ScriptEventListener* listener = GetScriptContextEventListener();
     if (listener)
         listener->AddEventHandler(eventType, handlerName);
 }
 
-static void SubscribeToSenderEvent(Object* sender, const String& eventType, const String& handlerName)
+static void SubscribeToSenderEvent(Object* sender, const QString& eventType, const QString& handlerName)
 {
     ScriptEventListener* listener = GetScriptContextEventListener();
     if (listener)
         listener->AddEventHandler(sender, eventType, handlerName);
 }
 
-static void UnsubscribeFromEvent(const String& eventType)
+static void UnsubscribeFromEvent(const QString& eventType)
 {
     ScriptEventListener* listener = GetScriptContextEventListener();
     if (listener)
         listener->RemoveEventHandler(eventType);
 }
 
-static void UnsubscribeFromSenderEvent(Object* sender, const String& eventType)
+static void UnsubscribeFromSenderEvent(Object* sender, const QString& eventType)
 {
     ScriptEventListener* listener = GetScriptContextEventListener();
     if (listener)
@@ -805,7 +811,7 @@ static void UnsubscribeFromAllEventsExcept(CScriptArray* exceptions)
     unsigned numExceptions = exceptions->GetSize();
     PODVector<StringHash> destExceptions(numExceptions);
     for (unsigned i = 0; i < numExceptions; ++i)
-        destExceptions[i] = StringHash(*(static_cast<String*>(exceptions->At(i))));
+        destExceptions[i] = StringHash(*(static_cast<QString*>(exceptions->At(i))));
 
     listener->RemoveEventHandlersExcept(destExceptions);
 }
@@ -815,7 +821,7 @@ static Object* GetEventSender()
     return GetScriptContext()->GetEventSender();
 }
 
-static const String& GetTypeName(StringHash type)
+static const QString& GetTypeName(StringHash type)
 {
     return GetScriptContext()->GetTypeName(type);
 }

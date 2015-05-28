@@ -98,7 +98,7 @@ void BackgroundLoader::ThreadFunction()
     }
 }
 
-bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool sendEventOnFailure, Resource* caller)
+bool BackgroundLoader::QueueResource(StringHash type, const QString& name, bool sendEventOnFailure, Resource* caller)
 {
     StringHash nameHash(name);
     Pair<StringHash, StringHash> key = MakePair(type, nameHash);
@@ -116,7 +116,7 @@ bool BackgroundLoader::QueueResource(StringHash type, const String& name, bool s
     item.resource_ = DynamicCast<Resource>(owner_->GetContext()->CreateObject(type));
     if (!item.resource_)
     {
-        LOGERROR("Could not load unknown resource type " + String(type));
+        LOGERROR(QString("Could not load unknown resource type ") + type.ToString());
 
         if (sendEventOnFailure && Thread::IsMainThread())
         {
@@ -188,7 +188,7 @@ void BackgroundLoader::WaitForResource(StringHash type, StringHash nameHash)
             }
 
             if (didWait)
-                LOGDEBUG("Waited " + String(waitTimer.GetUSec() / 1000) + " ms for background loaded resource " + resource->GetName());
+                LOGDEBUG("Waited " + QString::number(waitTimer.GetUSecS() / 1000) + " ms for background loaded resource " + resource->GetName());
         }
 
         // This may take a long time and may potentially wait on other resources, so it is important we do not hold the mutex during this
@@ -228,7 +228,7 @@ void BackgroundLoader::FinishResources(int maxMs)
             }
 
             // Break when the time limit passed so that we keep sufficient FPS
-            if (timer.GetUSec() >= maxMs * 1000)
+            if (timer.GetUSecS() >= maxMs * 1000)
                 break;
         }
 
@@ -251,11 +251,11 @@ void BackgroundLoader::FinishBackgroundLoading(BackgroundLoadItem& item)
     if (success)
     {
 #ifdef URHO3D_PROFILING
-        String profileBlockName("Finish" + resource->GetTypeName());
+        QString profileBlockName("Finish" + resource->GetTypeName());
 
         Profiler* profiler = owner_->GetSubsystem<Profiler>();
         if (profiler)
-            profiler->BeginBlock(profileBlockName.CString());
+            profiler->BeginBlock(qPrintable(profileBlockName));
 #endif
         LOGDEBUG("Finishing background loaded resource " + resource->GetName());
         success = resource->EndLoad();

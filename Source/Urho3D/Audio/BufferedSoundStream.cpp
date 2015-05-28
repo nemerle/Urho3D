@@ -77,7 +77,7 @@ void BufferedSoundStream::AddData(void* data, unsigned numBytes)
 
         SharedArrayPtr<signed char> newBuffer(new signed char[numBytes]);
         memcpy(newBuffer.Get(), data, numBytes);
-        buffers_.push_back(MakePair(newBuffer, numBytes));
+        buffers_.emplace_back(newBuffer, numBytes);
     }
 }
 

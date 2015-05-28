@@ -46,9 +46,9 @@ Deserializer::~Deserializer()
 {
 }
 
-const String& Deserializer::GetName() const
+const QString& Deserializer::GetName() const
 {
-    return String::EMPTY;
+    return QString::null;
 }
 
 unsigned Deserializer::GetChecksum()
@@ -215,9 +215,9 @@ BoundingBox Deserializer::ReadBoundingBox()
     return BoundingBox(Vector3(&data[0]), Vector3(&data[3]));
 }
 
-String Deserializer::ReadString()
+QString Deserializer::ReadString()
 {
-    String ret;
+    QString ret;
 
     while (!IsEof())
     {
@@ -231,11 +231,10 @@ String Deserializer::ReadString()
     return ret;
 }
 
-String Deserializer::ReadFileID()
+QString Deserializer::ReadFileID()
 {
-    String ret;
-    ret.resize(4);
-    Read(&ret[0], 4);
+    QByteArray ret(4,Qt::Uninitialized);
+    Read(ret.data(), 4);
     return ret;
 }
 
@@ -402,9 +401,9 @@ unsigned Deserializer::ReadNetID()
     return ret;
 }
 
-String Deserializer::ReadLine()
+QString Deserializer::ReadLine()
 {
-    String ret;
+    QString ret;
 
     while (!IsEof())
     {

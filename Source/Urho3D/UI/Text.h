@@ -94,11 +94,11 @@ public:
     virtual void OnIndentSet() override;
 
     /// Set font and font size and use signed distance field.
-    bool SetFont(const String& fontName, int size = DEFAULT_FONT_SIZE);
+    bool SetFont(const QString& fontName, int size = DEFAULT_FONT_SIZE);
     /// Set font and font size and use signed distance field.
     bool SetFont(Font* font, int size = DEFAULT_FONT_SIZE);
     /// Set text. Text is assumed to be either ASCII or UTF8-encoded.
-    void SetText(const String& text);
+    void SetText(const QString& text);
     /// Set row alignment.
     void SetTextAlignment(HorizontalAlignment align);
     /// Set row spacing, 1.0 for original font spacing.
@@ -123,7 +123,7 @@ public:
     /// Return font size.
     int GetFontSize() const { return fontSize_; }
     /// Return text.
-    const String& GetText() const { return text_; }
+    const QString& GetText() const { return text_; }
     /// Return row alignment.
     HorizontalAlignment GetTextAlignment() const { return textAlignment_; }
     /// Return row spacing.
@@ -189,7 +189,7 @@ protected:
     /// Font size.
     int fontSize_;
     /// UTF-8 encoded text.
-    String text_;
+    QString text_;
     /// Row alignment.
     HorizontalAlignment textAlignment_;
     /// Row spacing.
@@ -215,9 +215,9 @@ protected:
     /// Row height.
     int rowHeight_;
     /// Text as Unicode characters.
-    PODVector<unsigned> unicodeText_;
+    PODVector<QChar> unicodeText_;
     /// Text modified into printed form.
-    PODVector<unsigned> printText_;
+    PODVector<QChar> printText_;
     /// Mapping of printed form back to original char indices.
     PODVector<unsigned> printToText_;
     /// Row widths.

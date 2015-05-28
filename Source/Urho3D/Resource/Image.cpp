@@ -219,7 +219,7 @@ void Image::RegisterObject(Context* context)
 bool Image::BeginLoad(Deserializer& source)
 {
     // Check for DDS, KTX or PVR compressed format
-    String fileID = source.ReadFileID();
+    QString fileID = source.ReadFileID();
 
     if (fileID == "DDS ")
     {
@@ -254,7 +254,7 @@ bool Image::BeginLoad(Deserializer& source)
             compressedFormat_ = CF_RGBA;
             components_ = 4;
             break;
-            
+
         default:
             LOGERROR("Unrecognized DDS image format");
             return false;
@@ -270,15 +270,15 @@ bool Image::BeginLoad(Deserializer& source)
             numCompressedLevels_ = 1;
         SetMemoryUse(dataSize);
         source.Read(data_.Get(), dataSize);
-        
+
         // If uncompressed DDS, convert the data to 8bit RGBA as the texture classes can not currently use eg. RGB565 format
         if (compressedFormat_ == CF_RGBA)
         {
             PROFILE(ConvertDDSToRGBA);
-            
+
             unsigned sourcePixelByteSize = ddsd.ddpfPixelFormat_.dwRGBBitCount_ >> 3;
             unsigned numPixels = dataSize / sourcePixelByteSize;
-            
+
             #define ADJUSTSHIFT(mask, l, r) \
                 if (mask && mask >= 0x100) \
                 { \
@@ -290,7 +290,7 @@ bool Image::BeginLoad(Deserializer& source)
                     while ((mask << l) < 0x80) \
                         ++l; \
                 }
-            
+
             unsigned rShiftL = 0, gShiftL = 0, bShiftL = 0, aShiftL = 0;
             unsigned rShiftR = 0, gShiftR = 0, bShiftR = 0, aShiftR = 0;
             unsigned rMask = ddsd.ddpfPixelFormat_.dwRBitMask_;
@@ -301,17 +301,17 @@ bool Image::BeginLoad(Deserializer& source)
             ADJUSTSHIFT(gMask, gShiftL, gShiftR)
             ADJUSTSHIFT(bMask, bShiftL, bShiftR)
             ADJUSTSHIFT(aMask, aShiftL, aShiftR)
-            
+
             SharedArrayPtr<unsigned char> rgbaData(new unsigned char[numPixels * 4]);
             SetMemoryUse(numPixels * 4);
-            
+
             switch (sourcePixelByteSize)
             {
             case 4:
                 {
                     unsigned* src = (unsigned*)data_.Get();
                     unsigned char* dest = rgbaData.Get();
-                    
+
                     while (numPixels--)
                     {
                         unsigned pixels = *src++;
@@ -322,12 +322,12 @@ bool Image::BeginLoad(Deserializer& source)
                     }
                 }
                 break;
-                
+
             case 3:
                 {
                     unsigned char* src = data_.Get();
                     unsigned char* dest = rgbaData.Get();
-                    
+
                     while (numPixels--)
                     {
                         unsigned pixels = src[0] | (src[1] << 8) | (src[2] << 16);
@@ -339,12 +339,12 @@ bool Image::BeginLoad(Deserializer& source)
                     }
                 }
                 break;
-                
+
             default:
                 {
                     unsigned short* src = (unsigned short*)data_.Get();
                     unsigned char* dest = rgbaData.Get();
-                    
+
                     while (numPixels--)
                     {
                         unsigned short pixels = *src++;
@@ -356,7 +356,7 @@ bool Image::BeginLoad(Deserializer& source)
                 }
                 break;
             }
-            
+
             // Replace with converted data
             data_ = rgbaData;
         }
@@ -576,7 +576,7 @@ bool Image::BeginLoad(Deserializer& source)
         unsigned char* pixelData = GetImageData(source, width, height, components);
         if (!pixelData)
         {
-            LOGERROR("Could not load image " + source.GetName() + ": " + String(stbi_failure_reason()));
+            LOGERROR("Could not load image " + source.GetName() + ": " + QString(stbi_failure_reason()));
             return false;
         }
         SetSize(width, height, components);
@@ -700,7 +700,7 @@ void Image::SetData(const unsigned char* pixelData)
 
 bool Image::LoadColorLUT(Deserializer& source)
 {
-    String fileID = source.ReadFileID();
+    QString fileID = source.ReadFileID();
 
     if (fileID == "DDS " || fileID == "\253KTX" || fileID == "PVR\3")
     {
@@ -714,7 +714,7 @@ bool Image::LoadColorLUT(Deserializer& source)
     unsigned char* pixelDataIn = GetImageData(source, width, height, components);
     if (!pixelDataIn)
     {
-        LOGERROR("Could not load image " + source.GetName() + ": " + String(stbi_failure_reason()));
+        LOGERROR("Could not load image " + source.GetName() + ": " + QString(stbi_failure_reason()));
         return false;
     }
     if (components != 3)
@@ -956,7 +956,7 @@ void Image::ClearInt(unsigned uintColor)
         data_[i] = src[i % components_];
 }
 
-bool Image::SaveBMP(const String& fileName) const
+bool Image::SaveBMP(const QString& fileName) const
 {
     PROFILE(SaveImageBMP);
 
@@ -974,12 +974,12 @@ bool Image::SaveBMP(const String& fileName) const
     }
 
     if (data_)
-        return stbi_write_bmp(fileName.CString(), width_, height_, components_, data_.Get()) != 0;
+        return stbi_write_bmp(qPrintable(fileName), width_, height_, components_, data_.Get()) != 0;
     else
         return false;
 }
 
-bool Image::SavePNG(const String& fileName) const
+bool Image::SavePNG(const QString& fileName) const
 {
     PROFILE(SaveImagePNG);
 
@@ -997,12 +997,12 @@ bool Image::SavePNG(const String& fileName) const
     }
 
     if (data_)
-        return stbi_write_png(GetNativePath(fileName).CString(), width_, height_, components_, data_.Get(), 0) != 0;
+        return stbi_write_png(qPrintable(GetNativePath(fileName)), width_, height_, components_, data_.Get(), 0) != 0;
     else
         return false;
 }
 
-bool Image::SaveTGA(const String& fileName) const
+bool Image::SaveTGA(const QString& fileName) const
 {
     PROFILE(SaveImageTGA);
 
@@ -1020,12 +1020,12 @@ bool Image::SaveTGA(const String& fileName) const
     }
 
     if (data_)
-        return stbi_write_tga(GetNativePath(fileName).CString(), width_, height_, components_, data_.Get()) != 0;
+        return stbi_write_tga(qPrintable(GetNativePath(fileName)), width_, height_, components_, data_.Get()) != 0;
     else
         return false;
 }
 
-bool Image::SaveJPG(const String & fileName, int quality) const
+bool Image::SaveJPG(const QString & fileName, int quality) const
 {
     PROFILE(SaveImageJPG);
 
@@ -1043,7 +1043,7 @@ bool Image::SaveJPG(const String & fileName, int quality) const
     }
 
     if (data_)
-        return jo_write_jpg(GetNativePath(fileName).CString(), data_.Get(), width_, height_, components_, quality) != 0;
+        return jo_write_jpg(qPrintable(GetNativePath(fileName)), data_.Get(), width_, height_, components_, quality) != 0;
     else
         return false;
 }
@@ -1449,7 +1449,7 @@ SharedPtr<Image> Image::ConvertToRGBA() const
 
     SharedPtr<Image> ret(new Image(context_));
     ret->SetSize(width_, height_, depth_, 4);
-    
+
     const unsigned char* src = data_;
     unsigned char* dest = ret->GetData();
 
@@ -1532,8 +1532,9 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
 
             if (offset + level.dataSize_ > GetMemoryUse())
             {
-                LOGERROR("Compressed level is outside image data. Offset: " + String(offset) + " Size: " + String(level.dataSize_) +
-                    " Datasize: " + String(GetMemoryUse()));
+                LOGERROR("Compressed level is outside image data. Offset: " +
+                         QString::number(offset) + " Size: " + QString::number(level.dataSize_) +
+                    " Datasize: " + QString::number(GetMemoryUse()));
                 level.data_ = nullptr;
                 return level;
             }
@@ -1570,8 +1571,9 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
 
             if (offset + level.dataSize_ > GetMemoryUse())
             {
-                LOGERROR("Compressed level is outside image data. Offset: " + String(offset) + " Size: " + String(level.dataSize_) +
-                    " Datasize: " + String(GetMemoryUse()));
+                LOGERROR("Compressed level is outside image data. Offset: " +
+                         QString::number(offset) + " Size: " + QString::number(level.dataSize_) +
+                    " Datasize: " + QString::number(GetMemoryUse()));
                 level.data_ = nullptr;
                 return level;
             }
@@ -1608,8 +1610,9 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
 
             if (offset + level.dataSize_ > GetMemoryUse())
             {
-                LOGERROR("Compressed level is outside image data. Offset: " + String(offset) + " Size: " + String(level.dataSize_) +
-                    " Datasize: " + String(GetMemoryUse()));
+                LOGERROR("Compressed level is outside image data. Offset: " +
+                         QString::number(offset) + " Size: " + QString::number(level.dataSize_) +
+                    " Datasize: " + QString::number(GetMemoryUse()));
                 level.data_ = nullptr;
                 return level;
             }

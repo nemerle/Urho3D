@@ -200,7 +200,7 @@ void Network::ClientDisconnected(kNet::MessageConnection* connection)
     }
 }
 
-bool Network::Connect(const String& address, unsigned short port, Scene* scene, const VariantMap& identity)
+bool Network::Connect(const QString& address, unsigned short port, Scene* scene, const VariantMap& identity)
 {
     PROFILE(Connect);
 
@@ -211,7 +211,7 @@ bool Network::Connect(const String& address, unsigned short port, Scene* scene, 
         OnServerDisconnected();
     }
 
-    kNet::SharedPtr<kNet::MessageConnection> connection = network_->Connect(address.CString(), port, kNet::SocketOverUDP, this);
+    kNet::SharedPtr<kNet::MessageConnection> connection = network_->Connect(qPrintable(address), port, kNet::SocketOverUDP, this);
     if (connection)
     {
         serverConnection_ = new Connection(context_, false, connection);
@@ -224,7 +224,7 @@ bool Network::Connect(const String& address, unsigned short port, Scene* scene, 
     }
     else
     {
-        LOGERROR("Failed to connect to server " + address + ":" + String(port));
+        LOGERROR("Failed to connect to server " + address + ":" + QString::number(port));
         SendEvent(E_CONNECTFAILED);
         return false;
     }
@@ -248,12 +248,12 @@ bool Network::StartServer(unsigned short port)
 
     if (network_->StartServer(port, kNet::SocketOverUDP, this, true) != nullptr)
     {
-        LOGINFO("Started server on port " + String(port));
+        LOGINFO("Started server on port " + QString::number(port));
         return true;
     }
     else
     {
-        LOGERROR("Failed to start server on port " + String(port));
+        LOGERROR("Failed to start server on port " + QString::number(port));
         return false;
     }
 }
@@ -350,7 +350,7 @@ void Network::RegisterRemoteEvent(StringHash eventType)
 {
     if (blacklistedRemoteEvents_.find(eventType) != blacklistedRemoteEvents_.end())
     {
-        LOGERROR("Attempted to register blacklisted remote event type " + String(eventType));
+        LOGERROR("Attempted to register blacklisted remote event type " + eventType.ToString());
         return;
     }
 
@@ -367,7 +367,7 @@ void Network::UnregisterAllRemoteEvents()
     allowedRemoteEvents_.clear();
 }
 
-void Network::SetPackageCacheDir(const String& path)
+void Network::SetPackageCacheDir(const QString& path)
 {
     packageCacheDir_ = AddTrailingSlash(path);
 }
@@ -392,7 +392,7 @@ void Network::SendPackageToClients(Scene* scene, PackageFile* package)
     }
 }
 
-SharedPtr<HttpRequest> Network::MakeHttpRequest(const String& url, const String& verb, const Vector<String>& headers, const String& postData)
+SharedPtr<HttpRequest> Network::MakeHttpRequest(const QString& url, const QString& verb, const PODVector<QString>& headers, const QString& postData)
 {
     PROFILE(MakeHttpRequest);
 

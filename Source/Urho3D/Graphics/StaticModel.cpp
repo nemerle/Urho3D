@@ -134,7 +134,7 @@ void StaticModel::UpdateBatches(const FrameInfo& frame)
     else
     {
         const Matrix3x4& worldTransform = node_->GetWorldTransform();
-        for (unsigned i = 0; i < batches_.size(); ++i)
+        for (unsigned i = 0,fin=batches_.size(); i < fin; ++i)
             batches_[i].distance_ = frame.camera_->GetDistance(worldTransform * geometryData_[i].center_);
     }
 
@@ -297,9 +297,9 @@ void StaticModel::SetOcclusionLodLevel(unsigned level)
     MarkNetworkUpdate();
 }
 
-void StaticModel::ApplyMaterialList(const String& fileName)
+void StaticModel::ApplyMaterialList(const QString& fileName)
 {
-    String useFileName = fileName;
+    QString useFileName = fileName;
     if (useFileName.trimmed().isEmpty() && model_)
         useFileName = ReplaceExtension(model_->GetName(), ".txt");
 
@@ -417,16 +417,16 @@ void StaticModel::ResetLodLevels()
 
 void StaticModel::CalculateLodLevels()
 {
-    for (unsigned i = 0; i < batches_.size(); ++i)
+    for (unsigned i = 0, fin=batches_.size(); i < fin; ++i)
     {
         const Vector<SharedPtr<Geometry> >& batchGeometries = geometries_[i];
         // If only one LOD geometry, no reason to go through the LOD calculation
         if (batchGeometries.size() <= 1)
             continue;
 
-        unsigned j;
+        unsigned j,fin_j;
 
-        for (j = 1; j < batchGeometries.size(); ++j)
+        for (j = 1, fin_j = batchGeometries.size(); j < fin_j; ++j)
         {
             if (batchGeometries[j] && lodDistance_ <= batchGeometries[j]->GetLodDistance())
                 break;

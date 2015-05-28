@@ -26,12 +26,10 @@
 
 // Defined by Windows headers
 #undef TRANSPARENT
+class QString;
 
 namespace Urho3D
 {
-
-class String;
-
 /// RGBA color.
 class URHO3D_API Color
 {
@@ -171,7 +169,7 @@ public:
     bool Equals(const Color& rhs) const { return Urho3D::Equals(r_, rhs.r_) && Urho3D::Equals(g_, rhs.g_) && Urho3D::Equals(b_, rhs.b_) && Urho3D::Equals(a_, rhs.a_); }
     
     /// Return as string.
-    String ToString() const;
+    QString ToString() const;
     
     /// Red value.
     float r_;

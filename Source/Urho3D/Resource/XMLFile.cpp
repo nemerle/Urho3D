@@ -100,7 +100,7 @@ bool XMLFile::BeginLoad(Deserializer& source)
     }
 
     XMLElement rootElem = GetRoot();
-    String inherit = rootElem.GetAttribute("inherit");
+    QString inherit = rootElem.GetAttribute("inherit");
     if (!inherit.isEmpty())
     {
         // The existence of this attribute indicates this is an RFC 5261 patch file
@@ -110,7 +110,7 @@ bool XMLFile::BeginLoad(Deserializer& source)
             cache->GetTempResource<XMLFile>(inherit);
         if (!inheritedXMLFile)
         {
-            LOGERRORF("Could not find inherited XML file: %s", inherit.CString());
+            LOGERROR(QString("Could not find inherited XML file: %1").arg(inherit));
             return false;
         }
 
@@ -138,30 +138,30 @@ bool XMLFile::Save(Serializer& dest) const
     return Save(dest, "\t");
 }
 
-bool XMLFile::Save(Serializer& dest, const String& indendation) const
+bool XMLFile::Save(Serializer& dest, const QString& indendation) const
 {
     XMLWriter writer(dest);
-    document_->save(writer, indendation.CString());
+    document_->save(writer, qPrintable(indendation));
     return writer.success_;
 }
 
-XMLElement XMLFile::CreateRoot(const String& name)
+XMLElement XMLFile::CreateRoot(const QString& name)
 {
     document_->reset();
-    pugi::xml_node root = document_->append_child(name.CString());
+    pugi::xml_node root = document_->append_child(qPrintable(name));
     return XMLElement(this, root.internal_object());
 }
 
-bool XMLFile::FromString(const String& source)
+bool XMLFile::FromString(const QString& source)
 {
     if (source.isEmpty())
         return false;
 
-    MemoryBuffer buffer(source.CString(), source.length());
+    MemoryBuffer buffer(qPrintable(source), source.length());
     return Load(buffer);
 }
 
-XMLElement XMLFile::GetRoot(const String& name)
+XMLElement XMLFile::GetRoot(const QString& name)
 {
     pugi::xml_node root = document_->first_child();
     if (root.empty())
@@ -173,12 +173,12 @@ XMLElement XMLFile::GetRoot(const String& name)
         return XMLElement(this, root.internal_object());
 }
 
-String XMLFile::ToString(const String& indendation) const
+QString XMLFile::ToString(const QString& indendation) const
 {
     VectorBuffer dest;
     XMLWriter writer(dest);
-    document_->save(writer, indendation.CString());
-    return String((const char*)dest.GetData(), dest.GetSize());
+    document_->save(writer, qPrintable(indendation));
+    return QString::fromLatin1((const char*)dest.GetData(), dest.GetSize());
 }
 
 void XMLFile::Patch(XMLFile* patchFile)
@@ -203,7 +203,7 @@ void XMLFile::Patch(XMLElement patchElement)
         pugi::xpath_node original = document_->select_single_node(sel.value());
         if (!original)
         {
-            LOGERRORF("XML Patch failed with bad select: %s.", sel.value());
+            LOGERROR(QString("XML Patch failed with bad select: %1.").arg(sel.value()));
             continue;
         }
 
@@ -223,7 +223,7 @@ void XMLFile::PatchAdd(const pugi::xml_node& patch, pugi::xpath_node& original)
     // If not a node, log an error
     if (original.attribute())
     {
-        LOGERRORF("XML Patch failed calling Add due to not selecting a node, %s attribute was selected.", original.attribute().name());
+        LOGERROR(QString("XML Patch failed calling Add due to not selecting a node, %1 attribute was selected.").arg(original.attribute().name()));
         return;
     }
 
@@ -342,14 +342,14 @@ void XMLFile::AddAttribute(const pugi::xml_node& patch, pugi::xpath_node& origin
 
     if (!patch.first_child() && patch.first_child().type() != pugi::node_pcdata)
     {
-        LOGERRORF("XML Patch failed calling Add due to attempting to add non text to an attribute for %s.", attribute.value());
+        LOGERROR(QString("XML Patch failed calling Add due to attempting to add non text to an attribute for %1.").arg(attribute.value()));
         return;
     }
 
-    String name(attribute.value());
-    name = name.Substring(1);
+    QString name(attribute.value());
+    name = name.mid(1);
 
-    pugi::xml_attribute newAttribute = original.node().append_attribute(name.CString());
+    pugi::xml_attribute newAttribute = original.node().append_attribute(qPrintable(name));
     newAttribute.set_value(patch.child_value());
 }
 
@@ -362,9 +362,9 @@ bool XMLFile::CombineText(const pugi::xml_node& patch, pugi::xml_node original, 
         (patch.type() == pugi::node_cdata && original.type() == pugi::node_cdata))
     {
         if (prepend)
-            original.set_value(Urho3D::ToString("%s%s", patch.value(), original.value()).CString());
+            original.set_value(qPrintable(QString("%1%2").arg(patch.value()).arg(original.value())));
         else
-            original.set_value(Urho3D::ToString("%s%s", original.value(), patch.value()).CString());
+            original.set_value(qPrintable(QString("%1%2").arg(original.value()).arg(patch.value())));
 
         return true;
     }

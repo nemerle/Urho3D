@@ -210,7 +210,7 @@ void Console::SetNumHistoryRows(unsigned rows)
 {
     historyRows_ = rows;
     if (history_.size() > rows)
-        history_.resize(rows);
+        history_.reserve(rows);
     if (historyPosition_ > rows)
         historyPosition_ = rows;
 }
@@ -252,9 +252,9 @@ void Console::CopySelectedRows() const
     rowContainer_->CopySelectedItemsToClipboard();
 }
 
-const String& Console::GetHistoryRow(unsigned index) const
+const QString& Console::GetHistoryRow(unsigned index) const
 {
-    return index < history_.size() ? history_[index] : String::EMPTY;
+    return index < history_.size() ? history_[index] : QString::null;
 }
 
 bool Console::PopulateInterpreter()
@@ -265,7 +265,7 @@ bool Console::PopulateInterpreter()
     if (!receivers || receivers->isEmpty())
         return false;
 
-    Vector<String> names;
+    QStringList names;
     for (const Object* receiver : *receivers)
         names.push_back(receiver->GetTypeName());
     std::sort(names.begin(), names.end());
@@ -273,7 +273,7 @@ bool Console::PopulateInterpreter()
     unsigned selection = M_MAX_UNSIGNED;
     for (unsigned i = 0; i < names.size(); ++i)
     {
-        const String& name = names[i];
+        const QString& name = names[i];
         if (name == commandInterpreter_)
             selection = i;
         Text* text = new Text(context_);
@@ -308,7 +308,7 @@ void Console::HandleTextFinished(StringHash eventType, VariantMap& eventData)
 {
     using namespace TextFinished;
 
-    String line = lineEdit_->GetText();
+    QString line = lineEdit_->GetText();
     if (!line.isEmpty())
     {
         // Send the command as an event for script subsystem
@@ -389,10 +389,10 @@ void Console::HandleLogMessage(StringHash eventType, VariantMap& eventData)
 
     int level = eventData[P_LEVEL].GetInt();
     // The message may be multi-line, so split to rows in that case
-    Vector<String> rows = eventData[P_MESSAGE].GetString().split('\n');
+    QStringList rows = eventData[P_MESSAGE].GetString().split('\n');
 
-    for (String & row : rows)
-        pendingRows_.push_back(MakePair(level, row));
+    for (QString & row : rows)
+        pendingRows_.emplace_back(level, row);
 
     if (autoVisibleOnError_ && level == LOG_ERROR && !IsVisible())
         SetVisible(true);
@@ -420,9 +420,9 @@ void Console::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
     {
         rowContainer_->RemoveItem((unsigned)0);
         text = new Text(context_);
-        text->SetText(elem.second_);
+        text->SetText(ELEMENT_VALUE(elem));
         // Make error message highlight
-        text->SetStyle(elem.first_ == LOG_ERROR ? "ConsoleHighlightedText" : "ConsoleText");
+        text->SetStyle(ELEMENT_KEY(elem) == LOG_ERROR ? "ConsoleHighlightedText" : "ConsoleText");
         rowContainer_->AddItem(text);
     }
 

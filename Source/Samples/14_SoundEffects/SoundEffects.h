@@ -50,7 +50,7 @@ public:
 
 protected:
     /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
-    virtual String GetScreenJoystickPatchString() const override { return
+    virtual QString GetScreenJoystickPatchString() const override { return
         "<patch>"
         "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Button2']]\">"
         "        <attribute name=\"Is Visible\" value=\"false\" />"
@@ -65,9 +65,9 @@ private:
     /// Create the UI and subscribes to UI events.
     void CreateUI();
     /// Create a button at position with specified text in it.
-    Button* CreateButton(int x, int y, int xSize, int ySize, const String& text);
+    Button* CreateButton(int x, int y, int xSize, int ySize, const QString& text);
     /// Create a horizontal slider with specified text above it.
-    Slider* CreateSlider(int x, int y, int xSize, int ySize, const String& text);
+    Slider* CreateSlider(int x, int y, int xSize, int ySize, const QString& text);
     /// Handle a sound effect button click.
     void HandlePlaySound(StringHash eventType, VariantMap& eventData);
     /// Handle "play music" button click.

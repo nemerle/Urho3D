@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2014 the Urho3D project.
+// Copyright (c) 2008-2015 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 //
 
+#include <Urho3D/Urho3D.h>
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Engine/Engine.h>
 #include <Urho3D/IO/File.h>
@@ -29,6 +30,8 @@
 #include <Urho3D/Resource/ResourceCache.h>
 #include <Urho3D/Script/Script.h>
 #include <Urho3D/Script/ScriptFile.h>
+
+#include <QString>
 
 #ifdef URHO3D_LUA
 #include <Urho3D/LuaScript/LuaScript.h>
@@ -42,19 +45,19 @@
 
 using namespace Urho3D;
 
-void CompileScript(Context* context, const String& fileName);
+void CompileScript(Context* context, const QString& fileName);
 
 int main(int argc, char** argv)
 {
     #ifdef WIN32
-    const Vector<String>& arguments = ParseArguments(GetCommandLineW());
+    const StringList& arguments = ParseArguments(GetCommandLineW());
     #else
-    const Vector<String>& arguments = ParseArguments(argc, argv);
+    const QStringList& arguments = ParseArguments(argc, argv);
     #endif
 
     bool dumpApiMode = false;
-    String sourceTree;
-    String outputFile;
+    QString sourceTree;
+    QString outputFile;
 
     if (arguments.empty())
         ErrorExit("Usage: ScriptCompiler <input file> [resource path for includes]\n"
@@ -87,9 +90,9 @@ int main(int argc, char** argv)
         VariantMap engineParameters;
         engineParameters["Headless"] = true;
         engineParameters["WorkerThreads"] = false;
-        engineParameters["LogName"] = String::EMPTY;
-        engineParameters["ResourcePaths"] = String::EMPTY;
-        engineParameters["AutoloadPaths"] = String::EMPTY;
+        engineParameters["LogName"] = QString::null;
+        engineParameters["ResourcePaths"] = QString::null;
+        engineParameters["AutoloadPaths"] = QString::null;
         engine->Initialize(engineParameters);
     #ifdef URHO3D_LUA
         context->RegisterSubsystem(new LuaScript(context));
@@ -109,7 +112,7 @@ int main(int argc, char** argv)
 
     if (!dumpApiMode)
     {
-        String path, file, extension;
+        QString path, file, extension;
         SplitPath(outputFile, path, file, extension);
 
         ResourceCache* cache = context->GetSubsystem<ResourceCache>();
@@ -124,9 +127,9 @@ int main(int argc, char** argv)
             CompileScript(context, outputFile);
         else
         {
-            Vector<String> scriptFiles;
+            QStringList scriptFiles;
             context->GetSubsystem<FileSystem>()->ScanDir(scriptFiles, path, file + extension, SCAN_FILES, false);
-            for (const String & script : scriptFiles)
+            for (const QString & script : scriptFiles)
                 CompileScript(context, path + script);
         }
     }
@@ -152,7 +155,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
-void CompileScript(Context* context, const String& fileName)
+void CompileScript(Context* context, const QString& fileName)
 {
     PrintLine("Compiling script file " + fileName);
 
@@ -164,7 +167,7 @@ void CompileScript(Context* context, const String& fileName)
     if (!script.Load(inFile))
         ErrorExit();
 
-    String outFileName = ReplaceExtension(fileName, ".asc");
+    QString outFileName = ReplaceExtension(fileName, ".asc");
     File outFile(context, outFileName, FILE_WRITE);
     if (!outFile.IsOpen())
         ErrorExit("Failed to open output file " + fileName);

@@ -131,13 +131,13 @@ public:
     /// Clear the image with an integer color. R component is in the 8 lowest bits.
     void ClearInt(unsigned uintColor);
     /// Save in BMP format. Return true if successful.
-    bool SaveBMP(const String& fileName) const;
+    bool SaveBMP(const QString& fileName) const;
     /// Save in PNG format. Return true if successful.
-    bool SavePNG(const String& fileName) const;
+    bool SavePNG(const QString& fileName) const;
     /// Save in TGA format. Return true if successful.
-    bool SaveTGA(const String& fileName) const;
+    bool SaveTGA(const QString& fileName) const;
     /// Save in JPG format with compression quality. Return true if successful.
-    bool SaveJPG(const String& fileName, int quality) const;
+    bool SaveJPG(const QString& fileName, int quality) const;
 
     /// Return a 2D pixel color.
     Color GetPixel(int x, int y) const;

@@ -303,7 +303,7 @@ endif ()
 
 # Add definition for AngelScript
 if (URHO3D_ANGELSCRIPT)
-    add_definitions (-DURHO3D_ANGELSCRIPT)
+    add_definitions (-DURHO3D_ANGELSCRIPT -DAS_DEPRECATED)
 endif ()
 
 # Add definition for Lua and LuaJIT

@@ -81,8 +81,8 @@ namespace Urho3D
 #ifdef WIN32
 static bool consoleOpened = false;
 #endif
-static String currentLine;
-static Vector<String> arguments;
+static QString currentLine;
+static QStringList arguments;
 
 #if defined(IOS)
 static void GetCPUData(host_basic_info_data_t* data)
@@ -118,7 +118,7 @@ void InitFPU()
     #endif
 }
 
-void ErrorDialog(const String& title, const String& message)
+void ErrorDialog(const QString& title, const QString& message)
 {
     #ifdef WIN32
     MessageBoxW(0, WString(message).CString(), WString(title).CString(), 0);
@@ -127,7 +127,7 @@ void ErrorDialog(const String& title, const String& message)
     #endif
 }
 
-void ErrorExit(const String& message, int exitCode)
+void ErrorExit(const QString& message, int exitCode)
 {
     if (!message.isEmpty())
         PrintLine(message, true);
@@ -159,7 +159,7 @@ void OpenConsoleWindow()
     #endif
 }
 
-void PrintUnicode(const String& str, bool error)
+void PrintUnicode(const QString& str, bool error)
 {
     #if !defined(ANDROID) && !defined(IOS)
     #ifdef WIN32
@@ -178,24 +178,24 @@ void PrintUnicode(const String& str, bool error)
     WriteConsoleW(stream, strW.CString(), strW.Length(), &charsWritten, 0);
     }
     #else
-    fprintf(error ? stderr : stdout, "%s", str.CString());
+    fprintf(error ? stderr : stdout, "%s", qPrintable(str));
     #endif
     #endif
 }
 
-void PrintUnicodeLine(const String& str, bool error)
+void PrintUnicodeLine(const QString& str, bool error)
 {
     PrintUnicode(str + '\n', error);
 }
 
-void PrintLine(const String& str, bool error)
+void PrintLine(const QString& str, bool error)
 {
     #if !defined(ANDROID) && !defined(IOS)
-    fprintf(error ? stderr: stdout, "%s\n", str.CString());
+    fprintf(error ? stderr: stdout, "%s\n", qPrintable(str));
     #endif
 }
 
-const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgument)
+const QStringList& ParseArguments(const QString& cmdLine, bool skipFirstArgument)
 {
     arguments.clear();
 
@@ -215,7 +215,7 @@ const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgume
                 cmdEnd = i;
                 // Do not store the first argument (executable name)
                 if (!skipFirstArgument)
-                    arguments.push_back(cmdLine.Substring(cmdStart, cmdEnd - cmdStart));
+                    arguments.push_back(cmdLine.mid(cmdStart, cmdEnd - cmdStart));
                 skipFirstArgument = false;
             }
         }
@@ -232,7 +232,7 @@ const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgume
     {
         cmdEnd = cmdLine.length();
         if (!skipFirstArgument)
-            arguments.push_back(cmdLine.Substring(cmdStart, cmdEnd - cmdStart));
+            arguments.push_back(cmdLine.mid(cmdStart, cmdEnd - cmdStart));
     }
 
     // Strip double quotes from the arguments
@@ -242,39 +242,29 @@ const Vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgume
     return arguments;
 }
 
-const Vector<String>& ParseArguments(const char* cmdLine)
+const QStringList& ParseArguments(const char* cmdLine)
 {
-    return ParseArguments(String(cmdLine));
+    return ParseArguments(QString(cmdLine));
 }
 
-const Vector<String>& ParseArguments(const WString& cmdLine)
+const QStringList& ParseArguments(int argc, char** argv)
 {
-    return ParseArguments(String(cmdLine));
-}
-
-const Vector<String>& ParseArguments(const wchar_t* cmdLine)
-{
-    return ParseArguments(String(cmdLine));
-}
-
-const Vector<String>& ParseArguments(int argc, char** argv)
-{
-    String cmdLine;
+    QString cmdLine;
 
     for (int i = 0; i < argc; ++i)
-        cmdLine.AppendWithFormat("\"%s\" ", (const char*)argv[i]);
+        cmdLine += QString("\"%1\" ").arg(argv[i]);
 
     return ParseArguments(cmdLine);
 }
 
-const Vector<String>& GetArguments()
+const QStringList& GetArguments()
 {
     return arguments;
 }
 
-String GetConsoleInput()
+QString GetConsoleInput()
 {
-    String ret;
+    QString ret;
     #ifdef URHO3D_TESTING
     // When we are running automated tests, reading the console may block. Just return empty in that case
     return ret;
@@ -345,7 +335,7 @@ String GetConsoleInput()
     return ret;
 }
 
-String GetPlatform()
+QString GetPlatform()
 {
     #if defined(ANDROID)
     return "Android";
@@ -362,7 +352,7 @@ String GetPlatform()
     #elif defined(__linux__)
     return "Linux";
     #else
-    return String::EMPTY;
+    return String::null;
     #endif
 }
 

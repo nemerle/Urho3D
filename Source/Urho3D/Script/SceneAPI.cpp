@@ -47,7 +47,7 @@ static void RegisterSerializable(asIScriptEngine* engine)
     RegisterSerializable<Serializable>(engine, "Serializable");
 }
 
-static void ValueAnimationSetEventFrame(float time, const String& eventType, const VariantMap& eventData, ValueAnimation* ptr)
+static void ValueAnimationSetEventFrame(float time, const QString& eventType, const VariantMap& eventData, ValueAnimation* ptr)
 {
     ptr->SetEventFrame(time, eventType, eventData);
 }
@@ -78,7 +78,7 @@ static void RegisterObjectAnimation(asIScriptEngine* engine)
 
     RegisterResource<ObjectAnimation>(engine, "ObjectAnimation");
     engine->RegisterObjectMethod("ObjectAnimation", "void AddAttributeAnimation(const String&in, ValueAnimation@+, WrapMode wrapMode=WM_LOOP, float speed=1.0f)", asMETHOD(ObjectAnimation, AddAttributeAnimation), asCALL_THISCALL);
-    engine->RegisterObjectMethod("ObjectAnimation", "void RemoveAttributeAnimation(const String&in)", asMETHODPR(ObjectAnimation, RemoveAttributeAnimation, (const String&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("ObjectAnimation", "void RemoveAttributeAnimation(const String&in)", asMETHODPR(ObjectAnimation, RemoveAttributeAnimation, (const QString&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("ObjectAnimation", "void RemoveAttributeAnimation(ValueAnimation@+)", asMETHODPR(ObjectAnimation, RemoveAttributeAnimation, (ValueAnimation*), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("ObjectAnimation", "ValueAnimation@+ GetAttributeAnimation(const String&in) const", asMETHOD(ObjectAnimation, GetAttributeAnimation), asCALL_THISCALL);
     engine->RegisterObjectMethod("ObjectAnimation", "WrapMode GetAttributeAnimationWrapMode(const String&in) const", asMETHOD(ObjectAnimation, GetAttributeAnimationWrapMode), asCALL_THISCALL);
@@ -94,12 +94,12 @@ static void RegisterAnimatable(asIScriptEngine* engine)
     RegisterAnimatable<Animatable>(engine, "Animatable");
 }
 
-static bool NodeSaveXML(File* file, const String& indentation, Node* ptr)
+static bool NodeSaveXML(File* file, const QString& indentation, Node* ptr)
 {
     return file && ptr->SaveXML(*file, indentation);
 }
 
-static bool NodeSaveXMLVectorBuffer(VectorBuffer& buffer, const String& indentation, Node* ptr)
+static bool NodeSaveXMLVectorBuffer(VectorBuffer& buffer, const QString& indentation, Node* ptr)
 {
     return ptr->SaveXML(buffer, indentation);
 }
@@ -151,12 +151,12 @@ static bool SceneLoadXMLVectorBuffer(VectorBuffer& buffer, Scene* ptr)
     return ptr->LoadXML(buffer);
 }
 
-static bool SceneSaveXML(File* file, const String& indentation, Scene* ptr)
+static bool SceneSaveXML(File* file, const QString& indentation, Scene* ptr)
 {
     return file && ptr->SaveXML(*file, indentation);
 }
 
-static bool SceneSaveXMLVectorBuffer(VectorBuffer& buffer, const String& indentation, Scene* ptr)
+static bool SceneSaveXMLVectorBuffer(VectorBuffer& buffer, const QString& indentation, Scene* ptr)
 {
     return ptr->SaveXML(buffer, indentation);
 }
@@ -193,17 +193,17 @@ static CScriptArray* SceneGetRequiredPackageFiles(Scene* ptr)
 
 static CScriptArray* GetObjectCategories()
 {
-    Vector<String> categories( GetScriptContext()->GetObjectCategories().keys() );
+    PODVector<QString> categories( GetScriptContext()->GetObjectCategories().keys() );
     std::sort(categories.begin(),categories.end());
-    return VectorToArray<String>(categories, "Array<String>");
+    return VectorToArray<QString>(categories, "Array<String>");
 }
 
-static CScriptArray* GetObjectsByCategory(const String& category)
+static CScriptArray* GetObjectsByCategory(const QString& category)
 {
-    const HashMap<String, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
-    Vector<String> components;
+    const HashMap<QString, Vector<StringHash> >& categories = GetScriptContext()->GetObjectCategories();
+    PODVector<QString> components;
 
-    HashMap<String, Vector<StringHash> >::const_iterator i = categories.find(category);
+    HashMap<QString, Vector<StringHash> >::const_iterator i = categories.find(category);
     if (i != categories.end())
     {
         const HashMap<StringHash, SharedPtr<ObjectFactory> >& factories = GetScriptContext()->GetObjectFactories();
@@ -219,7 +219,7 @@ static CScriptArray* GetObjectsByCategory(const String& category)
     }
 
     std::sort(components.begin(), components.end());
-    return VectorToArray<String>(components, "Array<String>");
+    return VectorToArray<QString>(components, "Array<String>");
 }
 
 static void RegisterSmoothedTransform(asIScriptEngine* engine)

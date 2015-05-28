@@ -74,7 +74,7 @@ public:
     /// Save a UI layout to an XML file. Return true if successful.
     bool SaveLayout(Serializer& dest, UIElement* element);
     /// Set clipboard text.
-    void SetClipboardText(const String& text);
+    void SetClipboardText(const QString& text);
     /// Set UI element double click interval in seconds.
     void SetDoubleClickInterval(float interval);
     /// Set UI drag event start interval in seconds.
@@ -119,7 +119,7 @@ public:
     /// Return the drag element at index.
     UIElement* GetDragElement(unsigned index);
     /// Return clipboard text.
-    const String& GetClipboardText() const;
+    const QString& GetClipboardText() const;
     /// Return UI element double click interval in seconds.
     float GetDoubleClickInterval() const { return doubleClickInterval_; }
     /// Return UI drag start event interval in seconds.
@@ -255,7 +255,7 @@ private:
     /// UI element query vector.
     PODVector<UIElement*> tempElements_;
     /// Clipboard text.
-    mutable String clipBoard_;
+    mutable QString clipBoard_;
     /// Seconds between clicks to register a double click.
     float doubleClickInterval_;
     /// Seconds from mouse button down to begin a drag if there has been no movement exceeding pixel threshold.

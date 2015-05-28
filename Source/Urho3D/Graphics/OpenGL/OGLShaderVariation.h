@@ -50,22 +50,22 @@ public:
     /// Compile the shader. Return true if successful.
     bool Create();
     /// Set name.
-    void SetName(const String& name);
+    void SetName(const QString& name);
     /// Set defines.
-    void SetDefines(const String& defines);
+    void SetDefines(const QString& defines);
 
     /// Return the owner resource.
     Shader* GetOwner() const;
     /// Return shader type.
     ShaderType GetShaderType() const { return type_; }
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return defines.
-    const String& GetDefines() const { return defines_; }
+    const QString& GetDefines() const { return defines_; }
     /// Return full shader name.
-    String GetFullName() const { return name_ + "(" + defines_ + ")"; }
+    QString GetFullName() const { return name_ + "(" + defines_ + ")"; }
     /// Return compile error/warning string.
-    const String& GetCompilerOutput() const { return compilerOutput_; }
+    const QString& GetCompilerOutput() const { return compilerOutput_; }
 
 private:
     /// Shader this variation belongs to.
@@ -73,11 +73,11 @@ private:
     /// Shader type.
     ShaderType type_;
     /// Shader name.
-    String name_;
+    QString name_;
     /// Defines to use in compiling.
-    String defines_;
+    QString defines_;
     /// Shader compile error string.
-    String compilerOutput_;
+    QString compilerOutput_;
 };
 
 }

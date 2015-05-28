@@ -82,7 +82,7 @@ void ScriptInstance::RegisterObject(Context* context)
     ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     MIXED_ACCESSOR_ATTRIBUTE("Delayed Method Calls", GetDelayedCallsAttr, SetDelayedCallsAttr, PODVector<unsigned char>, Variant::emptyBuffer, AM_FILE | AM_NOEDIT);
     MIXED_ACCESSOR_ATTRIBUTE("Script File", GetScriptFileAttr, SetScriptFileAttr, ResourceRef, ResourceRef(ScriptFile::GetTypeStatic()), AM_DEFAULT);
-    ACCESSOR_ATTRIBUTE("Class Name", GetClassName, SetClassName, String, String::EMPTY, AM_DEFAULT);
+    ACCESSOR_ATTRIBUTE("Class Name", GetClassName, SetClassName, QString, QString(), AM_DEFAULT);
     MIXED_ACCESSOR_ATTRIBUTE("Script Data", GetScriptDataAttr, SetScriptDataAttr, PODVector<unsigned char>, Variant::emptyBuffer, AM_FILE | AM_NOEDIT);
     MIXED_ACCESSOR_ATTRIBUTE("Script Network Data", GetScriptNetworkDataAttr, SetScriptNetworkDataAttr, PODVector<unsigned char>, Variant::emptyBuffer, AM_NET | AM_NOEDIT);
 }
@@ -184,9 +184,9 @@ void ScriptInstance::OnSetEnabled()
     UpdateEventSubscription();
 }
 
-bool ScriptInstance::CreateObject(ScriptFile* scriptFile, const String& className)
+bool ScriptInstance::CreateObject(ScriptFile* scriptFile, const QString& className)
 {
-    className_ = String::EMPTY; // Do not create object during SetScriptFile()
+    className_ = QString::null; // Do not create object during SetScriptFile()
     SetScriptFile(scriptFile);
     SetClassName(className);
     return scriptObject_ != nullptr;
@@ -217,7 +217,7 @@ void ScriptInstance::SetScriptFile(ScriptFile* scriptFile)
     MarkNetworkUpdate();
 }
 
-void ScriptInstance::SetClassName(const String& className)
+void ScriptInstance::SetClassName(const QString& className)
 {
     if (className == className_ && scriptObject_)
         return;
@@ -229,12 +229,17 @@ void ScriptInstance::SetClassName(const String& className)
     MarkNetworkUpdate();
 }
 
-bool ScriptInstance::Execute(const String& declaration, const VariantVector& parameters)
+bool ScriptInstance::Execute(const QString& declaration, const VariantVector& parameters)
 {
     if (!scriptObject_)
         return false;
 
     asIScriptFunction* method = scriptFile_->GetMethod(scriptObject_, declaration);
+    if (!method)
+    {
+        LOGERROR("Method " + declaration + " not found in class " + className_);
+        return false;
+    }
     return scriptFile_->Execute(scriptObject_, method, parameters);
 }
 
@@ -246,7 +251,7 @@ bool ScriptInstance::Execute(asIScriptFunction* method, const VariantVector& par
     return scriptFile_->Execute(scriptObject_, method, parameters);
 }
 
-void ScriptInstance::DelayedExecute(float delay, bool repeat, const String& declaration, const VariantVector& parameters)
+void ScriptInstance::DelayedExecute(float delay, bool repeat, const QString& declaration, const VariantVector& parameters)
 {
     if (!scriptObject_)
         return;
@@ -263,7 +268,7 @@ void ScriptInstance::DelayedExecute(float delay, bool repeat, const String& decl
         UpdateEventSubscription();
 }
 
-void ScriptInstance::ClearDelayedExecute(const String& declaration)
+void ScriptInstance::ClearDelayedExecute(const QString& declaration)
 {
     if (declaration.isEmpty())
         delayedCalls_.clear();
@@ -279,17 +284,17 @@ void ScriptInstance::ClearDelayedExecute(const String& declaration)
     }
 }
 
-void ScriptInstance::AddEventHandler(StringHash eventType, const String& handlerName)
+void ScriptInstance::AddEventHandler(StringHash eventType, const QString& handlerName)
 {
     if (!scriptObject_)
         return;
 
-    String declaration = "void " + handlerName + "(StringHash, VariantMap&)";
+    QString declaration = "void " + handlerName + "(StringHash, VariantMap&)";
     asIScriptFunction* method = scriptFile_->GetMethod(scriptObject_, declaration);
     if (!method)
     {
-        declaration = "void " + handlerName + "()";
-        method = scriptFile_->GetMethod(scriptObject_, declaration);
+        // Retry with parameterless signature
+        method = scriptFile_->GetMethod(scriptObject_, handlerName);
         if (!method)
         {
             LOGERROR("Event handler method " + handlerName + " not found in " + scriptFile_->GetName());
@@ -300,23 +305,23 @@ void ScriptInstance::AddEventHandler(StringHash eventType, const String& handler
     SubscribeToEvent(eventType, HANDLER_USERDATA(ScriptInstance, HandleScriptEvent, (void*)method));
 }
 
-void ScriptInstance::AddEventHandler(Object* sender, StringHash eventType, const String& handlerName)
+void ScriptInstance::AddEventHandler(Object* sender, StringHash eventType, const QString& handlerName)
 {
     if (!scriptObject_)
         return;
 
     if (!sender)
     {
-        LOGERROR("Null event sender for event " + String(eventType) + ", handler " + handlerName);
+        LOGERROR(QString("Null event sender for event %1, handler %2").arg(eventType).arg(handlerName));
         return;
     }
 
-    String declaration = "void " + handlerName + "(StringHash, VariantMap&)";
+    QString declaration = "void " + handlerName + "(StringHash, VariantMap&)";
     asIScriptFunction* method = scriptFile_->GetMethod(scriptObject_, declaration);
     if (!method)
     {
-        declaration = "void " + handlerName + "()";
-        method = scriptFile_->GetMethod(scriptObject_, declaration);
+        // Retry with parameterless signature
+        method = scriptFile_->GetMethod(scriptObject_, handlerName);
         if (!method)
         {
             LOGERROR("Event handler method " + handlerName + " not found in " + scriptFile_->GetName());
@@ -350,6 +355,14 @@ void ScriptInstance::RemoveEventHandlers()
 void ScriptInstance::RemoveEventHandlersExcept(const PODVector<StringHash>& exceptions)
 {
     UnsubscribeFromAllEventsExcept(exceptions, true);
+}
+
+bool ScriptInstance::HasMethod(const QString& declaration) const
+{
+    if (!scriptFile_ || !scriptObject_)
+        return false;
+    else
+        return scriptFile_->GetMethod(scriptObject_, declaration) != 0;
 }
 
 void ScriptInstance::SetScriptFileAttr(const ResourceRef& value)
@@ -546,10 +559,10 @@ void ScriptInstance::GetScriptAttributes()
         if (isPrivate || name[0] == '_')
             continue;
 
-        String typeName = engine->GetTypeDeclaration(typeId);
-        isHandle = typeName.endsWith("@");
+        QString typeName = engine->GetTypeDeclaration(typeId);
+        isHandle = typeName.endsWith('@');
         if (isHandle)
-            typeName = typeName.Substring(0, typeName.length() - 1);
+            typeName = typeName.mid(0, typeName.length() - 1);
 
         AttributeInfo info;
         info.mode_ = AM_FILE;

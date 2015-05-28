@@ -55,7 +55,7 @@ struct VertexBufferMorph
 struct ModelMorph
 {
     /// Morph name.
-    String name_;
+    QString name_;
     /// Morph name hash.
     StringHash nameHash_;
     /// Current morph weight.
@@ -146,7 +146,7 @@ public:
     /// Set vertex morphs.
     void SetMorphs(const Vector<ModelMorph>& morphs);
     /// Clone the model. The geometry data is deep-copied and can be modified in the clone without affecting the original.
-    SharedPtr<Model> Clone(const String& cloneName = String::EMPTY) const;
+    SharedPtr<Model> Clone(const QString& cloneName = QString::null) const;
 
     /// Return bounding box.
     const BoundingBox& GetBoundingBox() const { return boundingBox_; }
@@ -166,6 +166,8 @@ public:
     const PODVector<Vector3>& GetGeometryCenters() const { return geometryCenters_; }
     /// Return geometry by index and LOD level. The LOD level is clamped if out of range.
     Geometry* GetGeometry(unsigned index, unsigned lodLevel) const;
+    /// Return geometry center by index.
+    const Vector3& GetGeometryCenter(unsigned index) const { return index < geometryCenters_.size() ? geometryCenters_[index] : Vector3::ZERO; }
     /// Return geometery bone mappings.
     const Vector<PODVector<unsigned> >& GetGeometryBoneMappings() const { return geometryBoneMappings_; }
     /// Return vertex morphs.
@@ -175,7 +177,7 @@ public:
     /// Return vertex morph by index.
     const ModelMorph* GetMorph(unsigned index) const;
     /// Return vertex morph by name.
-    const ModelMorph* GetMorph(const String& name) const;
+    const ModelMorph* GetMorph(const QString& name) const;
     /// Return vertex morph by name hash.
     const ModelMorph* GetMorph(StringHash nameHash) const;
     /// Return vertex buffer morph range start.

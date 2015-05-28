@@ -52,17 +52,17 @@ TmxFile2D* TmxLayer2D::GetTmxFile() const
     return tmxFile_;
 }
 
-bool TmxLayer2D::HasProperty(const String& name) const
+bool TmxLayer2D::HasProperty(const QString& name) const
 {
     if (!propertySet_)
         return false;
     return propertySet_->HasProperty(name);
 }
 
-const String& TmxLayer2D::GetProperty(const String& name) const
+const QString& TmxLayer2D::GetProperty(const QString& name) const
 {
     if (!propertySet_)
-        return String::EMPTY;
+        return s_dummy;
     return propertySet_->GetProperty(name);
 }
 
@@ -184,7 +184,7 @@ bool TmxObjectGroup2D::Load(const XMLElement& element, const TileMapInfo2D& info
         }
         else
         {
-            Vector<String> points;
+            QStringList points;
 
             if (objectElem.HasChild("polygon"))
             {
@@ -254,7 +254,7 @@ bool TmxImageLayer2D::Load(const XMLElement& element, const TileMapInfo2D& info)
 
     position_ = Vector2(0.0f, info.GetMapHeight());
     source_ = imageElem.GetAttribute("source");
-    String textureFilePath = GetParentPath(tmxFile_->GetName()) + source_;
+    QString textureFilePath = GetParentPath(tmxFile_->GetName()) + source_;
     ResourceCache* cache = tmxFile_->GetSubsystem<ResourceCache>();
     SharedPtr<Texture2D> texture(cache->GetResource<Texture2D>(textureFilePath));
     if (!texture)
@@ -325,26 +325,26 @@ bool TmxFile2D::BeginLoad(Deserializer& source)
             // Tile set defined in TSX file
             if (tileSetElem.HasAttribute("source"))
             {
-                String source = tileSetElem.GetAttribute("source");
+                QString source = tileSetElem.GetAttribute("source");
                 SharedPtr<XMLFile> tsxXMLFile = LoadTSXFile(source);
                 if (!tsxXMLFile)
                     return false;
 
                 tsxXMLFiles_[source] = tsxXMLFile;
 
-                String textureFilePath = GetParentPath(GetName()) + tsxXMLFile->GetRoot("tileset").GetChild("image").GetAttribute("source");
+                QString textureFilePath = GetParentPath(GetName()) + tsxXMLFile->GetRoot("tileset").GetChild("image").GetAttribute("source");
                 GetSubsystem<ResourceCache>()->BackgroundLoadResource<Texture2D>(textureFilePath, true, this);
             }
             else
             {
-                String textureFilePath = GetParentPath(GetName()) + tileSetElem.GetChild("image").GetAttribute("source");
+                QString textureFilePath = GetParentPath(GetName()) + tileSetElem.GetChild("image").GetAttribute("source");
                 GetSubsystem<ResourceCache>()->BackgroundLoadResource<Texture2D>(textureFilePath, true, this);
             }
         }
 
         for (XMLElement imageLayerElem = rootElem.GetChild("imagelayer"); imageLayerElem; imageLayerElem = imageLayerElem.GetNext("imagelayer"))
         {
-            String textureFilePath = GetParentPath(GetName()) + imageLayerElem.GetChild("image").GetAttribute("source");
+            QString textureFilePath = GetParentPath(GetName()) + imageLayerElem.GetChild("image").GetAttribute("source");
             GetSubsystem<ResourceCache>()->BackgroundLoadResource<Texture2D>(textureFilePath, true, this);
         }
     }
@@ -358,14 +358,14 @@ bool TmxFile2D::EndLoad()
         return false;
 
     XMLElement rootElem = loadXMLFile_->GetRoot("map");
-    String version = rootElem.GetAttribute("version");
+    QString version = rootElem.GetAttribute("version");
     if (version != "1.0")
     {
         LOGERROR("Invalid version");
         return false;
     }
 
-    String orientation = rootElem.GetAttribute("orientation");
+    QString orientation = rootElem.GetAttribute("orientation");
     if (orientation == "orthogonal")
         info_.orientation_ = O_ORTHOGONAL;
     else if (orientation == "isometric")
@@ -390,7 +390,7 @@ bool TmxFile2D::EndLoad()
     for (XMLElement childElement = rootElem.GetChild(); childElement; childElement = childElement.GetNext())
     {
         bool ret = true;
-        String name = childElement.GetName();
+        QString name = childElement.GetName();
         if (name == "tileset")
             ret = LoadTileSet(childElement);
         else if (name == "layer")
@@ -455,9 +455,9 @@ const TmxLayer2D* TmxFile2D::GetLayer(unsigned index) const
 }
 
 
-SharedPtr<XMLFile> TmxFile2D::LoadTSXFile(const String& source)
+SharedPtr<XMLFile> TmxFile2D::LoadTSXFile(const QString& source)
 {
-    String tsxFilePath = GetParentPath(GetName()) + source;
+    QString tsxFilePath = GetParentPath(GetName()) + source;
     SharedPtr<File> tsxFile = GetSubsystem<ResourceCache>()->GetFile(tsxFilePath);
     SharedPtr<XMLFile> tsxXMLFile(new XMLFile(context_));
     if (!tsxFile || !tsxXMLFile->Load(*tsxFile))
@@ -476,8 +476,8 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
     XMLElement tileSetElem;
     if (element.HasAttribute("source"))
     {
-        String source = element.GetAttribute("source");
-        HashMap<String, SharedPtr<XMLFile> >::iterator i = tsxXMLFiles_.find(source);
+        QString source = element.GetAttribute("source");
+        HashMap<QString, SharedPtr<XMLFile> >::iterator i = tsxXMLFiles_.find(source);
         if (i == tsxXMLFiles_.end())
         {
             SharedPtr<XMLFile> tsxXMLFile = LoadTSXFile(source);
@@ -496,7 +496,7 @@ bool TmxFile2D::LoadTileSet(const XMLElement& element)
         tileSetElem = element;
 
     XMLElement imageElem = tileSetElem.GetChild("image");
-    String textureFilePath = GetParentPath(GetName()) + imageElem.GetAttribute("source");
+    QString textureFilePath = GetParentPath(GetName()) + imageElem.GetAttribute("source");
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     SharedPtr<Texture2D> texture(cache->GetResource<Texture2D>(textureFilePath));
     if (!texture)

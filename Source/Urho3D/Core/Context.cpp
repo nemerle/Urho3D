@@ -40,7 +40,7 @@ void RemoveNamedAttribute(HashMap<StringHash, Vector<AttributeInfo> >& attribute
 
     for (Vector<AttributeInfo>::iterator j = infos.begin(); j != infos.end(); ++j)
     {
-        if (!j->name_.Compare(name, true))
+        if (!j->name_.compare(name))
         {
             infos.erase(j);
             break;
@@ -106,7 +106,7 @@ void Context::RegisterFactory(ObjectFactory* factory, const char* category)
         return;
 
     RegisterFactory(factory);
-    if (String::CStringLength(category))
+    if (!category || 0==category[0])
         objectCategories_[category].push_back(factory->GetType());
 }
 
@@ -195,11 +195,11 @@ Object* Context::GetEventSender() const
         return nullptr;
 }
 
-const String& Context::GetTypeName(StringHash objectType) const
+const QString& Context::GetTypeName(StringHash objectType) const
 {
     // Search factories to find the hash-to-name mapping
     HashMap<StringHash, SharedPtr<ObjectFactory> >::const_iterator i = factories_.find(objectType);
-    return i != factories_.end() ? MAP_VALUE(i)->GetTypeName() : String::EMPTY;
+    return i != factories_.end() ? MAP_VALUE(i)->GetTypeName() : s_dummy;
 }
 
 AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
@@ -212,7 +212,7 @@ AttributeInfo* Context::GetAttribute(StringHash objectType, const char* name)
 
     for (AttributeInfo &j : infos)
     {
-        if (!j.name_.Compare(name, true))
+        if (!j.name_.compare(name))
             return &j;
     }
 
@@ -236,7 +236,7 @@ void Context::RemoveEventSender(Object* sender)
         return;
     for (const std::pair<const StringHash,HashSet<Object*>> & elem : MAP_VALUE(i))
     {
-        for (Object* k : elem.second)
+        for (Object* k : ELEMENT_VALUE(elem))
             k->RemoveEventSender(sender);
     }
     specificEventReceivers_.erase(i);

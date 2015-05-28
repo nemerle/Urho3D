@@ -59,6 +59,9 @@
 #include <assimp/postprocess.h>
 #include <assimp/DefaultLogger.hpp>
 
+#include <QSet>
+#include <QString>
+#include <QStringList>
 #include <cstring>
 
 #include <Urho3D/DebugNew.h>
@@ -74,7 +77,7 @@ struct OutModel
     {
     }
 
-    String outName_;
+    QString outName_;
     aiNode* rootNode_;
     QSet<unsigned> meshIndices_;
     PODVector<aiMesh*> meshes_;
@@ -90,7 +93,7 @@ struct OutModel
 
 struct OutScene
 {
-    String outName_;
+    QString outName_;
     aiNode* rootNode_;
     Vector<OutModel> models_;
     PODVector<aiNode*> nodes_;
@@ -100,9 +103,9 @@ struct OutScene
 SharedPtr<Context> context_(new Context());
 const aiScene* scene_ = nullptr;
 aiNode* rootNode_ = nullptr;
-String inputName_;
-String resourcePath_;
-String outPath_;
+QString inputName_;
+QString resourcePath_;
+QString outPath_;
 bool useSubdirs_ = true;
 bool localIDs_ = false;
 bool saveBinary_ = false;
@@ -122,8 +125,8 @@ bool noOverwriteTexture_ = false;
 bool noOverwriteNewerTexture_ = false;
 bool checkUniqueModel_ = true;
 unsigned maxBones_ = 64;
-Vector<String> nonSkinningBoneIncludes_;
-Vector<String> nonSkinningBoneExcludes_;
+QStringList nonSkinningBoneIncludes_;
+QStringList nonSkinningBoneExcludes_;
 
 QSet<aiAnimation*> allAnimations_;
 PODVector<aiAnimation*> sceneAnimations_;
@@ -131,41 +134,41 @@ PODVector<aiAnimation*> sceneAnimations_;
 float defaultTicksPerSecond_ = 4800.0f;
 
 int main(int argc, char** argv);
-void Run(const Vector<String>& arguments);
+void Run(const QStringList& arguments);
 void DumpNodes(aiNode* rootNode, unsigned level);
 
-void ExportModel(const String& outName, bool animationOnly);
+void ExportModel(const QString& outName, bool animationOnly);
 void CollectMeshes(OutModel& model, aiNode* node);
 void CollectBones(OutModel& model, bool animationOnly = false);
-void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary, aiNode* node);
+void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode *> &necessary, aiNode* node);
 void CollectAnimations(OutModel* model = nullptr);
 void BuildBoneCollisionInfo(OutModel& model);
 void BuildAndSaveModel(OutModel& model);
 void BuildAndSaveAnimations(OutModel* model = nullptr);
 
-void ExportScene(const String& outName, bool asPrefab);
+void ExportScene(const QString& outName, bool asPrefab);
 void CollectSceneModels(OutScene& scene, aiNode* node);
 void CreateHierarchy(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping);
 Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping);
 void BuildAndSaveScene(OutScene& scene, bool asPrefab);
 
-void ExportMaterials(QSet<String>& usedTextures);
-void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures);
-void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath);
+void ExportMaterials(QSet<QString>& usedTextures);
+void BuildAndSaveMaterial(aiMaterial* material, QSet<QString>& usedTextures);
+void CopyTextures(const QSet<QString>& usedTextures, const QString& sourcePath);
 
-void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& modelNames, const String& outName);
+void CombineLods(const PODVector<float>& lodDistances, const QStringList& modelNames, const QString& outName);
 
 void GetMeshesUnderNode(Vector<Pair<aiNode*, aiMesh*> >& meshes, aiNode* node);
 unsigned GetMeshIndex(aiMesh* mesh);
-unsigned GetBoneIndex(OutModel& model, const String& boneName);
-aiBone* GetMeshBone(OutModel& model, const String& boneName);
-Matrix3x4 GetOffsetMatrix(OutModel& model, const String& boneName);
+unsigned GetBoneIndex(OutModel& model, const QString& boneName);
+aiBone* GetMeshBone(OutModel& model, const QString& boneName);
+Matrix3x4 GetOffsetMatrix(OutModel& model, const QString& boneName);
 void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappings, Vector<PODVector<unsigned char> >&
     blendIndices, Vector<PODVector<float> >& blendWeights);
-String GetMeshMaterialName(aiMesh* mesh);
-String GetMaterialTextureName(const String& nameIn);
-String GenerateMaterialName(aiMaterial* material);
-String GenerateTextureName(unsigned texIndex);
+QString GetMeshMaterialName(aiMesh* mesh);
+QString GetMaterialTextureName(const QString& nameIn);
+QString GenerateMaterialName(aiMaterial* material);
+QString GenerateTextureName(unsigned texIndex);
 unsigned GetNumValidFaces(aiMesh* mesh);
 
 void WriteShortIndices(unsigned short*& dest, aiMesh* mesh, unsigned index, unsigned offset);
@@ -175,22 +178,22 @@ void WriteVertex(float*& dest, aiMesh* mesh, unsigned index, unsigned elementMas
     Vector<PODVector<float> >& blendWeights);
 unsigned GetElementMask(aiMesh* mesh);
 
-aiNode* GetNode(const String& name, aiNode* rootNode, bool caseSensitive = true);
+aiNode* GetNode(const QString& name, aiNode* rootNode, bool caseSensitive = true);
 aiMatrix4x4 GetDerivedTransform(aiNode* node, aiNode* rootNode, bool rootInclusive = true);
 aiMatrix4x4 GetDerivedTransform(aiMatrix4x4 transform, aiNode* node, aiNode* rootNode, bool rootInclusive = true);
 aiMatrix4x4 GetMeshBakingTransform(aiNode* meshNode, aiNode* modelRootNode);
 void GetPosRotScale(const aiMatrix4x4& transform, Vector3& pos, Quaternion& rot, Vector3& scale);
 
-String FromAIString(const aiString& str);
+QString FromAIString(const aiString& str);
 Vector3 ToVector3(const aiVector3D& vec);
 Vector2 ToVector2(const aiVector2D& vec);
 Quaternion ToQuaternion(const aiQuaternion& quat);
 Matrix3x4 ToMatrix3x4(const aiMatrix4x4& mat);
-String SanitateAssetName(const String& name);
+QString SanitateAssetName(const QString& name);
 
 int main(int argc, char** argv)
 {
-    Vector<String> arguments;
+    QStringList arguments;
 
     #ifdef WIN32
     arguments = ParseArguments(GetCommandLineW());
@@ -202,7 +205,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void Run(const Vector<String>& arguments)
+void Run(const QStringList& arguments)
 {
     if (arguments.size() < 2)
     {
@@ -259,8 +262,8 @@ void Run(const Vector<String>& arguments)
     RegisterPhysicsLibrary(context_);
 #endif
 
-    String command = arguments[0].toLower();
-    String rootNodeName;
+    QString command = arguments[0].toLower();
+    QString rootNodeName;
 
     unsigned flags =
         aiProcess_ConvertToLeftHanded |
@@ -280,8 +283,8 @@ void Run(const Vector<String>& arguments)
     {
         if (arguments[i].length() > 1 && arguments[i][0] == '-')
         {
-            String argument = arguments[i].Substring(1).toLower();
-            String value = i + 1 < arguments.size() ? arguments[i + 1] : String::EMPTY;
+            QString argument = arguments[i].mid(1).toLower();
+            QString value = i + 1 < arguments.size() ? arguments[i + 1] : QString::null;
 
             if (argument == "b")
                 saveBinary_ = true;
@@ -300,7 +303,7 @@ void Run(const Vector<String>& arguments)
                 flags |= aiProcess_PreTransformVertices;
             else if (argument.length() == 2 && argument[0] == 'n')
             {
-                switch (tolower(argument[1]))
+                switch (argument[1].toLower().toLatin1())
                 {
                 case 'a':
                     noAnimations_ = true;
@@ -321,6 +324,7 @@ void Run(const Vector<String>& arguments)
                 case 'e':
                     noEmptyNodes_ = true;
                     break;
+
                 case 's':
                     useSubdirs_ = false;
                     break;
@@ -365,11 +369,11 @@ void Run(const Vector<String>& arguments)
                 includeNonSkinningBones_ = true;
                 if (value.length() && (value[0] != '-' || value.length() > 3))
                 {
-                    Vector<String> filters = value.split(';');
+                    QStringList filters = value.split(';');
                     for (auto & filter : filters)
                     {
                         if (filter[0] == '-')
-                            nonSkinningBoneExcludes_.push_back(filter.Substring(1));
+                            nonSkinningBoneExcludes_.push_back(filter.mid(1));
                         else
                             nonSkinningBoneIncludes_.push_back(filter);
                     }
@@ -392,8 +396,8 @@ void Run(const Vector<String>& arguments)
 
     if (command == "model" || command == "scene" || command == "node" || command == "dump")
     {
-        String inFile = arguments[1];
-        String outFile;
+        QString inFile = arguments[1];
+        QString outFile;
         if (arguments.size() > 2 && arguments[2][0] != '-')
             outFile = GetInternalPath(arguments[2]);
 
@@ -406,8 +410,8 @@ void Run(const Vector<String>& arguments)
             // If output file already has the Models/ path (model mode), do not take it into the resource path
             if (command == "model")
             {
-                if (resourcePath_.endsWith("Models/", false))
-                    resourcePath_ = resourcePath_.Substring(0, resourcePath_.length() - 7);
+                if (resourcePath_.endsWith("Models/",Qt::CaseInsensitive))
+                    resourcePath_ = resourcePath_.mid(0, resourcePath_.length() - 7);
             }
             if (resourcePath_.isEmpty())
                 resourcePath_ = "./";
@@ -422,9 +426,9 @@ void Run(const Vector<String>& arguments)
             Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE, aiDefaultLogStream_STDOUT);
 
         PrintLine("Reading file " + inFile);
-        scene_ = aiImportFile(GetNativePath(inFile).CString(), flags);
+        scene_ = aiImportFile(qPrintable(GetNativePath(inFile)), flags);
         if (!scene_)
-            ErrorExit("Could not open or parse input file " + inFile + ": " + String(aiGetErrorString()));
+            ErrorExit("Could not open or parse input file " + inFile + ": " + QString(aiGetErrorString()));
 
         if (verboseLog_)
             Assimp::DefaultLogger::kill();
@@ -457,7 +461,7 @@ void Run(const Vector<String>& arguments)
 
         if (!noMaterials_)
         {
-            QSet<String> usedTextures;
+            QSet<QString> usedTextures;
             ExportMaterials(usedTextures);
             if (!noTextures_)
                 CopyTextures(usedTextures, GetPath(inFile));
@@ -466,8 +470,8 @@ void Run(const Vector<String>& arguments)
     else if (command == "lod")
     {
         PODVector<float> lodDistances;
-        Vector<String> modelNames;
-        String outFile;
+        QStringList modelNames;
+        QString outFile;
 
         unsigned numLodArguments = 0;
         for (unsigned i = 1; i < arguments.size(); ++i)
@@ -511,24 +515,24 @@ void DumpNodes(aiNode* rootNode, unsigned level)
     if (!rootNode)
         return;
 
-    String indent(' ', level * 2);
+    QString indent(' ', level * 2);
     Vector3 pos, scale;
     Quaternion rot;
     aiMatrix4x4 transform = GetDerivedTransform(rootNode, rootNode_);
     GetPosRotScale(transform, pos, rot, scale);
 
-    PrintLine(indent + "Node " + FromAIString(rootNode->mName) + " pos " + String(pos));
+    PrintLine(indent + "Node " + FromAIString(rootNode->mName) + " pos " + pos.ToString());
 
     if (rootNode->mNumMeshes == 1)
-        PrintLine(indent + "  " + String(rootNode->mNumMeshes) + " geometry");
+        PrintLine(indent + "  " + QString::number(rootNode->mNumMeshes) + " geometry");
     if (rootNode->mNumMeshes > 1)
-        PrintLine(indent + "  " + String(rootNode->mNumMeshes) + " geometries");
+        PrintLine(indent + "  " + QString::number(rootNode->mNumMeshes) + " geometries");
 
     for (unsigned i = 0; i < rootNode->mNumChildren; ++i)
         DumpNodes(rootNode->mChildren[i], level + 1);
 }
 
-void ExportModel(const String& outName, bool animationOnly)
+void ExportModel(const QString & outName, bool animationOnly)
 {
     if (outName.isEmpty())
         ErrorExit("No output file defined");
@@ -592,7 +596,7 @@ void CollectBones(OutModel& model, bool animationOnly)
         for (unsigned j = 0; j < mesh->mNumBones; ++j)
         {
             aiBone* bone = mesh->mBones[j];
-            String boneName(FromAIString(bone->mName));
+            QString boneName(FromAIString(bone->mName));
             aiNode* boneNode = GetNode(boneName, scene_->mRootNode, true);
             if (!boneNode)
                 ErrorExit("Could not find scene node for bone " + boneName);
@@ -648,7 +652,7 @@ void CollectBones(OutModel& model, bool animationOnly)
 void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary, aiNode* node)
 {
     bool includeBone = necessary.find(node) != necessary.end();
-    String boneName = FromAIString(node->mName);
+    QString boneName = FromAIString(node->mName);
 
     // Check include/exclude filters for non-skinned bones
     if (!includeBone && includeNonSkinningBones_)
@@ -660,7 +664,7 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary,
         // Check against includes/excludes
         for (unsigned i = 0; i < nonSkinningBoneIncludes_.size(); ++i)
         {
-            if (boneName.contains(nonSkinningBoneIncludes_[i], false))
+            if (boneName.contains(nonSkinningBoneIncludes_[i], Qt::CaseInsensitive))
             {
                 includeBone = true;
                 break;
@@ -668,7 +672,7 @@ void CollectBonesFinal(PODVector<aiNode*>& dest, const QSet<aiNode*>& necessary,
         }
         for (unsigned i = 0; i < nonSkinningBoneExcludes_.size(); ++i)
         {
-            if (boneName.contains(nonSkinningBoneExcludes_[i], false))
+            if (boneName.contains(nonSkinningBoneExcludes_[i], Qt::CaseInsensitive))
             {
                 includeBone = false;
                 break;
@@ -701,7 +705,7 @@ void CollectAnimations(OutModel* model)
             for (unsigned j = 0; j < anim->mNumChannels; ++j)
             {
                 aiNodeAnim* channel = anim->mChannels[j];
-                String channelName = FromAIString(channel->mNodeName);
+                QString channelName = FromAIString(channel->mNodeName);
                 if (GetBoneIndex(*model, channelName) != M_MAX_UNSIGNED)
                 {
                     modelBoneFound = true;
@@ -732,7 +736,7 @@ void BuildBoneCollisionInfo(OutModel& model)
         for (unsigned j = 0; j < mesh->mNumBones; ++j)
         {
             aiBone* bone = mesh->mBones[j];
-            String boneName = FromAIString(bone->mName);
+            QString boneName = FromAIString(bone->mName);
             unsigned boneIndex = GetBoneIndex(model, boneName);
             if (boneIndex == M_MAX_UNSIGNED)
                 continue;
@@ -758,7 +762,7 @@ void BuildAndSaveModel(OutModel& model)
 {
     if (!model.rootNode_)
         ErrorExit("Null root node for model");
-    String rootNodeName = FromAIString(model.rootNode_->mName);
+    QString rootNodeName = FromAIString(model.rootNode_->mName);
     if (!model.meshes_.size())
         ErrorExit("No geometries found starting from node " + rootNodeName);
 
@@ -856,8 +860,8 @@ void BuildAndSaveModel(OutModel& model)
 
         SharedPtr<Geometry> geom(new Geometry(context_));
 
-        PrintLine("Writing geometry " + String(i) + " with " + String(mesh->mNumVertices) + " vertices " +
-            String(validFaces * 3) + " indices");
+        PrintLine("Writing geometry " + QString::number(i) + " with " + QString::number(mesh->mNumVertices) + " vertices " +
+            QString::number(validFaces * 3) + " indices");
 
         unsigned char* vertexData = vb->GetShadowData();
         unsigned char* indexData = ib->GetShadowData();
@@ -929,7 +933,7 @@ void BuildAndSaveModel(OutModel& model)
     // Build skeleton if necessary
     if (model.bones_.size() && model.rootBone_)
     {
-        PrintLine("Writing skeleton with " + String(model.bones_.size()) + " bones, rootbone " +
+        PrintLine("Writing skeleton with " + QString::number(model.bones_.size()) + " bones, rootbone " +
             FromAIString(model.rootBone_->mName));
 
         Skeleton skeleton;
@@ -938,7 +942,7 @@ void BuildAndSaveModel(OutModel& model)
         for (unsigned i = 0; i < model.bones_.size(); ++i)
         {
             aiNode* boneNode = model.bones_[i];
-            String boneName(FromAIString(boneNode->mName));
+            QString boneName(FromAIString(boneNode->mName));
 
             Bone newBone;
             newBone.name_ = boneName;
@@ -961,7 +965,7 @@ void BuildAndSaveModel(OutModel& model)
         // Set the bone hierarchy
         for (unsigned i = 1; i < model.bones_.size(); ++i)
         {
-            String parentName = FromAIString(model.bones_[i]->mParent->mName);
+            QString parentName = FromAIString(model.bones_[i]->mParent->mName);
             for (unsigned j = 0; j < bones.size(); ++j)
             {
                 if (bones[j].name_ == parentName)
@@ -985,7 +989,7 @@ void BuildAndSaveModel(OutModel& model)
     // If exporting materials, also save material list for use by the editor
     if (!noMaterials_ && saveMaterialList_)
     {
-        String materialListName = ReplaceExtension(model.outName_, ".txt");
+        QString materialListName = ReplaceExtension(model.outName_, ".txt");
         File listFile(context_);
         if (listFile.Open(materialListName, FILE_WRITE))
         {
@@ -1006,11 +1010,11 @@ void BuildAndSaveAnimations(OutModel* model)
         aiAnimation* anim = animations[i];
 
         float duration = (float)anim->mDuration;
-        String animName = FromAIString(anim->mName);
-        String animOutName;
+        QString animName = FromAIString(anim->mName);
+        QString animOutName;
 
         if (animName.isEmpty())
-            animName = "Anim" + String(i + 1);
+            animName = "Anim" + QString::number(i + 1);
         if (model)
             animOutName = GetPath(model->outName_) + GetFileName(model->outName_) + "_" + SanitateAssetName(animName) + ".ani";
         else
@@ -1032,7 +1036,7 @@ void BuildAndSaveAnimations(OutModel* model)
                 startTime = Min(startTime, (float)channel->mPositionKeys[0].mTime);
             if (channel->mNumRotationKeys > 0)
                 startTime = Min(startTime, (float)channel->mRotationKeys[0].mTime);
-            if (channel->mNumScalingKeys > 0)
+            if (channel->mScalingKeys > 0)
                 startTime = Min(startTime, (float)channel->mScalingKeys[0].mTime);
         }
         duration -= startTime;
@@ -1041,12 +1045,12 @@ void BuildAndSaveAnimations(OutModel* model)
         outAnim->SetAnimationName(animName);
         outAnim->SetLength(duration * tickConversion);
 
-        PrintLine("Writing animation " + animName + " length " + String(outAnim->GetLength()));
+        PrintLine("Writing animation " + animName + " length " + QString::number(outAnim->GetLength()));
         Vector<AnimationTrack> tracks;
         for (unsigned j = 0; j < anim->mNumChannels; ++j)
         {
             aiNodeAnim* channel = anim->mChannels[j];
-            String channelName = FromAIString(channel->mNodeName);
+            QString channelName = FromAIString(channel->mNodeName);
             aiNode* boneNode = nullptr;
             bool isRootBone = false;
 
@@ -1187,7 +1191,7 @@ void BuildAndSaveAnimations(OutModel* model)
     }
 }
 
-void ExportScene(const String& outName, bool asPrefab)
+void ExportScene(const QString & outName, bool asPrefab)
 {
     OutScene outScene;
     outScene.outName_ = outName;
@@ -1278,6 +1282,7 @@ void CreateHierarchy(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nod
     for (unsigned i = 0; i < srcNode->mNumChildren; ++i)
         CreateHierarchy(scene, srcNode->mChildren[i], nodeMapping);
 }
+
 Node* CreateSceneNode(Scene* scene, aiNode* srcNode, HashMap<aiNode*, Node*>& nodeMapping)
 {
     if (nodeMapping.contains(srcNode))
@@ -1366,6 +1371,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
     ResourceCache* cache = context_->GetSubsystem<ResourceCache>();
 
     HashMap<aiNode*, Node*> nodeMapping;
+
     Node* outRootNode = nullptr;
     if (asPrefab)
         outRootNode = CreateSceneNode(outScene, rootNode_, nodeMapping);
@@ -1390,7 +1396,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
         StaticModel* staticModel = model.bones_.empty() ? modelNode->CreateComponent<StaticModel>() : modelNode->CreateComponent<AnimatedModel>();
 
         // Create a dummy model so that the reference can be stored
-        String modelName = (useSubdirs_ ? "Models/" : "") + GetFileNameAndExtension(model.outName_);
+        QString modelName = (useSubdirs_ ? "Models/" : "") + GetFileNameAndExtension(model.outName_);
         if (!cache->Exists(modelName))
         {
             Model* dummyModel = new Model(context_);
@@ -1403,7 +1409,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
         // Set materials if they are known
         for (unsigned j = 0; j < model.meshes_.size(); ++j)
         {
-            String matName = GetMeshMaterialName(model.meshes_[j]);
+            QString matName = GetMeshMaterialName(model.meshes_[j]);
             // Create a dummy material so that the reference can be stored
             if (!cache->Exists(matName))
             {
@@ -1493,7 +1499,7 @@ void BuildAndSaveScene(OutScene& scene, bool asPrefab)
     }
 }
 
-void ExportMaterials(QSet<String>& usedTextures)
+void ExportMaterials(QSet<QString> & usedTextures)
 {
     if (useSubdirs_)
         context_->GetSubsystem<FileSystem>()->CreateDir(resourcePath_ + "Materials");
@@ -1502,11 +1508,11 @@ void ExportMaterials(QSet<String>& usedTextures)
         BuildAndSaveMaterial(scene_->mMaterials[i], usedTextures);
 }
 
-void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
+void BuildAndSaveMaterial(aiMaterial* material, QSet<QString> & usedTextures)
 {
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
-    String matName = SanitateAssetName(FromAIString(matNameStr));
+    QString matName = SanitateAssetName(FromAIString(matNameStr));
     if (matName.trimmed().isEmpty())
         matName = GenerateMaterialName(material);
 
@@ -1514,11 +1520,11 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
     XMLFile outMaterial(context_);
     XMLElement materialElem = outMaterial.CreateRoot("material");
 
-    String diffuseTexName;
-    String normalTexName;
-    String specularTexName;
-    String lightmapTexName;
-    String emissiveTexName;
+    QString diffuseTexName;
+    QString normalTexName;
+    QString specularTexName;
+    QString lightmapTexName;
+    QString emissiveTexName;
     Color diffuseColor = Color::WHITE;
     Color specularColor;
     Color emissiveColor = Color::BLACK;
@@ -1564,7 +1570,7 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
     if (material->Get(AI_MATKEY_TWOSIDED, intVal) == AI_SUCCESS)
         twoSided = (intVal != 0);
 
-    String techniqueName = "Techniques/NoTexture";
+    QString techniqueName = "Techniques/NoTexture";
     if (!diffuseTexName.isEmpty())
     {
         techniqueName = "Techniques/Diff";
@@ -1640,7 +1646,7 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
 
     FileSystem* fileSystem = context_->GetSubsystem<FileSystem>();
 
-    String outFileName = resourcePath_ + (useSubdirs_ ? "Materials/" : "" ) + matName + ".xml";
+    QString outFileName = resourcePath_ + (useSubdirs_ ? "Materials/" : "" ) + matName + ".xml";
     if (noOverwriteMaterial_ && fileSystem->FileExists(outFileName))
     {
         PrintLine("Skipping save of existing material " + matName);
@@ -1655,25 +1661,25 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<String>& usedTextures)
     outMaterial.Save(outFile);
 }
 
-void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath)
+void CopyTextures(const QSet<QString> & usedTextures, const QString & sourcePath)
 {
     FileSystem* fileSystem = context_->GetSubsystem<FileSystem>();
 
     if (useSubdirs_)
         fileSystem->CreateDir(resourcePath_ + "Textures");
 
-    for (const String &tex_name : usedTextures)
+    for (const QString &tex_name : usedTextures)
     {
         // Handle assimp embedded textures
-        if (tex_name.length() && tex_name.at(0) == '*')
+        if (tex_name.length() && tex_name.startsWith('*') )
         {
-            unsigned texIndex = ToInt(tex_name.Substring(1));
+            unsigned texIndex = ToInt(tex_name.mid(1));
             if (texIndex >= scene_->mNumTextures)
-                PrintLine("Skipping out of range texture index " + String(texIndex));
+                PrintLine("Skipping out of range texture index " + QString::number(texIndex));
             else
             {
                 aiTexture* tex = scene_->mTextures[texIndex];
-                String fullDestName = resourcePath_ + GenerateTextureName(texIndex);
+                QString fullDestName = resourcePath_ + GenerateTextureName(texIndex);
                 bool destExists = fileSystem->FileExists(fullDestName);
                 if (destExists && noOverwriteTexture_)
                 {
@@ -1700,8 +1706,8 @@ void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath)
         }
         else
         {
-            String fullSourceName = sourcePath + tex_name;
-            String fullDestName = resourcePath_ + (useSubdirs_ ? "Textures/" : "") + tex_name;
+            QString fullSourceName = sourcePath + tex_name;
+            QString fullDestName = resourcePath_ + (useSubdirs_ ? "Textures/" : "") + tex_name;
 
             if (!fileSystem->FileExists(fullSourceName))
             {
@@ -1736,13 +1742,13 @@ void CopyTextures(const QSet<String>& usedTextures, const String& sourcePath)
     }
 }
 
-void CombineLods(const PODVector<float>& lodDistances, const Vector<String>& modelNames, const String& outName)
+void CombineLods(const PODVector<float>& lodDistances, const QStringList & modelNames, const QString & outName)
 {
     // Load models
     Vector<SharedPtr<Model> > srcModels;
     for (unsigned i = 0; i < modelNames.size(); ++i)
     {
-        PrintLine("Reading LOD level " + String(i) + ": model " + modelNames[i] + " distance " + String(lodDistances[i]));
+        PrintLine("Reading LOD level " + QString::number(i) + ": model " + modelNames[i] + " distance " + QString::number(lodDistances[i]));
         File srcFile(context_);
         srcFile.Open(modelNames[i]);
         SharedPtr<Model> srcModel(new Model(context_));
@@ -1842,7 +1848,7 @@ unsigned GetMeshIndex(aiMesh* mesh)
     return M_MAX_UNSIGNED;
 }
 
-unsigned GetBoneIndex(OutModel& model, const String& boneName)
+unsigned GetBoneIndex(OutModel& model, const QString & boneName)
 {
     for (unsigned i = 0; i < model.bones_.size(); ++i)
     {
@@ -1852,7 +1858,7 @@ unsigned GetBoneIndex(OutModel& model, const String& boneName)
     return M_MAX_UNSIGNED;
 }
 
-aiBone* GetMeshBone(OutModel& model, const String& boneName)
+aiBone* GetMeshBone(OutModel& model, const QString & boneName)
 {
     for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
@@ -1867,7 +1873,7 @@ aiBone* GetMeshBone(OutModel& model, const String& boneName)
     return nullptr;
 }
 
-Matrix3x4 GetOffsetMatrix(OutModel& model, const String& boneName)
+Matrix3x4 GetOffsetMatrix(OutModel& model, const QString & boneName)
 {
     for (unsigned i = 0; i < model.meshes_.size(); ++i)
     {
@@ -1902,15 +1908,15 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
         if (mesh->mNumBones > maxBones_)
         {
             ErrorExit(
-                "Geometry (submesh) has over " + String(maxBones_) + " bone influences. Try splitting to more submeshes\n"
-                "that each stay at " + String(maxBones_) + " bones or below."
+                "Geometry (submesh) has over " + QString::number(maxBones_) + " bone influences. Try splitting to more submeshes\n"
+                "that each stay at " + QString::number(maxBones_) + " bones or below."
             );
         }
         boneMappings.resize(mesh->mNumBones);
         for (unsigned i = 0; i < mesh->mNumBones; ++i)
         {
             aiBone* bone = mesh->mBones[i];
-            String boneName = FromAIString(bone->mName);
+            QString boneName = FromAIString(bone->mName);
             unsigned globalIndex = GetBoneIndex(model, boneName);
             if (globalIndex == M_MAX_UNSIGNED)
                 ErrorExit("Bone " + boneName + " not found");
@@ -1930,7 +1936,7 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
         for (unsigned i = 0; i < mesh->mNumBones; ++i)
         {
             aiBone* bone = mesh->mBones[i];
-            String boneName = FromAIString(bone->mName);
+            QString boneName = FromAIString(bone->mName);
             unsigned globalIndex = GetBoneIndex(model, boneName);
             if (globalIndex == M_MAX_UNSIGNED)
                 ErrorExit("Bone " + boneName + " not found");
@@ -1946,53 +1952,53 @@ void GetBlendData(OutModel& model, aiMesh* mesh, PODVector<unsigned>& boneMappin
     }
 }
 
-String GetMeshMaterialName(aiMesh* mesh)
+QString GetMeshMaterialName(aiMesh* mesh)
 {
     aiMaterial* material = scene_->mMaterials[mesh->mMaterialIndex];
     aiString matNameStr;
     material->Get(AI_MATKEY_NAME, matNameStr);
-    String matName = SanitateAssetName(FromAIString(matNameStr));
+    QString matName = SanitateAssetName(FromAIString(matNameStr));
     if (matName.trimmed().isEmpty())
         matName = GenerateMaterialName(material);
 
     return (useSubdirs_ ? "Materials/" : "") + matName + ".xml";
 }
 
-String GenerateMaterialName(aiMaterial* material)
+QString GenerateMaterialName(aiMaterial* material)
 {
     for (unsigned i = 0; i < scene_->mNumMaterials; ++i)
     {
         if (scene_->mMaterials[i] == material)
-            return inputName_ + "_Material" + String(i);
+            return inputName_ + "_Material" + QString::number(i);
     }
 
     // Should not go here
-    return String::EMPTY;
+    return QString::null;
 }
 
-String GetMaterialTextureName(const String& nameIn)
+QString GetMaterialTextureName(const QString & nameIn)
 {
     // Detect assimp embedded texture
     if (nameIn.length() && nameIn[0] == '*')
-        return GenerateTextureName(ToInt(nameIn.Substring(1)));
+        return GenerateTextureName(ToInt(nameIn.mid(1)));
     else
         return (useSubdirs_ ? "Textures/" : "") + nameIn;
 }
 
-String GenerateTextureName(unsigned texIndex)
+QString GenerateTextureName(unsigned texIndex)
 {
     if (texIndex < scene_->mNumTextures)
     {
         // If embedded texture contains encoded data, use the format hint for file extension. Else save RGBA8 data as PNG
         aiTexture* tex = scene_->mTextures[texIndex];
         if (!tex->mHeight)
-            return (useSubdirs_ ? "Textures/" : "") + inputName_ + "_Texture" + String(texIndex) + "." + tex->achFormatHint;
+            return (useSubdirs_ ? "Textures/" : "") + inputName_ + "_Texture" + QString::number(texIndex) + "." + tex->achFormatHint;
         else
-            return (useSubdirs_ ? "Textures/" : "") + inputName_ + "_Texture" + String(texIndex) + ".png";
+            return (useSubdirs_ ? "Textures/" : "") + inputName_ + "_Texture" + QString::number(texIndex) + ".png";
     }
 
     // Should not go here
-    return String::EMPTY;
+    return QString::null;
 }
 
 unsigned GetNumValidFaces(aiMesh* mesh)
@@ -2119,11 +2125,11 @@ unsigned GetElementMask(aiMesh* mesh)
     return elementMask;
 }
 
-aiNode* GetNode(const String& name, aiNode* rootNode, bool caseSensitive)
+aiNode* GetNode(const QString & name, aiNode* rootNode, bool caseSensitive)
 {
     if (!rootNode)
         return nullptr;
-    if (!name.Compare(rootNode->mName.data, caseSensitive))
+    if (!name.compare(rootNode->mName.data, caseSensitive? Qt::CaseSensitive : Qt::CaseInsensitive))
         return rootNode;
     for (unsigned i = 0; i < rootNode->mNumChildren; ++i)
     {
@@ -2173,9 +2179,9 @@ void GetPosRotScale(const aiMatrix4x4& transform, Vector3& pos, Quaternion& rot,
 }
 
 
-String FromAIString(const aiString& str)
+QString FromAIString(const aiString& str)
 {
-    return String(str.data);
+    return QString(str.data);
 }
 
 Vector3 ToVector3(const aiVector3D& vec)
@@ -2200,9 +2206,9 @@ Matrix3x4 ToMatrix3x4(const aiMatrix4x4& mat)
     return ret;
 }
 
-String SanitateAssetName(const String& name)
+QString SanitateAssetName(const QString & name)
 {
-    String fixedName = name;
+    QString fixedName = name;
     fixedName.replace("<", "");
     fixedName.replace(">", "");
     fixedName.replace("?", "");

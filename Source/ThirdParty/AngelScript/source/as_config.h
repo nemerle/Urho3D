@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2014 Andreas Jonsson
+   Copyright (c) 2003-2015 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -28,7 +28,6 @@
    andreas@angelcode.com
 */
 
-// Modified by Yao Wei Tjong for Urho3D
 
 
 //
@@ -241,6 +240,7 @@
 // AS_XBOX      - Microsoft XBox
 // AS_XBOX360   - Microsoft XBox 360
 // AS_PSP       - Sony Playstation Portable
+// AS_PSVITA    - Sony Playstation Vita
 // AS_PS2       - Sony Playstation 2
 // AS_PS3       - Sony Playstation 3
 // AS_DC        - Sega Dreamcast
@@ -490,7 +490,12 @@
 		#define STDCALL_RETURN_SIMPLE_IN_MEMORY
 		#define COMPLEX_MASK (asOBJ_APP_CLASS_ASSIGNMENT | asOBJ_APP_ARRAY)
 		#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_ASSIGNMENT | asOBJ_APP_ARRAY)
-		#define AS_SOFTFP
+	
+		// Windows CE uses softfp calling convention, while Windows RT uses hardfp calling convention
+		// ref: http://stackoverflow.com/questions/16375355/what-is-the-windows-rt-on-arm-native-code-calling-convention
+		#if defined(_WIN32_WCE)
+			#define AS_SOFTFP
+		#endif
 	#endif
 
 	#ifndef COMPLEX_MASK
@@ -530,13 +535,26 @@
 
 // SN Systems ProDG
 #if defined(__SNC__) || defined(SNSYS)
-	#define GNU_STYLE_VIRTUAL_METHOD
 	#define MULTI_BASE_OFFSET(x) (*((asDWORD*)(&x)+1))
 	#define CALLEE_POPS_HIDDEN_RETURN_POINTER
 	#define COMPLEX_OBJS_PASSED_BY_REF
-	#define ASM_AT_N_T  // AT&T style inline assembly
-	#define COMPLEX_MASK (asOBJ_APP_CLASS_DESTRUCTOR)
-	#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_DESTRUCTOR)
+
+	#ifdef __psp2__
+		#define COMPLEX_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_CLASS_COPY_CONSTRUCTOR)
+		#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_DESTRUCTOR | asOBJ_APP_CLASS_COPY_CONSTRUCTOR)
+		#define THISCALL_RETURN_SIMPLE_IN_MEMORY
+		#define CDECL_RETURN_SIMPLE_IN_MEMORY
+		#define STDCALL_RETURN_SIMPLE_IN_MEMORY
+		#define THISCALL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE 2
+		#define CDECL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE 2
+		#define STDCALL_RETURN_SIMPLE_IN_MEMORY_MIN_SIZE 2
+	#else
+		#define GNU_STYLE_VIRTUAL_METHOD
+		#define ASM_AT_N_T  // AT&T style inline assembly
+		#define COMPLEX_MASK (asOBJ_APP_CLASS_DESTRUCTOR)
+		#define COMPLEX_RETURN_MASK (asOBJ_APP_CLASS_DESTRUCTOR)
+	#endif
+
 	#define AS_SIZEOF_BOOL 1
 	#define asVSNPRINTF(a, b, c, d) vsnprintf(a, b, c, d)
 
@@ -560,11 +578,22 @@
 		// Support native calling conventions on PS3
 		#define AS_PS3
 		#define AS_PPC_64
+		#define AS_NO_MEMORY_H
+		#define AS_NO_EXCEPTIONS
+		#include <stdlib.h>
 	// PSP
 	#elif defined(__psp__)
 		#define AS_NO_MEMORY_H
 		#define AS_MIPS
 		#define AS_PSP
+	// PSVita
+	#elif defined(__psp2__)
+		#define AS_PSVITA
+		#define AS_ARM
+		#define AS_NO_MEMORY_H
+		#define AS_NO_EXCEPTIONS
+		#define AS_CALLEE_DESTROY_OBJ_BY_VAL
+		#undef AS_NO_THISCALL_FUNCTOR_METHOD
 	#endif
 
 	#define UNREACHABLE_RETURN
@@ -574,11 +603,7 @@
 // Use the following command to determine predefined macros: echo . | g++ -dM -E -
 #if (defined(__GNUC__) && !defined(__SNC__)) || defined(EPPC) || defined(__CYGWIN__) // JWC -- use this instead for Wii
 	#define GNU_STYLE_VIRTUAL_METHOD
-#if !defined( __amd64__ )
-	#define MULTI_BASE_OFFSET(x) (*((asDWORD*)(&x)+1))
-#else
-	#define MULTI_BASE_OFFSET(x) (*((asQWORD*)(&x)+1))
-#endif
+	#define MULTI_BASE_OFFSET(x) (*((asPWORD*)(&x)+1))
 	#define asVSNPRINTF(a, b, c, d) vsnprintf(a, b, c, d)
 	#define CALLEE_POPS_HIDDEN_RETURN_POINTER
 	#define COMPLEX_OBJS_PASSED_BY_REF
@@ -823,6 +848,9 @@
 		#elif defined(__ARMEL__) || defined(__arm__)
 			#define AS_ARM
 
+			// TODO: The stack unwind on exceptions currently fails due to the assembler code in as_callfunc_arm_gcc.S
+			#define AS_NO_EXCEPTIONS
+
 			#undef STDCALL
 			#define STDCALL
 
@@ -985,24 +1013,6 @@
 			#define THISCALL_PASS_OBJECT_POINTER_ON_THE_STACK
 			#define AS_X86
 			#undef AS_NO_THISCALL_FUNCTOR_METHOD
-// Urho3D - Add support for Android Intel x86_64 and Android ARM 64bit
-		#elif defined(__LP64__) && !defined(__aarch64__)
-			// Android Intel x86_64 (same config as Linux x86_64). Tested with Intel x86_64 Atom System Image.
-			#define AS_X64_GCC
-			#undef AS_NO_THISCALL_FUNCTOR_METHOD
-			#define HAS_128_BIT_PRIMITIVES
-			#define SPLIT_OBJS_BY_MEMBER_TYPES
-			#define AS_LARGE_OBJS_PASSED_BY_REF
-			#define AS_LARGE_OBJ_MIN_SIZE 5
-			// STDCALL is not available on 64bit Linux
-			#undef STDCALL
-			#define STDCALL
-        #elif defined(__aarch64__)
-			// Doesn't support native calling for Android ARM 64bit yet
-			#define AS_MAX_PORTABILITY
-			// STDCALL is not available on ARM
-			#undef STDCALL
-			#define STDCALL
 		#endif
 
 	// Haiku OS

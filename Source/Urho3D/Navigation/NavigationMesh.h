@@ -136,9 +136,9 @@ public:
     void DrawDebugGeometry(bool depthTest);
 
     /// Return the given name of this navigation mesh.
-    String GetMeshName() const { return meshName_; }
+    QString GetMeshName() const { return meshName_; }
     /// Set the name of this navigation mesh.
-    void SetMeshName(const String& newName);
+    void SetMeshName(const QString& newName);
     /// Return tile size.
     int GetTileSize() const { return tileSize_; }
     /// Return cell size.
@@ -214,7 +214,7 @@ protected:
     virtual void ReleaseNavigationMesh();
 
     /// Identifying name for this navigation mesh.
-    String meshName_;
+    QString meshName_;
     /// Detour navigation mesh.
     dtNavMesh* navMesh_;
     /// Detour navigation mesh query.

@@ -366,7 +366,7 @@ private:
     /// Texture animation frames.
     Vector<TextureFrame> textureFrames_;
     /// Material name acquired during BeginLoad().
-    String loadMaterialName_;
+    QString loadMaterialName_;
 };
 
 }

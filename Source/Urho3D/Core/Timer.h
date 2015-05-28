@@ -56,7 +56,7 @@ public:
 
     /// Return elapsed microseconds and optionally reset.
     long long GetUSec(bool reset);
-    long long GetUSec() const;
+    long long GetUSecS() const;
     /// Reset the timer.
     void Reset();
 
@@ -107,7 +107,7 @@ public:
     /// Get system time as seconds since 1.1.1970.
     static unsigned GetTimeSinceEpoch();
     /// Get a date/time stamp as a string.
-    static String GetTimeStamp();
+    static QString GetTimeStamp();
     /// Sleep for a number of milliseconds.
     static void Sleep(unsigned mSec);
 

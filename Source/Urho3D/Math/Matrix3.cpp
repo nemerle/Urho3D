@@ -60,11 +60,11 @@ Matrix3 Matrix3::Inverse() const
     );
 }
 
-String Matrix3::ToString() const
+QString Matrix3::ToString() const
 {
     char tempBuffer[MATRIX_CONVERSION_BUFFER_LENGTH];
     sprintf(tempBuffer, "%g %g %g %g %g %g %g %g %g", m00_, m01_, m02_, m10_, m11_, m12_, m20_, m21_, m22_);
-    return String(tempBuffer);
+    return QString(tempBuffer);
 }
 
 }

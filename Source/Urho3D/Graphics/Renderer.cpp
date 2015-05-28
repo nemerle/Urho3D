@@ -994,7 +994,7 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, bool 
         newBuffer->ResetUseTimer();
         screenBuffers_[searchKey].push_back(newBuffer);
 
-        LOGDEBUG("Allocated new screen buffer size " + String(width) + "x" + String(height) + " format " + String(format));
+        LOGDEBUG(QString("Allocated new screen buffer size %1x%2 format %3").arg(width).arg(height).arg(format));
         return newBuffer;
     }
     else
@@ -1063,7 +1063,7 @@ void Renderer::SetBatchShaders(Batch& batch, const Technique* tech, bool allowSh
     Pass* pass = batch.pass_;
     Vector<SharedPtr<ShaderVariation> >& vertexShaders = pass->GetVertexShaders();
     Vector<SharedPtr<ShaderVariation> >& pixelShaders = pass->GetPixelShaders();
-    if (!vertexShaders.size() || !pixelShaders.size() || pass->GetShadersLoadedFrameNumber() !=
+    if (vertexShaders.empty() || pixelShaders.empty() || pass->GetShadersLoadedFrameNumber() !=
         shadersChangedFrameNumber_)
     {
         // First release all previous shaders, then load
@@ -1168,7 +1168,7 @@ void Renderer::SetBatchShaders(Batch& batch, const Technique* tech, bool allowSh
     }
 }
 
-void Renderer::SetLightVolumeBatchShaders(Batch& batch, const String& vsName, const String& psName, const String& vsDefines, const String& psDefines)
+void Renderer::SetLightVolumeBatchShaders(Batch& batch, const QString& vsName, const QString& psName, const QString& vsDefines, const QString& psDefines)
 {
     assert(deferredLightPSVariations_.size());
 
@@ -1245,13 +1245,13 @@ bool Renderer::ResizeInstancingBuffer(unsigned numInstances)
 
     if (!instancingBuffer_->SetSize(newSize, INSTANCING_BUFFER_MASK, true))
     {
-        LOGERROR("Failed to resize instancing buffer to " + String(newSize));
+        LOGERROR("Failed to resize instancing buffer to " + QString::number(newSize));
         // If failed, try to restore the old size
         instancingBuffer_->SetSize(oldSize, INSTANCING_BUFFER_MASK, true);
         return false;
     }
 
-    LOGDEBUG("Resized instancing buffer to " + String(newSize));
+    LOGDEBUG("Resized instancing buffer to " + QString::number(newSize));
     return true;
 }
 
@@ -1393,7 +1393,8 @@ void Renderer::RemoveUnusedBuffers()
             Texture* buffer = buffers[j];
             if (buffer->GetUseTimer() > MAX_BUFFER_AGE)
             {
-                LOGDEBUG("Removed unused screen buffer size " + String(buffer->GetWidth()) + "x" + String(buffer->GetHeight()) + " format " + String(buffer->GetFormat()));
+                LOGDEBUG(QString("Removed unused screen buffer size %1x%2 format %3")
+                         .arg(buffer->GetWidth()).arg(buffer->GetHeight()).arg(buffer->GetFormat()));
                 buffers.erase(buffers.begin()+j);
             }
         }
@@ -1467,15 +1468,16 @@ void Renderer::LoadShaders()
     shadersChangedFrameNumber_ = GetSubsystem<Time>()->GetFrameNumber();
 
     // Construct new names for deferred light volume pixel shaders based on rendering options
-    deferredLightPSVariations_.resize(MAX_DEFERRED_LIGHT_PS_VARIATIONS);
+    deferredLightPSVariations_.reserve(MAX_DEFERRED_LIGHT_PS_VARIATIONS);
     unsigned shadows = (graphics_->GetHardwareShadowSupport() ? 1 : 0) | (shadowQuality_ & SHADOWQUALITY_HIGH_16BIT);
     for (unsigned i = 0; i < MAX_DEFERRED_LIGHT_PS_VARIATIONS; ++i)
     {
-        deferredLightPSVariations_[i] = lightPSVariations[i % DLPS_ORTHO];
+        QString entry = lightPSVariations[i % DLPS_ORTHO];
         if (i & DLPS_SHADOW)
-            deferredLightPSVariations_[i] += shadowVariations[shadows];
+            entry += shadowVariations[shadows];
         if (i & DLPS_ORTHO)
-            deferredLightPSVariations_[i] += "ORTHO";
+            entry += "ORTHO";
+        deferredLightPSVariations_ << entry;
     }
 
     shadersDirty_ = false;

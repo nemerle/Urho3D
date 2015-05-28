@@ -54,7 +54,7 @@ struct StoredLogMessage
     }
 
     /// Construct with parameters.
-    StoredLogMessage(const String& message, int level, bool error) :
+    StoredLogMessage(const QString& message, int level, bool error) :
         message_(message),
         level_(level),
         error_(error)
@@ -62,7 +62,7 @@ struct StoredLogMessage
     }
 
     /// Message text.
-    String message_;
+    QString message_;
     /// Message level. -1 for raw messages.
     int level_;
     /// Error flag for raw messages.
@@ -81,7 +81,7 @@ public:
     virtual ~Log();
 
     /// Open the log file.
-    void Open(const String& fileName);
+    void Open(const QString& fileName);
     /// Close the log file.
     void Close();
     /// Set logging level.
@@ -96,14 +96,14 @@ public:
     /// Return whether log messages are timestamped.
     bool GetTimeStamp() const { return timeStamp_; }
     /// Return last log message.
-    String GetLastMessage() const { return lastMessage_; }
+    QString GetLastMessage() const { return lastMessage_; }
     /// Return whether log is in quiet mode (only errors printed to standard error stream).
     bool IsQuiet() const { return quiet_; }
 
     /// Write to the log. If logging level is higher than the level of the message, the message is ignored.
-    static void Write(int level, const String& message);
+    static void Write(int level, const QString& message);
     /// Write raw output to the log.
-    static void WriteRaw(const String& message, bool error = false);
+    static void WriteRaw(const QString& message, bool error = false);
 
 private:
     /// Handle end of frame. Process the threaded log messages.
@@ -116,7 +116,7 @@ private:
     /// Log file.
     SharedPtr<File> logFile_;
     /// Last log message.
-    String lastMessage_;
+    QString lastMessage_;
     /// Logging level.
     int level_;
     /// Timestamp log messages flag.

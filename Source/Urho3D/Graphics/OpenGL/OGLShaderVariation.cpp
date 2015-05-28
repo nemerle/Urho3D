@@ -99,26 +99,26 @@ bool ShaderVariation::Create()
         return false;
     }
 
-    const String& originalShaderCode = owner_->GetSourceCode(type_);
-    String shaderCode;
+    const QString& originalShaderCode = owner_->GetSourceCode(type_);
+    QString shaderCode;
 
     // Check if the shader code contains a version define
     unsigned verStart = originalShaderCode.indexOf('#');
     unsigned verEnd = 0;
-    if (verStart != String::NPOS)
+    if (verStart != -1)
     {
-        if (originalShaderCode.Substring(verStart + 1, 7) == "version")
+        if (originalShaderCode.mid(verStart + 1, 7) == "version")
         {
             verEnd = verStart + 9;
             while (verEnd < originalShaderCode.length())
             {
-                if (IsDigit(originalShaderCode[verEnd]))
+                if (originalShaderCode[verEnd].isDigit())
                     ++verEnd;
                 else
                     break;
             }
             // If version define found, insert it first
-            String versionDefine = originalShaderCode.Substring(verStart, verEnd - verStart);
+            QString versionDefine = originalShaderCode.mid(verStart, verEnd - verStart);
             shaderCode += versionDefine + "\n";
         }
     }
@@ -130,19 +130,20 @@ bool ShaderVariation::Create()
     shaderCode += type_ == VS ? "#define COMPILEVS\n" : "#define COMPILEPS\n";
 
     // Add define for the maximum number of supported bones
-    shaderCode += "#define MAXBONES " + String(Graphics::GetMaxBones()) + "\n";
+    shaderCode += "#define MAXBONES " + QString::number(Graphics::GetMaxBones()) + "\n";
     // Prepend the defines to the shader code
-    Vector<String> defineVec = defines_.split(' ');
+    QStringList defineVec = defines_.split(' ',QString::SkipEmptyParts);
     for (unsigned i = 0; i < defineVec.size(); ++i)
     {
         // Add extra space for the checking code below
-        String defineString = "#define " + defineVec[i].replaced('=', ' ') + " \n";
+        QString defineString = "#define " + defineVec[i].replace('=', ' ') + " \n";
+        assert(defineString.size()>QLatin1String("#define ").size());
         shaderCode += defineString;
 
         // In debug mode, check that all defines are referenced by the shader code
         #ifdef _DEBUG
-        String defineCheck = defineString.Substring(8, defineString.indexOf(' ', 8) - 8);
-        if (originalShaderCode.indexOf(defineCheck) == String::NPOS)
+        QString defineCheck = defineString.mid(8, defineString.indexOf(' ', 8) - 8);
+        if (originalShaderCode.indexOf(defineCheck) == -1)
             LOGWARNING("Shader " + GetFullName() + " does not use the define " + defineCheck);
         #endif
     }
@@ -159,11 +160,11 @@ bool ShaderVariation::Create()
 
     // When version define found, do not insert it a second time
     if (verEnd > 0)
-        shaderCode += (originalShaderCode.CString() + verEnd);
+        shaderCode += originalShaderCode.midRef(verEnd);
     else
         shaderCode += originalShaderCode;
-
-    const char* shaderCStr = shaderCode.CString();
+    QByteArray shaderCodeBytes= shaderCode.toLatin1();
+    const char* shaderCStr = shaderCodeBytes.data();
     glShaderSource(object_, 1, &shaderCStr, nullptr);
     glCompileShader(object_);
 
@@ -172,11 +173,12 @@ bool ShaderVariation::Create()
     if (!compiled)
     {
         glGetShaderiv(object_, GL_INFO_LOG_LENGTH, &length);
-        compilerOutput_.resize(length);
+        QByteArray compilerOutputBytes(length,0);
         int outLength;
-        glGetShaderInfoLog(object_, length, &outLength, &compilerOutput_[0]);
+        glGetShaderInfoLog(object_, length, &outLength, compilerOutputBytes.data());
         glDeleteShader(object_);
         object_ = 0;
+        compilerOutput_ = compilerOutputBytes;
     }
     else
         compilerOutput_.clear();
@@ -184,14 +186,14 @@ bool ShaderVariation::Create()
     return object_ != 0;
 }
 
-void ShaderVariation::SetName(const String& name)
+void ShaderVariation::SetName(const QString& name)
 {
     name_ = name;
 }
 
-void ShaderVariation::SetDefines(const String& defines)
+void ShaderVariation::SetDefines(const QString& defines)
 {
-    defines_ = defines;
+    defines_ = defines.trimmed();
 }
 
 Shader* ShaderVariation::GetOwner() const

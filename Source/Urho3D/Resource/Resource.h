@@ -66,7 +66,7 @@ public:
     virtual bool Save(Serializer& dest) const;
     
     /// Set name.
-    void SetName(const String& name);
+    void SetName(const QString& name);
     /// Set memory use in bytes, possibly approximate.
     void SetMemoryUse(unsigned size);
     /// Reset last used timer.
@@ -75,7 +75,7 @@ public:
     void SetAsyncLoadState(AsyncLoadState newState);
     
     /// Return name.
-    const String& GetName() const { return name_; }
+    const QString& GetName() const { return name_; }
     /// Return name hash.
     StringHash GetNameHash() const { return nameHash_; }
     /// Return memory use in bytes, possibly approximate.
@@ -87,7 +87,7 @@ public:
     
 private:
     /// Name.
-    String name_;
+    QString name_;
     /// Name hash.
     StringHash nameHash_;
     /// Last used timer.
@@ -98,9 +98,9 @@ private:
     AsyncLoadState asyncLoadState_;
 };
 
-inline const String& GetResourceName(Resource* resource)
+inline QString GetResourceName(Resource* resource)
 {
-    return resource ? resource->GetName() : String::EMPTY;
+    return resource ? resource->GetName() : QString::null;
 }
 
 inline StringHash GetResourceType(Resource* resource, StringHash defaultType)
@@ -113,9 +113,9 @@ inline ResourceRef GetResourceRef(Resource* resource, StringHash defaultType)
     return ResourceRef(GetResourceType(resource, defaultType), GetResourceName(resource));
 }
 
-template <class T> Vector<String> GetResourceNames(const Vector<SharedPtr<T> >& resources)
+template <class T> QStringList GetResourceNames(const Vector<SharedPtr<T> >& resources)
 {
-    Vector<String> ret(resources.size());
+    QStringList ret(resources.size());
     for (unsigned i = 0; i < resources.size(); ++i)
         ret[i] = GetResourceName(resources[i]);
     

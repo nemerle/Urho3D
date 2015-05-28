@@ -22,7 +22,9 @@
 
 #include "Precompiled.h"
 #include "../Script/Addons.h"
+#include "../Container/Pair.h"
 
+#include <AngelScript/angelscript.h>
 #include <cstring>
 #include <new>
 #include <stdio.h>
@@ -1683,8 +1685,8 @@ CScriptDictionary::CScriptDictionary(asBYTE *buffer)
             buffer += 4 - (asPWORD(buffer) & 0x3);
 
         // Get the name value pair from the buffer and insert it in the dictionary
-        String name = *(String*)buffer;
-        buffer += sizeof(String);
+        QString name = *(QString*)buffer;
+        buffer += sizeof(QString);
 
         // Get the type id of the value
         int typeId = *(int*)buffer;
@@ -1814,7 +1816,7 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
     DeleteAll();
 
     // Do a shallow copy of the dictionary
-    HashMap<String, CScriptDictValue>::const_iterator it;
+    HashMap<QString, CScriptDictValue>::const_iterator it;
     for( it = other.dict.cbegin(); it != other.dict.cend(); it++ )
     {
         if( MAP_VALUE(it).m_typeId & asTYPEID_OBJHANDLE )
@@ -1828,20 +1830,20 @@ CScriptDictionary &CScriptDictionary::operator =(const CScriptDictionary &other)
     return *this;
 }
 
-CScriptDictValue *CScriptDictionary::operator[](const String &key)
+CScriptDictValue *CScriptDictionary::operator[](const QString &key)
 {
     // Return the existing value if it exists, else insert an empty value
-    HashMap<String, CScriptDictValue>::iterator it = dict.find(key);
+    HashMap<QString, CScriptDictValue>::iterator it = dict.find(key);
     if( it == dict.end() )
         it = dict.emplace(key, CScriptDictValue()).first;
 
-    return &(MAP_VALUE(it));
+    return &MAP_VALUE(it);
 }
 
-const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
+const CScriptDictValue *CScriptDictionary::operator[](const QString &key) const
 {
     // Return the existing value if it exists
-    HashMap<String, CScriptDictValue>::const_iterator it = dict.find(key);
+    HashMap<QString, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
         return &(MAP_VALUE(it));
 
@@ -1853,9 +1855,9 @@ const CScriptDictValue *CScriptDictionary::operator[](const String &key) const
     return nullptr;
 }
 
-void CScriptDictionary::Set(const String &key, void *value, int typeId)
+void CScriptDictionary::Set(const QString &key, void *value, int typeId)
 {
-    HashMap<String, CScriptDictValue>::iterator it = dict.find(key);
+    HashMap<QString, CScriptDictValue>::iterator it = dict.find(key);
     if( it == dict.end() )
         it = dict.emplace(key, CScriptDictValue()).first;
 
@@ -1867,7 +1869,7 @@ void CScriptDictionary::Set(const String &key, void *value, int typeId)
 // through implicit conversions. This simplifies the management of the
 // numeric types when the script retrieves the stored value using a
 // different type.
-void CScriptDictionary::Set(const String &key, const asINT64 &value)
+void CScriptDictionary::Set(const QString &key, const asINT64 &value)
 {
     Set(key, const_cast<asINT64*>(&value), asTYPEID_INT64);
 }
@@ -1876,15 +1878,15 @@ void CScriptDictionary::Set(const String &key, const asINT64 &value)
 // will be stored in the dictionary as double through implicit conversions.
 // This simplifies the management of the numeric types when the script
 // retrieves the stored value using a different type.
-void CScriptDictionary::Set(const String &key, const double &value)
+void CScriptDictionary::Set(const QString &key, const double &value)
 {
     Set(key, const_cast<double*>(&value), asTYPEID_DOUBLE);
 }
 
 // Returns true if the value was successfully retrieved
-bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
+bool CScriptDictionary::Get(const QString &key, void *value, int typeId) const
 {
-    HashMap<String, CScriptDictValue>::const_iterator it = dict.find(key);
+    HashMap<QString, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
         return MAP_VALUE(it).Get(engine, value, typeId);
 
@@ -1896,26 +1898,26 @@ bool CScriptDictionary::Get(const String &key, void *value, int typeId) const
 }
 
 // Returns the type id of the stored value
-int CScriptDictionary::GetTypeId(const String &key) const
+int CScriptDictionary::GetTypeId(const QString &key) const
 {
-    HashMap<String, CScriptDictValue>::const_iterator it = dict.find(key);
+    HashMap<QString, CScriptDictValue>::const_iterator it = dict.find(key);
     if( it != dict.end() )
         return MAP_VALUE(it).m_typeId;
 
     return -1;
 }
 
-bool CScriptDictionary::Get(const String &key, asINT64 &value) const
+bool CScriptDictionary::Get(const QString &key, asINT64 &value) const
 {
     return Get(key, &value, asTYPEID_INT64);
 }
 
-bool CScriptDictionary::Get(const String &key, double &value) const
+bool CScriptDictionary::Get(const QString &key, double &value) const
 {
     return Get(key, &value, asTYPEID_DOUBLE);
 }
 
-bool CScriptDictionary::Exists(const String &key) const
+bool CScriptDictionary::Exists(const QString &key) const
 {
     return dict.contains(key);
 }
@@ -1930,9 +1932,9 @@ asUINT CScriptDictionary::GetSize() const
     return asUINT(dict.size());
 }
 
-void CScriptDictionary::Delete(const String &key)
+void CScriptDictionary::Delete(const QString &key)
 {
-    HashMap<String, CScriptDictValue>::iterator it = dict.find(key);
+    HashMap<QString, CScriptDictValue>::iterator it = dict.find(key);
     if( it != dict.end() )
     {
         MAP_VALUE(it).FreeValue(engine);
@@ -1960,10 +1962,10 @@ CScriptArray* CScriptDictionary::GetKeys() const
     // Create the array object
     CScriptArray *array = CScriptArray::Create(ot, asUINT(dict.size()));
     long current = -1;
-    for(const String & it : dict.keys() )
+    for(const QString & it : dict.keys() )
     {
         current++;
-        *(String*)array->At(current) = it;
+        *(QString*)array->At(current) = it;
     }
 
     return array;
@@ -2209,56 +2211,60 @@ void RegisterDictionary(asIScriptEngine *engine)
     engine->RegisterObjectBehaviour("Dictionary", asBEHAVE_ADDREF, "void f()", asMETHOD(CScriptDictionary,AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour("Dictionary", asBEHAVE_RELEASE, "void f()", asMETHOD(CScriptDictionary,Release), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "Dictionary &opAssign(const Dictionary &in)", asMETHODPR(CScriptDictionary, operator=, (const CScriptDictionary &), CScriptDictionary&), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "void Set(const String &in, const ?&in)", asMETHODPR(CScriptDictionary,Set,(const String&,void*,int),void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "bool Get(const String &in, ?&out) const", asMETHODPR(CScriptDictionary,Get,(const String&,void*,int) const,bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "void Set(const String &in, const int64&in)", asMETHODPR(CScriptDictionary,Set,(const String&,const asINT64&),void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "bool Get(const String &in, int64&out) const", asMETHODPR(CScriptDictionary,Get,(const String&,asINT64&) const,bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "void Set(const String &in, const double&in)", asMETHODPR(CScriptDictionary,Set,(const String&,const double&),void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "bool Get(const String &in, double&out) const", asMETHODPR(CScriptDictionary,Get,(const String&,double&) const,bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "void Set(const String &in, const ?&in)", asMETHODPR(CScriptDictionary,Set,(const QString&,void*,int),void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "bool Get(const String &in, ?&out) const", asMETHODPR(CScriptDictionary,Get,(const QString&,void*,int) const,bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "void Set(const String &in, const int64&in)", asMETHODPR(CScriptDictionary,Set,(const QString&,const asINT64&),void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "bool Get(const String &in, int64&out) const", asMETHODPR(CScriptDictionary,Get,(const QString&,asINT64&) const,bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "void Set(const String &in, const double&in)", asMETHODPR(CScriptDictionary,Set,(const QString&,const double&),void), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "bool Get(const String &in, double&out) const", asMETHODPR(CScriptDictionary,Get,(const QString&,double&) const,bool), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "bool Exists(const String &in) const", asMETHOD(CScriptDictionary,Exists), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "bool get_empty() const", asMETHOD(CScriptDictionary, IsEmpty), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "uint get_length() const", asMETHOD(CScriptDictionary, GetSize), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "void Erase(const String &in)", asMETHOD(CScriptDictionary,Delete), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "void Clear()", asMETHOD(CScriptDictionary,DeleteAll), asCALL_THISCALL);
     engine->RegisterObjectMethod("Dictionary", "Array<String> @get_keys() const", asMETHOD(CScriptDictionary,GetKeys), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "DictionaryValue &opIndex(const String &in)", asMETHODPR(CScriptDictionary, operator[], (const String &), CScriptDictValue*), asCALL_THISCALL);
-    engine->RegisterObjectMethod("Dictionary", "const DictionaryValue &opIndex(const String &in) const", asMETHODPR(CScriptDictionary, operator[], (const String &) const, const CScriptDictValue*), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "DictionaryValue &opIndex(const String &in)", asMETHODPR(CScriptDictionary, operator[], (const QString &), CScriptDictValue*), asCALL_THISCALL);
+    engine->RegisterObjectMethod("Dictionary", "const DictionaryValue &opIndex(const String &in) const", asMETHODPR(CScriptDictionary, operator[], (const QString &) const, const CScriptDictValue*), asCALL_THISCALL);
 }
 
 
-static String StringFactory(asUINT length, const char* s)
+static QString StringFactory(asUINT length, const char* s)
 {
-    return String(s, length);
+    return QString::fromLatin1(s, length);
 }
 
-static void ConstructString(String* ptr)
+static void ConstructString(QString* ptr)
 {
-    new(ptr) String();
+    new(ptr) QString();
 }
 
-static void ConstructStringCopy(const String& str, String* ptr)
+static void ConstructStringCopy(const QString& str, QString* ptr)
 {
-    new(ptr) String(str);
+    new(ptr) QString(str);
 }
 
-static void DestructString(String* ptr)
+static void DestructString(QString* ptr)
 {
-    ptr->~String();
+    ptr->~QString();
 }
 
-static char* StringCharAt(unsigned i, String& str)
+static QChar StringCharAt(unsigned i, QString& str)
 {
     if (i >= str.length())
     {
         asIScriptContext* context = asGetActiveContext();
         if (context)
             context->SetException("Index out of bounds");
-        return nullptr;
+        return '\0';
     }
-    return &str[i];
+    return str[i];
+}
+static bool StringEq(const QString& lhs, const QString& rhs)
+{
+    return lhs==rhs;
 }
 
-static int StringCmp(const String& lhs, const String& rhs)
+static int StringCmp(const QString& lhs, const QString& rhs)
 {
     int cmp = 0;
     if (lhs < rhs)
@@ -2268,172 +2274,186 @@ static int StringCmp(const String& lhs, const String& rhs)
     return cmp;
 }
 
-void StringResize(unsigned newSize, String& str)
+void StringResize(unsigned newSize, QString& str)
 {
     unsigned oldSize = str.length();
     str.resize(newSize);
     for (unsigned i = oldSize; i < newSize; ++i)
         str[i] = ' ';
 }
-
-static void ConstructStringInt(int value, String* ptr)
+QString StringAdd(const QString& lhs, const QString& rhs)
 {
-    new(ptr) String(value);
+    return lhs + rhs;
 }
 
-static void ConstructStringUInt(unsigned value, String* ptr)
+static void ConstructStringInt(int value, QString* ptr)
 {
-    new(ptr) String(value);
+    new(ptr) QString(QString::number(value));
 }
 
-static void ConstructStringFloat(float value, String* ptr)
+static void ConstructStringUInt(unsigned value, QString* ptr)
 {
-    new(ptr) String(value);
+    new(ptr) QString(QString::number(value));
 }
 
-static void ConstructStringBool(bool value, String* ptr)
+static void ConstructStringFloat(float value, QString* ptr)
 {
-    new(ptr) String(value);
+    new(ptr) QString(QString::number(value));
 }
 
-static String& StringAssignInt(int value, String& str)
+static void ConstructStringBool(bool value, QString* ptr)
 {
-    str = String(value);
+    new(ptr) QString(QString::number(value));
+}
+
+static QString& StringAssignInt(int value, QString& str)
+{
+    str = QString::number(value);
     return str;
 }
 
-static String& StringAddAssignInt(int value, String& str)
+static QString& StringAddAssignInt(int value, QString& str)
 {
-    str += String(value);
+    str += QString::number(value);
     return str;
 }
 
-static String StringAddInt(int value, const String& str)
+static QString StringAddInt(int value, const QString& str)
 {
-    return str + String(value);
+    return str + QString::number(value);
 }
 
-static String StringAddIntReverse(int value, const String& str)
+static QString StringAddIntReverse(int value, const QString& str)
 {
-    return String(value) + str;
+    return QString::number(value) + str;
 }
 
-static String& StringAssignUInt(unsigned value, String& str)
+static QString& StringAssignUInt(unsigned value, QString& str)
 {
-    str = String(value);
+    str = QString::number(value);
     return str;
 }
 
-static String& StringAddAssignUInt(unsigned value, String& str)
+static QString& StringAddAssignUInt(unsigned value, QString& str)
 {
-    str += String(value);
+    str += QString::number(value);
     return str;
 }
 
-static String StringAddUInt(unsigned value, const String& str)
+static QString StringAddUInt(unsigned value, const QString& str)
 {
-    return str + String(value);
+    return str + QString::number(value);
 }
 
-static String StringAddUIntReverse(unsigned value, const String& str)
+static QString StringAddUIntReverse(unsigned value, const QString& str)
 {
-    return String(value) + str;
+    return QString::number(value) + str;
 }
 
-static String& StringAssignFloat(float value, String& str)
+static QString& StringAssignFloat(float value, QString& str)
 {
-    str = String(value);
+    str = QString::number(value);
     return str;
 }
 
-static String& StringAddAssignFloat(float value, String& str)
+static QString& StringAddAssignFloat(float value, QString& str)
 {
-    str += String(value);
+    str += QString::number(value);
     return str;
 }
 
-static String StringAddFloat(float value, const String& str)
+static QString StringAddFloat(float value, const QString& str)
 {
-    return str + String(value);
+    return str + QString::number(value);
 }
 
-static String StringAddFloatReverse(float value, const String& str)
+static QString StringAddFloatReverse(float value, const QString& str)
 {
-    return String(value) + str;
+    return QString::number(value) + str;
 }
 
-static String& StringAssignBool(bool value, String& str)
+static QString& StringAssignBool(bool value, QString& str)
 {
-    str = String(value);
+    str = QString::number(value);
     return str;
 }
 
-static String& StringAddAssignBool(bool value, String& str)
+static QString& StringAddAssignBool(bool value, QString& str)
 {
-    str += String(value);
+    str += QString::number(value);
     return str;
 }
 
-static String StringAddBool(bool value, const String& str)
+static QString StringAddBool(bool value, const QString& str)
 {
-    return str + String(value);
+    return str + QString::number(value);
 }
 
-static String StringAddBoolReverse(bool value, const String& str)
+static QString StringAddBoolReverse(bool value, const QString& str)
 {
-    return String(value) + str;
+    return QString(value) + str;
+}
+void QCharConstruct(QChar* self) {
+    new(self) QChar();
 }
 
-static void StringSetUTF8FromLatin1(const String& src, String& str)
-{
-    str.SetUTF8FromLatin1(src.CString());
+void QCharConstructChar(char i, QChar * self) {
+    new(self) QChar(i);
 }
+void QCharConstructCopy(const QChar &i, QChar * self) {
+    new(self) QChar(i);
+}
+uint16_t toU16(QChar * c) {
+    if(c)
+        return c->unicode();
+    return 0;
+}
+#ifndef AS_CAN_USE_CPP11
+asdasd sadasdas asd
 
+#endif
 void RegisterString(asIScriptEngine *engine)
 {
-    engine->RegisterObjectType("String", sizeof(String), asOBJ_VALUE | asOBJ_APP_CLASS_CDAK);
+    const char *prev_namespace = engine->GetDefaultNamespace() ;
+    engine->SetDefaultNamespace("Qt");
+    engine->RegisterEnum("CaseSensitivity");
+    engine->RegisterEnumValue("CaseSensitivity","CaseInsensitive",0);
+    engine->RegisterEnumValue("CaseSensitivity","CaseSensitive",1);
+    engine->SetDefaultNamespace(prev_namespace);
+    auto v = asGetTypeTraits<int>();
+    engine->RegisterObjectType("QChar", sizeof(QChar), asOBJ_APP_CLASS_ALLINTS| asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<QChar>());
+    engine->RegisterObjectMethod("QChar", "uint16 opImplConv() const",asFUNCTION(toU16), asCALL_CDECL_OBJLAST);
+    //r = engine->RegisterObjectType("complex", sizeof(complex), asOBJ_VALUE | asGetTypeTraits<complex>());
+    engine->RegisterObjectType("String", sizeof(QString), asOBJ_VALUE | asOBJ_APP_CLASS_CDAK);
     engine->RegisterStringFactory("String", asFUNCTION(StringFactory), asCALL_CDECL);
     engine->RegisterObjectBehaviour("String", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(ConstructString), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("String", asBEHAVE_CONSTRUCT, "void f(const String&in)", asFUNCTION(ConstructStringCopy), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour("String", asBEHAVE_DESTRUCT, "void f()", asFUNCTION(DestructString), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "String& opAssign(const String&in)", asMETHODPR(String, operator =, (const String&), String&), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String& opAddAssign(const String&in)", asMETHODPR(String, operator +=, (const String&), String&), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "bool opEquals(const String&in) const", asMETHODPR(String, operator ==, (const String&) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String& opAssign(const String&in)", asMETHODPR(QString, operator =, (const QString&), QString&), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String& opAddAssign(const String&in)", asMETHODPR(QString, operator +=, (const QString&), QString&), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "bool opEquals(const String&in) const", asFUNCTION(StringEq), asCALL_CDECL_OBJFIRST);
     engine->RegisterObjectMethod("String", "int opCmp(const String&in) const", asFUNCTION(StringCmp), asCALL_CDECL_OBJFIRST);
-    engine->RegisterObjectMethod("String", "String opAdd(const String&in) const", asMETHODPR(String, operator +, (const String&) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint8 &opIndex(uint)", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "const uint8 &opIndex(uint) const", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "void Replace(uint8, uint8, bool caseSensitive = true)", asMETHODPR(String, replace, (char, char, bool), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "void Replace(const String&in, const String&in, bool caseSensitive = true)", asMETHODPR(String, replace, (const String&, const String&, bool), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String replaced(uint8, uint8, bool caseSensitive = true) const", asMETHODPR(String, replaced, (char, char, bool) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String replaced(const String&in, const String&in, bool caseSensitive = true) const", asMETHODPR(String, replaced, (const String&, const String&, bool) const, String), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String opAdd(const String&in) const", asFUNCTION(StringAdd), asCALL_CDECL_OBJFIRST);
+    engine->RegisterObjectMethod("String", "QChar opIndex(uint) const", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "String &Replace(uint8, uint8, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive)", asMETHODPR(QString, replace, (QChar, QChar, Qt::CaseSensitivity), QString&), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String &Replace(const String&in, const String&in, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive)", asMETHODPR(QString, replace, (const QString&, const QString&, Qt::CaseSensitivity), QString&), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "void Resize(uint)", asFUNCTION(StringResize), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "uint indexOf(const String&in, uint start = 0, bool caseSensitive = true) const", asMETHODPR(String, indexOf, (const String&, unsigned, bool) const, unsigned), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint indexOf(uint8, uint start = 0, bool caseSensitive = true) const", asMETHODPR(String, indexOf, (char, unsigned, bool) const, unsigned), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint lastIndexOf(const String&in, uint start = 0xffffffff, bool caseSensitive = true) const", asMETHODPR(String, lastIndexOf, (const String&, unsigned, bool) const, unsigned), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint lastIndexOf(uint8, uint start = 0xffffffff, bool caseSensitive = true) const", asMETHODPR(String, lastIndexOf, (char, unsigned, bool) const, unsigned), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "bool startsWith(const String&in, bool caseSensitive = true) const", asMETHOD(String, startsWith), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "bool endsWith(const String&in, bool caseSensitive = true) const", asMETHOD(String, endsWith), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String Substring(uint) const", asMETHODPR(String, Substring, (unsigned) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String Substring(uint, uint) const", asMETHODPR(String, Substring, (unsigned, unsigned) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String toUpper() const", asMETHOD(String, toUpper), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String toLower() const", asMETHOD(String, toLower), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String trimmed() const", asMETHOD(String, trimmed), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "void SetUTF8FromLatin1(const String& in)", asFUNCTION(StringSetUTF8FromLatin1), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod("String", "uint get_utf8Length() const", asMETHOD(String, LengthUTF8), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint ByteOffsetUTF8(uint) const", asMETHOD(String, ByteOffsetUTF8), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint NextUTF8Char(uint&) const", asMETHOD(String, NextUTF8Char), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint AtUTF8(uint) const", asMETHOD(String, AtUTF8), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "void ReplaceUTF8(uint, uint)", asMETHOD(String, ReplaceUTF8), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "void AppendUTF8(uint)", asMETHOD(String, AppendUTF8), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String SubstringUTF8(uint) const", asMETHODPR(String, SubstringUTF8, (unsigned) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "String SubstringUTF8(uint, uint) const", asMETHODPR(String, SubstringUTF8, (unsigned, unsigned) const, String), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "uint get_length() const", asMETHOD(String, length), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "bool get_empty() const", asMETHOD(String, isEmpty), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "int Compare(const String&in, bool caseSensitive = true) const", asMETHODPR(String, Compare, (const String&, bool) const, int), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "bool Contains(const String&in, bool caseSensitive = true) const", asMETHODPR(String, contains, (const String&, bool) const, bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "bool Contains(uint8, bool caseSensitive = true) const", asMETHODPR(String, contains, (char, bool) const, bool), asCALL_THISCALL);
-    engine->RegisterObjectMethod("String", "void clear()", asMETHOD(String, clear), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "int Find(const String&in, int start = 0, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, indexOf, (const QString&, int, Qt::CaseSensitivity) const, int), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "int Find(QChar, int start = 0, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, indexOf, (QChar, int, Qt::CaseSensitivity) const, int), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "int FindLast(const String&in, int start = -1, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, lastIndexOf, (const QString&, int, Qt::CaseSensitivity) const, int), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "int FindLast(QChar, int start = -1, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, lastIndexOf, (QChar, int, Qt::CaseSensitivity) const, int), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "bool StartsWith(const String&in, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, startsWith, (const QString &,Qt::CaseSensitivity) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "bool EndsWith(const String&in, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, endsWith, (const QString &,Qt::CaseSensitivity) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String Substring(int start, int length=-1) const", asMETHODPR(QString, mid, (int, int) const, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String ToUpper() const", asMETHODPR(QString, toUpper, () const &, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String ToLower() const", asMETHODPR(QString, toLower, () const &, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "String Trimmed() const", asMETHODPR(QString, trimmed, () const &, QString), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "uint get_length() const", asMETHOD(QString, length), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "bool get_empty() const", asMETHOD(QString, isEmpty), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "int Compare(const String&in, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, compare, (const QString&, Qt::CaseSensitivity) const, int), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "bool Contains(const String&in, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, contains, (const QString&, Qt::CaseSensitivity) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "bool Contains(uint8, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive) const", asMETHODPR(QString, contains, (QChar, Qt::CaseSensitivity) const, bool), asCALL_THISCALL);
+    engine->RegisterObjectMethod("String", "void Clear()", asMETHOD(QString, clear), asCALL_THISCALL);
 
     // Register automatic conversion functions for convenience
     engine->RegisterObjectBehaviour("String", asBEHAVE_CONSTRUCT, "void f(int)", asFUNCTION(ConstructStringInt), asCALL_CDECL_OBJLAST);

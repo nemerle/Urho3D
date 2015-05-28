@@ -340,7 +340,7 @@ unsigned Sound::GetSampleSize() const
 void Sound::LoadParameters()
 {
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    String xmlName = ReplaceExtension(GetName(), ".xml");
+    QString xmlName = ReplaceExtension(GetName(), ".xml");
     
     SharedPtr<XMLFile> file(cache->GetTempResource<XMLFile>(xmlName, false));
     if (!file)
@@ -351,7 +351,7 @@ void Sound::LoadParameters()
     
     while (paramElem)
     {
-        String name = paramElem.GetName();
+        QString name = paramElem.GetName();
         
         if (name == "format" && !compressed_)
         {

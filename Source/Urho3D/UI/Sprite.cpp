@@ -55,7 +55,7 @@ void Sprite::RegisterObject(Context* context)
 {
     context->RegisterFactory<Sprite>(UI_CATEGORY);
 
-    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, String, String::EMPTY, AM_FILE);
+    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, QString, QString(), AM_FILE);
     ACCESSOR_ATTRIBUTE("Position", GetPosition, SetPosition, Vector2, Vector2::ZERO, AM_FILE);
     ACCESSOR_ATTRIBUTE("Size", GetSize, SetSize, IntVector2, IntVector2::ZERO, AM_FILE);
     ACCESSOR_ATTRIBUTE("Hotspot", GetHotSpot, SetHotSpot, IntVector2, IntVector2::ZERO, AM_FILE);

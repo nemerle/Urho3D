@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "../Urho3D.h"
 #ifndef WIN32
 #include <pthread.h>
 typedef pthread_t ThreadID;
@@ -33,7 +34,7 @@ namespace Urho3D
 {
 
 /// Operating system thread.
-class Thread
+class URHO3D_API Thread
 {
 public:
     /// Construct. Does not start the thread yet.

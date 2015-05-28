@@ -357,7 +357,12 @@ void Input::Update()
 #endif
 
     // Check for relative mode mouse move
+    // Note that Emscripten will use SDL mouse move events for relative mode instead
+    #ifndef EMSCRIPTEN
+    if (!touchEmulation_ && (graphics_->GetExternalWindow() || (!mouseVisible_ && inputFocus_ && (flags & SDL_WINDOW_MOUSE_FOCUS))))
+    #else
     if (!touchEmulation_ && mouseMode_ != MM_RELATIVE && (graphics_->GetExternalWindow() || (!mouseVisible_ && inputFocus_ && (flags & SDL_WINDOW_MOUSE_FOCUS))))
+    #endif
     {
         IntVector2 mousePosition = GetMousePosition();
         mouseMove_ = mousePosition - lastMousePosition_;
@@ -406,20 +411,6 @@ void Input::Update()
             }
         }
     }
-#ifndef EMSCRIPTEN
-    if (mouseMode_ == MM_RELATIVE)
-    {
-        IntVector2 mousePosition = GetMousePosition();
-        IntVector2 center(graphics_->GetWidth() / 2, graphics_->GetHeight() / 2);
-        if (graphics_->GetExternalWindow())
-            lastMousePosition_ = mousePosition;
-        else if (mousePosition != center)
-        {
-            SetMousePosition(center);
-            lastMousePosition_ = center;
-        }
-    }
-#endif
 }
 
 void Input::SetMouseVisible(bool enable, bool suppressEvent)
@@ -612,7 +603,7 @@ void Input::SetToggleFullscreen(bool enable)
     toggleFullscreen_ = enable;
 }
 
-static void PopulateKeyBindingMap(HashMap<String, int>& keyBindingMap)
+static void PopulateKeyBindingMap(HashMap<QString, int>& keyBindingMap)
 {
     if (!keyBindingMap.isEmpty())
         return;
@@ -650,7 +641,7 @@ static void PopulateKeyBindingMap(HashMap<String, int>& keyBindingMap)
     keyBindingMap.emplace("F12", KEY_F12);
 }
 
-static void PopulateMouseButtonBindingMap(HashMap<String, int>& mouseButtonBindingMap)
+static void PopulateMouseButtonBindingMap(HashMap<QString, int>& mouseButtonBindingMap)
 {
     if (!mouseButtonBindingMap.isEmpty())
         return;
@@ -663,8 +654,8 @@ static void PopulateMouseButtonBindingMap(HashMap<String, int>& mouseButtonBindi
 
 SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
 {
-    static HashMap<String, int> keyBindingMap;
-    static HashMap<String, int> mouseButtonBindingMap;
+    static HashMap<QString, int> keyBindingMap;
+    static HashMap<QString, int> mouseButtonBindingMap;
 
     if (!graphics_)
     {
@@ -707,7 +698,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
     for (const auto & elem : children)
     {
         UIElement* element = elem.Get();
-        String name = element->GetName();
+        QString name = element->GetName();
         if (name.startsWith("Button"))
         {
             ++numButtons;
@@ -717,10 +708,10 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
             if (text)
             {
                 text->SetVisible(false);
-                const String& key = text->GetText();
+                const QString& key = text->GetText();
                 int keyBinding;
                 if (key.length() == 1)
-                    keyBinding = key[0];
+                    keyBinding = key[0].toLatin1();
                 else
                 {
                     PopulateKeyBindingMap(keyBindingMap);
@@ -730,7 +721,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                         keyBinding = MAP_VALUE(i);
                     else
                     {
-                        LOGERRORF("Unsupported key binding: %s", key.CString());
+                        LOGERROR("Unsupported key binding: " + key);
                         keyBinding = M_MAX_INT;
                     }
                 }
@@ -744,14 +735,14 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
             if (text)
             {
                 text->SetVisible(false);
-                const String& mouseButton = text->GetText();
+                const QString& mouseButton = text->GetText();
                 PopulateMouseButtonBindingMap(mouseButtonBindingMap);
 
                 auto i = mouseButtonBindingMap.find(mouseButton);
                 if (i != mouseButtonBindingMap.end())
                     element->SetVar(VAR_BUTTON_MOUSE_BUTTON_BINDING, MAP_VALUE(i));
                 else
-                    LOGERRORF("Unsupported mouse button binding: %s", mouseButton.CString());
+                    LOGERROR("Unsupported mouse button binding: " + mouseButton);
             }
         }
         else if (name.startsWith("Axis"))
@@ -769,12 +760,12 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
             if (text)
             {
                 text->SetVisible(false);
-                String keyBinding = text->GetText();
+                QString keyBinding = text->GetText();
                 if (keyBinding.contains(' '))   // e.g.: "UP DOWN LEFT RIGHT"
                 {
                     // Attempt to split the text using ' ' as separator
-                    Vector<String>keyBindings(keyBinding.split(' '));
-                    String mappedKeyBinding;
+                    QStringList keyBindings(keyBinding.split(' '));
+                    QString mappedKeyBinding;
                     if (keyBindings.size() == 4)
                     {
                         PopulateKeyBindingMap(keyBindingMap);
@@ -795,7 +786,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                     }
                     if (mappedKeyBinding.length() != 4)
                     {
-                        LOGERRORF("%s has invalid key binding %s, fallback to WSAD", name.CString(), keyBinding.CString());
+                        LOGERROR(QString("%1 has invalid key binding %2, fallback to WSAD").arg(name).arg(keyBinding));
                         keyBinding = "WSAD";
                     }
                     else
@@ -803,7 +794,7 @@ SDL_JoystickID Input::AddScreenJoystick(XMLFile* layoutFile, XMLFile* styleFile)
                 }
                 else if (keyBinding.length() != 4)
                 {
-                    LOGERRORF("%s has invalid key binding %s, fallback to WSAD", name.CString(), keyBinding.CString());
+                    LOGERROR(QString("%1 has invalid key binding %2, fallback to WSAD").arg(name).arg(keyBinding));
                     keyBinding = "WSAD";
                 }
 
@@ -835,14 +826,14 @@ bool Input::RemoveScreenJoystick(SDL_JoystickID id)
 {
     if (!joysticks_.contains(id))
     {
-        LOGERRORF("Failed to remove non-existing screen joystick ID #%d", id);
+        LOGERROR("Failed to remove non-existing screen joystick ID #"+QString::number(id) );
         return false;
     }
 
     JoystickState& state = joysticks_[id];
     if (!state.screenJoystick_)
     {
-        LOGERRORF("Failed to remove joystick with ID #%d which is not a screen joystick", id);
+        LOGERROR(QString("Failed to remove joystick with ID #%1 which is not a screen joystick").arg(id) );
         return false;
     }
 
@@ -958,7 +949,7 @@ SDL_JoystickID Input::OpenJoystick(unsigned index)
     SDL_Joystick* joystick = SDL_JoystickOpen(index);
     if (!joystick)
     {
-        LOGERRORF("Cannot open joystick #%d", index);
+        LOGERROR(QString("Cannot open joystick #%1").arg(index) );
         return -1;
     }
 
@@ -989,9 +980,9 @@ SDL_JoystickID Input::OpenJoystick(unsigned index)
     return joystickID;
 }
 
-int Input::GetKeyFromName(const String& name) const
+int Input::GetKeyFromName(const QString& name) const
 {
-    return SDL_GetKeyFromName(name.CString());
+    return SDL_GetKeyFromName(qPrintable(name));
 }
 
 int Input::GetKeyFromScancode(int scancode) const
@@ -999,9 +990,9 @@ int Input::GetKeyFromScancode(int scancode) const
     return SDL_GetKeyFromScancode((SDL_Scancode)scancode);
 }
 
-String Input::GetKeyName(int key) const
+QString Input::GetKeyName(int key) const
 {
-    return String(SDL_GetKeyName(key));
+    return QString(SDL_GetKeyName(key));
 }
 
 int Input::GetScancodeFromKey(int key) const
@@ -1009,12 +1000,12 @@ int Input::GetScancodeFromKey(int key) const
     return SDL_GetScancodeFromKey(key);
 }
 
-int Input::GetScancodeFromName(const String& name) const
+int Input::GetScancodeFromName(const QString& name) const
 {
-    return SDL_GetScancodeFromName(name.CString());
+    return SDL_GetScancodeFromName(qPrintable(name));
 }
 
-String Input::GetScancodeName(int scancode) const
+QString Input::GetScancodeName(int scancode) const
 {
     return SDL_GetScancodeName((SDL_Scancode)scancode);
 }
@@ -1511,8 +1502,8 @@ void Input::HandleSDLEvent(void* sdlEvent)
     case SDL_TEXTINPUT:
     {
         textInput_ = &evt.text.text[0];
-        unsigned unicode = textInput_.AtUTF8(0);
-        if (unicode)
+        QChar unicode = textInput_[0];
+        if (unicode!='\0')
         {
             using namespace TextInput;
 
@@ -1569,7 +1560,13 @@ void Input::HandleSDLEvent(void* sdlEvent)
         break;
 
     case SDL_MOUSEMOTION:
+        // Emscripten will use SDL mouse move events for relative mode, as repositioning the mouse and
+        // measuring distance from window center is not supported
+        #ifndef EMSCRIPTEN
+        if (mouseVisible_ && !touchEmulation_)
+        #else
         if ((mouseVisible_ || mouseMode_ == MM_RELATIVE) && !touchEmulation_)
+        #endif
         {
             mouseMove_.x_ += evt.motion.xrel;
             mouseMove_.y_ += evt.motion.yrel;
@@ -1965,7 +1962,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
         using namespace DropFile;
 
         VariantMap& eventData = GetEventDataMap();
-        eventData[P_FILENAME] = GetInternalPath(String(evt.drop.file));
+        eventData[P_FILENAME] = GetInternalPath(QString(evt.drop.file));
         SDL_free(evt.drop.file);
 
         SendEvent(E_DROPFILE, eventData);
@@ -2049,7 +2046,7 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
     // Prepare a fake SDL event
     SDL_Event evt;
 
-    const String& name = element->GetName();
+    const QString& name = element->GetName();
     if (name.startsWith("Button"))
     {
         if (eventType == E_TOUCHMOVE)
@@ -2062,7 +2059,7 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
         {
             evt.type = eventType == E_TOUCHBEGIN ? SDL_JOYBUTTONDOWN : SDL_JOYBUTTONUP;
             evt.jbutton.which = joystickID;
-            evt.jbutton.button = ToUInt(name.Substring(6));
+            evt.jbutton.button = ToUInt(name.mid(6));
         }
         else
         {
@@ -2095,7 +2092,7 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
         {
             evt.type = SDL_JOYHATMOTION;
             evt.jaxis.which = joystickID;
-            evt.jhat.hat = ToUInt(name.Substring(3));
+            evt.jhat.hat = ToUInt(name.mid(3));
             evt.jhat.value = HAT_CENTER;
             if (eventType != E_TOUCHEND)
             {
@@ -2113,7 +2110,7 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
         else
         {
             // Hat is binded by 4 keys, like 'WASD'
-            String keyBinding = keyBindingVar.GetString();
+            QString keyBinding = keyBindingVar.GetString();
 
             if (eventType == E_TOUCHEND)
             {
@@ -2129,13 +2126,13 @@ void Input::HandleScreenJoystickTouch(StringHash eventType, VariantMap& eventDat
                 evt.type = SDL_KEYDOWN;
                 IntVector2 relPosition = position - element->GetScreenPosition() - element->GetSize() / 2;
                 if (relPosition.y_ < 0 && Abs(relPosition.x_ * 3 / 2) < Abs(relPosition.y_))
-                    evt.key.keysym.sym = keyBinding[0];
+                    evt.key.keysym.sym = keyBinding[0].toLatin1();
                 else if (relPosition.y_ > 0 && Abs(relPosition.x_ * 3 / 2) < Abs(relPosition.y_))
-                    evt.key.keysym.sym = keyBinding[1];
+                    evt.key.keysym.sym = keyBinding[1].toLatin1();
                 else if (relPosition.x_ < 0 && Abs(relPosition.y_ * 3 / 2) < Abs(relPosition.x_))
-                    evt.key.keysym.sym = keyBinding[2];
+                    evt.key.keysym.sym = keyBinding[2].toLatin1();
                 else if (relPosition.x_ > 0 && Abs(relPosition.y_ * 3 / 2) < Abs(relPosition.x_))
-                    evt.key.keysym.sym = keyBinding[3];
+                    evt.key.keysym.sym = keyBinding[3].toLatin1();
                 else
                     return;
 

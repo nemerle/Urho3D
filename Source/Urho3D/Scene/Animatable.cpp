@@ -98,12 +98,12 @@ bool Animatable::LoadXML(const XMLElement& source, bool setInstanceDefault)
     elem = source.GetChild("attributeanimation");
     while (elem)
     {
-        String name = elem.GetAttribute("name");
+        QString name = elem.GetAttribute("name");
         SharedPtr<ValueAnimation> attributeAnimation(new ValueAnimation(context_));
         if (!attributeAnimation->LoadXML(elem))
             return false;
 
-        String wrapModeString = source.GetAttribute("wrapmode");
+        QString wrapModeString = source.GetAttribute("wrapmode");
         WrapMode wrapMode = WM_LOOP;
         for (int i = 0; i <= WM_CLAMP; ++i)
         {
@@ -178,7 +178,7 @@ void Animatable::SetObjectAnimation(ObjectAnimation* objectAnimation)
     }
 }
 
-void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
+void Animatable::SetAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
 {
     AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
 
@@ -250,14 +250,14 @@ void Animatable::SetAttributeAnimation(const String& name, ValueAnimation* attri
     }
 }
 
-void Animatable::SetAttributeAnimationWrapMode(const String& name, WrapMode wrapMode)
+void Animatable::SetAttributeAnimationWrapMode(const QString& name, WrapMode wrapMode)
 {
     AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
     if (info)
         info->SetWrapMode(wrapMode);
 }
 
-void Animatable::SetAttributeAnimationSpeed(const String& name, float speed)
+void Animatable::SetAttributeAnimationSpeed(const QString& name, float speed)
 {
     AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
     if (info)
@@ -269,19 +269,19 @@ ObjectAnimation* Animatable::GetObjectAnimation() const
     return objectAnimation_;
 }
 
-ValueAnimation* Animatable::GetAttributeAnimation(const String& name) const
+ValueAnimation* Animatable::GetAttributeAnimation(const QString& name) const
 {
     const AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
     return info ? info->GetAnimation() : nullptr;
 }
 
-WrapMode Animatable::GetAttributeAnimationWrapMode(const String& name) const
+WrapMode Animatable::GetAttributeAnimationWrapMode(const QString& name) const
 {
     const AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
     return info ? info->GetWrapMode() : WM_LOOP;
 }
 
-float Animatable::GetAttributeAnimationSpeed(const String& name) const
+float Animatable::GetAttributeAnimationSpeed(const QString& name) const
 {
     const AttributeAnimationInfo* info = GetAttributeAnimationInfo(name);
     return info ? info->GetSpeed() : 1.0f;
@@ -301,7 +301,7 @@ ResourceRef Animatable::GetObjectAnimationAttr() const
     return GetResourceRef(objectAnimation_, ObjectAnimation::GetTypeStatic());
 }
 
-void Animatable::SetObjectAttributeAnimation(const String& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
+void Animatable::SetObjectAttributeAnimation(const QString& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed)
 {
     SetAttributeAnimation(name, attributeAnimation, wrapMode, speed);
 }
@@ -315,7 +315,7 @@ void Animatable::OnObjectAnimationAdded(ObjectAnimation* objectAnimation)
     const auto & attributeAnimationInfos = objectAnimation->GetAttributeAnimationInfos();
     for (auto info=attributeAnimationInfos.begin(),fin=attributeAnimationInfos.end(); info!=fin; ++info)
     {
-        const String& name = MAP_KEY(info);
+        const QString& name = MAP_KEY(info);
         SetObjectAttributeAnimation(name,
                                     MAP_VALUE(info)->GetAnimation(), MAP_VALUE(info)->GetWrapMode(),
                                     MAP_VALUE(info)->GetSpeed());
@@ -328,7 +328,7 @@ void Animatable::OnObjectAnimationRemoved(ObjectAnimation* objectAnimation)
         return;
 
     // Just remove all attribute animations from the object animation
-    Vector<String> names;
+    QStringList names;
     for (auto elem=attributeAnimationInfos_.begin(),fin=attributeAnimationInfos_.end(); elem!=fin; ++elem)
     {
         if (MAP_VALUE(elem)->GetAnimation()->GetOwner() == objectAnimation)
@@ -344,7 +344,7 @@ void Animatable::UpdateAttributeAnimations(float timeStep)
     if (!animationEnabled_)
         return;
 
-    Vector<String> finishedNames;
+    QStringList finishedNames;
     for (auto &elem: attributeAnimationInfos_)
     {
         SharedPtr<AttributeAnimationInfo> & i(ELEMENT_VALUE(elem));
@@ -361,7 +361,7 @@ bool Animatable::IsAnimatedNetworkAttribute(const AttributeInfo& attrInfo) const
     return animatedNetworkAttributes_.find(&attrInfo) != animatedNetworkAttributes_.end();
 }
 
-AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const String& name) const
+AttributeAnimationInfo* Animatable::GetAttributeAnimationInfo(const QString& name) const
 {
     const auto i = attributeAnimationInfos_.find(name);
     if (i != attributeAnimationInfos_.end())
@@ -376,7 +376,7 @@ void Animatable::HandleAttributeAnimationAdded(StringHash eventType, VariantMap&
         return;
 
     using namespace AttributeAnimationAdded;
-    const String& name =eventData[P_ATTRIBUTEANIMATIONNAME].GetString();
+    const QString& name =eventData[P_ATTRIBUTEANIMATIONNAME].GetString();
 
     ValueAnimationInfo* info = objectAnimation_->GetAttributeAnimationInfo(name);
     if (!info)
@@ -391,7 +391,7 @@ void Animatable::HandleAttributeAnimationRemoved(StringHash eventType, VariantMa
         return;
 
     using namespace AttributeAnimationRemoved;
-    const String& name = eventData[P_ATTRIBUTEANIMATIONNAME].GetString();
+    const QString& name = eventData[P_ATTRIBUTEANIMATIONNAME].GetString();
 
     SetObjectAttributeAnimation(name, nullptr, WM_LOOP, 1.0f);
 }

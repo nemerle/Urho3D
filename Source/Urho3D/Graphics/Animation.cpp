@@ -122,7 +122,7 @@ bool Animation::BeginLoad(Deserializer& source)
 
     // Optionally read triggers from an XML file
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    String xmlName = ReplaceExtension(GetName(), ".xml");
+    QString xmlName = ReplaceExtension(GetName(), ".xml");
 
     SharedPtr<XMLFile> file(cache->GetTempResource<XMLFile>(xmlName, false));
     if (file)
@@ -182,7 +182,7 @@ bool Animation::Save(Serializer& dest) const
         File* destFile = dynamic_cast<File*>(&dest);
         if (destFile)
         {
-            String xmlName = ReplaceExtension(destFile->GetName(), ".xml");
+            QString xmlName = ReplaceExtension(destFile->GetName(), ".xml");
 
             SharedPtr<XMLFile> xml(new XMLFile(context_));
             XMLElement rootElem = xml->CreateRoot("animation");
@@ -204,7 +204,7 @@ bool Animation::Save(Serializer& dest) const
     return true;
 }
 
-void Animation::SetAnimationName(const String& name)
+void Animation::SetAnimationName(const QString& name)
 {
     animationName_ = name;
     animationNameHash_ = StringHash(name);
@@ -251,7 +251,7 @@ const AnimationTrack* Animation::GetTrack(unsigned index) const
     return index < tracks_.size() ? &tracks_[index] : nullptr;
 }
 
-const AnimationTrack* Animation::GetTrack(const String& name) const
+const AnimationTrack* Animation::GetTrack(const QString& name) const
 {
     for (const AnimationTrack & elem : tracks_)
     {

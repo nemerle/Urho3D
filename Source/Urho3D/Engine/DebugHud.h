@@ -87,11 +87,11 @@ public:
     /// Return whether showing 3D geometry primitive/batch count only.
     bool GetUseRendererStats() const { return useRendererStats_; }
     /// Set application-specific stats.
-    void SetAppStats(const String& label, const Variant& stats);
+    void SetAppStats(const QString& label, const Variant& stats);
     /// Set application-specific stats.
-    void SetAppStats(const String& label, const String& stats);
+    void SetAppStats(const QString& label, const QString& stats);
     /// Reset application-specific stats. Return true if it was erased successfully.
-    bool ResetAppStats(const String& label);
+    bool ResetAppStats(const QString& label);
     /// Clear all application-specific stats.
     void ClearAppStats();
 
@@ -106,7 +106,7 @@ private:
     /// Profiling information text.
     SharedPtr<Text> profilerText_;
     /// Hashmap containing application specific stats.
-    QMap<String, String> appStats_;
+    QMap<QString, QString> appStats_;
     /// Profiler timer.
     Timer profilerTimer_;
     /// Profiler max block depth.

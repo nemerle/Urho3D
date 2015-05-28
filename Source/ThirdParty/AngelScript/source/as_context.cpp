@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2014 Andreas Jonsson
+   Copyright (c) 2003-2015 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -60,7 +60,6 @@ const int RESERVE_STACK = 2*AS_PTR_SIZE;
 
 // For each script function call we push 9 PTRs on the call stack
 const int CALLSTACK_FRAME_SIZE = 9;
-
 
 #if defined(AS_DEBUG)
 
@@ -1052,6 +1051,44 @@ int asCContext::SetArgObject(asUINT arg, void *obj)
 	return 0;
 }
 
+int asCContext::SetArgVarType(asUINT arg, void *ptr, int typeId)
+{
+	if( m_status != asEXECUTION_PREPARED )
+		return asCONTEXT_NOT_PREPARED;
+
+	if( arg >= (unsigned)m_initialFunction->parameterTypes.GetLength() )
+	{
+		m_status = asEXECUTION_ERROR;
+		return asINVALID_ARG;
+	}
+
+	// Verify the type of the argument
+	asCDataType *dt = &m_initialFunction->parameterTypes[arg];
+	if( dt->GetTokenType() != ttQuestion )
+	{
+		m_status = asEXECUTION_ERROR;
+		return asINVALID_TYPE;
+	}
+
+	// Determine the position of the argument
+	int offset = 0;
+	if( m_initialFunction->objectType )
+		offset += AS_PTR_SIZE;
+
+	// If function returns object by value an extra pointer is pushed on the stack
+	if( m_returnValueSize )
+		offset += AS_PTR_SIZE;
+
+	for( asUINT n = 0; n < arg; n++ )
+		offset += m_initialFunction->parameterTypes[n].GetSizeOnStackDWords();
+
+	// Set the typeId and pointer
+	*(asPWORD*)(&m_regs.stackFramePointer[offset]) = (asPWORD)ptr;
+	offset += AS_PTR_SIZE;
+	*(int*)(&m_regs.stackFramePointer[offset]) = typeId;
+
+	return 0;
+}
 
 // TODO: Instead of GetAddressOfArg, maybe we need a SetArgValue(int arg, void *value, bool takeOwnership) instead.
 
@@ -1215,7 +1252,7 @@ int asCContext::Execute()
 			// The current function is an application registered function
 
 			// Call the function directly
-			CallSystemFunction(m_currentFunction->id, this, 0);
+			CallSystemFunction(m_currentFunction->id, this);
 
 			// Was the call successful?
 			if( m_status == asEXECUTION_ACTIVE )
@@ -1520,6 +1557,7 @@ bool asCContext::ReserveStackSpace(asUINT size)
 		size = size + (MAX_TYPE_ALIGNMENT - (size % MAX_TYPE_ALIGNMENT));
 	}
 #endif
+
 	// Make sure the first stack block is allocated
 	if( m_stackBlocks.GetLength() == 0 )
 	{
@@ -1540,9 +1578,11 @@ bool asCContext::ReserveStackSpace(asUINT size)
 #ifdef WIP_16BYTE_ALIGN
 		asASSERT( isAligned(stack, MAX_TYPE_ALIGNMENT) );
 #endif
+
 		m_stackBlocks.PushLast(stack);
 		m_stackIndex = 0;
 		m_regs.stackPointer = m_stackBlocks[0] + m_stackBlockSize;
+
 #ifdef WIP_16BYTE_ALIGN
 		// Align the stack pointer. This is necessary as the m_stackBlockSize is not necessarily evenly divisable with the max alignment
 		((asPWORD&)m_regs.stackPointer) &= ~(MAX_TYPE_ALIGNMENT-1);
@@ -1576,7 +1616,7 @@ bool asCContext::ReserveStackSpace(asUINT size)
 		{
 			// Allocate the new stack block, with twice the size of the previous
 #ifndef WIP_16BYTE_ALIGN
-			asDWORD *stack = asNEWARRAY(asDWORD,(m_stackBlockSize << m_stackIndex));
+			asDWORD *stack = asNEWARRAY(asDWORD, (m_stackBlockSize << m_stackIndex));
 #else
 			asDWORD *stack = asNEWARRAYALIGNED(asDWORD, (m_stackBlockSize << m_stackIndex), MAX_TYPE_ALIGNMENT);
 #endif
@@ -1591,9 +1631,11 @@ bool asCContext::ReserveStackSpace(asUINT size)
 				SetInternalException(TXT_STACK_OVERFLOW);
 				return false;
 			}
+
 #ifdef WIP_16BYTE_ALIGN
 			asASSERT( isAligned(stack, MAX_TYPE_ALIGNMENT) );
 #endif
+
 			m_stackBlocks.PushLast(stack);
 		}
 
@@ -1604,6 +1646,7 @@ bool asCContext::ReserveStackSpace(asUINT size)
 			                  m_currentFunction->GetSpaceNeededForArguments() -
 			                  (m_currentFunction->objectType ? AS_PTR_SIZE : 0) -
 			                  (m_currentFunction->DoesReturnOnStack() ? AS_PTR_SIZE : 0);
+
 #ifdef WIP_16BYTE_ALIGN
 		// Align the stack pointer 
 		(asPWORD&)m_regs.stackPointer &= ~(MAX_TYPE_ALIGNMENT-1);
@@ -2447,7 +2490,7 @@ void asCContext::ExecuteNext()
 			m_regs.stackPointer      = l_sp;
 			m_regs.stackFramePointer = l_fp;
 
-			l_sp += CallSystemFunction(i, this, 0);
+			l_sp += CallSystemFunction(i, this);
 
 			// Update the program position after the call so that line number is correct
 			l_bc += 2;
@@ -2496,6 +2539,7 @@ void asCContext::ExecuteNext()
 			{
 				// Need to update the program pointer for the exception handler
 				m_regs.programPointer += 2;
+
 				// Tell the exception handler to clean up the arguments to this function
 				m_needToCleanupArgs = true;
 				SetInternalException(TXT_UNBOUND_FUNCTION);
@@ -2504,11 +2548,10 @@ void asCContext::ExecuteNext()
 			else
 			{
 				asCScriptFunction *func = m_engine->GetScriptFunction(funcId);
-
 				if( func->funcType == asFUNC_SCRIPT )
 				{
 					m_regs.programPointer += 2;
-				CallScriptFunction(func);
+					CallScriptFunction(func);
 				}
 				else if( func->funcType == asFUNC_DELEGATE )
 				{
@@ -2521,7 +2564,7 @@ void asCContext::ExecuteNext()
 					// Call the delegated method
 					if( func->funcForDelegate->funcType == asFUNC_SYSTEM )
 					{
-						m_regs.stackPointer += CallSystemFunction(func->funcForDelegate->id, this, 0);
+						m_regs.stackPointer += CallSystemFunction(func->funcForDelegate->id, this);
 
 						// Update program position after the call so the line number
 						// is correct in case the system function queries it
@@ -2539,7 +2582,7 @@ void asCContext::ExecuteNext()
 				{
 					asASSERT( func->funcType == asFUNC_SYSTEM );
 
-					m_regs.stackPointer += CallSystemFunction(func->id, this, 0);
+					m_regs.stackPointer += CallSystemFunction(func->id, this);
 
 					// Update program position after the call so the line number
 					// is correct in case the system function queries it
@@ -2635,13 +2678,17 @@ void asCContext::ExecuteNext()
 
 				if( func )
 				{
+					// Push the object pointer on the stack (it will be popped by the function)
+					l_sp -= AS_PTR_SIZE;
+					*(asPWORD*)l_sp = (asPWORD)mem;
+
 					// Need to move the values back to the context as the called functions
 					// may use the debug interface to inspect the registers
 					m_regs.programPointer    = l_bc;
 					m_regs.stackPointer      = l_sp;
 					m_regs.stackFramePointer = l_fp;
 
-					l_sp += CallSystemFunction(func, this, mem);
+					l_sp += CallSystemFunction(func, this);
 				}
 
 				// Pop the variable address from the stack
@@ -3511,7 +3558,7 @@ void asCContext::ExecuteNext()
 		break;
 
 	case asBC_u64TOf:
-#if _MSC_VER <= 1200 // MSVC6
+#if defined(_MSC_VER) && _MSC_VER <= 1200 // MSVC6
 		{
 			// MSVC6 doesn't permit UINT64 to double
 			asINT64 v = *(asINT64*)(l_fp - asBC_SWORDARG1(l_bc));
@@ -3532,7 +3579,7 @@ void asCContext::ExecuteNext()
 		break;
 
 	case asBC_u64TOd:
-#if _MSC_VER <= 1200 // MSVC6
+#if defined(_MSC_VER) && _MSC_VER <= 1200 // MSVC6
 		{
 			// MSVC6 doesn't permit UINT64 to double
 			asINT64 v = *(asINT64*)(l_fp - asBC_SWORDARG0(l_bc));
@@ -3814,7 +3861,7 @@ void asCContext::ExecuteNext()
 					// Call the delegated method
 					if( func->funcForDelegate->funcType == asFUNC_SYSTEM )
 					{
-						m_regs.stackPointer += CallSystemFunction(func->funcForDelegate->id, this, 0);
+						m_regs.stackPointer += CallSystemFunction(func->funcForDelegate->id, this);
 
 						// Update program position after the call so the line number
 						// is correct in case the system function queries it
@@ -3832,7 +3879,7 @@ void asCContext::ExecuteNext()
 				{
 					asASSERT( func->funcType == asFUNC_SYSTEM );
 
-					m_regs.stackPointer += CallSystemFunction(func->id, this, 0);
+					m_regs.stackPointer += CallSystemFunction(func->id, this);
 
 					// Update program position after the call so the line number
 					// is correct in case the system function queries it
@@ -4875,13 +4922,14 @@ asEContextState asCContext::GetState() const
 // interface
 int asCContext::SetLineCallback(asSFuncPtr callback, void *obj, int callConv)
 {
-	m_lineCallback = true;
-	m_regs.doProcessSuspend = true;
+	// First turn off the line callback to avoid a second thread 
+	// attempting to call it while the new one is still being set
+	m_lineCallback = false;
+
 	m_lineCallbackObj = obj;
 	bool isObj = false;
 	if( (unsigned)callConv == asCALL_GENERIC || (unsigned)callConv == asCALL_THISCALL_OBJFIRST || (unsigned)callConv == asCALL_THISCALL_OBJLAST )
 	{
-		m_lineCallback = false;
 		m_regs.doProcessSuspend = m_doSuspend;
 		return asNOT_SUPPORTED;
 	}
@@ -4890,15 +4938,18 @@ int asCContext::SetLineCallback(asSFuncPtr callback, void *obj, int callConv)
 		isObj = true;
 		if( obj == 0 )
 		{
-			m_lineCallback = false;
 			m_regs.doProcessSuspend = m_doSuspend;
 			return asINVALID_ARG;
 		}
 	}
 
 	int r = DetectCallingConvention(isObj, callback, callConv, 0, &m_lineCallbackFunc);
-	if( r < 0 ) m_lineCallback = false;
+	
+	// Turn on the line callback after setting both the function pointer and object pointer
+	if( r >= 0 ) m_lineCallback = true;
 
+	// The BC_SUSPEND instruction should be processed if either line 
+	// callback is set or if the application has requested a suspension
 	m_regs.doProcessSuspend = m_doSuspend || m_lineCallback;
 
 	return r;
@@ -4955,91 +5006,79 @@ void asCContext::ClearExceptionCallback()
 	m_exceptionCallback = false;
 }
 
-int asCContext::CallGeneric(int id, void *objectPointer)
+int asCContext::CallGeneric(asCScriptFunction *descr)
 {
-	asCScriptFunction *sysFunction = m_engine->scriptFunctions[id];
-	asSSystemFunctionInterface *sysFunc = sysFunction->sysFuncIntf;
+	asSSystemFunctionInterface *sysFunc = descr->sysFuncIntf;
 	void (*func)(asIScriptGeneric*) = (void (*)(asIScriptGeneric*))sysFunc->func;
 	int popSize = sysFunc->paramSize;
 	asDWORD *args = m_regs.stackPointer;
 
 	// Verify the object pointer if it is a class method
 	void *currentObject = 0;
+	asASSERT( sysFunc->callConv == ICC_GENERIC_FUNC || sysFunc->callConv == ICC_GENERIC_METHOD );
 	if( sysFunc->callConv == ICC_GENERIC_METHOD )
 	{
-		if( objectPointer )
+		// The object pointer should be popped from the context stack
+		popSize += AS_PTR_SIZE;
+
+		// Check for null pointer
+		currentObject = (void*)*(asPWORD*)(args);
+		if( currentObject == 0 )
 		{
-			currentObject = objectPointer;
-
-			// Don't increase the reference of this pointer
-			// since it will not have been constructed yet
+			SetInternalException(TXT_NULL_POINTER_ACCESS);
+			return 0;
 		}
-		else
-		{
-			// The object pointer should be popped from the context stack
-			popSize += AS_PTR_SIZE;
 
-			// Check for null pointer
-			currentObject = (void*)*(asPWORD*)(args);
-			if( currentObject == 0 )
-			{
-				SetInternalException(TXT_NULL_POINTER_ACCESS);
-				return 0;
-			}
+		asASSERT( sysFunc->baseOffset == 0 );
 
-			// Add the base offset for multiple inheritance
-			currentObject = (void*)(asPWORD(currentObject) + sysFunc->baseOffset);
-
-			// Skip object pointer
-			args += AS_PTR_SIZE;
-		}
+		// Skip object pointer
+		args += AS_PTR_SIZE;
 	}
 
-	if( sysFunction->DoesReturnOnStack() )
+	if( descr->DoesReturnOnStack() )
 	{
 		// Skip the address where the return value will be stored
 		args += AS_PTR_SIZE;
 		popSize += AS_PTR_SIZE;
 	}
 
-	asCGeneric gen(m_engine, sysFunction, currentObject, args);
+	asCGeneric gen(m_engine, descr, currentObject, args);
 
-	m_callingSystemFunction = sysFunction;
+	m_callingSystemFunction = descr;
 	func(&gen);
 	m_callingSystemFunction = 0;
 
 	m_regs.valueRegister = gen.returnVal;
 	m_regs.objectRegister = gen.objectRegister;
-	m_regs.objectType = sysFunction->returnType.GetObjectType();
+	m_regs.objectType = descr->returnType.GetObjectType();
 
-	// Clean up function parameters
-	int offset = 0;
-	for( asUINT n = 0; n < sysFunction->parameterTypes.GetLength(); n++ )
+	// Clean up arguments
+	const asUINT cleanCount = sysFunc->cleanArgs.GetLength();
+	if( cleanCount )
 	{
-		if( sysFunction->parameterTypes[n].IsObject() && !sysFunction->parameterTypes[n].IsReference() )
+		asSSystemFunctionInterface::SClean *clean = sysFunc->cleanArgs.AddressOf();
+		for( asUINT n = 0; n < cleanCount; n++, clean++ )
 		{
-			void *obj = *(void**)&args[offset];
-			if( obj )
+			void **addr = (void**)&args[clean->off];
+			if( clean->op == 0 )
 			{
-				// Release the object
-				asSTypeBehaviour *beh = &sysFunction->parameterTypes[n].GetObjectType()->beh;
-				if( sysFunction->parameterTypes[n].GetObjectType()->flags & asOBJ_REF )
+				if( *addr != 0 )
 				{
-					asASSERT( (sysFunction->parameterTypes[n].GetObjectType()->flags & asOBJ_NOCOUNT) || beh->release );
-					if( beh->release )
-						m_engine->CallObjectMethod(obj, beh->release);
-				}
-				else
-				{
-					// Call the destructor then free the memory
-					if( beh->destruct )
-						m_engine->CallObjectMethod(obj, beh->destruct);
-
-					m_engine->CallFree(obj);
+					m_engine->CallObjectMethod(*addr, clean->ot->beh.release);
+					*addr = 0;
 				}
 			}
+			else 
+			{
+				asASSERT( clean->op == 1 || clean->op == 2 );
+				asASSERT( *addr );
+
+				if( clean->op == 2 )
+					m_engine->CallObjectMethod(*addr, clean->ot->beh.destruct);
+				
+				m_engine->CallFree(*addr);
+			}
 		}
-		offset += sysFunction->parameterTypes[n].GetSizeOnStackDWords();
 	}
 
 	// Return how much should be popped from the stack

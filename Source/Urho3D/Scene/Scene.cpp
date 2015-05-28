@@ -94,7 +94,7 @@ void Scene::RegisterObject(Context* context)
 {
     context->RegisterFactory<Scene>();
 
-    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, String, String::EMPTY, AM_DEFAULT);
+    ACCESSOR_ATTRIBUTE("Name", GetName, SetName, QString, QString(), AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Time Scale", GetTimeScale, SetTimeScale, float, 1.0f, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Smoothing Constant", GetSmoothingConstant, SetSmoothingConstant, float, DEFAULT_SMOOTHING_CONSTANT, AM_DEFAULT);
     ACCESSOR_ATTRIBUTE("Snap Threshold", GetSnapThreshold, SetSnapThreshold, float, DEFAULT_SNAP_THRESHOLD, AM_DEFAULT);
@@ -104,7 +104,7 @@ void Scene::RegisterObject(Context* context)
     ATTRIBUTE("Next Local Node ID", int, localNodeID_, FIRST_LOCAL_ID, AM_FILE | AM_NOEDIT);
     ATTRIBUTE("Next Local Component ID", int, localComponentID_, FIRST_LOCAL_ID, AM_FILE | AM_NOEDIT);
     ATTRIBUTE("Variables", VariantMap, vars_, Variant::emptyVariantMap, AM_FILE); // Network replication of vars uses custom data
-    MIXED_ACCESSOR_ATTRIBUTE("Variable Names", GetVarNamesAttr, SetVarNamesAttr, String, String::EMPTY, AM_FILE | AM_NOEDIT);
+    MIXED_ACCESSOR_ATTRIBUTE("Variable Names", GetVarNamesAttr, SetVarNamesAttr, QString, QString(), AM_FILE | AM_NOEDIT);
 }
 
 bool Scene::Load(Deserializer& source, bool setInstanceDefault)
@@ -216,7 +216,7 @@ bool Scene::LoadXML(Deserializer& source)
         return false;
 }
 
-bool Scene::SaveXML(Serializer& dest, const String& indentation) const
+bool Scene::SaveXML(Serializer& dest, const QString& indentation) const
 {
     PROFILE(SaveSceneXML);
 
@@ -456,7 +456,7 @@ void Scene::Clear(bool clearReplicated, bool clearLocal)
     if (clearReplicated && clearLocal)
     {
         UnregisterAllVars();
-        SetName(String::EMPTY);
+        SetName(QString::null);
         fileName_.clear();
         checksum_ = 0;
     }
@@ -521,12 +521,12 @@ void Scene::ClearRequiredPackageFiles()
     requiredPackageFiles_.clear();
 }
 
-void Scene::RegisterVar(const String& name)
+void Scene::RegisterVar(const QString& name)
 {
     varNames_[name] = name;
 }
 
-void Scene::UnregisterVar(const String& name)
+void Scene::UnregisterVar(const QString& name)
 {
     varNames_.remove(name);
 }
@@ -582,10 +582,10 @@ float Scene::GetAsyncProgress() const
     }
 }
 
-const String& Scene::GetVarName(StringHash hash) const
+QString Scene::GetVarName(StringHash hash) const
 {
-    HashMap<StringHash, String>::const_iterator i = varNames_.find(hash);
-    return i != varNames_.end() ? MAP_VALUE(i) : String::EMPTY;
+    HashMap<StringHash, QString>::const_iterator i = varNames_.find(hash);
+    return i != varNames_.end() ? MAP_VALUE(i) : QString::null;
 }
 
 void Scene::Update(float timeStep)
@@ -764,7 +764,7 @@ void Scene::NodeAdded(Node* node)
         HashMap<unsigned, Node*>::iterator i = replicatedNodes_.find(id);
         if (i != replicatedNodes_.end() && MAP_VALUE(i) != node)
         {
-            LOGWARNING("Overwriting node with ID " + String(id));
+            LOGWARNING("Overwriting node with ID " + QString::number(id));
             MAP_VALUE(i)->ResetScene();
         }
 
@@ -778,7 +778,7 @@ void Scene::NodeAdded(Node* node)
         HashMap<unsigned, Node*>::iterator i = localNodes_.find(id);
         if (i != localNodes_.end() && MAP_VALUE(i) != node)
         {
-            LOGWARNING("Overwriting node with ID " + String(id));
+            LOGWARNING("Overwriting node with ID " + QString::number(id));
             MAP_VALUE(i)->ResetScene();
         }
 
@@ -822,7 +822,7 @@ void Scene::ComponentAdded(Component* component)
         HashMap<unsigned, Component*>::iterator i = replicatedComponents_.find(id);
         if (i != replicatedComponents_.end() && MAP_VALUE(i) != component)
         {
-            LOGWARNING("Overwriting component with ID " + String(id));
+            LOGWARNING("Overwriting component with ID " + QString::number(id));
             MAP_VALUE(i)->SetID(0);
         }
 
@@ -833,7 +833,7 @@ void Scene::ComponentAdded(Component* component)
         HashMap<unsigned, Component*>::iterator i = localComponents_.find(id);
         if (i != localComponents_.end() && MAP_VALUE(i) != component)
         {
-            LOGWARNING("Overwriting component with ID " + String(id));
+            LOGWARNING("Overwriting component with ID " + QString::number(id));
             MAP_VALUE(i)->SetID(0);
         }
 
@@ -855,18 +855,18 @@ void Scene::ComponentRemoved(Component* component)
     component->SetID(0);
 }
 
-void Scene::SetVarNamesAttr(const String& value)
+void Scene::SetVarNamesAttr(const QString& value)
 {
-    Vector<String> varNames = value.split(';');
+    QStringList varNames = value.split(';');
 
     varNames_.clear();
-    for (Vector<String>::const_iterator i = varNames.begin(); i != varNames.end(); ++i)
+    for (QStringList::const_iterator i = varNames.begin(); i != varNames.end(); ++i)
         varNames_[*i] = *i;
 }
 
-String Scene::GetVarNamesAttr() const
+QString Scene::GetVarNamesAttr() const
 {
-    String ret;
+    QString ret;
 
     if (!varNames_.empty())
     {
@@ -1014,7 +1014,7 @@ void Scene::UpdateAsyncLoading()
         ++asyncProgress_.loadedNodes_;
 
         // Break if time limit exceeded, so that we keep sufficient FPS
-        if (asyncLoadTimer.GetUSec() >= asyncLoadingMs_ * 1000)
+        if (asyncLoadTimer.GetUSecS() >= asyncLoadingMs_ * 1000)
             break;
     }
 
@@ -1108,7 +1108,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
                 {
                     const ResourceRef& ref = varValue.GetResourceRef();
                     // Sanitate resource name beforehand so that when we get the background load event, the name matches exactly
-                    String name = cache->SanitateResourceName(ref.name_);
+                    QString name = cache->SanitateResourceName(ref.name_);
                     bool success = cache->BackgroundLoadResource(ref.type_, name);
                     if (success)
                     {
@@ -1121,7 +1121,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
                     const ResourceRefList& refList = varValue.GetResourceRefList();
                     for (unsigned k = 0; k < refList.names_.size(); ++k)
                     {
-                        String name = cache->SanitateResourceName(refList.names_[k]);
+                        QString name = cache->SanitateResourceName(refList.names_[k]);
                         bool success = cache->BackgroundLoadResource(refList.type_, name);
                         if (success)
                         {
@@ -1148,7 +1148,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
     XMLElement compElem = element.GetChild("component");
     while (compElem)
     {
-        String typeName = compElem.GetAttribute("type");
+        QString typeName = compElem.GetAttribute("type");
         const Vector<AttributeInfo>* attributes = context_->GetAttributes(StringHash(typeName));
         if (attributes)
         {
@@ -1157,19 +1157,19 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
 
             while (attrElem)
             {
-                String name = attrElem.GetAttribute("name");
+                QString name = attrElem.GetAttribute("name");
                 unsigned i = startIndex;
                 unsigned attempts = attributes->size();
 
                 while (attempts)
                 {
                     const AttributeInfo& attr = attributes->at(i);
-                    if ((attr.mode_ & AM_FILE) && !attr.name_.Compare(name, true))
+                    if ((attr.mode_ & AM_FILE) && !attr.name_.compare(name))
                     {
                         if (attr.type_ == VAR_RESOURCEREF)
                         {
                             ResourceRef ref = attrElem.GetVariantValue(attr.type_).GetResourceRef();
-                            String name = cache->SanitateResourceName(ref.name_);
+                            QString name = cache->SanitateResourceName(ref.name_);
                             bool success = cache->BackgroundLoadResource(ref.type_, name);
                             if (success)
                             {
@@ -1182,7 +1182,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
                             ResourceRefList refList = attrElem.GetVariantValue(attr.type_).GetResourceRefList();
                             for (unsigned k = 0; k < refList.names_.size(); ++k)
                             {
-                                String name = cache->SanitateResourceName(refList.names_[k]);
+                                QString name = cache->SanitateResourceName(refList.names_[k]);
                                 bool success = cache->BackgroundLoadResource(refList.type_, name);
                                 if (success)
                                 {
