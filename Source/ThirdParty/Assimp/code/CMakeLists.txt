@@ -170,7 +170,6 @@ SET(ASSIMP_IMPORTERS_ENABLED "") # list of enabled importers
 SET(ASSIMP_IMPORTERS_DISABLED "") # disabled list (used to print)
 
 include(Formats/AssimpFormats.cmake)
-#add_subdirectory(Illusion)
 
 ################################################################################################
 # Create a static 'plugin' registration command list
