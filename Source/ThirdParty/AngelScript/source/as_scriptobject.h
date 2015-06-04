@@ -1,24 +1,24 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2014 Andreas Jonsson
+   Copyright (c) 2003-2013 Andreas Jonsson
 
-   This software is provided 'as-is', without any express or implied
-   warranty. In no event will the authors be held liable for any
+   This software is provided 'as-is', without any express or implied 
+   warranty. In no event will the authors be held liable for any 
    damages arising from the use of this software.
 
-   Permission is granted to anyone to use this software for any
-   purpose, including commercial applications, and to alter it and
+   Permission is granted to anyone to use this software for any 
+   purpose, including commercial applications, and to alter it and 
    redistribute it freely, subject to the following restrictions:
 
-   1. The origin of this software must not be misrepresented; you
+   1. The origin of this software must not be misrepresented; you 
       must not claim that you wrote the original software. If you use
-      this software in a product, an acknowledgment in the product
+      this software in a product, an acknowledgment in the product 
       documentation would be appreciated but is not required.
 
-   2. Altered source versions must be plainly marked as such, and
+   2. Altered source versions must be plainly marked as such, and 
       must not be misrepresented as being the original software.
 
-   3. This notice may not be removed or altered from any source
+   3. This notice may not be removed or altered from any source 
       distribution.
 
    The original version of this library can be located at:
@@ -28,6 +28,7 @@
    andreas@angelcode.com
 */
 
+// Modified by Lasse Oorni for Urho3D
 
 
 //
@@ -54,104 +55,92 @@ class asCObjectType;
 class asCLockableSharedBool : public asILockableSharedBool
 {
 public:
-    asCLockableSharedBool();
-    int AddRef() const;
-    int Release() const;
+	asCLockableSharedBool();
+	int AddRef() const;
+	int Release() const;
 
-    bool Get() const;
-    void Set(bool);
-
-    void Lock() const;
-    void Unlock() const;
+	bool Get() const;
+	void Set(bool);
+	
+	void Lock() const;
+	void Unlock() const;
 
 protected:
-    mutable asCAtomic refCount;
-    bool      value;
-    DECLARECRITICALSECTION(mutable lock);
+	mutable asCAtomic refCount;
+	bool      value;
+	DECLARECRITICALSECTION(mutable lock);
 };
 
 class asCScriptObject : public asIScriptObject
 {
-#ifdef AS_DEPRECATED
-// Deprecated since 2.30.0, 2014-11-04
-// interface
-friend class asCScriptEngine;
-#endif
 public:
 //===================================
 // From asIScriptObject
 //===================================
+	asIScriptEngine *GetEngine() const;
 
-    // Memory management
-    int                    AddRef() const;
-    int                    Release() const;
-    asILockableSharedBool *GetWeakRefFlag() const;
+	// Memory management
+	int AddRef() const;
+	int Release() const;
 
-    // Type info
-    int            GetTypeId() const;
-    asIObjectType *GetObjectType() const;
+	// Type info
+	int            GetTypeId() const;
+	asIObjectType *GetObjectType() const;
 
-    // Class properties
-    asUINT      GetPropertyCount() const;
-    int         GetPropertyTypeId(asUINT prop) const;
-    const char *GetPropertyName(asUINT prop) const;
-    void       *GetAddressOfProperty(asUINT prop);
+	// Class properties
+	asUINT      GetPropertyCount() const;
+	int         GetPropertyTypeId(asUINT prop) const;
+	const char *GetPropertyName(asUINT prop) const;
+	void       *GetAddressOfProperty(asUINT prop);
 
-    // Miscellaneous
-    asIScriptEngine *GetEngine() const;
-    int              CopyFrom(asIScriptObject *other);
+	int         CopyFrom(asIScriptObject *other);
 
-    // User data
-    void *SetUserData(void *data, asPWORD type = 0);
-    void *GetUserData(asPWORD type = 0) const;
+	// Urho3D: added userdata
+	void *SetUserData(void *data);
+	void *GetUserData() const;
 
 //====================================
 // Internal
 //====================================
-    asCScriptObject(asCObjectType *objType, bool doInitialize = true);
-    virtual ~asCScriptObject();
+	asCScriptObject(asCObjectType *objType, bool doInitialize = true);
+	virtual ~asCScriptObject();
 
-    asCScriptObject &operator=(const asCScriptObject &other);
+	asCScriptObject &operator=(const asCScriptObject &other);
 
-    // GC methods
-    void Destruct();
-    int  GetRefCount();
-    void SetFlag();
-    bool GetFlag();
-    void EnumReferences(asIScriptEngine *engine);
-    void ReleaseAllHandles(asIScriptEngine *engine);
+	// GC methods
+	void Destruct();
+	int  GetRefCount();
+	void SetFlag();
+	bool GetFlag();
+	void EnumReferences(asIScriptEngine *engine);
+	void ReleaseAllHandles(asIScriptEngine *engine);
 
-    // Used for properties
-    void *AllocateUninitializedObject(asCObjectType *objType, asCScriptEngine *engine);
-    void FreeObject(void *ptr, asCObjectType *objType, asCScriptEngine *engine);
-    void CopyObject(void *src, void *dst, asCObjectType *objType, asCScriptEngine *engine);
-    void CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *objType, asCScriptEngine *engine);
+	// Weakref methods
+	asILockableSharedBool *GetWeakRefFlag() const;
 
-    void CallDestructor();
+	// Used for properties
+	void *AllocateUninitializedObject(asCObjectType *objType, asCScriptEngine *engine);
+	void FreeObject(void *ptr, asCObjectType *objType, asCScriptEngine *engine);
+	void CopyObject(void *src, void *dst, asCObjectType *objType, asCScriptEngine *engine);
+	void CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *objType, asCScriptEngine *engine);
+
+	void CallDestructor();
 
 //=============================================
 // Properties
 //=============================================
+public:
+	asCObjectType *objType;
+
 protected:
-    friend class asCContext;
-    asCObjectType    *objType;
-
-    mutable asCAtomic refCount;
-    mutable asBYTE    gcFlag:1;
-    mutable asBYTE    hasRefCountReachedZero:1;
-    bool              isDestructCalled;
-
-    // Most script classes instances won't have neither the weakRefFlags nor
-    // userData so we only allocate this if requested. Even when used it is
-    // not something that will be accessed all the time so having the extra
-    // indirection will not affect the performance significantly.
-    struct SExtra
-    {
-        SExtra() : weakRefFlag(0) {};
-        asCLockableSharedBool *weakRefFlag;
-        asCArray<asPWORD>      userData;
-    };
-    mutable SExtra *extra;
+	mutable asCAtomic refCount;
+	mutable asBYTE gcFlag:1;
+	mutable asBYTE hasRefCountReachedZero:1;
+	bool isDestructCalled;
+	mutable asCLockableSharedBool *weakRefFlag;
+	
+	// Urho3D: added userdata
+	void* userData;
 };
 
 void ScriptObject_Construct(asCObjectType *objType, asCScriptObject *self);

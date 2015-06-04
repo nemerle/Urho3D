@@ -97,6 +97,7 @@ struct asSTypeBehaviour
 
 	asCArray<int> factories;
 	asCArray<int> constructors;
+	asCArray<int> operators;
 };
 
 struct asSEnumValue
@@ -107,6 +108,8 @@ struct asSEnumValue
 
 class asCScriptEngine;
 struct asSNameSpace;
+
+void RegisterObjectTypeGCBehaviours(asCScriptEngine *engine);
 
 class asCObjectType : public asIObjectType
 {
@@ -153,7 +156,7 @@ public:
 
 	// Properties
 	asUINT      GetPropertyCount() const;
-	int         GetProperty(asUINT index, const char **name, int *typeId, bool *isPrivate, bool *isProtected, int *offset, bool *isReference, asDWORD *accessMask) const;
+	int         GetProperty(asUINT index, const char **name, int *typeId, bool *isPrivate, int *offset, bool *isReference, asDWORD *accessMask) const;
 	const char *GetPropertyDeclaration(asUINT index, bool includeNamespace = false) const;
 
 	// Behaviours
@@ -170,27 +173,25 @@ public:
 public:
 	asCObjectType(asCScriptEngine *engine);
 	~asCObjectType();
-	void DestroyInternal();
 
-	// Keep an internal reference counter to separate references coming from 
-	// application or script objects and references coming from the script code
-	int AddRefInternal();
-	int ReleaseInternal();
+	void Orphan(asCModule *module);
+	int  GetRefCount();
+	void SetGCFlag();
+	bool GetGCFlag();
+	void EnumReferences(asIScriptEngine *);
+	void ReleaseAllHandles(asIScriptEngine *);
 
 	void ReleaseAllFunctions();
 
 	bool IsInterface() const;
 	bool IsShared() const;
 
-	asCObjectProperty *AddPropertyToClass(const asCString &name, const asCDataType &dt, bool isPrivate, bool isProtected, bool isInherited);
+	asCObjectProperty *AddPropertyToClass(const asCString &name, const asCDataType &dt, bool isPrivate);
 	void ReleaseAllProperties();
 
 	asCString                    name;
 	asSNameSpace                *nameSpace;
 	int                          size;
-#ifdef WIP_16BYTE_ALIGN
-	int                          alignment;
-#endif
 	asCArray<asCObjectProperty*> properties;
 	asCArray<int>                methods;
 	asCArray<asCObjectType*>     interfaces;
@@ -209,23 +210,16 @@ public:
 	bool                  acceptValueSubType;
 	bool                  acceptRefSubType;
 
-	// Store the script section where the code was declared
-	int                             scriptSectionIdx;
-	// Store the location where the function was declared (row in the lower 20 bits, and column in the upper 12)
-	int                             declaredAt;
-
 	asCScriptEngine  *engine;
 	asCModule        *module;
 	asCArray<asPWORD> userData;
 
 protected:
 	friend class asCScriptEngine;
-	friend class asCConfigGroup;
-	friend class asCModule;
 	asCObjectType();
 
-	mutable asCAtomic externalRefCount;
-	asCAtomic         internalRefCount;
+	mutable asCAtomic refCount;
+	mutable bool      gcFlag;
 };
 
 END_AS_NAMESPACE

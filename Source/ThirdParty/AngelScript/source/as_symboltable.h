@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2012-2015 Andreas Jonsson
+   Copyright (c) 2012-2014 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -59,7 +59,6 @@ BEGIN_AS_NAMESPACE
 struct asIFilter
 {
 	virtual bool operator()(const void*) const = 0;
-	virtual ~asIFilter() {};
 };
 
 
@@ -108,7 +107,7 @@ public:
 	typedef asCSymbolTableIterator<T, T> iterator;
 	typedef asCSymbolTableIterator<T, const T> const_iterator;
 
-	asCSymbolTable(asUINT initialCapacity = 0);
+	asCSymbolTable(unsigned int initialCapacity = 0);
 
 	int      GetFirstIndex(const asSNameSpace *ns, const asCString &name, const asIFilter &comparator) const;
 	int      GetFirstIndex(const asSNameSpace *ns, const asCString &name) const;
@@ -119,22 +118,22 @@ public:
 	T*       GetFirst(const asSNameSpace *ns, const asCString &name, const asIFilter &comparator) const;
 	T*       GetFirst(const asSNameSpace *ns, const asCString &name);
 	const T* GetFirst(const asSNameSpace *ns, const asCString &name) const;
-	T*       Get(asUINT index);
-	const T* Get(asUINT index) const;
+	T*       Get(unsigned int index);
+	const T* Get(unsigned int index) const;
 	T*       GetLast();
 	const T* GetLast() const;
 
-	const asCArray<asUINT> &GetIndexes(const asSNameSpace *ns, const asCString &name) const;
+	const asCArray<unsigned int> &GetIndexes(const asSNameSpace *ns, const asCString &name) const;
 
-	asUINT   Put(T* entry);
+	int      Put(T* entry);
 
-	asUINT   GetSize() const;
+	unsigned int GetSize() const;
 
 	void SwapWith(asCSymbolTable<T> &other);
 
 	void Clear();
-	bool Erase(asUINT idx);
-	void Allocate(asUINT elem_cnt, bool keep_data);
+	bool Erase(unsigned int idx);
+	void Allocate(unsigned int elem_cnt, bool keep_data);
 
 	iterator List();
 	const_iterator List() const;
@@ -147,11 +146,11 @@ private:
 	friend class asCSymbolTableIterator<T, const T>;
 
 	void GetKey(const T *entry, asSNameSpaceNamePair &key) const;
-	bool CheckIdx(asUINT idx) const;
+	bool CheckIdx(unsigned idx) const;
 
-	asCMap<asSNameSpaceNamePair, asCArray<asUINT> > m_map;
-	asCArray<T*>                                    m_entries;
-	unsigned int                                    m_size;
+	asCMap<asSNameSpaceNamePair, asCArray<unsigned int> > m_map;
+	asCArray<T*>                                          m_entries;
+	unsigned int                                          m_size;
 };
 
 
@@ -163,7 +162,7 @@ void asCSymbolTable<T>::SwapWith(asCSymbolTable<T> &other)
 	m_map.SwapWith(other.m_map);
 	m_entries.SwapWith(other.m_entries);
 
-	asUINT tmp = m_size;
+	unsigned int tmp = m_size;
 	m_size = other.m_size;
 	other.m_size = tmp;
 }
@@ -174,7 +173,7 @@ void asCSymbolTable<T>::SwapWith(asCSymbolTable<T> &other)
 // Constructor
 // initialCapacity gives the number of entries to allocate in advance
 template<class T>
-asCSymbolTable<T>::asCSymbolTable(asUINT initialCapacity) : m_entries(initialCapacity)
+asCSymbolTable<T>::asCSymbolTable(unsigned initialCapacity) : m_entries(initialCapacity)
 {
 	m_size = 0;
 }
@@ -189,11 +188,11 @@ int asCSymbolTable<T>::GetFirstIndex(
 {
 	asSNameSpaceNamePair key(ns, name);
 
-	asSMapNode<asSNameSpaceNamePair, asCArray<asUINT> > *cursor;
+	asSMapNode<asSNameSpaceNamePair, asCArray<unsigned int> > *cursor;
 	if( m_map.MoveTo(&cursor, key) )
 	{
-		const asCArray<asUINT> &arr = m_map.GetValue(cursor);
-		for( asUINT n = 0; n < arr.GetLength(); n++ )
+		const asCArray<unsigned int> &arr = m_map.GetValue(cursor);
+		for( unsigned int n = 0; n < arr.GetLength(); n++ )
 		{
 			T *entry = m_entries[arr[n]];
 			if( entry && filter(entry) )
@@ -207,15 +206,15 @@ int asCSymbolTable<T>::GetFirstIndex(
 
 
 template<class T>
-const asCArray<asUINT> &asCSymbolTable<T>::GetIndexes(const asSNameSpace *ns, const asCString &name) const
+const asCArray<unsigned int> &asCSymbolTable<T>::GetIndexes(const asSNameSpace *ns, const asCString &name) const
 {
 	asSNameSpaceNamePair key(ns, name);
 
-	asSMapNode<asSNameSpaceNamePair, asCArray<asUINT> > *cursor;
+	asSMapNode<asSNameSpaceNamePair, asCArray<unsigned int> > *cursor;
 	if( m_map.MoveTo(&cursor, key) )
 		return m_map.GetValue(cursor);
 
-	static asCArray<asUINT> dummy;
+	static asCArray<unsigned int> dummy;
 	return dummy;
 }
 
@@ -238,7 +237,7 @@ int asCSymbolTable<T>::GetFirstIndex(const asSNameSpace *ns, const asCString &na
 {
 	asSNameSpaceNamePair key(ns, name);
 
-	asSMapNode<asSNameSpaceNamePair, asCArray<asUINT> > *cursor;
+	asSMapNode<asSNameSpaceNamePair, asCArray<unsigned int> > *cursor;
 	if( m_map.MoveTo(&cursor, key) )
 		return m_map.GetValue(cursor)[0];
 
@@ -253,7 +252,7 @@ int asCSymbolTable<T>::GetFirstIndex(const asSNameSpace *ns, const asCString &na
 template<class T>
 int asCSymbolTable<T>::GetIndex(const T* entry) const
 {
-	for( asUINT n = 0; n < m_entries.GetLength(); n++ )
+	for( unsigned int n = 0; n < m_entries.GetLength(); n++ )
 		if( m_entries[n] == entry )
 			return n;
 
@@ -266,7 +265,7 @@ int asCSymbolTable<T>::GetIndex(const T* entry) const
 
 
 template<class T>
-T* asCSymbolTable<T>::Get(asUINT idx)
+T* asCSymbolTable<T>::Get(unsigned idx)
 {
 	if( !CheckIdx(idx) )
 		return 0;
@@ -275,7 +274,7 @@ T* asCSymbolTable<T>::Get(asUINT idx)
 }
 
 template<class T>
-const T* asCSymbolTable<T>::Get(asUINT idx) const
+const T* asCSymbolTable<T>::Get(unsigned idx) const
 {
 	return const_cast< asCSymbolTable<T>* >(this)->Get(idx);
 }
@@ -332,7 +331,7 @@ void asCSymbolTable<T>::Clear()
 
 // Pre-allocate slots for elemCnt entries
 template<class T>
-void asCSymbolTable<T>::Allocate(asUINT elemCnt, bool keepData)
+void asCSymbolTable<T>::Allocate(unsigned elemCnt, bool keepData)
 {
 	asASSERT( elemCnt >= m_entries.GetLength() );
 	m_entries.Allocate(elemCnt, keepData);
@@ -343,7 +342,7 @@ void asCSymbolTable<T>::Allocate(asUINT elemCnt, bool keepData)
 
 
 template<class T>
-bool asCSymbolTable<T>::Erase(asUINT idx)
+bool asCSymbolTable<T>::Erase(unsigned idx)
 {
 	if( !CheckIdx(idx) )
 	{
@@ -360,10 +359,10 @@ bool asCSymbolTable<T>::Erase(asUINT idx)
 	asSNameSpaceNamePair key;
 	GetKey(entry, key);
 
-	asSMapNode<asSNameSpaceNamePair, asCArray<asUINT> > *cursor;
+	asSMapNode<asSNameSpaceNamePair, asCArray<unsigned int> > *cursor;
 	if( m_map.MoveTo(&cursor, key) )
 	{
-		asCArray<asUINT> &arr = m_map.GetValue(cursor);
+		asCArray<unsigned int> &arr = m_map.GetValue(cursor);
 		arr.RemoveValue(idx);
 		if( arr.GetLength() == 0 )
 			m_map.Erase(cursor);
@@ -385,7 +384,7 @@ bool asCSymbolTable<T>::Erase(asUINT idx)
 		GetKey(entry, key);
 		if( m_map.MoveTo(&cursor, key) )
 		{
-			asCArray<asUINT> &arr = m_map.GetValue(cursor);
+			asCArray<unsigned int> &arr = m_map.GetValue(cursor);
 			arr[arr.IndexOf(prevIdx)] = idx;
 		}
 		else
@@ -400,18 +399,18 @@ bool asCSymbolTable<T>::Erase(asUINT idx)
 
 
 template<class T>
-asUINT asCSymbolTable<T>::Put(T *entry)
+int asCSymbolTable<T>::Put(T *entry)
 {
-	asUINT idx = m_entries.GetLength();
+	unsigned int idx = (unsigned int)(m_entries.GetLength());
 	asSNameSpaceNamePair key;
 	GetKey(entry, key);
 
-	asSMapNode<asSNameSpaceNamePair, asCArray<asUINT> > *cursor;
+	asSMapNode<asSNameSpaceNamePair, asCArray<unsigned int> > *cursor;
 	if( m_map.MoveTo(&cursor, key) )
 		m_map.GetValue(cursor).PushLast(idx);
 	else
 	{
-		asCArray<asUINT> arr(1);
+		asCArray<unsigned int> arr(1);
 		arr.PushLast(idx);
 		m_map.Insert(key, arr);
 	}
@@ -435,7 +434,7 @@ void asCSymbolTable<T>::GetKey(const T *entry, asSNameSpaceNamePair &key) const
 
 
 template<class T>
-asUINT asCSymbolTable<T>::GetSize() const
+unsigned int asCSymbolTable<T>::GetSize() const
 {
 	return m_size;
 }
@@ -444,7 +443,7 @@ asUINT asCSymbolTable<T>::GetSize() const
 
 
 template<class T>
-bool asCSymbolTable<T>::CheckIdx(asUINT idx) const
+bool asCSymbolTable<T>::CheckIdx(unsigned int idx) const
 {
 	return idx < m_entries.GetLength();
 }
@@ -455,9 +454,9 @@ bool asCSymbolTable<T>::CheckIdx(asUINT idx) const
 template<class T>
 int asCSymbolTable<T>::GetLastIndex() const
 {
-	int idx = int(m_entries.GetLength()) - 1;
-	asASSERT( idx == -1 || m_entries[idx] );
-	return idx;
+	unsigned int idx = (unsigned int)(m_entries.GetLength()) - 1;
+	asASSERT( idx == asUINT(-1) || m_entries[idx] );
+	return int(idx);
 }
 
 
@@ -486,7 +485,7 @@ typename asCSymbolTable<T>::const_iterator asCSymbolTable<T>::List() const
 template<class T, class T2>
 asCSymbolTableIterator<T, T2>::asCSymbolTableIterator(asCSymbolTable<T> *table) : m_table(table), m_idx(0)
 {
-	asUINT sz = m_table->m_entries.GetLength();
+	unsigned int sz = (unsigned int)(m_table->m_entries.GetLength());
 	while( m_idx < sz && m_table->m_entries[m_idx] == 0 )
 		m_idx++;
 }
@@ -534,7 +533,7 @@ asCSymbolTableIterator<T, T2>::operator bool() const
 template<class T, class T2>
 void asCSymbolTableIterator<T, T2>::Next()
 {
-	asUINT sz = m_table->m_entries.GetLength();
+	unsigned int sz = (unsigned int)(m_table->m_entries.GetLength());
 	m_idx++;
 	while( m_idx < sz && m_table->m_entries[m_idx] == 0 )
 		m_idx++;
@@ -546,7 +545,7 @@ template<class T, class T2>
 void asCSymbolTableIterator<T, T2>::Previous()
 {
 	// overflow on stepping over first element
-	asUINT sz = m_table->m_entries.GetLength();
+	unsigned int sz = (unsigned int)(m_table->m_entries.GetLength());
 	m_idx--;
 	while( m_idx < sz && m_table->m_entries[m_idx] == 0 )
 		m_idx--;

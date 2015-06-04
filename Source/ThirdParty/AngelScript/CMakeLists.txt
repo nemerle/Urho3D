@@ -22,9 +22,9 @@
 
 # Define target name
 set (TARGET_NAME AngelScript)
+
 # Define source files
 define_source_files (GLOB_CPP_PATTERNS source/*.cpp GLOB_H_PATTERNS include/*.h source/*.h)
-
 if (IOS OR ANDROID OR RPI)
     enable_language (ASM)
     if (IOS)
@@ -40,7 +40,6 @@ elseif (MSVC AND URHO3D_64BIT)
     add_custom_command (OUTPUT as_callfunc_x64_msvc_asm.obj COMMAND ${CMAKE_ASM_MASM_COMPILER} -Fo ${CMAKE_CURRENT_BINARY_DIR}/as_callfunc_x64_msvc_asm.obj -c ${CMAKE_CURRENT_SOURCE_DIR}/source/as_callfunc_x64_msvc_asm.asm DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/source/as_callfunc_x64_msvc_asm.asm COMMENT "Temporary workaround for MASM")
     set (ASM_FILES ${CMAKE_CURRENT_BINARY_DIR}/as_callfunc_x64_msvc_asm.obj ${CMAKE_CURRENT_SOURCE_DIR}/source/as_callfunc_x64_msvc_asm.asm)
 endif ()
-
 list (APPEND SOURCE_FILES ${ASM_FILES})
 
 # Define dependency libs

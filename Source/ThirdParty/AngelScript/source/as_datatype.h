@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2015 Andreas Jonsson
+   Copyright (c) 2003-2014 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -49,8 +49,6 @@ struct asSTypeBehaviour;
 class asCScriptEngine;
 class asCObjectType;
 class asCScriptFunction;
-class asCModule;
-struct asSNameSpace;
 
 // TODO: refactor: Reference should not be part of the datatype. This should be stored separately, e.g. in asCTypeInfo
 //                 MakeReference, MakeReadOnly, IsReference, IsReadOnly should be removed
@@ -64,7 +62,7 @@ public:
 
 	bool IsValid() const;
 
-	asCString Format(asSNameSpace *currNs, bool includeNamespace = false) const;
+	asCString Format(bool includeNamespace = false) const;
 
 	static asCDataType CreatePrimitive(eTokenType tt, bool isConst);
 	static asCDataType CreateObject(asCObjectType *ot, bool isConst);
@@ -74,7 +72,7 @@ public:
 	static asCDataType CreateNullHandle();
 
 	int MakeHandle(bool b, bool acceptHandleForScope = false);
-	int MakeArray(asCScriptEngine *engine, asCModule *requestingModule);
+	int MakeArray(asCScriptEngine *engine);
 	int MakeReference(bool b);
 	int MakeReadOnly(bool b);
 	int MakeHandleToConst(bool b);
@@ -82,7 +80,6 @@ public:
 	bool IsTemplate()             const;
 	bool IsScriptObject()         const;
 	bool IsPrimitive()            const;
-	bool IsMathType()             const;
 	bool IsObject()               const;
 	bool IsReference()            const {return isReference;}
 	bool IsAuto()                 const {return isAuto;}
@@ -124,9 +121,6 @@ public:
 	int  GetSizeOnStackDWords()  const;
 	int  GetSizeInMemoryBytes()  const;
 	int  GetSizeInMemoryDWords() const;
-#ifdef WIP_16BYTE_ALIGN
-	int  GetAlignment()          const;
-#endif
 
 	void SetTokenType(eTokenType tt)         {tokenType = tt;}
 	void SetObjectType(asCObjectType *obj)   {objectType = obj;}

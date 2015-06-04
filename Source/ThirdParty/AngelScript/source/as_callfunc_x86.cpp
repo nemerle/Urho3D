@@ -28,6 +28,7 @@
    andreas@angelcode.com
 */
 
+// Modified by Skrylar for Urho3D
 
 //
 // as_callfunc_x86.cpp
@@ -89,7 +90,7 @@ asQWORD CallThisCallFunctionRetByRef(const void *, const asDWORD *, int, asFUNCT
 asDWORD GetReturnedFloat();
 asQWORD GetReturnedDouble();
 
-asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, void *obj, asDWORD *args, void *retPointer, asQWORD &/*retQW2*/, void *secondObject)
+asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, void *obj, asDWORD *args, void *retPointer, asQWORD &/*retQW2*/)
 {
 	asCScriptEngine            *engine    = context->m_engine;
 	asSSystemFunctionInterface *sysFunc   = descr->sysFuncIntf;
@@ -99,6 +100,19 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 	// Prepare the parameters
 	asDWORD paramBuffer[64];
 	int callConv = sysFunc->callConv;
+
+#ifdef AS_NO_THISCALL_FUNCTOR_METHOD
+	int paramSize = sysFunc->paramSize;
+	if( sysFunc->takesObjByVal )
+	{
+		paramSize = 0;
+		int spos = 0;
+		int dpos = 1;
+#else
+	// Unpack the two object pointers
+	void **objectsPtrs  = (void**)obj;
+	void  *secondObject = objectsPtrs[1];
+	obj                 = objectsPtrs[0];
 
 	// Changed because need check for ICC_THISCALL_OBJFIRST or
 	// ICC_THISCALL_OBJLAST if sysFunc->takesObjByVal (avoid copy code)
@@ -120,6 +134,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 	if( sysFunc->takesObjByVal || isThisCallMethod )
 	{
 		int spos = 0;
+#endif // AS_NO_THISCALL_FUNCTOR_METHOD
 
 		for( asUINT n = 0; n < descr->parameterTypes.GetLength(); n++ )
 		{
@@ -165,6 +180,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		args = &paramBuffer[1];
 	}
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	if( isThisCallMethod && 
 		(callConv >= ICC_THISCALL_OBJLAST &&
 		 callConv <= ICC_VIRTUAL_THISCALL_OBJLAST_RETURNINMEM) )
@@ -173,6 +189,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		paramBuffer[dpos++] = (asDWORD)secondObject;
 		paramSize++;
 	}
+#endif // AS_NO_THISCALL_FUNCTOR_METHOD
 
 	// Make the actual call
 	asFUNCTION_t func = sysFunc->func;
@@ -203,20 +220,26 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		break;
 
 	case ICC_THISCALL:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_THISCALL_OBJFIRST:
 	case ICC_THISCALL_OBJLAST:
+#endif
 		retQW = CallThisCallFunction(obj, args, paramSize<<2, func);
 		break;
 
 	case ICC_THISCALL_RETURNINMEM:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_THISCALL_OBJFIRST_RETURNINMEM:
 	case ICC_THISCALL_OBJLAST_RETURNINMEM:
+#endif
 		retQW = CallThisCallFunctionRetByRef(obj, args, paramSize<<2, func, retPointer);
 		break;
 
 	case ICC_VIRTUAL_THISCALL:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_VIRTUAL_THISCALL_OBJFIRST:
 	case ICC_VIRTUAL_THISCALL_OBJLAST:
+#endif
 		{
 			// Get virtual function table from the object pointer
 			asFUNCTION_t *vftable = *(asFUNCTION_t**)obj;
@@ -225,8 +248,10 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		break;
 
 	case ICC_VIRTUAL_THISCALL_RETURNINMEM:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_VIRTUAL_THISCALL_OBJFIRST_RETURNINMEM:
 	case ICC_VIRTUAL_THISCALL_OBJLAST_RETURNINMEM:
+#endif
 		{
 			// Get virtual function table from the object pointer
 			asFUNCTION_t *vftable = *(asFUNCTION_t**)obj;
@@ -1263,7 +1288,8 @@ endcopy:
 		"subl  $4, %%ecx       \n"
 		"jne   copyloop3       \n"
 		"endcopy3:             \n"
-#if defined(__MINGW32__) && ((__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || __GNUC__ > 4)
+// Urho3D: modified to use a define set in as_config.h
+#ifdef AS_MINGW47_WORKAROUND
         // MinGW made some strange choices with 4.7, and the thiscall calling convention
         // when returning an object in memory is completely different from when not returning
         // in memory

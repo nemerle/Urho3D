@@ -73,7 +73,7 @@ extern "C" asQWORD armFuncR0R1      (const asDWORD *, int, asFUNCTION_t, asDWORD
 extern "C" asQWORD armFuncObjLast   (const asDWORD *, int, asFUNCTION_t, asDWORD obj);
 extern "C" asQWORD armFuncR0ObjLast (const asDWORD *, int, asFUNCTION_t, asDWORD r0, asDWORD obj);
 
-asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, void *obj, asDWORD *args, void *retPointer, asQWORD &/*retQW2*/, void *secondObject)
+asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, void *obj, asDWORD *args, void *retPointer, asQWORD &/*retQW2*/)
 {
 	asCScriptEngine *engine = context->m_engine;
 	asSSystemFunctionInterface *sysFunc = descr->sysFuncIntf;
@@ -89,28 +89,40 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		// The return is made in memory
 		callConv++;
 	}
-	bool isThisCallMethod = callConv >= ICC_THISCALL_OBJLAST;
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
+	// Unpack the two object pointers
+	void **objectsPtrs  = (void**)obj;
+	void  *secondObject = objectsPtrs[1];
+	obj                 = objectsPtrs[0];
 
+	bool isThisCallMethod = callConv >= ICC_THISCALL_OBJLAST;
+#endif
 
 	asDWORD paramBuffer[64+2];
 	// Android & Linux needs to align 64bit types on even registers, but this isn't done on iOS or Windows Phone
 	// TODO: optimize runtime: There should be a check for this in PrepareSystemFunction() so this 
 	//                         doesn't have to be done for functions that don't have any 64bit types
 #if !defined(AS_ANDROID) && !defined(AS_LINUX)
+#ifdef AS_NO_THISCALL_FUNCTOR_METHOD
+	if( sysFunc->takesObjByVal )
+#else
 	// In cases of thiscall methods, the callstack is configured as a standard thiscall
 	// adding the secondObject as first or last element in callstack
 	if( sysFunc->takesObjByVal || isThisCallMethod )
+#endif
 #endif
 	{
 #if defined(AS_ANDROID) || defined(AS_LINUX)
 		// mask is used as a toggler to skip uneven registers.
 		int mask = 1;
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 		if( isThisCallMethod )
 		{
 			mask = 0;
 		}
 		else
+#endif
 		{
 			// Check for object pointer as first argument
 			switch( callConv )
@@ -136,6 +148,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		int spos = 0;
 		int dpos = 2;
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 		if( isThisCallMethod && (callConv >= ICC_THISCALL_OBJFIRST &&
 			callConv <= ICC_VIRTUAL_THISCALL_OBJFIRST_RETURNINMEM) )
 		{
@@ -143,7 +156,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 			paramBuffer[dpos++] = (asDWORD)secondObject;
 			paramSize++;
 		}
-
+#endif
 		for( asUINT n = 0; n < descr->parameterTypes.GetLength(); n++ )
 		{
 			// TODO: runtime optimize: Declare a reference to descr->parameterTypes[n] so the array doesn't have to be access all the time
@@ -200,6 +213,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 			}
 		}
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 		if( isThisCallMethod && (callConv >= ICC_THISCALL_OBJLAST &&
 			callConv <= ICC_VIRTUAL_THISCALL_OBJLAST_RETURNINMEM) )
 		{
@@ -207,7 +221,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 			paramBuffer[dpos++] = (asDWORD)secondObject;
 			paramSize++;
 		}
-
+#endif
 		// Keep a free location at the beginning
 		args = &paramBuffer[2];
 	}
@@ -224,13 +238,17 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		break;
 	case ICC_THISCALL:  // fall through
 	case ICC_CDECL_OBJFIRST:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_THISCALL_OBJFIRST:
 	case ICC_THISCALL_OBJLAST:
+#endif
 		retQW = armFuncR0(args, paramSize<<2, func, (asDWORD)obj);
 		break;
 	case ICC_THISCALL_RETURNINMEM:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_THISCALL_OBJFIRST_RETURNINMEM:
 	case ICC_THISCALL_OBJLAST_RETURNINMEM:
+#endif
 #ifdef __GNUC__
 		// On GNUC the address where the return value will be placed should be put in R0
 		retQW = armFuncR0R1(args, paramSize<<2, func, (asDWORD)retPointer, (asDWORD)obj);
@@ -243,15 +261,19 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		retQW = armFuncR0R1(args, paramSize<<2, func, (asDWORD)retPointer, (asDWORD)obj);
 		break;
 	case ICC_VIRTUAL_THISCALL:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_VIRTUAL_THISCALL_OBJFIRST:
 	case ICC_VIRTUAL_THISCALL_OBJLAST:
+#endif
 		// Get virtual function table from the object pointer
 		vftable = *(asFUNCTION_t**)obj;
 		retQW = armFuncR0(args, paramSize<<2, vftable[FuncPtrToUInt(func)>>2], (asDWORD)obj);
 		break;
 	case ICC_VIRTUAL_THISCALL_RETURNINMEM:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_VIRTUAL_THISCALL_OBJFIRST_RETURNINMEM:
 	case ICC_VIRTUAL_THISCALL_OBJLAST_RETURNINMEM:
+#endif
 		// Get virtual function table from the object pointer
 		vftable = *(asFUNCTION_t**)obj;
 #ifdef __GNUC__
@@ -294,7 +316,7 @@ extern "C" asQWORD armFuncR0R1      (const asDWORD *, int, asFUNCTION_t, asDWORD
 extern "C" asQWORD armFuncObjLast   (const asDWORD *, int, asFUNCTION_t, asDWORD obj);
 extern "C" asQWORD armFuncR0ObjLast (const asDWORD *, int, asFUNCTION_t, asDWORD r0, asDWORD obj);
 
-asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, void *obj, asDWORD *args, void *retPointer, asQWORD &/*retQW2*/, void *secondObject)
+asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, void *obj, asDWORD *args, void *retPointer, asQWORD &/*retQW2*/)
 {
 	asCScriptEngine *engine = context->m_engine;
 	asSSystemFunctionInterface *sysFunc = descr->sysFuncIntf;
@@ -346,7 +368,14 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		callConv++;
 	}
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
+	// Unpack the two object pointers
+	void **objectsPtrs  = (void**)obj;
+	void  *secondObject = objectsPtrs[1];
+	obj                 = objectsPtrs[0];
+
 	bool isThisCallMethod = callConv >= ICC_THISCALL_OBJLAST;
+#endif
 
 	// Linux needs to align 64bit types on even registers, but this isn't done on iOS or Windows Phone
 	// TODO: optimize runtime: There should be a check for this in PrepareSystemFunction() so this 
@@ -355,11 +384,13 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		// mask is used as a toggler to skip uneven registers.
 		int mask = 1;
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 		if( isThisCallMethod )
 		{
 			mask = 0;
 		}
 		else
+#endif
 		{
 			// Check for object pointer as first argument
 			switch( callConv )
@@ -384,6 +415,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		int spos = 0;
 		int dpos = 2;
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 		if( isThisCallMethod && (callConv >= ICC_THISCALL_OBJFIRST &&
 			callConv <= ICC_VIRTUAL_THISCALL_OBJFIRST_RETURNINMEM) )
 		{
@@ -391,12 +423,11 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 			paramBuffer[dpos++] = (asDWORD)secondObject;
 			paramSize++;
 		}
-
+#endif
 		for( asUINT n = 0; n < descr->parameterTypes.GetLength(); n++ )
 		{
 			// TODO: runtime optimize: Declare a reference to descr->parameterTypes[n] so the array doesn't have to be access all the time
-			if( descr->parameterTypes[n].IsObject() && !descr->parameterTypes[n].IsObjectHandle() && !descr->parameterTypes[n].IsReference() &&
-				!(descr->parameterTypes[n].GetObjectType()->flags & asOBJ_APP_ARRAY) )
+			if( descr->parameterTypes[n].IsObject() && !descr->parameterTypes[n].IsObjectHandle() && !descr->parameterTypes[n].IsReference() )
 			{
 #ifdef COMPLEX_OBJS_PASSED_BY_REF
 				if( descr->parameterTypes[n].GetObjectType()->flags & COMPLEX_MASK )
@@ -558,6 +589,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 			}// else...
 		}// Loop
 
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 		if( isThisCallMethod && (callConv >= ICC_THISCALL_OBJLAST &&
 			callConv <= ICC_VIRTUAL_THISCALL_OBJLAST_RETURNINMEM) )
 		{
@@ -572,7 +604,7 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 				stackSize++;
 			}
 		}
-
+#endif
 		// Keep a free location at the beginning
 		args = &paramBuffer[2];
 	}
@@ -591,13 +623,17 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		break;
 	case ICC_THISCALL:  // fall through
 	case ICC_CDECL_OBJFIRST:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_THISCALL_OBJFIRST:
 	case ICC_THISCALL_OBJLAST:
+#endif
 		retQW = armFuncR0(args, paramSize<<2, func, (asDWORD)obj);
 		break;
 	case ICC_THISCALL_RETURNINMEM:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_THISCALL_OBJFIRST_RETURNINMEM:
 	case ICC_THISCALL_OBJLAST_RETURNINMEM:
+#endif
 		// On GNUC the address where the return value will be placed should be put in R0
 		retQW = armFuncR0R1(args, paramSize<<2, func, (asDWORD)retPointer, (asDWORD)obj);
 		break;
@@ -605,15 +641,19 @@ asQWORD CallSystemFunctionNative(asCContext *context, asCScriptFunction *descr, 
 		retQW = armFuncR0R1(args, paramSize<<2, func, (asDWORD)retPointer, (asDWORD)obj);
 		break;
 	case ICC_VIRTUAL_THISCALL:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_VIRTUAL_THISCALL_OBJFIRST:
 	case ICC_VIRTUAL_THISCALL_OBJLAST:
+#endif
 		// Get virtual function table from the object pointer
 		vftable = *(asFUNCTION_t**)obj;
 		retQW = armFuncR0(args, paramSize<<2, vftable[FuncPtrToUInt(func)>>2], (asDWORD)obj);
 		break;
 	case ICC_VIRTUAL_THISCALL_RETURNINMEM:
+#ifndef AS_NO_THISCALL_FUNCTOR_METHOD
 	case ICC_VIRTUAL_THISCALL_OBJFIRST_RETURNINMEM:
 	case ICC_VIRTUAL_THISCALL_OBJLAST_RETURNINMEM:
+#endif
 		// Get virtual function table from the object pointer
 		vftable = *(asFUNCTION_t**)obj;
 		// On GNUC the address where the return value will be placed should be put in R0

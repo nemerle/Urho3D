@@ -76,15 +76,14 @@ public:
 	int SetObject(void *obj);
 
 	// Arguments
-	int   SetArgByte(asUINT arg, asBYTE value);
-	int   SetArgWord(asUINT arg, asWORD value);
-	int   SetArgDWord(asUINT arg, asDWORD value);
-	int   SetArgQWord(asUINT arg, asQWORD value);
-	int   SetArgFloat(asUINT arg, float value);
-	int   SetArgDouble(asUINT arg, double value);
-	int   SetArgAddress(asUINT arg, void *addr);
-	int   SetArgObject(asUINT arg, void *obj);
-	int   SetArgVarType(asUINT arg, void *ptr, int typeId);
+	int SetArgByte(asUINT arg, asBYTE value);
+	int SetArgWord(asUINT arg, asWORD value);
+	int SetArgDWord(asUINT arg, asDWORD value);
+	int SetArgQWord(asUINT arg, asQWORD value);
+	int SetArgFloat(asUINT arg, float value);
+	int SetArgDouble(asUINT arg, double value);
+	int SetArgAddress(asUINT arg, void *addr);
+	int SetArgObject(asUINT arg, void *obj);
 	void *GetAddressOfArg(asUINT arg);
 
 	// Return value
@@ -137,7 +136,7 @@ public:
 	void CallLineCallback();
 	void CallExceptionCallback();
 
-	int  CallGeneric(asCScriptFunction *func);
+	int  CallGeneric(int funcID, void *objectPointer);
 
 	void DetachEngine();
 
