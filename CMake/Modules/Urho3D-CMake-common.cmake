@@ -939,7 +939,7 @@ macro (setup_main_executable)
     # Define resources
     if (NOT RESOURCE_DIRS)
         # If the macro caller has not defined the resource dirs then set them based on Urho3D project convention
-        foreach (DIR ${CMAKE_SOURCE_DIR}/bin/CoreData ${CMAKE_SOURCE_DIR}/bin/Data)
+        foreach (DIR ${CMAKE_SOURCE_DIR}/Bin/CoreData ${CMAKE_SOURCE_DIR}/Bin/Data)
             # Do not assume external project always follows Urho3D project convention, so double check if this directory exists before using it
             if (IS_DIRECTORY ${DIR})
                 list (APPEND RESOURCE_DIRS ${DIR})
