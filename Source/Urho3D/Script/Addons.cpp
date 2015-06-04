@@ -2248,16 +2248,16 @@ static void DestructString(QString* ptr)
     ptr->~QString();
 }
 
-static QChar StringCharAt(unsigned i, QString& str)
+static QChar *StringCharAt(unsigned i, QString& str)
 {
     if (i >= str.length())
     {
         asIScriptContext* context = asGetActiveContext();
         if (context)
             context->SetException("Index out of bounds");
-        return '\0';
+        return nullptr;
     }
-    return str[i];
+    return str.data()+i;
 }
 static bool StringEq(const QString& lhs, const QString& rhs)
 {
@@ -2383,6 +2383,16 @@ static QString& StringAddAssignBool(bool value, QString& str)
     str += QString::number(value);
     return str;
 }
+static QString& StringAssignQChar(QChar value, QString& str)
+{
+    str = value;
+    return str;
+}
+static QString& StringAddAssignQChar(QChar value, QString& str)
+{
+    str += value;
+    return str;
+}
 
 static QString StringAddBool(bool value, const QString& str)
 {
@@ -2400,6 +2410,9 @@ void QCharConstruct(QChar* self) {
 void QCharConstructChar(char i, QChar * self) {
     new(self) QChar(i);
 }
+void QCharConstructInt(int i, QChar * self) {
+    new(self) QChar(i);
+}
 void QCharConstructCopy(const QChar &i, QChar * self) {
     new(self) QChar(i);
 }
@@ -2408,6 +2421,7 @@ uint16_t toU16(QChar * c) {
         return c->unicode();
     return 0;
 }
+
 #ifndef AS_CAN_USE_CPP11
 asdasd sadasdas asd
 
@@ -2420,9 +2434,11 @@ void RegisterString(asIScriptEngine *engine)
     engine->RegisterEnumValue("CaseSensitivity","CaseInsensitive",0);
     engine->RegisterEnumValue("CaseSensitivity","CaseSensitive",1);
     engine->SetDefaultNamespace(prev_namespace);
-    auto v = asGetTypeTraits<int>();
+
     engine->RegisterObjectType("QChar", sizeof(QChar), asOBJ_APP_CLASS_ALLINTS| asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<QChar>());
     engine->RegisterObjectMethod("QChar", "uint16 opImplConv() const",asFUNCTION(toU16), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectBehaviour("QChar", asBEHAVE_CONSTRUCT, "void f(int)", asFUNCTION(QCharConstructInt), asCALL_CDECL_OBJLAST);
+
     //r = engine->RegisterObjectType("complex", sizeof(complex), asOBJ_VALUE | asGetTypeTraits<complex>());
     engine->RegisterObjectType("String", sizeof(QString), asOBJ_VALUE | asOBJ_APP_CLASS_CDAK);
     engine->RegisterStringFactory("String", asFUNCTION(StringFactory), asCALL_CDECL);
@@ -2434,7 +2450,7 @@ void RegisterString(asIScriptEngine *engine)
     engine->RegisterObjectMethod("String", "bool opEquals(const String&in) const", asFUNCTION(StringEq), asCALL_CDECL_OBJFIRST);
     engine->RegisterObjectMethod("String", "int opCmp(const String&in) const", asFUNCTION(StringCmp), asCALL_CDECL_OBJFIRST);
     engine->RegisterObjectMethod("String", "String opAdd(const String&in) const", asFUNCTION(StringAdd), asCALL_CDECL_OBJFIRST);
-    engine->RegisterObjectMethod("String", "QChar opIndex(uint) const", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "QChar& opIndex(uint) const", asFUNCTION(StringCharAt), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "String &Replace(uint8, uint8, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive)", asMETHODPR(QString, replace, (QChar, QChar, Qt::CaseSensitivity), QString&), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "String &Replace(const String&in, const String&in, Qt::CaseSensitivity caseSensitive = Qt::CaseSensitivity::CaseSensitive)", asMETHODPR(QString, replace, (const QString&, const QString&, Qt::CaseSensitivity), QString&), asCALL_THISCALL);
     engine->RegisterObjectMethod("String", "void Resize(uint)", asFUNCTION(StringResize), asCALL_CDECL_OBJLAST);
@@ -2474,6 +2490,8 @@ void RegisterString(asIScriptEngine *engine)
     engine->RegisterObjectMethod("String", "String opAdd_r(float) const", asFUNCTION(StringAddFloatReverse), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "String& opAssign(bool)", asFUNCTION(StringAssignBool), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "String& opAddAssign(bool)", asFUNCTION(StringAddAssignBool), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "String& opAssign(QChar)", asFUNCTION(StringAddAssignQChar), asCALL_CDECL_OBJLAST);
+    engine->RegisterObjectMethod("String", "String& opAddAssign(QChar)", asFUNCTION(StringAddAssignQChar), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "String opAdd(bool) const", asFUNCTION(StringAddBool), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod("String", "String opAdd_r(bool) const", asFUNCTION(StringAddBoolReverse), asCALL_CDECL_OBJLAST);
 }

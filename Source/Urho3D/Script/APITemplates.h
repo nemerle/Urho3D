@@ -471,7 +471,8 @@ template <class T> void RegisterAnimatable(asIScriptEngine* engine, const char* 
 }
 
 /// Template function for registering a class derived from Component.
-template <class T> void RegisterComponent(asIScriptEngine* engine, const char* className, bool nodeRegistered = true, bool debugRendererRegistered = true)
+template <class T>
+void RegisterComponent(asIScriptEngine* engine, const char* className, bool nodeRegistered = true, bool debugRendererRegistered = true)
 {
     RegisterAnimatable<T>(engine, className);
     RegisterSubclass<Component, T>(engine, "Component", className);

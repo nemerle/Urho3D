@@ -564,9 +564,9 @@ bool ScriptFile::AddScriptSection(asIScriptEngine* engine, Deserializer& source)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
 
     unsigned dataSize = source.GetSize();
-    SharedArrayPtr<char> buffer(new char[dataSize]);
+    SharedArrayPtr<char> buffer(new char[dataSize+1]);
     source.Read((void*)buffer.Get(), dataSize);
-
+    buffer.Get()[dataSize]=0;
     // Pre-parse for includes
     // Adapted from Angelscript's scriptbuilder add-on
     QStringList includeFiles;

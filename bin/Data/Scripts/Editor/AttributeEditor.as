@@ -314,11 +314,11 @@ UIElement@ CreateIntAttributeEditor(ListView@ list, Array<Serializable@>@ serial
         LineEdit@ attrEdit = CreateAttributeLineEdit(parent, serializables, index, subIndex);
         CreateDragSlider(attrEdit);
         // If the attribute is a counter for things like billboards or animation states, disable apply at each change
-        if (info.name.Find(" Count", 0, false) == -1)
+        if (info.name.Find(" Count", 0, Qt::CaseInsensitive) == -1)
             SubscribeToEvent(attrEdit, "TextChanged", "EditAttribute");
         SubscribeToEvent(attrEdit, "TextFinished", "EditAttribute");
         // If the attribute is a node ID, make it a drag/drop target
-        if (info.name.Contains("NodeID", false) || info.name.Contains("Node ID", false) || (info.mode & AM_NODEID) != 0)
+        if (info.name.Contains("NodeID", Qt::CaseInsensitive) || info.name.Contains("Node ID", Qt::CaseInsensitive) || (info.mode & AM_NODEID) != 0)
             attrEdit.dragDropMode = DD_TARGET;
     }
     else
@@ -1291,9 +1291,9 @@ Resource@ GetPickedResource(String resourceName)
         XMLFile@ xmlRes = cache.GetResource("XMLFile", resourceName);
         if (xmlRes !is null)
         {
-            if (xmlRes.root.name.Compare("cubemap", false) == 0 || xmlRes.root.name.Compare("texturecube", false) == 0)
+            if (xmlRes.root.name.Compare("cubemap", Qt::CaseInsensitive) == 0 || xmlRes.root.name.Compare("texturecube", Qt::CaseInsensitive) == 0)
                 type = "TextureCube";
-            else if (xmlRes.root.name.Compare("texture3d", false) == 0)
+            else if (xmlRes.root.name.Compare("texture3d", Qt::CaseInsensitive) == 0)
                 type = "Texture3D";
         }
     }
@@ -1506,7 +1506,7 @@ int GetAttributeIndex(Serializable@ serializable, const String&in attrName)
 {
     for (uint i = 0; i < serializable.numAttributes; ++i)
     {
-        if (serializable.attributeInfos[i].name.Compare(attrName, false) == 0)
+        if (serializable.attributeInfos[i].name.Compare(attrName, Qt::CaseInsensitive) == 0)
             return i;
     }
     

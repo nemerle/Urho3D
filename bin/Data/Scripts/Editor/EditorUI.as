@@ -191,7 +191,7 @@ void PerformQuickMenuSearch(const String&in query)
             for (uint x=0; x < quickMenuItems.length; x++)
             {
                 @qi = quickMenuItems[x];
-                int find = qi.action.Find(query, 0, false);
+                int find = qi.action.Find(query, 0, Qt::CaseInsensitive);
                 if (find > -1)
                 {
                     qi.sortScore = find;
@@ -837,7 +837,7 @@ Text@ CreateAccelKeyText(int accelKey, int accelQual)
     else if (accelKey == SHOW_POPUP_INDICATOR)
         text = ">";
     else
-        text.AppendUTF8(accelKey);
+        text = QChar(accelKey);
     if (accelQual & QUAL_ALT > 0)
         text = "Alt+" + text;
     if (accelQual & QUAL_SHIFT > 0)
@@ -1136,7 +1136,7 @@ void HandleKeyDown(StringHash eventType, VariantMap& eventData)
         if (!fileSystem.DirExists(screenshotDir))
             fileSystem.CreateDir(screenshotDir);
         screenshot.SavePNG(screenshotDir + "/Screenshot_" +
-                time.timeStamp.Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_') + ".png");
+                String(time.timeStamp).Replace(':', '_').Replace('.', '_').Replace(' ', '_') + ".png");
     }   
     else if (key == KEY_KP_1 && ui.focusElement is null) // Front view
     {

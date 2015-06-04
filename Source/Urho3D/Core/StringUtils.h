@@ -114,8 +114,8 @@ URHO3D_API bool IsAlpha(unsigned ch);
 /// Return whether a char is a digit.
 URHO3D_API bool IsDigit(unsigned ch);
 /// Return char in uppercase.
-URHO3D_API unsigned ToUpper(unsigned ch);
+URHO3D_API QChar ToUpper(QChar ch);
 /// Return char in lowercase.
-URHO3D_API unsigned ToLower(unsigned ch);
+URHO3D_API QChar ToLower(QChar ch);
 
 }

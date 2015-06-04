@@ -135,8 +135,8 @@ void SetResourcePath(String newPath, bool usePreferredDir = true, bool additive 
         renderer.ReloadShaders();
 
         String check = AddTrailingSlash(sceneResourcePath);
-        bool isDefaultResourcePath = check.Compare(fileSystem.programDir + "Data/", false) == 0 ||
-            check.Compare(fileSystem.programDir + "CoreData/", false) == 0;
+        bool isDefaultResourcePath = check.Compare(fileSystem.programDir + "Data/", Qt::CaseInsensitive) == 0 ||
+            check.Compare(fileSystem.programDir + "CoreData/", Qt::CaseInsensitive) == 0;
 
         if (!sceneResourcePath.empty && !isDefaultResourcePath)
             cache.RemoveResourceDir(sceneResourcePath);
@@ -148,7 +148,7 @@ void SetResourcePath(String newPath, bool usePreferredDir = true, bool additive 
 
         for (uint i = 0; i < resourceDirs.length; ++i)
         {
-            if (newPath.StartsWith(resourceDirs[i], false))
+            if (newPath.StartsWith(resourceDirs[i], Qt::CaseInsensitive))
                 return;
         }
     }
@@ -203,7 +203,7 @@ bool LoadScene(const String&in fileName)
 
     // Add the scene's resource path in case it's necessary
     String newScenePath = GetPath(fileName);
-    if (!rememberResourcePath || !sceneResourcePath.StartsWith(newScenePath, false))
+    if (!rememberResourcePath || !sceneResourcePath.StartsWith(newScenePath, Qt::CaseInsensitive))
         SetResourcePath(newScenePath);
 
     suppressSceneChanges = true;

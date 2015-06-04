@@ -585,14 +585,14 @@ bool IsDigit(unsigned ch)
     return ch < 256 ? isdigit(ch) != 0 : false;
 }
 
-unsigned ToUpper(unsigned ch)
+QChar ToUpper(QChar ch)
 {
-    return toupper(ch);
+    return ch.toUpper();
 }
 
-unsigned ToLower(unsigned ch)
+QChar ToLower(QChar ch)
 {
-    return tolower(ch);
+    return ch.toLower();
 }
 
 }

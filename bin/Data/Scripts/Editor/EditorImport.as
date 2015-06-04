@@ -379,17 +379,17 @@ void ProcessRef(String& ref)
 
 String GetOutModelName(const String&in ref)
 {
-    return "Models/" + GetFullAssetName(ref).Replaced('/', '_').Replaced(".mesh", ".mdl");
+    return "Models/" + GetFullAssetName(ref).Replace('/', '_').Replace(".mesh", ".mdl");
 }
 
 String GetOutMaterialName(const String&in ref)
 {
-    return "Materials/" + GetFullAssetName(ref).Replaced('/', '_').Replaced(".material", ".xml");
+    return "Materials/" + GetFullAssetName(ref).Replace('/', '_').Replace(".material", ".xml");
 }
 
 String GetOutTextureName(const String&in ref)
 {
-    return "Textures/" + GetFullAssetName(ref).Replaced('/', '_');
+    return "Textures/" + GetFullAssetName(ref).Replace('/', '_');
 }
 
 void ConvertModel(const String&in modelName, const String&in filePath, Array<String>@ convertedModels)
@@ -410,7 +410,7 @@ void ConvertModel(const String&in modelName, const String&in filePath, Array<Str
     // Convert .mesh to .mesh.xml
     String cmdLine = "ogrexmlconverter \"" + meshFileName + "\" \"" + xmlFileName + "\"";
     if (!fileSystem.FileExists(xmlFileName))
-        fileSystem.SystemCommand(cmdLine.Replaced('/', '\\'));
+        fileSystem.SystemCommand(String(cmdLine).Replace('/', '\\'));
 
     if (!fileSystem.FileExists(outFileName))
     {

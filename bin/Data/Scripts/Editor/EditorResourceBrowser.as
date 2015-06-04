@@ -560,7 +560,7 @@ void PopulateResourceDirFilters()
 
         Text@ label = Text();
         label.style = "EditorAttributeText";
-        label.text = cache.resourceDirs[i].Replaced(fileSystem.programDir, "");
+        label.text = String(cache.resourceDirs[i]).Replace(fileSystem.programDir, "");
         CheckBox@ checkbox = CheckBox();
         checkbox.name = i;
         checkbox.SetStyleAuto();
@@ -624,7 +624,7 @@ void PopulateResourceBrowserBySearch()
             if (activeResourceDirFilters.Find(file.resourceSourceIndex) > -1)
                 continue;
 
-            int find = file.fullname.Find(query, 0, false);
+            int find = file.fullname.Find(query, 0, Qt::CaseInsensitive);
             if (find > -1)
             {
                 int fudge = query.length - file.fullname.length;
