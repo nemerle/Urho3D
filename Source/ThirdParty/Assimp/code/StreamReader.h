@@ -45,7 +45,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_STREAMREADER_H_INCLUDED
 #define AI_STREAMREADER_H_INCLUDED
 
-#include "ByteSwap.h"
+#include "ByteSwapper.h"
+#include "Exceptional.h"
+#include <memory>
+#include "../include/assimp/IOStream.hpp"
+#include "Defines.h"
 
 namespace Assimp {
 
@@ -86,7 +90,7 @@ public:
 	 *    stream is in little endian byte order. Otherwise the
 	 *    endianess information is contained in the @c SwapEndianess
 	 *    template parameter and this parameter is meaningless.  */
-	StreamReader(boost::shared_ptr<IOStream> stream, bool le = false)
+    StreamReader(std::shared_ptr<IOStream> stream, bool le = false)
 		: stream(stream)
 		, le(le)
 	{
@@ -96,7 +100,7 @@ public:
 
 	// ---------------------------------------------------------------------
 	StreamReader(IOStream* stream, bool le = false)
-		: stream(boost::shared_ptr<IOStream>(stream))
+        : stream(std::shared_ptr<IOStream>(stream))
 		, le(le)
 	{
 		ai_assert(stream);
@@ -333,7 +337,7 @@ private:
 private:
 
 
-	boost::shared_ptr<IOStream> stream;
+    std::shared_ptr<IOStream> stream;
 	int8_t *buffer, *current, *end, *limit;
 	bool le;
 };

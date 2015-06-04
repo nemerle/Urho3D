@@ -1,7 +1,7 @@
 #pragma once
 #include "../Container/Vector.h"
 //#include <mct/hash-map.hpp>
-#include <sherwood_map/sherwood_map.hpp>
+#include "../ThirdParty/sherwood_map/sherwood_map.hpp"
 #ifdef USE_QT_HASHMAP
 #include <QtCore/QHash>
 #else

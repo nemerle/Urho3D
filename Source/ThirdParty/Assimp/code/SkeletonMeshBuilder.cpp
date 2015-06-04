@@ -42,7 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Implementation of a little class to construct a dummy mesh for a skeleton 
  */
 
-#include "AssimpPCH.h"
 #include "../include/assimp/scene.h"
 #include "SkeletonMeshBuilder.h"
 
@@ -101,7 +100,7 @@ void SkeletonMeshBuilder::CreateGeometry( const aiNode* pNode)
 			aiVector3D up = aiVector3D( childpos).Normalize();
 
 			aiVector3D orth( 1.0f, 0.0f, 0.0f);
-			if( fabs( orth * up) > 0.99f)
+			if( std::fabs( orth * up) > 0.99f)
 				orth.Set( 0.0f, 1.0f, 0.0f);
 
 			aiVector3D front = (up ^ orth).Normalize();

@@ -46,11 +46,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *   .. although overdraw rduction isn't implemented yet ...
  */
 
-#include "AssimpPCH.h"
 
 // internal headers
 #include "ImproveCacheLocality.h"
 #include "VertexTriangleAdjacency.h"
+#include "../include/assimp/postprocess.h"
+#include "../include/assimp/scene.h"
+#include "../include/assimp/DefaultLogger.hpp"
+#include <stdio.h>
+#include <stack>
 
 using namespace Assimp;
 
@@ -105,7 +109,7 @@ void ImproveCacheLocalityProcess::Execute( aiScene* pScene)
     }
     if (!DefaultLogger::isNullLogger()) {
         char szBuff[128]; // should be sufficiently large in every case
-        ::sprintf(szBuff,"Cache relevant are %i meshes (%i faces). Average output ACMR is %f",
+		::sprintf(szBuff,"Cache relevant are %u meshes (%u faces). Average output ACMR is %f",
             numm,numf,out/numf);
 
         DefaultLogger::get()->info(szBuff);
@@ -177,7 +181,7 @@ float ImproveCacheLocalityProcess::ProcessMesh( aiMesh* pMesh, unsigned int mesh
             // the JoinIdenticalVertices process has not been executed on this
             // mesh, otherwise this value would normally be at least minimally
             // smaller than 3.0 ...
-            sprintf(szBuff,"Mesh %i: Not suitable for vcache optimization",meshNum);
+			sprintf(szBuff,"Mesh %u: Not suitable for vcache optimization",meshNum);
             DefaultLogger::get()->warn(szBuff);
             return 0.f;
         }
@@ -356,7 +360,7 @@ float ImproveCacheLocalityProcess::ProcessMesh( aiMesh* pMesh, unsigned int mesh
         if ( DefaultLogger::get()->getLogSeverity() == Logger::VERBOSE) {
             char szBuff[128]; // should be sufficiently large in every case
 
-            ::sprintf(szBuff,"Mesh %i | ACMR in: %f out: %f | ~%.1f%%",meshNum,fACMR,fACMR2,
+			::sprintf(szBuff,"Mesh %u | ACMR in: %f out: %f | ~%.1f%%",meshNum,fACMR,fACMR2,
                 ((fACMR - fACMR2) / fACMR) * 100.f);
             DefaultLogger::get()->debug(szBuff);
         }

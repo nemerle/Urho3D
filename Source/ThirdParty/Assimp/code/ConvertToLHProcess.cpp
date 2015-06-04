@@ -47,8 +47,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  better location.
  */
 
-#include "AssimpPCH.h"
 #include "ConvertToLHProcess.h"
+#include "../include/assimp/scene.h"
+#include "../include/assimp/postprocess.h"
+#include "../include/assimp/DefaultLogger.hpp"
 
 using namespace Assimp;
 
@@ -57,12 +59,15 @@ using namespace Assimp;
 // ------------------------------------------------------------------------------------------------
 // Constructor to be privately used by Importer
 MakeLeftHandedProcess::MakeLeftHandedProcess()
-{}
+: BaseProcess() {
+    // empty
+}
 
 // ------------------------------------------------------------------------------------------------
 // Destructor, private as well
-MakeLeftHandedProcess::~MakeLeftHandedProcess()
-{}
+MakeLeftHandedProcess::~MakeLeftHandedProcess() {
+    // empty
+}
 
 // ------------------------------------------------------------------------------------------------
 // Returns whether the processing step is present in the given flag field.
@@ -121,8 +126,9 @@ void MakeLeftHandedProcess::ProcessNode( aiNode* pNode, const aiMatrix4x4& pPare
 	pNode->mTransformation.d3 = -pNode->mTransformation.d3; // useless, but anyways...
 
 	// continue for all children
-	for( size_t a = 0; a < pNode->mNumChildren; ++a)
+    for( size_t a = 0; a < pNode->mNumChildren; ++a ) {
 		ProcessNode( pNode->mChildren[a], pParentGlobalRotation * pNode->mTransformation);
+}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -244,6 +250,10 @@ void FlipUVsProcess::ProcessMaterial (aiMaterial* _mat)
 	aiMaterial* mat = (aiMaterial*)_mat;
 	for (unsigned int a = 0; a < mat->mNumProperties;++a)	{
 		aiMaterialProperty* prop = mat->mProperties[a];
+        if( !prop ) {
+            DefaultLogger::get()->debug( "Property is null" );
+            continue;
+        }
 
 		// UV transformation key?
 		if (!::strcmp( prop->mKey.data, "$tex.uvtrafo"))	{
@@ -263,11 +273,13 @@ void FlipUVsProcess::ProcessMesh( aiMesh* pMesh)
 {
 	// mirror texture y coordinate
 	for( unsigned int a = 0; a < AI_MAX_NUMBER_OF_TEXTURECOORDS; a++)	{
-		if( !pMesh->HasTextureCoords( a))
+        if( !pMesh->HasTextureCoords( a ) ) {
 			break;
+        }
 
-		for( unsigned int b = 0; b < pMesh->mNumVertices; b++)
+        for( unsigned int b = 0; b < pMesh->mNumVertices; b++ ) {
 			pMesh->mTextureCoords[a][b].y = 1.0f - pMesh->mTextureCoords[a][b].y;
+        }
 	}
 }
 

@@ -48,7 +48,7 @@ find_package(Qt5Core)
 #find_package(Qt5OpenGL)
 #find_package(Qt5Quick)
 #find_package(Qt5Widgets)
-set(CMAKE_AUTOMOC TRUE)
+set(CMAKE_AUTOMOC FALSE)
 
 if (COMMAND cmake_policy)
     cmake_policy (SET CMP0003 NEW)

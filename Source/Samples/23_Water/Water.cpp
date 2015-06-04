@@ -52,6 +52,7 @@
 
 DEFINE_APPLICATION_MAIN(Water)
 
+Text* text=nullptr;
 Water::Water(Context* context) :
     Sample(context)
 {
@@ -143,6 +144,16 @@ void Water::CreateScene()
         object->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
         object->SetCastShadows(true);
     }
+    Node* shipNode = scene_->CreateChild("Ship");
+    shipNode->SetPosition(Vector3(0.0f, 4.6f, 0.0f));
+    //shipNode->SetRotation(Quaternion(0.0f, Random(360.0f), 0.0f));
+    shipNode->SetScale(0.5f + Random(2.0f));
+    StaticModel* shipObject = shipNode->CreateComponent<StaticModel>();
+    shipObject->SetModel(cache->GetResource<Model>("Models/ship04.mdl"));
+    shipObject->SetMaterial(0,cache->GetResource<Material>("Materials/ship04_Material0.xml"));
+    shipObject->SetMaterial(1,cache->GetResource<Material>("Materials/ship04_Material1.xml"));
+    shipObject->SetMaterial(2,cache->GetResource<Material>("Materials/ship04_Material2.xml"));
+    shipObject->SetCastShadows(true);
 
     // Create a water plane object that is as large as the terrain
     waterNode_ = scene_->CreateChild("Water");
@@ -169,16 +180,22 @@ void Water::CreateInstructions()
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     UI* ui = GetSubsystem<UI>();
 
-    // Construct new Text object, set string to display and font to use
-    Text* instructionText = ui->GetRoot()->CreateChild<Text>();
-    instructionText->SetText("Use WASD keys and mouse/touch to move");
-    instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
-    instructionText->SetTextAlignment(HA_CENTER);
+    //    Text* instructionText = ui->GetRoot()->CreateChild<Text>();
+    text = ui->GetRoot()->CreateChild<Text>();
+    text->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 12);
+    text->SetTextAlignment(HA_CENTER);
+    text->SetVerticalAlignment(VA_TOP);
 
-    // Position the text relative to the screen center
-    instructionText->SetHorizontalAlignment(HA_CENTER);
-    instructionText->SetVerticalAlignment(VA_CENTER);
-    instructionText->SetPosition(0, ui->GetRoot()->GetHeight() / 4);
+//    // Construct new Text object, set string to display and font to use
+//    Text* instructionText = ui->GetRoot()->CreateChild<Text>();
+//    instructionText->SetText("Use WASD keys and mouse/touch to move");
+//    instructionText->SetFont(cache->GetResource<Font>("Fonts/Anonymous Pro.ttf"), 15);
+//    instructionText->SetTextAlignment(HA_CENTER);
+
+//    // Position the text relative to the screen center
+//    instructionText->SetHorizontalAlignment(HA_CENTER);
+//    instructionText->SetVerticalAlignment(VA_CENTER);
+//    instructionText->SetPosition(0, ui->GetRoot()->GetHeight() / 4);
 }
 
 void Water::SetupViewport()
@@ -277,7 +294,10 @@ void Water::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
     // Take the frame time step, which is stored as a float
     float timeStep = eventData[P_TIMESTEP].GetFloat();
-
+    if(text) {
+    FrameInfo frameInfo = GetSubsystem<Renderer>()->GetFrameInfo();
+    text->SetText(QString("FPS: ") + QString::number(1.0 / frameInfo.timeStep_));
+    }
     // Move the camera, scale movement with time step
     MoveCamera(timeStep);
 }

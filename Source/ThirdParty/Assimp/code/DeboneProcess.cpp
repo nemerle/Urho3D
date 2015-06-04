@@ -41,11 +41,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /// @file DeboneProcess.cpp
 /** Implementation of the DeboneProcess post processing step */
 
-#include "AssimpPCH.h"
+
 
 // internal headers of the post-processing framework
 #include "ProcessHelper.h"
 #include "DeboneProcess.h"
+#include <stdio.h>
 
 
 using namespace Assimp;
@@ -111,8 +112,8 @@ void DeboneProcess::Execute( aiScene* pScene)
 
 	if(numSplits)	{
 		// we need to do something. Let's go.
-		mSubMeshIndices.clear();
-		mSubMeshIndices.resize(pScene->mNumMeshes);
+		//mSubMeshIndices.clear();                  // really needed?
+		mSubMeshIndices.resize(pScene->mNumMeshes); // because we're doing it here anyway
 
 		// build a new array of meshes for the scene
 		std::vector<aiMesh*> meshes;

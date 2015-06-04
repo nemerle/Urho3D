@@ -38,6 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
+// TODO: refactor entire file to get rid of the "flat-copy" first approach
+// to copying structures. This easily breaks in the most unintuitive way
+// possible as new fields are added to assimp structures.
 
 // ----------------------------------------------------------------------------
 /** @file Implements Assimp::SceneCombiner. This is a smart utility
@@ -46,11 +49,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *    OptimizeGraph step.
  */
 // ----------------------------------------------------------------------------
-#include "AssimpPCH.h"
 #include "SceneCombiner.h"
 #include "fast_atof.h"
 #include "Hash.h"
 #include "time.h"
+#include "../include/assimp/DefaultLogger.hpp"
+#include "../include/assimp/scene.h"
+#include <stdio.h>
+#include "ScenePrivate.h"
 
 namespace Assimp	{
 
@@ -914,7 +920,7 @@ void SceneCombiner::MergeMaterials(aiMaterial** dest,
 
 			// Test if we already have a matching property 
 			const aiMaterialProperty* prop_exist;
-			if(aiGetMaterialProperty(out, sprop->mKey.C_Str(), sprop->mType, sprop->mIndex, &prop_exist) != AI_SUCCESS) {
+			if(aiGetMaterialProperty(out, sprop->mKey.C_Str(), sprop->mSemantic, sprop->mIndex, &prop_exist) != AI_SUCCESS) {
 				// If not, we add it to the new material
 				aiMaterialProperty* prop = out->mProperties[out->mNumProperties] = new aiMaterialProperty();
 
@@ -1020,7 +1026,9 @@ void SceneCombiner::CopyScene(aiScene** _dest,const aiScene* src,bool allocate)
 	dest->mFlags = src->mFlags;
 
 	// source private data might be NULL if the scene is user-allocated (i.e. for use with the export API)
-	ScenePriv(dest)->mPPStepsApplied = ScenePriv(src) ? ScenePriv(src)->mPPStepsApplied : 0;
+	if (dest->mPrivate != NULL) {
+		ScenePriv(dest)->mPPStepsApplied = ScenePriv(src) ? ScenePriv(src)->mPPStepsApplied : 0;
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1194,10 +1202,53 @@ void SceneCombiner::Copy     (aiNode** _dest, const aiNode* src)
 	// get a flat copy
 	::memcpy(dest,src,sizeof(aiNode));
 
+	if (src->mMetaData) {
+		Copy(&dest->mMetaData, src->mMetaData);
+	}
+
 	// and reallocate all arrays
 	GetArrayCopy( dest->mMeshes, dest->mNumMeshes );
 	CopyPtrArray( dest->mChildren, src->mChildren,dest->mNumChildren);
 }
 
+// ------------------------------------------------------------------------------------------------
+void SceneCombiner::Copy (aiMetadata** _dest, const aiMetadata* src)
+{
+	ai_assert(NULL != _dest && NULL != src);
+
+	aiMetadata* dest = *_dest = new aiMetadata();
+	dest->mNumProperties = src->mNumProperties;
+	dest->mKeys = new aiString[src->mNumProperties];
+	std::copy(src->mKeys, src->mKeys + src->mNumProperties, dest->mKeys);
+
+	dest->mValues = new aiMetadataEntry[src->mNumProperties];
+	for (unsigned int i = 0; i < src->mNumProperties; ++i) {
+		aiMetadataEntry& in = src->mValues[i];
+		aiMetadataEntry& out = dest->mValues[i];
+		out.mType = in.mType;
+		switch (dest->mValues[i].mType) {
+		case AI_BOOL:
+			out.mData = new bool(*static_cast<bool*>(in.mData));
+			break;
+		case AI_INT:
+			out.mData = new int(*static_cast<int*>(in.mData));
+			break;
+		case AI_UINT64:
+			out.mData = new uint64_t(*static_cast<uint64_t*>(in.mData));
+			break;
+		case AI_FLOAT:
+			out.mData = new float(*static_cast<float*>(in.mData));
+			break;
+		case AI_AISTRING:
+			out.mData = new aiString(*static_cast<aiString*>(in.mData));
+			break;
+		case AI_AIVECTOR3D:
+			out.mData = new aiVector3D(*static_cast<aiVector3D*>(in.mData));
+			break;
+		default:
+			ai_assert(false);
+		}
+	}
+}
 
 }

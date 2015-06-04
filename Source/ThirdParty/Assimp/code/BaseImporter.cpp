@@ -43,11 +43,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Implementation of BaseImporter 
  */
 
-#include "AssimpPCH.h"
 #include "BaseImporter.h"
 #include "FileSystemFilter.h"
 
 #include "Importer.h"
+#include "ByteSwapper.h"
+#include "../include/assimp/scene.h"
+#include "../include/assimp/Importer.hpp"
+#include "../include/assimp/postprocess.h"
+
+#include <ios>
+#include <list>
+#include <sstream>
+#include <cctype>
+#include <memory>
 
 using namespace Assimp;
 
@@ -140,10 +149,10 @@ void BaseImporter::GetExtensionList(std::set<std::string>& extensions)
 	if (!pIOHandler)
 		return false;
 
-	boost::scoped_ptr<IOStream> pStream (pIOHandler->Open(pFile));
+    std::unique_ptr<IOStream> pStream (pIOHandler->Open(pFile));
 	if (pStream.get() )	{
 		// read 200 characters from the file
-		boost::scoped_array<char> _buffer (new char[searchBytes+1 /* for the '\0' */]);
+        std::unique_ptr<char[]> _buffer (new char[searchBytes+1 /* for the '\0' */]);
 		char* buffer = _buffer.get();
 
 		const unsigned int read = pStream->Read(buffer,1,searchBytes);
@@ -239,7 +248,7 @@ void BaseImporter::GetExtensionList(std::set<std::string>& extensions)
 		const uint32_t* magic_u32;
 	};
 	magic = reinterpret_cast<const char*>(_magic);
-	boost::scoped_ptr<IOStream> pStream (pIOHandler->Open(pFile));
+    std::unique_ptr<IOStream> pStream (pIOHandler->Open(pFile));
 	if (pStream.get() )	{
 
 		// skip to offset
@@ -471,7 +480,9 @@ namespace Assimp
 struct Assimp::BatchData
 {
 	BatchData()
-		:	next_id(0xffff)
+        : pIOSystem()
+        , pImporter()
+        , next_id(0xffff)
 	{}
 
 	// IO system to be used for all imports

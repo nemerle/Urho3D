@@ -514,8 +514,9 @@ void DumpNodes(aiNode* rootNode, unsigned level)
 {
     if (!rootNode)
         return;
-
-    QString indent(' ', level * 2);
+    QString indent;
+    for(int i=0; i<level; ++i)
+        indent += "  ";
     Vector3 pos, scale;
     Quaternion rot;
     aiMatrix4x4 transform = GetDerivedTransform(rootNode, rootNode_);

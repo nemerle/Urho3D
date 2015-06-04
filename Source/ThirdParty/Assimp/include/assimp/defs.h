@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
-/** @file aiDefines.h
+/** @file defs.h
  *  @brief Assimp build configuration setup. See the notes in the comment
  *  blocks to find out how to customize _your_ Assimp build.
  */
@@ -162,8 +162,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #	define AI_FORCE_INLINE inline
 #endif // (defined _MSC_VER)
 
-#ifdef __clang__
-#	define AI_WONT_RETURN_SUFFIX  __attribute__((analyzer_noreturn))
+#ifdef __GNUC__
+#	define AI_WONT_RETURN_SUFFIX  __attribute__((noreturn))
 #else
 #	define AI_WONT_RETURN_SUFFIX
 #endif // (defined __clang__)
@@ -257,8 +257,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define AI_MATH_HALF_PI_F	(AI_MATH_PI_F * 0.5f)
 
 /* Tiny macro to convert from radians to degrees and back */
-#define AI_DEG_TO_RAD(x) (x*0.0174532925f)
-#define AI_RAD_TO_DEG(x) (x*57.2957795f)
+#define AI_DEG_TO_RAD(x) ((x)*0.0174532925f)
+#define AI_RAD_TO_DEG(x) ((x)*57.2957795f)
 
 /* Support for big-endian builds */
 #if defined(__BYTE_ORDER__)

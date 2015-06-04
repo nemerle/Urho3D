@@ -43,13 +43,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Implementation of the aiProcess_OptimizGraph step
  */
 
-#include "AssimpPCH.h"
+
 #ifndef ASSIMP_BUILD_NO_OPTIMIZEGRAPH_PROCESS
 
-using namespace Assimp;
 #include "OptimizeGraph.h"
 #include "ProcessHelper.h"
 #include "SceneCombiner.h"
+#include "Exceptional.h"
+#include <stdio.h>
+
+using namespace Assimp;
 
 #define AI_RESERVED_NODE_NAME "$Reserved_And_Evil"
 
@@ -68,6 +71,10 @@ using namespace Assimp;
 // ------------------------------------------------------------------------------------------------
 // Constructor to be privately used by Importer
 OptimizeGraphProcess::OptimizeGraphProcess()
+    : mScene()
+    , nodes_in()
+    , nodes_out()
+    , count_merged()
 {}
 
 // ------------------------------------------------------------------------------------------------
@@ -119,7 +126,7 @@ void OptimizeGraphProcess::CollectNewChildren(aiNode* nd, std::list<aiNode*>& no
 			++it;
 		}
 
-		if (nd->mNumMeshes || child_nodes.size()) { 
+		if (nd->mNumMeshes || !child_nodes.empty()) { 
 			nodes.push_back(nd);
 		}
 		else {
@@ -169,7 +176,7 @@ void OptimizeGraphProcess::CollectNewChildren(aiNode* nd, std::list<aiNode*>& no
 			}
 			++it;
 		}
-		if (join_master && join.size()) {
+		if (join_master && !join.empty()) {
 			join_master->mName.length = sprintf(join_master->mName.data,"$MergedNode_%i",count_merged++);
 
 			unsigned int out_meshes = 0;

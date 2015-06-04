@@ -42,12 +42,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Implementation of the Plain-C API
  */
 
-#include "AssimpPCH.h"
-#include "../include/assimp/cimport.h"
+#include <assimp/cimport.h>
+#include <assimp/LogStream.hpp>
+#include <assimp/DefaultLogger.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/importerdesc.h>
+#include <assimp/scene.h>
 
 #include "GenericProperty.h"
 #include "CInterfaceIOWrapper.h"
 #include "Importer.h"
+#include "Exceptional.h"
+#include "ScenePrivate.h"
+#include "BaseImporter.h"
+#include <list>
 
 // ------------------------------------------------------------------------------------------------
 #ifndef ASSIMP_BUILD_SINGLETHREADED
@@ -84,7 +92,10 @@ namespace Assimp
 
 	/** Verbose logging active or not? */
 	static aiBool gVerboseLogging = false;
-}
+    /** will return all registered importers. */
+    void GetImporterInstanceList(std::vector< BaseImporter* >& out);
+
+} // namespace assimp
 
 
 #ifndef ASSIMP_BUILD_SINGLETHREADED
@@ -411,6 +422,19 @@ const char* aiGetErrorString()
 	return gLastErrorString.c_str();
 }
 
+// -----------------------------------------------------------------------------------------------
+// Return the description of a importer given its index
+const aiImporterDesc* aiGetImportFormatDescription( size_t pIndex)
+{
+	return Importer().GetImporterInfo(pIndex);
+}
+
+// -----------------------------------------------------------------------------------------------
+// Return the number of importers
+size_t aiGetImportFormatCount(void)
+{
+	return Importer().GetImporterCount();
+}
 // ------------------------------------------------------------------------------------------------
 // Returns the error text of the last failed import process. 
 aiBool aiIsExtensionSupported(const char* szExtension)
@@ -478,7 +502,7 @@ ASSIMP_API void aiSetImportPropertyInteger(aiPropertyStore* p, const char* szNam
 {
 	ASSIMP_BEGIN_EXCEPTION_REGION();
 	PropertyMap* pp = reinterpret_cast<PropertyMap*>(p);
-	SetGenericProperty<int>(pp->ints,szName,value,NULL);
+	SetGenericProperty<int>(pp->ints,szName,value);
 	ASSIMP_END_EXCEPTION_REGION(void);
 }
 
@@ -488,7 +512,7 @@ ASSIMP_API void aiSetImportPropertyFloat(aiPropertyStore* p, const char* szName,
 {
 	ASSIMP_BEGIN_EXCEPTION_REGION();
 	PropertyMap* pp = reinterpret_cast<PropertyMap*>(p);
-	SetGenericProperty<float>(pp->floats,szName,value,NULL);
+	SetGenericProperty<float>(pp->floats,szName,value);
 	ASSIMP_END_EXCEPTION_REGION(void);
 }
 
@@ -502,7 +526,7 @@ ASSIMP_API void aiSetImportPropertyString(aiPropertyStore* p, const char* szName
 	}
 	ASSIMP_BEGIN_EXCEPTION_REGION();
 	PropertyMap* pp = reinterpret_cast<PropertyMap*>(p);
-	SetGenericProperty<std::string>(pp->strings,szName,std::string(st->C_Str()),NULL);
+	SetGenericProperty<std::string>(pp->strings,szName,std::string(st->C_Str()));
 	ASSIMP_END_EXCEPTION_REGION(void);
 }
 
@@ -516,7 +540,7 @@ ASSIMP_API void aiSetImportPropertyMatrix(aiPropertyStore* p, const char* szName
 	}
 	ASSIMP_BEGIN_EXCEPTION_REGION();
 	PropertyMap* pp = reinterpret_cast<PropertyMap*>(p);
-	SetGenericProperty<aiMatrix4x4>(pp->matrices,szName,*mat,NULL);
+	SetGenericProperty<aiMatrix4x4>(pp->matrices,szName,*mat);
 	ASSIMP_END_EXCEPTION_REGION(void);
 }
 
@@ -606,4 +630,22 @@ ASSIMP_API void aiIdentityMatrix4(
 	*mat = aiMatrix4x4();
 }
 
+// ------------------------------------------------------------------------------------------------
+ASSIMP_API C_STRUCT const aiImporterDesc* aiGetImporterDesc( const char *extension ) {
+    if( NULL == extension ) {
+        return NULL;
+    }
+    const aiImporterDesc *desc( NULL );
+    std::vector< BaseImporter* > out;
+    GetImporterInstanceList( out );
+    for( size_t i = 0; i < out.size(); ++i ) {
+        if( 0 == strncmp( out[ i ]->GetInfo()->mFileExtensions, extension, strlen( extension ) ) ) {
+            desc = out[ i ]->GetInfo();
+            break;
+        }
+    }
 
+    return desc;
+}
+
+// ------------------------------------------------------------------------------------------------

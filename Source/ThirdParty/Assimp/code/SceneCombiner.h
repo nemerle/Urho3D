@@ -45,6 +45,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define AI_SCENE_COMBINER_H_INC
 
 #include "../include/assimp/ai_assert.h"
+#include "../include/assimp/types.h"
+#include "Defines.h"
+#include <stddef.h>
+#include <set>
+#include <list>
+#include <stdint.h>
+//#include "../include/assimp/Compiler/pstdint.h"
+
+#include <vector>
+
+struct aiScene;
+struct aiNode;
+struct aiMaterial;
+struct aiTexture;
+struct aiCamera;
+struct aiLight;
+struct aiMetadata;
+struct aiBone;
+struct aiMesh;
+struct aiAnimation;
+struct aiNodeAnim;
 
 namespace Assimp	{
 
@@ -349,6 +370,7 @@ public:
 	static void Copy  (aiBone** dest, const aiBone* src);
 	static void Copy  (aiLight** dest, const aiLight* src);
 	static void Copy  (aiNodeAnim** dest, const aiNodeAnim* src);
+	static void Copy  (aiMetadata** dest, const aiMetadata* src);
 
 	// recursive, of course
 	static void Copy     (aiNode** dest, const aiNode* src);

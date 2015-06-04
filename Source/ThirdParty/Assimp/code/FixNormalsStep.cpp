@@ -43,10 +43,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * all normals in meshes with infacing normals.
  */
 
-#include "AssimpPCH.h"
-
 // internal headers
 #include "FixNormalsStep.h"
+#include "../include/assimp/DefaultLogger.hpp"
+#include "../include/assimp/postprocess.h"
+#include "../include/assimp/scene.h"
+#include <stdio.h>
+
 
 using namespace Assimp;
 
@@ -149,13 +152,13 @@ bool FixInfacingNormalsProcess::ProcessMesh( aiMesh* pcMesh, unsigned int index)
 	if (fDelta1_z < 0.05f * sqrtf( fDelta1_y * fDelta1_x ))return false;
 
 	// now compare the volumes of the bounding boxes
-	if (::fabsf(fDelta0_x * fDelta1_yz) <
-		::fabsf(fDelta1_x * fDelta1_y * fDelta1_z))
+	if (std::fabs(fDelta0_x * fDelta1_yz) <
+		std::fabs(fDelta1_x * fDelta1_y * fDelta1_z))
 	{
 		if (!DefaultLogger::isNullLogger())
 		{
 			char buffer[128]; // should be sufficiently large
-			::sprintf(buffer,"Mesh %i: Normals are facing inwards (or the mesh is planar)",index);
+			::sprintf(buffer,"Mesh %u: Normals are facing inwards (or the mesh is planar)",index);
 			DefaultLogger::get()->info(buffer);
 		}
 

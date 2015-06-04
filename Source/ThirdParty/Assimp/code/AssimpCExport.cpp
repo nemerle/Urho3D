@@ -43,11 +43,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Assimp C export interface. See Exporter.cpp for some notes.
 */
 
-#include "AssimpPCH.h"
 
 #ifndef ASSIMP_BUILD_NO_EXPORT
 #include "CInterfaceIOWrapper.h" 
 #include "SceneCombiner.h"
+#include "ScenePrivate.h"
+#include "../include/assimp/Exporter.hpp"
 
 using namespace Assimp;
 
@@ -61,6 +62,8 @@ ASSIMP_API size_t aiGetExportFormatCount(void)
 // ------------------------------------------------------------------------------------------------
 ASSIMP_API const aiExportFormatDesc* aiGetExportFormatDescription( size_t pIndex)
 {
+	// Note: this is valid as the index always pertains to a builtin exporter,
+	// for which the returned structure is guaranteed to be of static storage duration.
 	return Exporter().GetExportFormatDescription(pIndex);
 }
 

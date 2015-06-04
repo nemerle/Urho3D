@@ -41,9 +41,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @file GenUVCoords step */
 
 
-#include "AssimpPCH.h"
 #include "ComputeUVMappingProcess.h"
 #include "ProcessHelper.h"
+#include "Exceptional.h"
 
 using namespace Assimp;
 
@@ -207,7 +207,7 @@ void ComputeUVMappingProcess::ComputeSphereMapping(aiMesh* mesh,const aiVector3D
 		for (unsigned int pnt = 0; pnt < mesh->mNumVertices;++pnt)	{
 			const aiVector3D diff = (mesh->mVertices[pnt]-center).Normalize();
 			out[pnt] = aiVector3D((atan2 (diff.z, diff.y) + AI_MATH_PI_F ) / AI_MATH_TWO_PI_F,
-				(asin  (diff.x) + AI_MATH_HALF_PI_F) / AI_MATH_PI_F, 0.f);
+				(std::asin  (diff.x) + AI_MATH_HALF_PI_F) / AI_MATH_PI_F, 0.f);
 		}
 	}
 	else if (axis * base_axis_y >= angle_epsilon)	{
@@ -215,7 +215,7 @@ void ComputeUVMappingProcess::ComputeSphereMapping(aiMesh* mesh,const aiVector3D
 		for (unsigned int pnt = 0; pnt < mesh->mNumVertices;++pnt)	{
 			const aiVector3D diff = (mesh->mVertices[pnt]-center).Normalize();
 			out[pnt] = aiVector3D((atan2 (diff.x, diff.z) + AI_MATH_PI_F ) / AI_MATH_TWO_PI_F,
-				(asin  (diff.y) + AI_MATH_HALF_PI_F) / AI_MATH_PI_F, 0.f);
+				(std::asin  (diff.y) + AI_MATH_HALF_PI_F) / AI_MATH_PI_F, 0.f);
 		}
 	}
 	else if (axis * base_axis_z >= angle_epsilon)	{
@@ -223,7 +223,7 @@ void ComputeUVMappingProcess::ComputeSphereMapping(aiMesh* mesh,const aiVector3D
 		for (unsigned int pnt = 0; pnt < mesh->mNumVertices;++pnt)	{
 			const aiVector3D diff = (mesh->mVertices[pnt]-center).Normalize();
 			out[pnt] = aiVector3D((atan2 (diff.y, diff.x) + AI_MATH_PI_F ) / AI_MATH_TWO_PI_F,
-				(asin  (diff.z) + AI_MATH_HALF_PI_F) / AI_MATH_PI_F, 0.f);
+				(std::asin  (diff.z) + AI_MATH_HALF_PI_F) / AI_MATH_PI_F, 0.f);
 		}
 	}
 	// slower code path in case the mapping axis is not one of the coordinate system axes
@@ -412,7 +412,7 @@ void ComputeUVMappingProcess::Execute( aiScene* pScene)
 				{
 					if (!DefaultLogger::isNullLogger())
 					{
-						sprintf(buffer, "Found non-UV mapped texture (%s,%i). Mapping type: %s",
+						sprintf(buffer, "Found non-UV mapped texture (%s,%u). Mapping type: %s",
 							TextureTypeToString((aiTextureType)prop->mSemantic),prop->mIndex,
 							MappingTypeToString(mapping));
 
@@ -454,7 +454,7 @@ void ComputeUVMappingProcess::Execute( aiScene* pScene)
 						for (unsigned int m = 0; m < pScene->mNumMeshes;++m)
 						{
 							aiMesh* mesh = pScene->mMeshes[m];
-							unsigned int outIdx;
+							unsigned int outIdx = 0;
 							if ( mesh->mMaterialIndex != i || ( outIdx = FindEmptyUVChannel(mesh) ) == UINT_MAX ||
 								!mesh->mNumVertices)
 							{

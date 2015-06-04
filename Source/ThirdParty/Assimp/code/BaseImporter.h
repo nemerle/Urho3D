@@ -47,15 +47,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <map>
 #include <vector>
-#include "./../include/assimp/types.h"
+#include <set>
+#include "../include/assimp/types.h"
+#include "../include/assimp/ProgressHandler.hpp"
 
 struct aiScene;
 
 namespace Assimp	{
 
-class IOSystem;
 class Importer;
-class BaseImporter;
+class IOSystem;
 class BaseProcess;
 class SharedPostProcessInfo;
 class IOStream;
@@ -90,6 +91,10 @@ struct ScopeGuard
 	}
 
 private:
+    // no copying allowed.
+    ScopeGuard();
+    ScopeGuard( const ScopeGuard & );
+    ScopeGuard &operator = ( const ScopeGuard & );
 	T* obj;
 	bool mdismiss;
 };

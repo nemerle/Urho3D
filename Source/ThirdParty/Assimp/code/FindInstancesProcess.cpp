@@ -43,8 +43,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  @brief Implementation of the aiProcess_FindInstances postprocessing step
 */
 
-#include "AssimpPCH.h"
+
 #include "FindInstancesProcess.h"
+#include <boost/scoped_array.hpp>
+#include <stdio.h>
 
 using namespace Assimp;
 
@@ -85,8 +87,7 @@ bool CompareBones(const aiMesh* orig, const aiMesh* inst)
 		aiBone* oha = inst->mBones[i];
 
 		if (aha->mNumWeights   != oha->mNumWeights   ||
-			aha->mOffsetMatrix != oha->mOffsetMatrix ||
-			aha->mNumWeights   != oha->mNumWeights) {
+			aha->mOffsetMatrix != oha->mOffsetMatrix) {
 			return false;
 		}
 
@@ -174,7 +175,6 @@ void FindInstancesProcess::Execute( aiScene* pScene)
 
 					// use a constant epsilon for colors and UV coordinates
 					static const float uvEpsilon = 10e-4f;
-
 					{
 						unsigned int i, end = orig->GetNumUVChannels();
 						for(i = 0; i < end; ++i) {
@@ -260,7 +260,7 @@ void FindInstancesProcess::Execute( aiScene* pScene)
 					pScene->mMeshes[real++] = pScene->mMeshes[i];
 			}
 
-			// And update the nodegraph with our nice lookup table
+			// And update the node graph with our nice lookup table
 			UpdateMeshIndices(pScene->mRootNode,remapping.get());
 
 			// write to log

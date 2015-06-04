@@ -38,8 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
-#include "AssimpPCH.h"
 #include "ScenePreprocessor.h"
+#include "../include/assimp/ai_assert.h"
+#include "../include/assimp/scene.h"
+#include "../include/assimp/DefaultLogger.hpp"
+
 
 using namespace Assimp;
 
@@ -91,11 +94,10 @@ void ScenePreprocessor::ProcessMesh (aiMesh* mesh)
 {
 	// If aiMesh::mNumUVComponents is *not* set assign the default value of 2
 	for (unsigned int i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++i)	{
-		if (!mesh->mTextureCoords[i])
+		if (!mesh->mTextureCoords[i]) {
 			mesh->mNumUVComponents[i] = 0;
-
-		else {
-			if( !mesh->mNumUVComponents[i])
+		} else {
+			if (!mesh->mNumUVComponents[i])
 				mesh->mNumUVComponents[i] = 2;
 
 			aiVector3D* p = mesh->mTextureCoords[i], *end = p+mesh->mNumVertices;
@@ -112,7 +114,6 @@ void ScenePreprocessor::ProcessMesh (aiMesh* mesh)
 					p->z = p->y = 0.f;
 			}
 			else if (3 == mesh->mNumUVComponents[i]) {
-			
 				// Really 3D coordinates? Check whether the third coordinate is != 0 for at least one element
 				for (; p != end; ++p) {
 					if (p->z != 0)
