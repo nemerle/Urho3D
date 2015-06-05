@@ -52,12 +52,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ParsingUtils.h"
 #include "fast_atof.h"
 #include "../include/assimp/Importer.hpp"
-#include <boost/scoped_ptr.hpp>
 #include "../include/assimp/IOSystem.hpp"
 #include "../include/assimp/anim.h"
 #include "../include/assimp/DefaultLogger.hpp"
 #include "../include/assimp/scene.h"
 
+#include <memory>
 
 using namespace Assimp;
 

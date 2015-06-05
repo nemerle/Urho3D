@@ -44,9 +44,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef ASSIMP_BUILD_NO_FBX_IMPORTER
 
-#include <exception>
-#include <iterator>
-#include <boost/tuple/tuple.hpp>
 
 #include "FBXImporter.h"
 
@@ -60,6 +57,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "MemoryIOWrapper.h"
 #include "../include/assimp/Importer.hpp"
 
+#include <exception>
+#include <iterator>
+#include <tuple>
 namespace Assimp {
     template<> const std::string LogFunctions<FBXImporter>::log_prefix = "FBX: ";
 }

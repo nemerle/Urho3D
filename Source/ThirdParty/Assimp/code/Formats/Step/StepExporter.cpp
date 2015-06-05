@@ -49,16 +49,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "fast_atof.h"
 #include "SceneCombiner.h"
 #include "DefaultIOSystem.h"
+#include "Exceptional.h"
+#include "../include/assimp/IOSystem.hpp"
+#include "../include/assimp/scene.h"
+#include "../include/assimp/light.h"
 #include <iostream>
 #include <ctime>
 #include <set>
 #include <map>
 #include <list>
-#include <boost/scoped_ptr.hpp>
-#include "Exceptional.h"
-#include "../include/assimp/IOSystem.hpp"
-#include "../include/assimp/scene.h"
-#include "../include/assimp/light.h"
+#include <memory>
 
 //
 #if _MSC_VER > 1500 || (defined __GNUC___)

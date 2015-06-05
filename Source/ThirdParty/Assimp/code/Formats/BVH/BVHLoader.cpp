@@ -50,6 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/assimp/IOSystem.hpp"
 #include "../include/assimp/scene.h"
 
+#include <memory>
 using namespace Assimp;
 
 #include "ImporterRegistry.h"

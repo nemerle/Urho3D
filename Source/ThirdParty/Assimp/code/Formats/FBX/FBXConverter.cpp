@@ -44,18 +44,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef ASSIMP_BUILD_NO_FBX_IMPORTER
 
-#include <iterator>
-#include <sstream>
-#include <boost/tuple/tuple.hpp>
-
-#include <vector>
-#include "FBXParser.h"
 #include "FBXConverter.h"
+
+#include "FBXParser.h"
 #include "FBXDocument.h"
 #include "FBXUtil.h"
 #include "FBXProperties.h"
 #include "FBXImporter.h"
 #include "../include/assimp/scene.h"
+
+#include <vector>
+#include <iterator>
+#include <sstream>
+#include <tuple>
 
 namespace Assimp {
 namespace FBX {

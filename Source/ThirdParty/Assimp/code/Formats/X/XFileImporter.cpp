@@ -50,9 +50,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/assimp/IOSystem.hpp"
 #include "../include/assimp/scene.h"
 #include "../include/assimp/DefaultLogger.hpp"
-#include <boost/format.hpp>
 #include "Defines.h"
+
+#include <boost/format.hpp>
 #include <cctype>
+#include <memory>
 
 using namespace Assimp;
 #include "ImporterRegistry.h"

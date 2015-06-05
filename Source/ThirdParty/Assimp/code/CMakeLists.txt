@@ -7,6 +7,7 @@
 cmake_minimum_required( VERSION 2.8.12 )
 SET( HEADER_PATH ../include/assimp )
 
+include_directories(BoostWorkaround)
 SET( COMPILER_HEADERS
     ${HEADER_PATH}/Compiler/pushpack1.h
     ${HEADER_PATH}/Compiler/poppack1.h
