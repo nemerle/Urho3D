@@ -254,7 +254,7 @@ void Console::CopySelectedRows() const
 
 const QString& Console::GetHistoryRow(unsigned index) const
 {
-    return index < history_.size() ? history_[index] : QString::null;
+    return index < history_.size() ? history_[index] : s_dummy;
 }
 
 bool Console::PopulateInterpreter()

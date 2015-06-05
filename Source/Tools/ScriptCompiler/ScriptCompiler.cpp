@@ -50,7 +50,7 @@ void CompileScript(Context* context, const QString& fileName);
 int main(int argc, char** argv)
 {
     #ifdef WIN32
-    const StringList& arguments = ParseArguments(GetCommandLineW());
+    const QStringList& arguments = ParseArguments(QString::fromWCharArray(GetCommandLineW()));
     #else
     const QStringList& arguments = ParseArguments(argc, argv);
     #endif

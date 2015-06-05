@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     QStringList arguments;
 
     #ifdef WIN32
-    arguments = ParseArguments(GetCommandLineW());
+    arguments = ParseArguments(QString::fromWCharArray(GetCommandLineW()));
     #else
     arguments = ParseArguments(argc, argv);
     #endif

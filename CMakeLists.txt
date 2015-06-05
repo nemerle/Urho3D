@@ -23,6 +23,7 @@
 # Set project name
 project (Urho3D)
 
+#SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 
 # Set minimum version
 cmake_minimum_required (VERSION 3.0.0)
@@ -35,7 +36,11 @@ IF(CMAKE_CXX_COMPILER MATCHES cl.exe)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
 ELSE()
 #-pedantic -Wno-extended-offsetof -Wno-unused-parameter -Winvalid-pch -Wall -Wextra
+IF(WIN32)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1y") #to force MINGW/g++ to define WIN32
+ELSE()
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y " )
+ENDIF()
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra" )
     add_definitions(-D__STDC_FORMAT_MACROS)
 ENDIF()
@@ -44,7 +49,7 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF()
 
 find_package(Qt5Core)
-#find_package(Qt5Gui)
+find_package(Qt5Gui)  # for desktop services
 #find_package(Qt5OpenGL)
 #find_package(Qt5Quick)
 #find_package(Qt5Widgets)

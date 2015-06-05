@@ -85,10 +85,10 @@ bool FileWatcher::StartWatching(const QString& pathName, bool watchSubDirs)
 
 #if defined(URHO3D_FILEWATCHER)
 #if defined(WIN32)
-    String nativePath = GetNativePath(RemoveTrailingSlash(pathName));
+    QString nativePath = GetNativePath(RemoveTrailingSlash(pathName));
 
     dirHandle_ = (void*)CreateFileW(
-        WString(nativePath).CString(),
+        nativePath.toStdWString().c_str(),
         FILE_LIST_DIRECTORY,
         FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE,
         0,
@@ -248,11 +248,11 @@ void FileWatcher::ThreadFunction()
 
                 if (record->Action == FILE_ACTION_MODIFIED || record->Action == FILE_ACTION_RENAMED_NEW_NAME)
                 {
-                    String fileName;
+                    QString fileName;
                     const wchar_t* src = record->FileName;
                     const wchar_t* end = src + record->FileNameLength / 2;
                     while (src < end)
-                        fileName.AppendUTF8(String::DecodeUTF16(src));
+                        fileName+= QString::fromWCharArray(src);
 
                     fileName = GetInternalPath(fileName);
                     AddChange(fileName);

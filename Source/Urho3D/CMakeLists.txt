@@ -170,7 +170,7 @@ set_output_directories (${OUTPUT_PATH} ARCHIVE LIBRARY)
 
 # Setup target
 setup_library (${URHO3D_LIB_TYPE})
-qt5_use_modules(${TARGET_NAME} Core)
+qt5_use_modules(${TARGET_NAME} Core Gui)
 
 if (NOT ANDROID AND NOT EMSCRIPTEN)
     file (READ .soversion SOVERSION)

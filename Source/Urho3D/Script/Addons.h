@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "../Urho3D.h"
+#include "Urho3D/Urho3D.h"
 #include "../Container/HashMap.h"
 #include "../Container/Str.h"
 #include "../Container/HashMap.h"

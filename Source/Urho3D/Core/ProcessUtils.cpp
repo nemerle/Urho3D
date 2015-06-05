@@ -120,8 +120,12 @@ void InitFPU()
 
 void ErrorDialog(const QString& title, const QString& message)
 {
+    // TODO: use qt widgets here ?
     #ifdef WIN32
-    MessageBoxW(0, WString(message).CString(), WString(title).CString(), 0);
+    std::wstring msgW(message.toStdWString());
+    std::wstring titleW(title.toStdWString());
+
+    MessageBoxW(0, msgW.c_str(), titleW.c_str(), 0);
     #else
     PrintLine(message, true);
     #endif
@@ -167,15 +171,15 @@ void PrintUnicode(const QString& str, bool error)
     // though it means that proper Unicode output will not work
     FILE* out = error ? stderr : stdout;
     if (!_isatty(_fileno(out)))
-        fprintf(out, "%s", str.CString());
+        fprintf(out, "%s", qPrintable(str));
     else
     {
     HANDLE stream = GetStdHandle(error ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
     if (stream == INVALID_HANDLE_VALUE)
         return;
-    WString strW(str);
+    std::wstring strW(str.toStdWString());
     DWORD charsWritten;
-    WriteConsoleW(stream, strW.CString(), strW.Length(), &charsWritten, 0);
+    WriteConsoleW(stream, strW.c_str(), strW.size(), &charsWritten, 0);
     }
     #else
     fprintf(error ? stderr : stdout, "%s", qPrintable(str));
@@ -297,9 +301,9 @@ QString GetConsoleInput()
                 if (c == '\b')
                 {
                     PrintUnicode("\b \b");
-                    int length = currentLine.LengthUTF8();
+                    int length = currentLine.length();
                     if (length)
-                        currentLine = currentLine.SubstringUTF8(0, length - 1);
+                        currentLine = currentLine.mid(0, length - 1);
                 }
                 else if (c == '\r')
                 {
@@ -314,7 +318,7 @@ QString GetConsoleInput()
                     wchar_t out = c;
                     DWORD charsWritten;
                     WriteConsoleW(output, &out, 1, &charsWritten, 0);
-                    currentLine.AppendUTF8(c);
+                    currentLine+=QChar(c);
                 }
             }
         }

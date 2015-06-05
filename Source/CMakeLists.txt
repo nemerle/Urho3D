@@ -21,6 +21,7 @@
 #
 
 INCLUDE_DIRECTORIES(ThirdParty)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}) # make it possible for sources to locate Urho3D.h export header by referencing Urho3D/Urho3D.h
 # Check existence of stdint.h for LibCpuId
 include (CheckIncludeFiles)
 CHECK_INCLUDE_FILES (stdint.h HAVE_STDINT_H)

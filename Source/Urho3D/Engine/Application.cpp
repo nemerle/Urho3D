@@ -116,7 +116,7 @@ void Application::ErrorExit(const QString& message)
     if (!message.length())
     {
         #ifdef WIN32
-        ErrorDialog(GetTypeName(), startupErrors_.Length() ? startupErrors_ :
+        ErrorDialog(GetTypeName(), startupErrors_.length() ? startupErrors_ :
             "Application has been terminated due to unexpected error.");
         #endif
     }

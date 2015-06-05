@@ -21,7 +21,7 @@
 //
 
 #pragma once
-#include "../Urho3D.h"
+#include "Urho3D/Urho3D.h"
 #include "../Container/ArrayPtr.h"
 #include "../Audio/SoundStream.h"
 

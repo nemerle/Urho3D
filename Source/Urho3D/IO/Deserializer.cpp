@@ -48,7 +48,7 @@ Deserializer::~Deserializer()
 
 const QString& Deserializer::GetName() const
 {
-    return QString::null;
+    return s_dummy;
 }
 
 unsigned Deserializer::GetChecksum()

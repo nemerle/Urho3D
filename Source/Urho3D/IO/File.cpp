@@ -28,6 +28,7 @@
 #include "../Core/Profiler.h"
 #include "../Container/Str.h"
 
+#include <QFile>
 #include <cstdio>
 #include <LZ4/lz4.h>
 
@@ -36,23 +37,12 @@
 namespace Urho3D
 {
 
-#ifdef WIN32
-static const wchar_t* openMode[] =
-{
-    L"rb",
-    L"wb",
-    L"r+b",
-    L"w+b"
+QFile::OpenMode openMode[] = {
+   QFile::ReadOnly,
+   QFile::WriteOnly,
+   QFile::ReadWrite|QFile::Append,
+   QFile::ReadWrite|QFile::Truncate,
 };
-#else
-static const char* openMode[] =
-{
-    "rb",
-    "wb",
-    "r+b",
-    "w+b"
-};
-#endif
 
 #ifdef ANDROID
 static const unsigned READ_BUFFER_SIZE = 32768;
@@ -165,20 +155,23 @@ bool File::Open(const QString& fileName, FileMode mode)
         return false;
     }
 
-    #ifdef WIN32
-    handle_ = _wfopen(GetWideNativePath(fileName).CString(), openMode[mode]);
-    #else
-    handle_ = fopen(qPrintable(GetNativePath(fileName)), openMode[mode]);
-    #endif
+    QFile *tmp = new QFile(fileName);
+    handle_==nullptr;
+    if(!tmp->open(openMode[mode])) {
+        delete tmp;
+    }
+    else
+        handle_ = tmp;
 
     // If file did not exist in readwrite mode, retry with write-update mode
     if (mode == FILE_READWRITE && !handle_)
     {
-        #ifdef WIN32
-        handle_ = _wfopen(GetWideNativePath(fileName).CString(), openMode[mode + 1]);
-        #else
-        handle_ = fopen(qPrintable(GetNativePath(fileName)), openMode[mode + 1]);
-        #endif
+        tmp = new QFile(fileName);
+        if(!tmp->open(openMode[mode+1])) {
+            delete tmp;
+        }
+        else
+            handle_ = tmp;
     }
 
     if (!handle_)
@@ -196,9 +189,7 @@ bool File::Open(const QString& fileName, FileMode mode)
     readSyncNeeded_ = false;
     writeSyncNeeded_ = false;
 
-    fseek((FILE*)handle_, 0, SEEK_END);
-    long size = ftell((FILE*)handle_);
-    fseek((FILE*)handle_, 0, SEEK_SET);
+    qint64 size = ((QFile *)handle_)->size();
     if (size > M_MAX_UNSIGNED)
     {
         LOGERROR(QString("Could not open file %1 which is larger than 4GB").arg(fileName));
@@ -221,11 +212,13 @@ bool File::Open(PackageFile* package, const QString& fileName)
     if (!entry)
         return false;
 
-    #ifdef WIN32
-    handle_ = _wfopen(GetWideNativePath(package->GetName()).CString(), L"rb");
-    #else
-    handle_ = fopen(qPrintable(GetNativePath(package->GetName())), "rb");
-    #endif
+    QFile *tmp = new QFile(package->GetName());
+    handle_==nullptr;
+    if(!tmp->open(QFile::ReadOnly)) {
+        delete tmp;
+    }
+    else
+        handle_ = tmp;
     if (!handle_)
     {
         LOGERROR("Could not open package file " + fileName);
@@ -242,7 +235,7 @@ bool File::Open(PackageFile* package, const QString& fileName)
     readSyncNeeded_ = false;
     writeSyncNeeded_ = false;
 
-    fseek((FILE*)handle_, offset_, SEEK_SET);
+    ((QFile *)handle_)->seek(offset_);
     return true;
 }
 
@@ -305,7 +298,7 @@ unsigned File::Read(void* dest, unsigned size)
             if (!readBuffer_ || readBufferOffset_ >= readBufferSize_)
             {
                 unsigned char blockHeaderBytes[4];
-                fread(blockHeaderBytes, sizeof blockHeaderBytes, 1, (FILE*)handle_);
+                ((QFile *)handle_)->read((char *)blockHeaderBytes, sizeof blockHeaderBytes);
 
                 MemoryBuffer blockHeader(&blockHeaderBytes[0], sizeof blockHeaderBytes);
                 unsigned unpackedSize = blockHeader.ReadUShort();
@@ -318,7 +311,7 @@ unsigned File::Read(void* dest, unsigned size)
                 }
 
                 /// \todo Handle errors
-                fread(inputBuffer_.Get(), packedSize, 1, (FILE*)handle_);
+                ((QFile *)handle_)->read((char *)inputBuffer_.Get(), packedSize);
                 LZ4_decompress_fast((const char*)inputBuffer_.Get(), (char *)readBuffer_.Get(), unpackedSize);
 
                 readBufferSize_ = unpackedSize;
@@ -339,15 +332,15 @@ unsigned File::Read(void* dest, unsigned size)
     // Need to reassign the position due to internal buffering when transitioning from writing to reading
     if (readSyncNeeded_)
     {
-        fseek((FILE*)handle_, position_ + offset_, SEEK_SET);
+        ((QFile *)handle_)->seek(position_ + offset_);
         readSyncNeeded_ = false;
     }
 
-    size_t ret = fread(dest, size, 1, (FILE*)handle_);
-    if (ret != 1)
+    size_t ret = ((QFile *)handle_)->read((char *)dest, size);
+    if (ret != size)
     {
         // Return to the position where the read began
-        fseek((FILE*)handle_, position_ + offset_, SEEK_SET);
+        ((QFile *)handle_)->seek(position_ + offset_);
         LOGERROR("Error while reading from file " + GetName());
         return 0;
     }
@@ -391,7 +384,7 @@ unsigned File::Seek(unsigned position)
             position_ = 0;
             readBufferOffset_ = 0;
             readBufferSize_ = 0;
-            fseek((FILE*)handle_, offset_, SEEK_SET);
+            ((QFile *)handle_)->seek(offset_);
         }
         // Skip bytes
         else if (position >= position_)
@@ -433,14 +426,14 @@ unsigned File::Write(const void* data, unsigned size)
     // Need to reassign the position due to internal buffering when transitioning from reading to writing
     if (writeSyncNeeded_)
     {
-        fseek((FILE*)handle_, position_ + offset_, SEEK_SET);
+        ((QFile *)handle_)->seek(position_ + offset_);
         writeSyncNeeded_ = false;
     }
 
-    if (fwrite(data, size, 1, (FILE*)handle_) != 1)
+    if (((QFile *)handle_)->write((const char *)data, size) != size)
     {
         // Return to the position where the write began
-        fseek((FILE*)handle_, position_ + offset_, SEEK_SET);
+        ((QFile *)handle_)->seek(position_ + offset_);
         LOGERROR("Error while writing to file " + GetName());
         return 0;
     }
@@ -497,7 +490,8 @@ void File::Close()
 
     if (handle_)
     {
-        fclose((FILE*)handle_);
+        ((QFile *)handle_)->close();
+        delete ((QFile *)handle_);
         handle_ = nullptr;
         position_ = 0;
         size_ = 0;
@@ -509,7 +503,7 @@ void File::Close()
 void File::Flush()
 {
     if (handle_)
-        fflush((FILE*)handle_);
+        ((QFile *)handle_)->flush();
 }
 
 void File::SetName(const QString& name)

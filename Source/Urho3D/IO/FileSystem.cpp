@@ -33,6 +33,11 @@
 
 #include <SDL/SDL_filesystem.h>
 #include <QtCore/QProcess>
+#include <QtCore/QDir>
+#include <QtCore/QDateTime>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QUrl>
+#include <QtGui/QDesktopServices>
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
@@ -240,19 +245,11 @@ bool FileSystem::SetCurrentDir(const QString& pathName)
         LOGERROR("Access denied to " + pathName);
         return false;
     }
-    #ifdef WIN32
-    if (SetCurrentDirectoryW(GetWideNativePath(pathName).CString()) == FALSE)
+    if (!QDir::setCurrent(pathName))
     {
         LOGERROR("Failed to change directory to " + pathName);
         return false;
     }
-    #else
-    if (chdir(qPrintable(GetNativePath(pathName))) != 0)
-    {
-        LOGERROR("Failed to change directory to " + pathName);
-        return false;
-    }
-    #endif
 
     return true;
 }
@@ -265,12 +262,8 @@ bool FileSystem::CreateDir(const QString& pathName)
         return false;
     }
 
-    #ifdef WIN32
-    bool success = (CreateDirectoryW(GetWideNativePath(RemoveTrailingSlash(pathName)).CString(), 0) == TRUE) ||
-        (GetLastError() == ERROR_ALREADY_EXISTS);
-    #else
-    bool success = mkdir(qPrintable(GetNativePath(RemoveTrailingSlash(pathName))), S_IRWXU) == 0 || errno == EEXIST;
-    #endif
+    QDir rootDir = QDir::root();
+    bool success = rootDir.mkdir(GetNativePath(RemoveTrailingSlash(pathName)));
 
     if (success)
         LOGDEBUG("Created directory " + pathName);
@@ -356,20 +349,7 @@ bool FileSystem::SystemOpen(const QString& fileName, const QString& mode)
             return false;
         }
 
-        #ifdef WIN32
-        bool success = (size_t)ShellExecuteW(0, !mode.Empty() ? WString(mode).CString() : 0,
-            GetWideNativePath(fileName).CString(), 0, 0, SW_SHOW) > 32;
-        #else
-        QStringList arguments;
-        arguments.push_back(fileName);
-        bool success = SystemRun(
-        #if defined(__APPLE__)
-                "/usr/bin/open",
-        #else
-                "/usr/bin/xdg-open",
-        #endif
-                arguments) == 0;
-        #endif
+        bool success = QDesktopServices::openUrl(QUrl("file:///"+fileName, QUrl::TolerantMode));
         if (!success)
             LOGERROR("Failed to open " + fileName + " externally");
         return success;
@@ -422,11 +402,7 @@ bool FileSystem::Rename(const QString& srcFileName, const QString& destFileName)
         return false;
     }
 
-    #ifdef WIN32
-    return MoveFileW(GetWideNativePath(srcFileName).CString(), GetWideNativePath(destFileName).CString()) != 0;
-    #else
-    return rename(qPrintable(GetNativePath(srcFileName)), qPrintable(GetNativePath(destFileName))) == 0;
-    #endif
+    return QFile::rename(srcFileName,destFileName);
 }
 
 bool FileSystem::Delete(const QString& fileName)
@@ -437,26 +413,12 @@ bool FileSystem::Delete(const QString& fileName)
         return false;
     }
 
-    #ifdef WIN32
-    return DeleteFileW(GetWideNativePath(fileName).CString()) != 0;
-    #else
-    return remove(qPrintable(GetNativePath(fileName))) == 0;
-    #endif
+    return QFile::remove(fileName);
 }
 
 QString FileSystem::GetCurrentDir() const
 {
-    #ifdef WIN32
-    wchar_t path[MAX_PATH];
-    path[0] = 0;
-    GetCurrentDirectoryW(MAX_PATH, path);
-    return AddTrailingSlash(String(path));
-    #else
-    char path[MAX_PATH];
-    path[0] = 0;
-    getcwd(path, MAX_PATH);
-    return AddTrailingSlash(QString(path));
-    #endif
+    return AddTrailingSlash(QDir::currentPath());
 }
 
 bool FileSystem::CheckAccess(const QString& pathName) const
@@ -487,19 +449,10 @@ unsigned FileSystem::GetLastModifiedTime(const QString& fileName) const
     if (fileName.isEmpty() || !CheckAccess(fileName))
         return 0;
 
-    #ifdef WIN32
-    struct _stat st;
-    if (!_stat(fileName.CString(), &st))
-        return (unsigned)st.st_mtime;
-    else
+    QFileInfo fi(fileName);
+    if(!fi.exists())
         return 0;
-    #else
-    struct stat st;
-    if (!stat(qPrintable(fileName), &st))
-        return (unsigned)st.st_mtime;
-    else
-        return 0;
-    #endif
+    return fi.lastModified().toTime_t();
 }
 
 bool FileSystem::FileExists(const QString& fileName) const
@@ -523,15 +476,9 @@ bool FileSystem::FileExists(const QString& fileName) const
     }
     #endif
 
-    #ifdef WIN32
-    DWORD attributes = GetFileAttributesW(WString(fixedName).CString());
-    if (attributes == INVALID_FILE_ATTRIBUTES || attributes & FILE_ATTRIBUTE_DIRECTORY)
+    QFileInfo fi(fixedName);
+    if(!fi.exists() || fi.isDir())
         return false;
-    #else
-    struct stat st;
-    if (stat(qPrintable(fixedName), &st) || st.st_mode & S_IFDIR)
-        return false;
-    #endif
 
     return true;
 }
@@ -541,13 +488,6 @@ bool FileSystem::DirExists(const QString& pathName) const
     if (!CheckAccess(pathName))
         return false;
 
-    #ifndef WIN32
-    // Always return true for the root directory
-    if (pathName == "/")
-        return true;
-    #endif
-
-    QString fixedName = GetNativePath(RemoveTrailingSlash(pathName));
 
     #ifdef ANDROID
     /// \todo Actually check for existence, now true is always returned for directories within the APK
@@ -555,17 +495,8 @@ bool FileSystem::DirExists(const QString& pathName) const
         return true;
     #endif
 
-    #ifdef WIN32
-    DWORD attributes = GetFileAttributesW(WString(fixedName).CString());
-    if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_DIRECTORY))
-        return false;
-    #else
-    struct stat st;
-    if (stat(qPrintable(fixedName), &st) || !(st.st_mode & S_IFDIR))
-        return false;
-    #endif
-
-    return true;
+    QFileInfo fi(pathName);
+    return fi.exists() && fi.isDir();
 }
 
 void FileSystem::ScanDir(QStringList& result, const QString& pathName, const QString& filter, unsigned flags, bool recursive) const
@@ -593,11 +524,6 @@ QString FileSystem::GetProgramDir() const
     #elif defined(IOS)
     programDir_ = AddTrailingSlash(SDL_IOS_GetResourceDir());
     return programDir_;
-    #elif defined(WIN32)
-    wchar_t exeName[MAX_PATH];
-    exeName[0] = 0;
-    GetModuleFileNameW(0, exeName, MAX_PATH);
-    programDir_ = GetPath(String(exeName));
     #elif defined(__APPLE__)
     char exeName[MAX_PATH];
     memset(exeName, 0, MAX_PATH);
@@ -612,6 +538,8 @@ QString FileSystem::GetProgramDir() const
     readlink(qPrintable(link), exeName, MAX_PATH);
     programDir_ = GetPath(QString(exeName));
     #endif
+    if(QCoreApplication::instance()) // an QApplication has been allocated, use it
+        programDir_ = QCoreApplication::applicationDirPath();
 
     // If the executable directory does not contain CoreData & Data directories, but the current working directory does, use the
     // current working directory instead
@@ -629,25 +557,12 @@ QString FileSystem::GetProgramDir() const
 
 QString FileSystem::GetUserDocumentsDir() const
 {
-    #if defined(ANDROID)
-    return AddTrailingSlash(SDL_Android_GetFilesDir());
-    #elif defined(IOS)
-    return AddTrailingSlash(SDL_IOS_GetDocumentsDir());
-    #elif defined(WIN32)
-    wchar_t pathName[MAX_PATH];
-    pathName[0] = 0;
-    SHGetSpecialFolderPathW(0, pathName, CSIDL_PERSONAL, 0);
-    return AddTrailingSlash(String(pathName));
-    #else
-    char pathName[MAX_PATH];
-    pathName[0] = 0;
-    strcpy(pathName, getenv("HOME"));
-    return AddTrailingSlash(QString(pathName));
-    #endif
+    return AddTrailingSlash(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
 }
 
 QString FileSystem::GetAppPreferencesDir(const QString& org, const QString& app) const
 {
+    //return AddTrailingSlash(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
     QString dir;
     char* prefPath = SDL_GetPrefPath(qPrintable(org), qPrintable(app));
     if (prefPath)
@@ -677,11 +592,11 @@ bool FileSystem::SetLastModifiedTime(const QString& fileName, unsigned newTime)
     #ifdef WIN32
     struct _stat oldTime;
     struct _utimbuf newTimes;
-    if (_stat(fileName.CString(), &oldTime) != 0)
+    if (_stat(qPrintable(fileName), &oldTime) != 0)
         return false;
     newTimes.actime = oldTime.st_atime;
     newTimes.modtime = newTime;
-    return _utime(fileName.CString(), &newTimes) == 0;
+    return _utime(qPrintable(fileName), &newTimes) == 0;
     #else
     struct stat oldTime;
     struct utimbuf newTimes;
@@ -707,27 +622,28 @@ void FileSystem::ScanDirInternal(QStringList& result, QString path, const QStrin
 
     #ifdef WIN32
     WIN32_FIND_DATAW info;
-    HANDLE handle = FindFirstFileW(WString(path + "*").CString(), &info);
+    std::wstring path_w(path.toStdWString());
+    HANDLE handle = FindFirstFileW((path_w + wchar_t('*')).c_str(), &info);
     if (handle != INVALID_HANDLE_VALUE)
     {
         do
         {
-            String fileName(info.cFileName);
-            if (!fileName.Empty())
+            QString fileName = QString::fromWCharArray(info.cFileName);
+            if (!fileName.isEmpty())
             {
                 if (info.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN && !(flags & SCAN_HIDDEN))
                     continue;
                 if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 {
                     if (flags & SCAN_DIRS)
-                        result.Push(deltaPath + fileName);
+                        result.push_back(deltaPath + fileName);
                     if (recursive && fileName != "." && fileName != "..")
                         ScanDirInternal(result, path + fileName, startPath, filter, flags, recursive);
                 }
                 else if (flags & SCAN_FILES)
                 {
-                    if (filterExtension.Empty() || fileName.EndsWith(filterExtension))
-                        result.Push(deltaPath + fileName);
+                    if (filterExtension.isEmpty() || fileName.endsWith(filterExtension))
+                        result.push_back(deltaPath + fileName);
                 }
             }
         }
@@ -900,11 +816,8 @@ QString GetInternalPath(const QString& pathName)
 
 QString GetNativePath(const QString& pathName)
 {
-#ifdef WIN32
-    return pathName.replaced('/', '\\');
-#else
-    return pathName;
-#endif
+    QString res(pathName);
+    return res.replace('/', QDir::separator());
 }
 
 bool IsAbsolutePath(const QString& pathName)
@@ -912,17 +825,7 @@ bool IsAbsolutePath(const QString& pathName)
     if (pathName.isEmpty())
         return false;
 
-    QString path = GetInternalPath(pathName);
-
-    if (path[0] == '/')
-        return true;
-
-#ifdef WIN32
-    if (path.Length() > 1 && IsAlpha(path[0]) && path[1] == ':')
-        return true;
-#endif
-
-    return false;
+    return QDir::isAbsolutePath(pathName);
 }
 
 }

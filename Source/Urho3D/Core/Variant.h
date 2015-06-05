@@ -203,13 +203,13 @@ public:
     }
 
     /// Construct from unsigned integer.
-    Variant(unsigned value) :
+    Variant(uint32_t value) :
         type_(VAR_NONE)
     {
         *this = (int)value;
     }
     /// Construct from size_t type //ERROR: truncates on 64 bit on OSes
-    Variant(size_t value) :
+    Variant(uint64_t value) :
         type_(VAR_NONE)
     {
         *this = (int)value;
