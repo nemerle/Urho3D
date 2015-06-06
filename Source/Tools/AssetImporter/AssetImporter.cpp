@@ -1543,8 +1543,9 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<QString> & usedTextures)
     QString specularTexName;
     QString lightmapTexName;
     QString emissiveTexName;
+    Color ambientColor = Color::BLACK;
     Color diffuseColor = Color::WHITE;
-    Color specularColor;
+    Color specularColor = Color::BLACK;
     Color emissiveColor = Color::BLACK;
     bool hasAlpha = false;
     bool twoSided = false;
@@ -1583,6 +1584,8 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<QString> & usedTextures)
     }
     if (material->Get(AI_MATKEY_COLOR_SPECULAR, colorVal) == AI_SUCCESS)
         specularColor = Color(colorVal.r, colorVal.g, colorVal.b);
+    if (material->Get(AI_MATKEY_COLOR_AMBIENT, colorVal) == AI_SUCCESS)
+        ambientColor = Color(colorVal.r, colorVal.g, colorVal.b);
     if (!emissiveAO_)
     {
         if (material->Get(AI_MATKEY_COLOR_EMISSIVE, colorVal) == AI_SUCCESS)
@@ -1658,6 +1661,11 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<QString> & usedTextures)
     XMLElement diffuseColorElem = materialElem.CreateChild("parameter");
     diffuseColorElem.SetString("name", "MatDiffColor");
     diffuseColorElem.SetColor("value", diffuseColor);
+    if(ambientColor!=Color::BLACK) {
+        XMLElement ambientColorElem = materialElem.CreateChild("parameter");
+        ambientColorElem.SetString("name", "AmbientColor");
+        ambientColorElem.SetColor("value", ambientColor);
+    }
     XMLElement specularElem = materialElem.CreateChild("parameter");
     specularElem.SetString("name", "MatSpecColor");
     specularElem.SetVector4("value", Vector4(specularColor.r_, specularColor.g_, specularColor.b_, specPower));
@@ -1735,9 +1743,11 @@ void CopyTextures(const QSet<QString> & usedTextures, const QString & sourcePath
         }
         else
         {
-            QString fullSourceName = sourcePath + tex_name;
-            QString fullDestName = resourcePath_ + (useSubdirs_ ? "Textures/" : "") + tex_name;
-
+            QString fullSourceName = tex_name;
+            QString fullDestName = resourcePath_ + (useSubdirs_ ? "Textures/" : "") + GetFileNameAndExtension(tex_name);
+            if(!tex_name.startsWith(sourcePath)) {
+                fullSourceName = sourcePath + fullSourceName;
+            }
             if (!fileSystem->FileExists(fullSourceName))
             {
                 PrintLine("Skipping copy of nonexisting material texture " + tex_name);

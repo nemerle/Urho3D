@@ -29,6 +29,7 @@
 #include "../Container/Str.h"
 
 #include <QFile>
+#include <QDebug>
 #include <cstdio>
 #include <LZ4/lz4.h>
 
@@ -158,6 +159,7 @@ bool File::Open(const QString& fileName, FileMode mode)
     QFile *tmp = new QFile(fileName);
     handle_==nullptr;
     if(!tmp->open(openMode[mode])) {
+        qDebug() << tmp->errorString();
         delete tmp;
     }
     else
@@ -399,7 +401,7 @@ unsigned File::Seek(unsigned position)
         return position_;
     }
 
-    fseek((FILE*)handle_, position + offset_, SEEK_SET);
+    ((QFile*)handle_)->seek(position + offset_);
     position_ = position;
     readSyncNeeded_ = false;
     writeSyncNeeded_ = false;
