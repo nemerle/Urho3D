@@ -1554,17 +1554,28 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<QString> & usedTextures)
     float floatVal;
     int intVal;
     aiColor3D colorVal;
+    QString diffuseTexPath,normalTexPath,specularTexPath,lightmapTexPath,emissiveTexPath;
+    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), stringVal) == AI_SUCCESS) {
+        diffuseTexPath = FromAIString(stringVal);
+        diffuseTexName = GetFileNameAndExtension(diffuseTexPath);
+    }
+    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), stringVal) == AI_SUCCESS) {
+        normalTexPath = FromAIString(stringVal);
+        normalTexName = GetFileNameAndExtension(normalTexPath);
+    }
+    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_SPECULAR, 0), stringVal) == AI_SUCCESS) {
+        specularTexPath = FromAIString(stringVal);
+        specularTexName = GetFileNameAndExtension(specularTexPath);
+    }
+    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_LIGHTMAP, 0), stringVal) == AI_SUCCESS) {
+        lightmapTexPath = FromAIString(stringVal);
+        lightmapTexName = GetFileNameAndExtension(specularTexPath);
+    }
+    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_EMISSIVE, 0), stringVal) == AI_SUCCESS) {
+        emissiveTexPath = FromAIString(stringVal);
+        emissiveTexName = GetFileNameAndExtension(emissiveTexPath);
+    }
 
-    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), stringVal) == AI_SUCCESS)
-        diffuseTexName = GetFileNameAndExtension(FromAIString(stringVal));
-    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), stringVal) == AI_SUCCESS)
-        normalTexName = GetFileNameAndExtension(FromAIString(stringVal));
-    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_SPECULAR, 0), stringVal) == AI_SUCCESS)
-        specularTexName = GetFileNameAndExtension(FromAIString(stringVal));
-    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_LIGHTMAP, 0), stringVal) == AI_SUCCESS)
-        specularTexName = GetFileNameAndExtension(FromAIString(stringVal));
-    if (material->Get(AI_MATKEY_TEXTURE(aiTextureType_EMISSIVE, 0), stringVal) == AI_SUCCESS)
-        emissiveTexName = GetFileNameAndExtension(FromAIString(stringVal));
     if (!noMaterialDiffuseColor_)
     {
         if (material->Get(AI_MATKEY_COLOR_DIFFUSE, colorVal) == AI_SUCCESS)
@@ -1613,35 +1624,35 @@ void BuildAndSaveMaterial(aiMaterial* material, QSet<QString> & usedTextures)
         XMLElement diffuseElem = materialElem.CreateChild("texture");
         diffuseElem.SetString("unit", "diffuse");
         diffuseElem.SetString("name", GetMaterialTextureName(diffuseTexName));
-        usedTextures.insert(diffuseTexName);
+        usedTextures.insert(diffuseTexPath);
     }
     if (!normalTexName.isEmpty())
     {
         XMLElement normalElem = materialElem.CreateChild("texture");
         normalElem.SetString("unit", "normal");
         normalElem.SetString("name", GetMaterialTextureName(normalTexName));
-        usedTextures.insert(normalTexName);
+        usedTextures.insert(normalTexPath);
     }
     if (!specularTexName.isEmpty())
     {
         XMLElement specularElem = materialElem.CreateChild("texture");
         specularElem.SetString("unit", "specular");
         specularElem.SetString("name", GetMaterialTextureName(specularTexName));
-        usedTextures.insert(specularTexName);
+        usedTextures.insert(specularTexPath);
     }
     if (!lightmapTexName.isEmpty())
     {
         XMLElement lightmapElem = materialElem.CreateChild("texture");
         lightmapElem.SetString("unit", "emissive");
         lightmapElem.SetString("name", GetMaterialTextureName(lightmapTexName));
-        usedTextures.insert(lightmapTexName);
+        usedTextures.insert(lightmapTexPath);
     }
     if (!emissiveTexName.isEmpty())
     {
         XMLElement emissiveElem = materialElem.CreateChild("texture");
         emissiveElem.SetString("unit", "emissive");
         emissiveElem.SetString("name", GetMaterialTextureName(emissiveTexName));
-        usedTextures.insert(emissiveTexName);
+        usedTextures.insert(emissiveTexPath);
     }
 
     XMLElement diffuseColorElem = materialElem.CreateChild("parameter");

@@ -262,8 +262,9 @@ bool FileSystem::CreateDir(const QString& pathName)
         return false;
     }
 
-    QDir rootDir = QDir::root();
-    bool success = rootDir.mkdir(GetNativePath(RemoveTrailingSlash(pathName)));
+    QDir dir(GetNativePath(RemoveTrailingSlash(pathName)));
+
+    bool success = dir.mkpath("."); //NOTE: If directory exists already, this will return true
 
     if (success)
         LOGDEBUG("Created directory " + pathName);
