@@ -1508,6 +1508,7 @@ void View::ExecuteRenderPathCommands()
                     viewportTextures_[0] = currentRenderTarget_->GetParentTexture();
                     currentViewportTexture_ = viewportTextures_[0];
                     viewportModified = false;
+                    usedResolve_ = true;
                 }
             }
 
