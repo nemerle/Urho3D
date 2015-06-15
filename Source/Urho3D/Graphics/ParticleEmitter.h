@@ -64,9 +64,9 @@ public:
     static void RegisterObject(Context* context);
 
     /// Handle enabled/disabled state change.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
     /// Update before octree reinsertion. Is called from a worker thread.
-    virtual void Update(const FrameInfo& frame);
+    virtual void Update(const FrameInfo& frame) override;
 
     /// Set particle effect.
     void SetEffect(ParticleEffect* effect);
@@ -107,7 +107,7 @@ public:
 
 protected:
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
 
     /// Create a new particle. Return true if there was room.
     bool EmitNewParticle();

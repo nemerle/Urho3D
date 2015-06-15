@@ -42,13 +42,13 @@ public:
     static void RegisterObject(Context* context);
 
     /// Return whether is visible and inside a scissor rectangle and should be rendered.
-    virtual bool IsWithinScissor(const IntRect& currentScissor);
+    virtual bool IsWithinScissor(const IntRect& currentScissor) override;
     /// Update and return screen position.
-    virtual const IntVector2& GetScreenPosition() const;
+    virtual const IntVector2& GetScreenPosition() const override;
     /// Return UI rendering batches.
-    virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor);
+    virtual void GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) override;
     /// React to position change.
-    virtual void OnPositionSet();
+    virtual void OnPositionSet() override;
 
     /// Set floating point position.
     void SetPosition(const Vector2& position);

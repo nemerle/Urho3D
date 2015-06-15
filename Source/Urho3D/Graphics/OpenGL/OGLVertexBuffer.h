@@ -33,18 +33,18 @@ namespace Urho3D
 class URHO3D_API VertexBuffer : public Object, public GPUObject
 {
     OBJECT(VertexBuffer);
-    
+
 public:
     /// Construct.
     VertexBuffer(Context* context);
     /// Destruct.
     virtual ~VertexBuffer();
-    
+
     /// Recreate the GPU resource and restore data if applicable.
-    virtual void OnDeviceReset();
+    virtual void OnDeviceReset() override;
     /// Release the buffer.
-    virtual void Release();
-    
+    virtual void Release() override;
+
     /// Enable shadowing in CPU memory. Shadowing is forced on if the graphics subsystem does not exist.
     void SetShadowed(bool enable);
     /// Set size and vertex elements and dynamic mode. Previous data will be lost.
@@ -57,7 +57,7 @@ public:
     void* Lock(unsigned start, unsigned count, bool discard = false);
     /// Unlock the buffer and apply changes to the GPU buffer.
     void Unlock();
-    
+
     /// Return whether CPU memory shadowing is enabled.
     bool IsShadowed() const { return shadowed_; }
     /// Return whether is dynamic.
@@ -76,12 +76,12 @@ public:
     unsigned char* GetShadowData() const { return shadowData_.Get(); }
     /// Return shared array pointer to the CPU memory shadow data.
     SharedArrayPtr<unsigned char> GetShadowDataShared() const { return shadowData_; }
-    
+
     /// Return vertex size corresponding to a vertex element mask.
     static unsigned GetVertexSize(unsigned elementMask);
     /// Return element offset from an element mask.
     static unsigned GetElementOffset(unsigned elementMask, VertexElement element);
-    
+
     /// Vertex element sizes in bytes.
     static const unsigned elementSize[];
     /// Vertex element OpenGL types.
@@ -98,7 +98,7 @@ private:
     bool Create();
     /// Update the shadow data to the GPU buffer.
     bool UpdateToGPU();
-    
+
     /// Shadow data.
     SharedArrayPtr<unsigned char> shadowData_;
     /// Number of vertices.

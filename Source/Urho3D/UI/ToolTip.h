@@ -42,7 +42,7 @@ public:
     static void RegisterObject(Context* context);
 
     /// Perform UI element update.
-    virtual void Update(float timeStep);
+    virtual void Update(float timeStep) override;
 
     /// Set the delay in seconds until the tooltip shows once hovering. Set zero to use the default from the UI subsystem.
     void SetDelay(float delay);

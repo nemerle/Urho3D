@@ -112,12 +112,12 @@ public:
     static void RegisterObject(Context* context);
 
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
-    virtual bool BeginLoad(Deserializer& source);
+    virtual bool BeginLoad(Deserializer& source) override;
     /// Finish resource loading. Always called from the main thread. Return true if successful.
-    virtual bool EndLoad();
+    virtual bool EndLoad() override;
     /// Save resource. Return true if successful.
-    virtual bool Save(Serializer& dest) const;
-    
+    virtual bool Save(Serializer& dest) const override;
+
     /// Save resource to XMLElement. Return true if successful.
     bool Save(XMLElement& dest) const;
     /// Load resource from XMLElement synchronously. Return true if successful.
@@ -175,7 +175,7 @@ public:
     /// Set particle minimum rotation speed.
     void SetMinRotationSpeed(float speed);
     /// Set particle maximum rotation speed.
-    void SetMaxRotationSpeed(float speed);    
+    void SetMaxRotationSpeed(float speed);
     /// Set particle size additive modifier.
     void SetSizeAdd(float sizeAdd);
     /// Set particle size multiplicative modifier.
@@ -264,7 +264,7 @@ public:
     /// Return particle minimum rotation speed.
     float GetMinRotationSpeed() const { return rotationSpeedMin_; }
     /// Return particle maximum rotation speed.
-    float GetMaxRotationSpeed() const { return rotationSpeedMax_; }   
+    float GetMaxRotationSpeed() const { return rotationSpeedMax_; }
     /// Return particle size additive modifier.
     float GetSizeAdd() const { return sizeAdd_; }
     /// Return particle size multiplicative modifier.

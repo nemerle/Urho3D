@@ -413,6 +413,17 @@ bool AnimationController::IsFadingOut(const QString& name) const
         || (!state->IsLooped() && state->GetTime() >= state->GetLength() && animations_[index].autoFadeTime_);
 }
 
+bool AnimationController::IsAtEnd(const QString& name) const
+{
+    unsigned index;
+    AnimationState* state;
+    FindAnimation(name, index, state);
+    if (index == M_MAX_UNSIGNED || !state)
+        return false;
+    else
+        return state->GetTime() >= state->GetLength();
+}
+
 unsigned char AnimationController::GetLayer(const QString& name) const
 {
     AnimationState* state = GetAnimationState(name);

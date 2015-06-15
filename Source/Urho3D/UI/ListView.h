@@ -52,9 +52,9 @@ public:
     static void RegisterObject(Context* context);
 
     /// React to a key press.
-    virtual void OnKey(int key, int buttons, int qualifiers);
+    virtual void OnKey(int key, int buttons, int qualifiers) override;
     /// React to resize.
-    virtual void OnResize();
+    virtual void OnResize() override;
 
     /// Add item to the end of the list.
     void AddItem(UIElement* item);
@@ -143,7 +143,7 @@ public:
 
 protected:
     /// Filter implicit attributes in serialization process.
-    virtual bool FilterImplicitAttributes(XMLElement& dest) const;
+    virtual bool FilterImplicitAttributes(XMLElement& dest) const override;
     /// Update selection effect when selection or focus changes.
     void UpdateSelectionEffect();
 

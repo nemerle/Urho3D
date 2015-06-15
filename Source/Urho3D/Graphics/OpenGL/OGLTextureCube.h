@@ -36,7 +36,7 @@ class Image;
 class URHO3D_API TextureCube : public Texture
 {
     OBJECT(TextureCube);
-    
+
 public:
     /// Construct.
     TextureCube(Context* context);
@@ -44,18 +44,18 @@ public:
     virtual ~TextureCube();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
-    virtual bool BeginLoad(Deserializer& source);
+    virtual bool BeginLoad(Deserializer& source) override;
     /// Finish resource loading. Always called from the main thread. Return true if successful.
-    virtual bool EndLoad();
+    virtual bool EndLoad() override;
     /// Mark the GPU resource destroyed on context destruction.
-    virtual void OnDeviceLost();
+    virtual void OnDeviceLost() override;
     /// Recreate the GPU resource and restore data if applicable.
-    virtual void OnDeviceReset();
+    virtual void OnDeviceReset() override;
     /// Release the texture.
-    virtual void Release();
-    
+    virtual void Release() override;
+
     /// Set size, format and usage. Return true if successful.
     bool SetSize(int size, unsigned format, TextureUsage usage = TEXTURE_STATIC);
     /// Set data either partially or fully on a face's mip level. Return true if successful.
@@ -64,20 +64,20 @@ public:
     bool SetData(CubeMapFace face, Deserializer& source);
     /// Set data of one face from an image. Return true if successful. Optionally make a single channel image alpha-only.
     bool SetData(CubeMapFace face, SharedPtr<Image> image, bool useAlpha = false);
-    
+
     /// Get data from a face's mip level. The destination buffer must be big enough. Return true if successful.
     bool GetData(CubeMapFace face, unsigned level, void* dest) const;
     /// Return render surface for one face.
     RenderSurface* GetRenderSurface(CubeMapFace face) const { return renderSurfaces_[face]; }
-    
+
 protected:
     /// Create texture.
-    virtual bool Create();
-    
+    virtual bool Create() override;
+
 private:
     /// Handle render surface update event.
     void HandleRenderSurfaceUpdate(StringHash eventType, VariantMap& eventData);
-    
+
     /// Render surfaces.
     SharedPtr<RenderSurface> renderSurfaces_[MAX_CUBEMAP_FACES];
     /// Memory use per face.

@@ -46,7 +46,7 @@ public:
     static void RegisterObject(Context*);
 
     /// Update the owning mesh when enabled status has changed.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
 
     /// Get the height of this obstacle.
     float GetHeight() const { return height_; }
@@ -61,13 +61,13 @@ public:
     unsigned GetObstacleID() const { return obstacleId_; }
 
     /// Render debug information.
-    virtual void DrawDebugGeometry(DebugRenderer*, bool depthTest);
+    virtual void DrawDebugGeometry(DebugRenderer*, bool depthTest) override;
     /// Simplified rendering of debug information for script usage.
     void DrawDebugGeometry(bool depthTest);
 
 protected:
     /// Handle node being assigned, identify our DynamicNavigationMesh.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
 
 private:
     /// Radius of this obstacle.

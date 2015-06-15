@@ -46,9 +46,9 @@ class RigidBody;
 class URHO3D_API Constraint : public Component
 {
     OBJECT(Constraint);
-    
+
     friend class RigidBody;
-    
+
 public:
     /// Construct.
     Constraint(Context* context);
@@ -56,18 +56,18 @@ public:
     ~Constraint();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Handle attribute write access.
-    virtual void OnSetAttribute(const AttributeInfo& attr, const Variant& src);
+    virtual void OnSetAttribute(const AttributeInfo& attr, const Variant& src) override;
     /// Apply attribute changes that can not be applied immediately. Called after scene load or a network update.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// Handle enabled/disabled state change.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
     /// Return the depended on nodes to order network updates.
-    virtual void GetDependencyNodes(PODVector<Node*>& dest);
+    virtual void GetDependencyNodes(PODVector<Node*>& dest) override;
     /// Visualize the component as debug geometry.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
-    
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
+
     /// Set constraint type and recreate the constraint.
     void SetConstraintType(ConstraintType type);
     /// Set other body to connect to. Set to null to connect to the static world.
@@ -96,7 +96,7 @@ public:
     void SetCFM(float cfm);
     /// Set whether to disable collisions between connected bodies.
     void SetDisableCollision(bool disable);
-    
+
     /// Return physics world.
     PhysicsWorld* GetPhysicsWorld() const { return physicsWorld_; }
     /// Return Bullet constraint.
@@ -127,24 +127,24 @@ public:
     float GetCFM() const { return cfm_; }
     /// Return whether collisions between connected bodies are disabled.
     bool GetDisableCollision() const { return disableCollision_; }
-    
+
     /// Release the constraint.
     void ReleaseConstraint();
     /// Apply constraint frames.
     void ApplyFrames();
-    
+
 protected:
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
     /// Handle node transform being dirtied.
-    virtual void OnMarkedDirty(Node* node);
-    
+    virtual void OnMarkedDirty(Node* node) override;
+
 private:
     /// Create the constraint.
     void CreateConstraint();
     /// Apply high and low constraint limits.
     void ApplyLimits();
-    
+
     /// Physics world.
     WeakPtr<PhysicsWorld> physicsWorld_;
     /// Own rigid body.

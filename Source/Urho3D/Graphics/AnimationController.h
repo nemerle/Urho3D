@@ -91,7 +91,7 @@ public:
     static void RegisterObject(Context* context);
 
     /// Handle enabled/disabled state change.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
 
     /// Update the animations. Is called from HandleScenePostUpdate().
     void Update(float timeStep);
@@ -122,15 +122,17 @@ public:
     bool SetLooped(const QString& name, bool enable);
     /// Set animation speed. Return true on success.
     bool SetSpeed(const QString& name, float speed);
-    /// Set animation autofade on stop (non-looped animations only.) Zero time disables. Return true on success.
+    /// Set animation autofade at end (non-looped animations only.) Zero time disables. Return true on success.
     bool SetAutoFade(const QString& name, float fadeOutTime);
 
-    /// Return whether an animation is active.
+    /// Return whether an animation is active. Note that non-looping animations that are being clamped at the end also return true.
     bool IsPlaying(const QString& name) const;
     /// Return whether an animation is fading in.
     bool IsFadingIn(const QString& name) const;
     /// Return whether an animation is fading out.
     bool IsFadingOut(const QString& name) const;
+    /// Return whether an animation is at its end. Will return false if the animation is not active at all.
+    bool IsAtEnd(const QString& name) const;
     /// Return animation blending layer.
     unsigned char GetLayer(const QString& name) const;
     /// Return animation start bone, or null if no such animation.
@@ -173,7 +175,7 @@ public:
 
 protected:
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
 
 private:
     /// Add an animation state either to AnimatedModel or as a node animation.

@@ -34,7 +34,7 @@ class SoundStream;
 class URHO3D_API Sound : public Resource
 {
     OBJECT(Sound);
-    
+
 public:
     /// Construct.
     Sound(Context* context);
@@ -42,10 +42,10 @@ public:
     virtual ~Sound();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Load resource from stream. May be called from a worker thread. Return true if successful.
-    virtual bool BeginLoad(Deserializer& source);
-    
+    virtual bool BeginLoad(Deserializer& source) override;
+
     /// Load raw sound data.
     bool LoadRaw(Deserializer& source);
     /// Load WAV format sound data.
@@ -62,7 +62,7 @@ public:
     void SetLooped(bool enable);
     /// Define loop.
     void SetLoop(unsigned repeatOffset, unsigned endOffset);
-    
+
     /// Return a new instance of a decoder sound stream. Used by compressed sounds.
     SharedPtr<SoundStream> GetDecoderStream() const;
     /// Return shared sound data.
@@ -93,11 +93,11 @@ public:
     bool IsCompressed() const { return compressed_; }
     /// Fix interpolation by copying data from loop start to loop end (looped), or adding silence (oneshot.) Called internally, does not normally need to be called, unless the sound data is modified manually on the fly.
     void FixInterpolation();
-    
+
 private:
     /// Load optional parameters from an XML file.
     void LoadParameters();
-    
+
     /// Sound data.
     SharedArrayPtr<signed char> data_;
     /// Loop start.

@@ -31,7 +31,7 @@ namespace Urho3D
 class URHO3D_API Slider : public BorderImage
 {
     OBJECT(Slider);
-    
+
 public:
     /// Construct.
     Slider(Context* context);
@@ -39,23 +39,23 @@ public:
     virtual ~Slider();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Perform UI element update.
-    virtual void Update(float timeStep);
+    virtual void Update(float timeStep) override;
     /// React to mouse hover.
-    virtual void OnHover(const IntVector2& position, const IntVector2& screenPosition,  int buttons, int qualifiers, Cursor* cursor);
+    virtual void OnHover(const IntVector2& position, const IntVector2& screenPosition,  int buttons, int qualifiers, Cursor* cursor) override;
     /// React to mouse click begin.
-    virtual void OnClickBegin(const IntVector2& position, const IntVector2& screenPosition, int button, int buttons, int qualifiers, Cursor* cursor);
+    virtual void OnClickBegin(const IntVector2& position, const IntVector2& screenPosition, int button, int buttons, int qualifiers, Cursor* cursor) override;
     /// React to mouse click end.
-    virtual void OnClickEnd(const IntVector2& position, const IntVector2& screenPosition, int button, int buttons, int qualifiers, Cursor* cursor, UIElement* beginElement);
+    virtual void OnClickEnd(const IntVector2& position, const IntVector2& screenPosition, int button, int buttons, int qualifiers, Cursor* cursor, UIElement* beginElement) override;
     /// React to mouse drag begin.
-    virtual void OnDragBegin(const IntVector2& position, const IntVector2& screenPosition, int buttons, int qualifiers, Cursor* cursor);
+    virtual void OnDragBegin(const IntVector2& position, const IntVector2& screenPosition, int buttons, int qualifiers, Cursor* cursor) override;
     /// React to mouse drag motion.
-    virtual void OnDragMove(const IntVector2& position, const IntVector2& screenPosition, const IntVector2& deltaPos, int buttons, int qualifiers, Cursor* cursor);
+    virtual void OnDragMove(const IntVector2& position, const IntVector2& screenPosition, const IntVector2& deltaPos, int buttons, int qualifiers, Cursor* cursor) override;
     /// React to mouse drag end.
-    virtual void OnDragEnd(const IntVector2& position, const IntVector2& screenPosition, int dragButtons, int buttons, Cursor* cursor);
+    virtual void OnDragEnd(const IntVector2& position, const IntVector2& screenPosition, int dragButtons, int buttons, Cursor* cursor) override;
     /// React to resize.
-    virtual void OnResize();
+    virtual void OnResize() override;
 
     /// Set orientation type.
     void SetOrientation(Orientation orientation);
@@ -81,7 +81,7 @@ public:
 
 protected:
     /// Filter implicit attributes in serialization process.
-    virtual bool FilterImplicitAttributes(XMLElement& dest) const;
+    virtual bool FilterImplicitAttributes(XMLElement& dest) const override;
     /// Update slider knob position & size.
     void UpdateSlider();
     /// Send slider page event.

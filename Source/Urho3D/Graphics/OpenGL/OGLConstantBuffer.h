@@ -42,9 +42,9 @@ public:
     virtual ~ConstantBuffer();
 
     /// Recreate the GPU resource and restore data if applicable.
-    virtual void OnDeviceReset();
+    virtual void OnDeviceReset() override;
     /// Release the buffer.
-    virtual void Release();
+    virtual void Release() override;
 
     /// Set size and create GPU-side buffer. Return true on success.
     bool SetSize(unsigned size);

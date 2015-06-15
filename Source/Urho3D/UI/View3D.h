@@ -47,7 +47,7 @@ public:
     static void RegisterObject(Context* context);
 
     /// React to resize.
-    virtual void OnResize();
+    virtual void OnResize() override;
 
     /// Define the scene and camera to use in rendering. When ownScene is true the View3D will take ownership of them with shared pointers.
     void SetView(Scene* scene, Camera* camera, bool ownScene = true);
@@ -57,7 +57,7 @@ public:
     void SetAutoUpdate(bool enable);
     /// Queue manual update on the render texture.
     void QueueUpdate();
-    
+
     /// Return render texture pixel format.
     unsigned GetFormat() const { return rttFormat_; }
     /// Return whether render target updates automatically.
@@ -72,7 +72,7 @@ public:
     Texture2D* GetDepthTexture() const;
     /// Return viewport.
     Viewport* GetViewport() const;
-    
+
 private:
     /// Reset scene.
     void ResetScene();

@@ -85,7 +85,7 @@ public:
         SubscribeToEvent(overlayContainer->GetParent(), E_VIEWCHANGED, HANDLER(HierarchyContainer, HandleViewChanged));
         SubscribeToEvent(E_UIMOUSECLICK, HANDLER(HierarchyContainer, HandleUIMouseClick));
     }
-    
+
     /// Register object factory.
     static void RegisterObject(Context* context);
 
@@ -405,7 +405,8 @@ void ListView::RemoveItem(UIElement* item, unsigned index)
                 if (GetItemHierarchyParent(item))
                 {
                     int baseIndent = item->GetIndent();
-                    for (unsigned j = i + 1; ; ++j)
+
+                    for (PODVector<unsigned>::iterator iter = selections_.begin()+i+1 ;; )
                     {
                         UIElement* childItem = GetItem(i + 1);
                         if (!childItem)
@@ -413,7 +414,8 @@ void ListView::RemoveItem(UIElement* item, unsigned index)
                         if (childItem->GetIndent() > baseIndent)
                         {
                             childItem->SetSelected(false);
-                            selections_.erase(selections_.begin()+j);
+                            if(!selections_.empty())
+                                iter = selections_.erase(iter);
                             contentElement_->RemoveChildAtIndex(i + 1);
                             overlayContainer_->RemoveChildAtIndex(i + 1);
                             ++removed;

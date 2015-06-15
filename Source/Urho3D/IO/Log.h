@@ -133,11 +133,6 @@ private:
 #define LOGWARNING(message) Urho3D::Log::Write(Urho3D::LOG_WARNING, message)
 #define LOGERROR(message) Urho3D::Log::Write(Urho3D::LOG_ERROR, message)
 #define LOGRAW(message) Urho3D::Log::WriteRaw(message)
-#define LOGDEBUGF(...) Urho3D::Log::Write(Urho3D::LOG_DEBUG, Urho3D::ToString(__VA_ARGS__))
-#define LOGINFOF(...) Urho3D::Log::Write(Urho3D::LOG_INFO, Urho3D::ToString(__VA_ARGS__))
-#define LOGWARNINGF(...) Urho3D::Log::Write(Urho3D::LOG_WARNING, Urho3D::ToString(__VA_ARGS__))
-#define LOGERRORF(...) Urho3D::Log::Write(Urho3D::LOG_ERROR, Urho3D::ToString(__VA_ARGS__))
-#define LOGRAWF(...) Urho3D::Log::WriteRaw(Urho3D::ToString(__VA_ARGS__))
 #else
 #define LOGDEBUG(message)
 #define LOGINFO(message)

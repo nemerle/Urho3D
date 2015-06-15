@@ -61,11 +61,11 @@ public:
     static void RegisterObject(Context* context);
 
     /// Handle enabled/disabled state change.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
     /// Draw debug geometry.
     void DrawDebugGeometry(bool);
     /// Draw debug feelers.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
 
     /// Set the navigation filter type the agent will use.
     void SetNavigationFilterType(unsigned filterTypeID);
@@ -132,9 +132,9 @@ protected:
     /// Update the nodes position if updateNodePosition is set. Is called in DetourCrowdManager::Update().
     virtual void OnCrowdAgentReposition(const Vector3& newPos, const Vector3& newVel);
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
     /// \todo Handle node transform being dirtied.
-    virtual void OnMarkedDirty(Node* node);
+    virtual void OnMarkedDirty(Node* node) override;
     /// Get internal Detour crowd agent.
     const dtCrowdAgent* GetDetourCrowdAgent() const;
 private:
@@ -149,9 +149,9 @@ private:
     /// DetourCrowd reference to this agent.
     int agentCrowdId_;
     /// Reference to poly closest to requested target position.
-    unsigned int targetRef_;         
+    unsigned int targetRef_;
     /// Actual target position, closest to that requested.
-    Vector3 targetPosition_;   
+    Vector3 targetPosition_;
     /// Flag indicating the node's position should be updated by Detour crowd manager.
     bool updateNodePosition_;
     /// Agent's max acceleration.

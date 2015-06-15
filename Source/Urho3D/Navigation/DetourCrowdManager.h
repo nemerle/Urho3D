@@ -86,7 +86,7 @@ public:
     unsigned GetAgentCount() const;
 
     /// Draw the agents' pathing debug data.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
     /// Add debug geometry to the debug renderer.
     void DrawDebugGeometry(bool depthTest);
     /// Get the currently included agents.
@@ -117,7 +117,7 @@ protected:
     /// Update the crowd simulation.
     void Update(float delta);
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
     /// Get the detour crowd agent.
     const dtCrowdAgent* GetCrowdAgent(int agent);
     /// Get the internal detour crowd component.

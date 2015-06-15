@@ -35,7 +35,7 @@ class VertexBuffer;
 class URHO3D_API TerrainPatch : public Drawable
 {
     OBJECT(TerrainPatch);
-    
+
 public:
     /// Construct.
     TerrainPatch(Context* context);
@@ -43,24 +43,24 @@ public:
     ~TerrainPatch();
     /// Register object factory.
     static void RegisterObject(Context* context);
-    
+
     /// Process octree raycast. May be called from a worker thread.
-    virtual void ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResult>& results);
+    virtual void ProcessRayQuery(const RayOctreeQuery& query, PODVector<RayQueryResult>& results) override;
     /// Calculate distance and prepare batches for rendering. May be called from worker thread(s), possibly re-entrantly.
-    virtual void UpdateBatches(const FrameInfo& frame);
+    virtual void UpdateBatches(const FrameInfo& frame) override;
     /// Prepare geometry for rendering. Called from a worker thread if possible (no GPU update.)
-    virtual void UpdateGeometry(const FrameInfo& frame);
+    virtual void UpdateGeometry(const FrameInfo& frame) override;
     /// Return whether a geometry update is necessary, and if it can happen in a worker thread.
-    virtual UpdateGeometryType GetUpdateGeometryType();
+    virtual UpdateGeometryType GetUpdateGeometryType() override;
     /// Return the geometry for a specific LOD level.
-    virtual Geometry* GetLodGeometry(unsigned batchIndex, unsigned level);
+    virtual Geometry* GetLodGeometry(unsigned batchIndex, unsigned level) override;
     /// Return number of occlusion geometry triangles.
-    virtual unsigned GetNumOccluderTriangles();
+    virtual unsigned GetNumOccluderTriangles() override;
     /// Draw to occlusion buffer. Return true if did not run out of triangles.
-    virtual bool DrawOcclusion(OcclusionBuffer* buffer);
+    virtual bool DrawOcclusion(OcclusionBuffer* buffer) override;
     /// Visualize the component as debug geometry.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
-    
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
+
     /// Set owner terrain.
     void SetOwner(Terrain* terrain);
     /// Set neighbor patches.
@@ -75,7 +75,7 @@ public:
     void SetOcclusionOffset(float offset);
     /// Reset to LOD level 0.
     void ResetLod();
-    
+
     /// Return visible geometry.
     Geometry* GetGeometry() const;
     /// Return max LOD geometry.
@@ -102,15 +102,15 @@ public:
     unsigned GetLodLevel() const { return lodLevel_; }
     /// Return vertical offset for occlusion geometry..
     float GetOcclusionOffset() const { return occlusionOffset_; }
-    
+
 protected:
     /// Recalculate the world-space bounding box.
-    virtual void OnWorldBoundingBoxUpdate();
-    
+    virtual void OnWorldBoundingBoxUpdate() override;
+
 private:
     /// Return a corrected LOD level to ensure stitching can work correctly.
     unsigned GetCorrectedLodLevel(unsigned lodLevel);
-    
+
     /// Geometry.
     SharedPtr<Geometry> geometry_;
     /// Geometry that is locked to the max LOD level. Used for decals.

@@ -34,18 +34,18 @@ namespace Urho3D
 class URHO3D_API IndexBuffer : public Object, public GPUObject
 {
     OBJECT(IndexBuffer);
-    
+
 public:
     /// Construct.
     IndexBuffer(Context* context);
     /// Destruct.
     virtual ~IndexBuffer();
-    
+
     /// Recreate the GPU resource and restore data if applicable.
-    virtual void OnDeviceReset();
+    virtual void OnDeviceReset() override;
     /// Release the buffer.
-    virtual void Release();
-    
+    virtual void Release() override;
+
     /// Enable shadowing in CPU memory. Shadowing is forced on if the graphics subsystem does not exist.
     void SetShadowed(bool enable);
     /// Set buffer size and dynamic mode. Previous data will be lost.
@@ -58,7 +58,7 @@ public:
     void* Lock(unsigned start, unsigned count, bool discard = false);
     /// Unlock the buffer and apply changes to the GPU buffer.
     void Unlock();
-    
+
     /// Return whether CPU memory shadowing is enabled.
     bool IsShadowed() const { return shadowed_; }
     /// Return whether is dynamic.
@@ -75,13 +75,13 @@ public:
     unsigned char* GetShadowData() const { return shadowData_.Get(); }
     /// Return shared array pointer to the CPU memory shadow data.
     SharedArrayPtr<unsigned char> GetShadowDataShared() const { return shadowData_; }
-    
+
 private:
     /// Create buffer.
     bool Create();
     /// Update the shadow data to the GPU buffer.
     bool UpdateToGPU();
-    
+
     /// Shadow data.
     SharedArrayPtr<unsigned char> shadowData_;
     /// Number of indices.

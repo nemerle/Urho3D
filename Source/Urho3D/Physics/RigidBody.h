@@ -60,17 +60,17 @@ public:
     static void RegisterObject(Context* context);
 
     /// Handle attribute write access.
-    virtual void OnSetAttribute(const AttributeInfo& attr, const Variant& src);
+    virtual void OnSetAttribute(const AttributeInfo& attr, const Variant& src) override;
     /// Apply attribute changes that can not be applied immediately. Called after scene load or a network update.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// Handle enabled/disabled state change.
-    virtual void OnSetEnabled();
+    virtual void OnSetEnabled() override;
     /// Return initial world transform to Bullet.
-    virtual void getWorldTransform(btTransform &worldTrans) const;
+    virtual void getWorldTransform(btTransform &worldTrans) const override;
     /// Update world transform from Bullet.
-    virtual void setWorldTransform(const btTransform &worldTrans);
+    virtual void setWorldTransform(const btTransform &worldTrans) override;
     /// Visualize the component as debug geometry.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
 
     /// Set mass. Zero mass makes the body static.
     void SetMass(float mass);
@@ -233,9 +233,9 @@ public:
 
 protected:
     /// Handle node being assigned.
-    virtual void OnNodeSet(Node* node);
+    virtual void OnNodeSet(Node* node) override;
     /// Handle node transform being dirtied.
-    virtual void OnMarkedDirty(Node* node);
+    virtual void OnMarkedDirty(Node* node) override;
 
 private:
     /// Create the rigid body, or re-add to the physics world with changed flags. Calls UpdateMass().

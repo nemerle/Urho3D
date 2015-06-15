@@ -44,15 +44,15 @@ public:
     static void RegisterObject(Context* context);
 
     /// Perform UI element update.
-    virtual void Update(float timeStep);
+    virtual void Update(float timeStep) override;
     /// Apply attribute changes that can not be applied immediately.
-    virtual void ApplyAttributes();
+    virtual void ApplyAttributes() override;
     /// React to mouse wheel.
-    virtual void OnWheel(int delta, int buttons, int qualifiers);
+    virtual void OnWheel(int delta, int buttons, int qualifiers) override;
     /// React to a key press.
-    virtual void OnKey(int key, int buttons, int qualifiers);
+    virtual void OnKey(int key, int buttons, int qualifiers) override;
     /// React to resize.
-    virtual void OnResize();
+    virtual void OnResize() override;
 
     /// Set content element.
     void SetContentElement(UIElement* element);
@@ -107,7 +107,7 @@ public:
 
 protected:
     /// Filter implicit attributes in serialization process.
-    virtual bool FilterImplicitAttributes(XMLElement& dest) const;
+    virtual bool FilterImplicitAttributes(XMLElement& dest) const override;
     /// Filter implicit attributes in serialization process for internal scroll bar.
     bool FilterScrollBarImplicitAttributes(XMLElement& dest, const QString& name) const;
     /// Resize panel based on scrollbar visibility.

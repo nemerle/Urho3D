@@ -75,7 +75,7 @@ public:
     /// Load resource. Return true if successful.
     virtual bool Load(Deserializer& source);
     /// Save resource. Return true if successful.
-    virtual bool Save(Serializer& dest) const;
+    virtual bool Save(Serializer& dest) const override;
     /// Load from XML data. Return true if successful.
     bool LoadXML(const XMLElement& source);
     /// Save as XML data. Return true if successful.
@@ -89,7 +89,7 @@ public:
     void SetSplineTension(float tension);
     /// Set value type.
     void SetValueType(VariantType valueType);
-    
+
     /// Set key frame.
     bool SetKeyFrame(float time, const Variant& value);
     /// Set event frame.

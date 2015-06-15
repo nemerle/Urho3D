@@ -40,7 +40,7 @@ namespace Urho3D
         static void RegisterObject(Context*);
 
         /// Render debug geometry for the bounds.
-        virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
+        virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
 
         /// Get the area id for this volume.
         unsigned GetAreaID() const { return (unsigned)areaID_; }

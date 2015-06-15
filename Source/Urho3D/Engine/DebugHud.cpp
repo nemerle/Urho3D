@@ -120,8 +120,7 @@ void DebugHud::Update()
             batches = renderer->GetNumBatches();
         }
 
-        QString stats;
-        QString("Triangles %1\nBatches %2\nViews %3\nLights %4\nShadowmaps %5\nOccluders %6")
+        QString stats = QString("Triangles %1\nBatches %2\nViews %3\nLights %4\nShadowmaps %5\nOccluders %6")
             .arg(primitives)
             .arg(batches)
             .arg(renderer->GetNumViews())
@@ -141,8 +140,7 @@ void DebugHud::Update()
 
     if (modeText_->IsVisible())
     {
-        QString mode;
-        QString("Tex:%1 Mat:%2 Spec:%3 Shadows:%4 Size:%5 Quality:%6 Occlusion:%7 Instancing:%8 API:%9")
+        QString mode = QString("Tex:%1 Mat:%2 Spec:%3 Shadows:%4 Size:%5 Quality:%6 Occlusion:%7 Instancing:%8 API:%9")
             .arg(qualityTexts[renderer->GetTextureQuality()])
             .arg(qualityTexts[renderer->GetMaterialQuality()])
             .arg(renderer->GetSpecularLighting() ? "On" : "Off")

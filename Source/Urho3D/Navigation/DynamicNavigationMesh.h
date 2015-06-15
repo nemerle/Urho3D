@@ -54,18 +54,18 @@ public:
     static void RegisterObject(Context*);
 
     /// Build/rebuild the entire navigation mesh.
-    virtual bool Build();
+    virtual bool Build() override;
     /// Build/rebuild a portion of the navigation mesh.
-    virtual bool Build(const BoundingBox& boundingBox);
+    virtual bool Build(const BoundingBox& boundingBox) override;
     /// Visualize the component as debug geometry.
-    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
+    virtual void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
     /// Add debug geometry to the debug renderer.
     void DrawDebugGeometry(bool depthTest);
 
     /// Set navigation data attribute.
-    virtual void SetNavigationDataAttr(const PODVector<unsigned char>& value);
+    virtual void SetNavigationDataAttr(const PODVector<unsigned char>& value) override;
     /// Return navigation data attribute.
-    virtual PODVector<unsigned char> GetNavigationDataAttr() const;
+    virtual PODVector<unsigned char> GetNavigationDataAttr() const override;
 
     /// Set the maximum number of obstacles allowed.
     void SetMaxObstacles(unsigned maxObstacles) { maxObstacles_ = maxObstacles; }
@@ -81,7 +81,7 @@ protected:
     struct TileCacheData;
 
     /// Subscribe to events when assigned to a node.
-    virtual void OnNodeSet(Node*);
+    virtual void OnNodeSet(Node*) override;
     /// Trigger the tile cache to make updates to the nav mesh if necessary.
     void HandleSceneSubsystemUpdate(StringHash eventType, VariantMap& eventData);
 
@@ -97,7 +97,7 @@ protected:
     /// Off-mesh connections to be rebuilt in the mesh processor.
     PODVector<OffMeshConnection*> CollectOffMeshConnections(const BoundingBox& bounds);
     /// Release the navigation mesh, query, and tile cache.
-    virtual void ReleaseNavigationMesh();
+    virtual void ReleaseNavigationMesh() override;
 
 private:
     /// Free the tile cache.
